@@ -28,8 +28,8 @@ class FilePickerService {
   Future<PickedFile?> pickStructureFile() async {
     final uploadInput = _document.callMethod('createElement'.toJS, 'input'.toJS) as JSObject;
     uploadInput.setProperty('type'.toJS, 'file'.toJS);
-    // CJSON is Avogadro 2's native format — offer it alongside the classics.
-    uploadInput.setProperty('accept'.toJS, '.xyz,.cjson,.mol,.sdf,.cml'.toJS);
+    // CJSON is Avogadro 2's native format — offer it alongside the classics and crystallographic formats.
+    uploadInput.setProperty('accept'.toJS, '.xyz,.cjson,.mol,.sdf,.cml,.pdb,.ent,.cif,.mmcif'.toJS);
     uploadInput.callMethod('click'.toJS);
 
     return _getFileFromInput(uploadInput);

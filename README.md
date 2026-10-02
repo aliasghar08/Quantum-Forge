@@ -170,9 +170,120 @@ export QUANTUM_FORGE_URL=http://localhost:8080   # or $env: on PowerShell
 
 The same value can be set in *Settings ▸ Avogadro ▸ Bridge endpoint*.
 
-## 🌐 Deployment
+## 🔬 MLIP & Quantum Compute Backends
 
-Hosted via Firebase Hosting: [quantom-forge.web.app](https://quantom-forge.web.app)
+Quantum Forge integrates multiple Machine Learning Interatomic Potentials (MLIP) and semi-empirical quantum chemistry methods through modular, stateless FastAPI microservices:
+
+| Backend | Port | Model / Architecture | Default Device | Environment |
+|---|---|---|---|---|
+| `mace-backend` | **8001** | **MACE-MP-0** (*Batatia et al., NeurIPS 2022*) | `cpu` (safe for float64 on Apple Silicon) | Shared `.venv` |
+| `chgnet-backend` | **8002** | **CHGNet** (*Deng et al., Nature MI 2023*) | `mps` / `cuda` | Shared `.venv` |
+| `ani2x-backend` | **8003** | **ANI-2x** (*Devereux et al., JCTC 2020*) | `mps` / `cuda` | Shared `.venv` |
+| `gfn2-xtb-backend` | **8004** | **GFN2-xTB** (*Bannwarth et al., JCTC 2019*) | CPU | Conda `xtb-env` |
+| `tx1-fastapi-backend` | **8005** | **Transition1x GNN** (*Schreiner et al., Sci. Data 2022*) | CPU | Shared `.venv` |
+
+---
+
+### Local Development Workflow
+
+Starting, stopping, and inspecting backends is managed via helper scripts in `scripts/`:
+
+#### 1. Start a backend
+Run each backend in its own terminal tab:
+```bash
+./scripts/start-backend.sh mace-backend
+```
+What `start-backend.sh` does automatically:
+- Validates that the directory exists and maps it to its designated port.
+- Verifies the port is not in use (`lsof -ti:<port>`); exits cleanly with conflict details if occupied without killing it.
+- Activates the proper Python environment (`xtb-env` conda environment for `gfn2-xtb-backend`, or repo root `.venv` for all other backends).
+- Automatically sets `PYTORCH_ENABLE_MPS_FALLBACK=1`.
+- Executes `python -m uvicorn main:app --host 0.0.0.0 --port <port>` without `--reload` (preventing supervisor processes that re-lock ports upon Ctrl+C).
+- Traps `SIGINT`/`SIGTERM` to cleanly terminate and release the port.
+
+#### 2. Check health across all backends
+In another terminal, poll all 5 services simultaneously:
+```bash
+./scripts/health-backends.sh
+```
+Example output:
+```
+mace-backend        (8001): ok       — MACE-MP-0 ready (device: cpu)
+chgnet-backend      (8002): ok       — CHGNet universal potential ready (device: mps)
+ani2x-backend       (8003): ok       — ANI-2x ready (device: mps)
+gfn2-xtb-backend    (8004): ok       — GFN2-xTB calculator ready
+tx1-fastapi-backend (8005): ok       — Transition1x GNN ready
+```
+For any backend not running:
+```
+<backend> (<port>): not running
+```
+
+#### 3. Stop backends
+```bash
+# Stop a specific backend
+./scripts/stop-backends.sh mace-backend
+
+# Stop all backend services across all 5 ports
+./scripts/stop-backends.sh --all
+```
+
+#### 4. How the Flutter App Routes Requests
+In `quantum_forge/lib/state/settings_provider.dart`, the app derives the target endpoint dynamically through `settings.effectiveBackendUrl`:
+- `mlipModel = 'tx1-fastapi'` → `http://localhost:8005`
+- `mlipModel = 'MACE-MP-0'` or `'MACE-OFF23'` → `http://localhost:8001`
+- `mlipModel = 'CHGNet'` → `http://localhost:8002`
+- `mlipModel = 'ANI-2x'` → `http://localhost:8003`
+- `mlipModel = 'GFN2-xTB'` → `http://localhost:8004`
+
+If an explicit `backendUrl` override is provided in Settings, that override is preferred; otherwise it defaults seamlessly to the local port for the selected model.
+
+#### 5. Docker builds with pre-baked weights
+For cloud deployment (e.g. Render free tier), every backend includes a multi-stage Dockerfile that pre-downloads and bakes its model weights during image build:
+```bash
+# Build and verify a single container image
+./scripts/build-backend.sh mace-backend
+
+# Build and verify all 5 backend images sequentially
+./scripts/build-all-backends.sh
+```
+The script builds the image, starts it in the background, waits for `/health` to report `{"status":"ok"}`, checks the container stdout for `[MLIP] <Model> loaded from <source>`, and stops the container cleanly.
+
+---
+
+
+### Apple Silicon (MPS) Notes
+
+- **Float64 on MPS**: Apple Silicon Metal Performance Shaders (MPS) framework does not support 64-bit floating point (`float64`) tensors. MACE foundation models deserialize and run internal operations with double precision.
+- **Automatic Fallback**: All PyTorch backends include `os.environ.setdefault("PYTORCH_ENABLE_MPS_FALLBACK", "1")` which tells PyTorch to evaluate unsupported MPS kernels on CPU.
+- **CPU Fallback (`MACE_DEVICE=cpu`)**: While MPS acceleration is faster for short predictions, long NEB trajectory optimizations can be memory-intensive. You can force CPU execution at any time:
+  ```bash
+  MACE_DEVICE=cpu ./scripts/start-backend.sh mace-backend
+  ```
+
+---
+
+### Troubleshooting
+
+- **`No module named uvicorn`**:
+  Your active shell is using system Python (`/usr/bin/python3` or Xcode's toolchain) instead of the virtualenv. Activate the venv with `source .venv/bin/activate` or use `./scripts/start-backend.sh <backend>`.
+- **`Address already in use`**:
+  A previous uvicorn reloader process or crashed worker is still holding the port. Run:
+  ```bash
+  ./scripts/stop-backends.sh <backend>
+  ```
+- **`Model unavailable: ...` in `/health`**:
+  The checkpoint could not be downloaded or initialized. Ensure internet access is available for Hugging Face or set your token:
+  ```bash
+  export HF_TOKEN="your_huggingface_token"
+  ```
+- **`Cannot convert a MPS Tensor to float64 dtype`**:
+  Force CPU execution for MACE:
+  ```bash
+  MACE_DEVICE=cpu ./scripts/start-backend.sh mace-backend
+  ```
+
+---
 
 ## 📁 Layout
 
@@ -182,14 +293,21 @@ Quantom-Forge/
 │   ├── lib/              # Core application logic, features, and UI
 │   │   ├── core/         # Core services, themes, and Avogadro bridges
 │   │   └── features/     # Feature modules (reaction_runner, reaction_library, etc.)
-│   ├── assets/           # Chemical assets, bundled 3D reactions (massive_reactions.json)
+│   ├── assets/           # Chemical assets, bundled 3D reactions
 │   ├── avogadro_plugin/  # Python plugin to bridge with Avogadro 2
-│   ├── scratch/          # Python data generation pipelines (RDKit combinatorial engines)
 │   └── test/             # Unit and widget tests
-├── tx1-fastapi-backend/  # FastAPI Backend (Python) for Colab / cloud compute
-│   ├── main.py           # Quantum router and execution logic
-│   └── worker_hybrid.py  # ASE/OpenMM molecular dynamics logic
-├── MACE/                 # MACE Machine Learning Interatomic Potentials backend
+├── scripts/              # Shared development automation scripts
+│   ├── start-backend.sh  # Safe backend runner (venv check, port check, MPS fallback)
+│   ├── stop-backends.sh  # Clean process termination utility
+│   ├── health-backends.sh # Multi-backend health polling script
+│   ├── build-backend.sh  # Docker build and container health verification
+│   └── build-all-backends.sh # Sequential build & verification of all 5 backends
+
+├── mace-backend/         # MACE-MP-0 Foundation Potential service (Port 8001)
+├── ani2x-backend/        # ANI-2x Deep Learning Potential service (Port 8002)
+├── chgnet-backend/       # CHGNet Universal Potential service (Port 8003)
+├── gfn2-xtb-backend/     # GFN2-xTB Semi-Empirical QM service (Port 8004)
+├── tx1-fastapi-backend/  # Transition1x GNN compute service (Port 8005)
 └── .github/              # CI/CD Workflows for automated analysis and deployment
 ```
 

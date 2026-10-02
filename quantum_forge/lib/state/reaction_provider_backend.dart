@@ -13,11 +13,11 @@ extension ReactionProviderBackendExt on ReactionNotifier {
     String productXyz,
     QuantumSettings settings,
   ) async {
-    var url = (backendUrlProvider?.call() ?? '').trim();
-    if (settings.mlipModel == 'tx1-fastapi') {
-      url = (gnnBackendUrlProvider?.call() ?? '').trim();
-    } else if (settings.mlipModel == 'MACE-MP-0') {
-      url = 'http://127.0.0.1:8001';
+    final explicitOverride = (backendUrlProvider?.call() ?? '').trim();
+    var url = settings.effectiveBackendUrl;
+    if (explicitOverride.isNotEmpty &&
+        explicitOverride != kDefaultComputeBackendUrl) {
+      url = explicitOverride;
     }
     if (url.isEmpty) return false;
     if (reactantXyz.isEmpty || productXyz.isEmpty) {

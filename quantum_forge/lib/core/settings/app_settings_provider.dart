@@ -55,13 +55,17 @@ enum ExportFormat {
   xyz,
   cjson,
   cml,
-  sdf;
+  sdf,
+  pdb,
+  cif;
 
   String get label => switch (this) {
     ExportFormat.xyz => 'XYZ — universal cartesian coordinates',
     ExportFormat.cjson => 'CJSON — native Avogadro 2 format',
     ExportFormat.cml => 'CML — Chemical Markup Language',
     ExportFormat.sdf => 'SDF / MOL — V2000 connection table',
+    ExportFormat.pdb => 'PDB — Protein Data Bank format',
+    ExportFormat.cif => 'CIF — Crystallographic Information File',
   };
 
   String get shortLabel => switch (this) {
@@ -69,6 +73,8 @@ enum ExportFormat {
     ExportFormat.cjson => 'CJSON',
     ExportFormat.cml => 'CML',
     ExportFormat.sdf => 'SDF',
+    ExportFormat.pdb => 'PDB',
+    ExportFormat.cif => 'CIF',
   };
 
   /// File extension (without the dot) used for downloads.
@@ -79,7 +85,9 @@ enum ExportFormat {
     ExportFormat.xyz => 'chemical/x-xyz',
     ExportFormat.cjson => 'chemical/x-cjson',
     ExportFormat.cml => 'chemical/x-cml',
-    ExportFormat.sdf => 'chemical/x-mdl-molfile',
+    ExportFormat.sdf => 'chemical/x-mdl-sdfile',
+    ExportFormat.pdb => 'chemical/x-pdb',
+    ExportFormat.cif => 'chemical/x-cif',
   };
 
   bool get isAvogadroNative => this == ExportFormat.cjson;
@@ -174,6 +182,26 @@ class AppSettings {
 
   /// True when a real compute backend has been configured.
   bool get hasComputeBackend => backendUrl.trim().isNotEmpty;
+
+  /// The effective URL to use for the currently selected MLIP model.
+  ///
+  /// Prefers the explicit `backendUrl` override when the user has set one
+  /// (and it is not the default remote placeholder); otherwise falls back
+  /// to the local development URL for whichever `mlipModel` is selected.
+  String effectiveBackendUrl([String mlipModel = 'tx1-fastapi']) {
+    if (backendUrl.isNotEmpty && backendUrl != kDefaultComputeBackendUrl) {
+      return backendUrl;
+    }
+    return switch (mlipModel) {
+      'tx1-fastapi' => 'http://localhost:8005',
+      'MACE-MP-0' => 'http://localhost:8001',
+      'MACE-OFF23' => 'http://localhost:8001',
+      'ANI-2x' => 'http://localhost:8003',
+      'CHGNet' => 'http://localhost:8002',
+      'GFN2-xTB' => 'http://localhost:8004',
+      _ => 'http://localhost:8005',
+    };
+  }
 
   /// True when a real GNN backend has been configured.
   bool get hasGnnBackend => gnnBackendUrl.trim().isNotEmpty;

@@ -152,6 +152,7 @@ class BackendComputeService {
       vibrationalModes: (json['vibrational_modes'] as List<dynamic>?)
           ?.map((e) => VibrationalMode.fromJson(e as Map<String, dynamic>))
           .toList(),
+      modelUsed: json['model_used'] as String?,
     );
   }
 

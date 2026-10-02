@@ -27,6 +27,7 @@ import 'package:quantum_forge/core/services/backend_compute_service.dart';
 import 'package:quantum_forge/core/services/file_picker_service.dart';
 import 'package:quantum_forge/core/settings/app_settings_provider.dart';
 import 'package:quantum_forge/core/theme/theme_provider.dart';
+import 'package:quantum_forge/state/settings_provider.dart';
 import 'package:quantum_forge/core/utils/avogadro_bridge.dart';
 import 'package:quantum_forge/core/utils/avogadro_codec.dart';
 import 'package:quantum_forge/core/utils/avogadro_deep_link.dart';
@@ -300,7 +301,10 @@ H  0.00000 -0.75545 -0.47116''';
   void _simulateHybridMd() async {
     if (!mounted) return;
     
-    final backendUrl = context.read<AppSettingsNotifier>().settings.backendUrl;
+    final quantumSettings = context.read<QuantumSettingsNotifier>().value;
+    final appSettings = context.read<AppSettingsNotifier>().settings;
+    final backendUrl =
+        appSettings.effectiveBackendUrl(quantumSettings.mlipModel);
     if (backendUrl.isEmpty) {
       _snack('Please configure a Compute Backend URL in Settings first.', isError: true);
       return;

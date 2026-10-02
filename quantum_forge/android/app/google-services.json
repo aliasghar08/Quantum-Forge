@@ -29,6 +29,13 @@
             {
               "client_id": "227207155336-qb7nr2ouk9668cl78s50u2cj29q1q0r2.apps.googleusercontent.com",
               "client_type": 3
+            },
+            {
+              "client_id": "227207155336-ml1iqlsdoatfsdenl49rj48rar78qnbp.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.quantumForge"
+              }
             }
           ]
         }

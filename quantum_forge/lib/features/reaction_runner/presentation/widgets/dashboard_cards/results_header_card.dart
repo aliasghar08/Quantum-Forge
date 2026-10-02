@@ -15,13 +15,22 @@ import 'research_ui.dart';
 class ResultsHeaderCard extends StatelessWidget {
   final ResultsSummary summary;
   final String? reactionName;
+  final String? modelUsed;
 
-  const ResultsHeaderCard({super.key, required this.summary, this.reactionName});
+  const ResultsHeaderCard({
+    super.key,
+    required this.summary,
+    this.reactionName,
+    this.modelUsed,
+  });
 
   @override
   Widget build(BuildContext context) {
     final palette = ThemeNotifier.paletteOf(context);
     final s = summary.settings;
+    final displayMlip = (modelUsed != null && modelUsed!.isNotEmpty)
+        ? (modelUsed != s.mlipModel ? '$modelUsed (actual)' : modelUsed!)
+        : s.mlipModel;
 
     return ResearchCard(
       accent: palette.accent,
@@ -54,7 +63,7 @@ class ResultsHeaderCard extends StatelessWidget {
               _MetaChip(icon: Icons.memory, label: summary.methodLabel),
               _MetaChip(icon: Icons.thermostat, label: '${s.temperatureK.toStringAsFixed(1)} K'),
               _MetaChip(icon: Icons.water_drop_outlined, label: s.solventModel),
-              _MetaChip(icon: Icons.auto_awesome, label: s.mlipModel),
+              _MetaChip(icon: Icons.auto_awesome, label: displayMlip),
               _MetaChip(icon: Icons.account_tree_outlined, label: s.optimizerAlgorithm),
               _MetaChip(icon: Icons.tune, label: 'charge ${s.charge} · 2S+1=${s.spinMultiplicity}'),
             ],

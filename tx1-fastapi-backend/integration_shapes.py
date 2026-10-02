@@ -1,7 +1,7 @@
 import requests
 import time
 
-def test_reaction(r_count, p_count, name):
+def run_reaction(r_count, p_count, name):
     req = {
         "reactant_xyz": f"{r_count}\nReactant\n" + "\n".join([f"C {i} 0 0" for i in range(r_count)]),
         "product_xyz": f"{p_count}\nProduct\n" + "\n".join([f"C {i} 0 0" for i in range(p_count)]),
@@ -24,6 +24,6 @@ def test_reaction(r_count, p_count, name):
                 print(f"Error: {status.get('error')}")
             break
 
-test_reaction(10, 10, "diels_alder (10 vs 10)")
-test_reaction(15, 12, "e2_elimination (15 vs 12)")
-test_reaction(29, 38, "ninhydrin_test (29 vs 38)")
+run_reaction(10, 10, "diels_alder (10 vs 10)")
+run_reaction(15, 12, "e2_elimination (15 vs 12)")
+run_reaction(29, 38, "ninhydrin_test (29 vs 38)")

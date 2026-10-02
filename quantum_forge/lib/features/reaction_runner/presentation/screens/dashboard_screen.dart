@@ -25,6 +25,7 @@ import 'package:quantum_forge/features/reaction_runner/presentation/widgets/dash
 import 'package:quantum_forge/features/reaction_runner/presentation/widgets/quantum_controls_panel.dart';
 import 'package:quantum_forge/features/reaction_library/data/reaction_templates.dart';
 import 'package:quantum_forge/features/reaction_library/presentation/screens/library_screen.dart';
+import 'package:quantum_forge/features/reaction_library/presentation/widgets/pubmed_panel.dart';
 // Dashboard card widgets
 import 'package:quantum_forge/features/reaction_runner/presentation/widgets/dashboard_cards/energy_profile_card.dart';
 import 'package:quantum_forge/features/reaction_runner/presentation/widgets/dashboard_cards/hero_metrics_row.dart';
@@ -334,7 +335,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         NavDestination.history  => const HistoryScreen(),
         NavDestination.methodValidation => MethodValidationScreen(
               backendUrl:
-                  context.watch<AppSettingsNotifier>().settings.backendUrl,
+                  context.watch<QuantumSettingsNotifier>().value.effectiveBackendUrl,
               settings: context.read<QuantumSettingsNotifier>().value,
             ),
         NavDestination.editor   => CoordinateEditorScreen(
@@ -1448,7 +1449,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
       _warnedFallbackFor = status.reactionId;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
-          final mlip = context.read<QuantumSettingsNotifier>().value.mlipModel;
+          final configuredMlip = context.read<QuantumSettingsNotifier>().value.mlipModel;
+          final mlip = (status.modelUsed != null && status.modelUsed!.isNotEmpty)
+              ? status.modelUsed!
+              : configuredMlip;
           _warn(fallbackDataWarning(fromBackend: status.fromBackend, modelName: mlip));
         }
       });
@@ -1516,6 +1520,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   ),
                 ),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    final query =
+                        '${_viewModel.activeTemplate?.name ?? "custom reaction"} mechanism';
+                    showPubmedPanel(context, query: query);
+                  },
+                  icon: const Icon(Icons.menu_book_rounded, size: 16),
+                  label: const Text('Literature'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: palette.accentAlt.withValues(alpha: 0.15),
+                    foregroundColor: palette.accentAlt,
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  ),
+                ),
               ],
             ),
             const SizedBox(height: 16),
@@ -1524,6 +1542,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ResultsHeaderCard(
               summary: summary,
               reactionName: _viewModel.activeTemplate?.name,
+              modelUsed: status.modelUsed,
             ),
             const SizedBox(height: 16),
 
@@ -1597,7 +1616,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             // Hybrid workflow: hand the TS to DFT and take the refinement back.
             DftWorkflowCard(
               status: status,
-              backendUrl: appSettings.backendUrl,
+              backendUrl: settings.effectiveBackendUrl,
               mlipModel: settings.mlipModel,
               solvent: settings.solventModel,
               onNotify: _notify,

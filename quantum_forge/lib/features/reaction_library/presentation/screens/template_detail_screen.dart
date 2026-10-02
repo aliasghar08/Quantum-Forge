@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:quantum_forge/core/utils/xyz_parser.dart';
 import 'package:quantum_forge/core/widgets/reaction_animation_widget.dart';
 import 'package:quantum_forge/features/reaction_library/data/reaction_templates.dart';
+import 'package:quantum_forge/features/reaction_library/presentation/widgets/pubmed_panel.dart';
 import 'package:quantum_forge/features/reaction_runner/presentation/widgets/dashboard_cards/distinct_molecules_viewer.dart';
 
 class TemplateDetailScreen extends StatelessWidget {
@@ -411,6 +412,28 @@ class TemplateDetailScreen extends StatelessWidget {
                     ),
                   ),
                 ],
+              ),
+            ),
+            const SizedBox(height: 12),
+            OutlinedButton.icon(
+              onPressed: () {
+                final query = '${template.name} ${template.doi}'.trim();
+                showPubmedPanel(context, query: query);
+              },
+              icon: const Icon(Icons.search, size: 16),
+              label: const Text('Find related papers'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: const Color(0xFF4FC3F7),
+                side: BorderSide(
+                  color: const Color(0xFF4FC3F7).withValues(alpha: 0.4),
+                ),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
               ),
             ),
           ],

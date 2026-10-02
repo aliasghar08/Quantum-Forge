@@ -121,6 +121,10 @@ class ReactionStatusResponse {
   /// by charge/spin — that would silently distort genuine MLIP output.
   final bool fromBackend;
 
+  /// The model that was actually evaluated by the compute service (e.g. MACE-MP-0-small,
+  /// tx1-fastapi). Useful when the backend falls back to another model.
+  final String? modelUsed;
+
   ReactionStatusResponse({
     required this.reactionId,
     required this.state,
@@ -135,6 +139,7 @@ class ReactionStatusResponse {
     this.createdAt,
     this.dftAttachments = const [],
     this.fromBackend = false,
+    this.modelUsed,
   });
 
   factory ReactionStatusResponse.empty() {
@@ -181,6 +186,7 @@ class ReactionStatusResponse {
               .toList() ??
           const [],
       createdAt: json['created_at'] != null ? DateTime.tryParse(json['created_at'] as String) : null,
+      modelUsed: json['model_used'] as String?,
     );
   }
 
@@ -201,7 +207,8 @@ class ReactionStatusResponse {
       other.maxEnergyIndex == maxEnergyIndex &&
       other.createdAt == createdAt &&
       listEquals(other.dftAttachments, dftAttachments) &&
-      other.fromBackend == fromBackend;
+      other.fromBackend == fromBackend &&
+      other.modelUsed == modelUsed;
   }
 
   @override
@@ -218,6 +225,7 @@ class ReactionStatusResponse {
       maxEnergyIndex.hashCode ^
       createdAt.hashCode ^
       dftAttachments.hashCode ^
-      fromBackend.hashCode;
+      fromBackend.hashCode ^
+      modelUsed.hashCode;
   }
 }

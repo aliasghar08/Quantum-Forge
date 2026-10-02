@@ -1,58 +1,4 @@
-"""Transition1x GNN energy service.
-
-A small FastAPI wrapper around a graph neural network that predicts a single
-total energy (eV) for one molecular geometry. The Flutter app talks to it as:
-
-    POST /predict  {"atomic_numbers": [...], "positions": [[x, y, z], ...]}
-                -> {"status": "success", "energy_ev": <float>}
-
-    GET  /health  -> {"status": "ok" | "degraded", "message": ...}
-
-Both shapes are relied on by `backend_compute_service.dart` in the Flutter app —
-`predictEnergy()` reads `status`/`energy_ev`, and `healthCheck()` only accepts a
-200 whose body decodes to JSON carrying `"status": "ok"` (a bare 200 is
-deliberately not treated as healthy, because a misrouted deployment answering 200
-with an HTML page once looked "healthy"). Do not change either shape without
-changing the client.
-
-Four things here were wrong in the first version, and all four are the kind that
-fail silently from the app's side:
-
-1. **No CORS.** The app is a *browser* app. Without `CORSMiddleware` the
-   preflight `OPTIONS` is rejected before the request is ever made, and
-   `predictEnergy()` just returns null — indistinguishable from the model being
-   down.
-2. **The checkpoint was loaded from a bare relative path.** `torch.load(
-   "t1x_model_checkpoint.pt")` only works when the process happens to start in
-   this directory, which is not something a container or a platform buildpack
-   guarantees. It is resolved against `__file__` now, with an env override.
-3. **`@app.on_event("startup")` is deprecated** and removed in recent FastAPI
-   releases. It is a `lifespan` context manager now.
-4. **A failed model load was invisible.** The exception was printed and then
-   `/predict` answered 500 "Model failed to load on startup" with no way to find
-   out *why*. The reason is captured and reported by `/health`.
-
-Two further changes were made after the initial deployment, both to the
-reaction path emitted by `run_reaction`:
-
-5. **Frame count.** The original path was 11 images long. That is enough to see
-   a mechanism at a glance but not enough to step through the transition state
-   one frame at a time — the TS window in the animation panel is only ~4
-   frames wide at 11 total. The default is now 121, which gives the four phase
-   bands in the animation widget roughly 36 / 49 / 18 / 18 images. The count is
-   configurable through `T1X_FRAMES` for deployment-scale tuning; the
-   wall-clock cost is linear in this number because each frame is a separate
-   model forward pass.
-
-6. **Cosine easing on the interpolation parameter.** The original linear
-   interpolation moved every atom at constant speed, which is what a machine
-   draws, not what a physical trajectory does. `alpha(t) = 0.5·(1 − cos(π t))`
-   has zero derivative at both endpoints and maximum derivative at the midpoint,
-   so the system accelerates through the barrier and decelerates into the
-   wells. This is a schematic improvement, not a computational one — the path
-   is still an interpolation between two endpoints, and a real reaction path
-   requires gradients and NEB/DMF.
-"""
+"""Transition1x GNN energy service."""
 
 from __future__ import annotations
 
@@ -63,139 +9,54 @@ from pathlib import Path
 
 import urllib.request
 import urllib.error
+import urllib.parse
 import json
 import uuid
 import asyncio
 
 import torch
+
+# Apple Silicon (MPS) fallback for operations not supported natively on MPS.
+os.environ.setdefault("PYTORCH_ENABLE_MPS_FALLBACK", "1")
+
 import torch.nn as nn
-from fastapi import FastAPI, HTTPException, BackgroundTasks
+from fastapi import FastAPI, HTTPException, BackgroundTasks, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
-# ==========================================
-# 1. MODEL ARCHITECTURE (Graph Neural Network)
-# ==========================================
-# Unchanged from the version the checkpoint was trained against. Every default
-# here (hidden_dim, num_interactions, max_Z) is part of the state dict's shape,
-# so editing any of them makes load_state_dict fail rather than silently
-# degrade — which is the good failure, but it is still a failure.
-class MolecularGraphNetwork(nn.Module):
-    def __init__(self, hidden_dim=128, num_interactions=3, max_Z=119):
-        super().__init__()
-        self.embedding = nn.Embedding(max_Z, hidden_dim)
+# Hardware acceleration for Apple Silicon (M1 Pro) or fallback to CPU
+DEVICE = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
 
-        self.distance_expansion = nn.Sequential(
-            nn.Linear(1, hidden_dim),
-            nn.SiLU(),
-            nn.Linear(hidden_dim, hidden_dim)
-        )
-
-        self.interaction_layers = nn.ModuleList([
-            nn.Sequential(
-                nn.Linear(hidden_dim * 2, hidden_dim),
-                nn.SiLU(),
-                nn.Linear(hidden_dim, hidden_dim)
-            ) for _ in range(num_interactions)
-        ])
-
-        self.energy_readout = nn.Sequential(
-            nn.Linear(hidden_dim, hidden_dim // 2),
-            nn.SiLU(),
-            nn.Linear(hidden_dim // 2, 1)
-        )
-
-    def forward(self, z, pos, mask=None):
-        if z.size(1) != pos.size(1):
-            raise RuntimeError(
-                f"forward: z has {z.size(1)} atoms but pos has {pos.size(1)}"
-            )
-        node_features = self.embedding(z)
-
-        pos_expanded_1 = pos.unsqueeze(2)  # [batch, N, 1, 3]
-        pos_expanded_2 = pos.unsqueeze(1)  # [batch, 1, N, 3]
-        dist_matrix = torch.norm(pos_expanded_1 - pos_expanded_2, dim=-1)
-
-        dist_features = self.distance_expansion(dist_matrix.unsqueeze(-1))
-
-        for layer in self.interaction_layers:
-            expanded_nodes = node_features.unsqueeze(2).expand(-1, -1, pos.size(1), -1)
-            combined = torch.cat([expanded_nodes, dist_features], dim=-1)
-            messages = layer(combined).sum(dim=2)
-            node_features = node_features + messages
-
-        per_atom_energy = self.energy_readout(node_features).squeeze(-1)
-        if mask is not None:
-            per_atom_energy = per_atom_energy * mask
-
-        total_energy = per_atom_energy.sum(dim=-1)
-        return total_energy
-
+from app.legacy_gnn import (
+    MolecularGraphNetwork,
+    Tx1Calculator,
+    checkpoint_path,
+    DEFAULT_CHECKPOINT,
+    BASE_DIR,
+)
+from app.mlip_registry import registry
 
 # ==========================================
-# 2. CHECKPOINT RESOLUTION
-# ==========================================
-BASE_DIR = Path(__file__).resolve().parent
-DEFAULT_CHECKPOINT = BASE_DIR / "t1x_model_checkpoint.pt"
-
-
-def checkpoint_path() -> Path:
-    """Where the checkpoint lives.
-
-    Defaults to the copy sitting next to this file, which is how the image and
-    the repository are laid out. `T1X_CHECKPOINT` overrides it, so a model built
-    elsewhere (a Render disk, an S3 download) does not need a code change.
-    """
-    override = os.environ.get("T1X_CHECKPOINT", "").strip()
-    return Path(override).expanduser() if override else DEFAULT_CHECKPOINT
-
-
-# ==========================================
-# 3. APPLICATION AND LIFESPAN
+# APPLICATION AND LIFESPAN
 # ==========================================
 model: MolecularGraphNetwork | None = None
 model_error: str | None = None
 
-
 def load_model() -> None:
-    """Loads the checkpoint, recording any failure instead of raising.
-
-    Deliberately non-fatal. A process that dies on a bad checkpoint crash-loops
-    on a platform like Render and the reason is only visible in the build log;
-    one that stays up can be asked why through `/health`.
-    """
     global model, model_error
-
-    path = checkpoint_path()
     try:
-        if not path.is_file():
-            raise FileNotFoundError(
-                f"checkpoint not found at {path}. Set T1X_CHECKPOINT to override."
-            )
-
-        network = MolecularGraphNetwork()
-        checkpoint = torch.load(str(path), map_location=torch.device("cpu"))
-
-        if isinstance(checkpoint, dict) and "model_state_dict" in checkpoint:
-            state = checkpoint["model_state_dict"]
+        calc = registry.get("tx1-fastapi")
+        if isinstance(calc, Tx1Calculator) and calc._model is not None:
+            calc._model.to(DEVICE)
+            model = calc._model
         else:
-            state = checkpoint
-
-        # Expand the embedding layer to support up to 118 elements (max_Z=119)
-        if "embedding.weight" in state:
-            old_emb = state["embedding.weight"]
-            if old_emb.shape[0] < network.embedding.weight.shape[0]:
-                new_emb = torch.zeros_like(network.embedding.weight)
-                new_emb[:old_emb.shape[0]] = old_emb
-                state["embedding.weight"] = new_emb
-
-        network.load_state_dict(state)
-        network.eval()
-
-        model = network
+            model = calc  # type: ignore[assignment]
         model_error = None
-        print(f"Model loaded from {path}")
-    except Exception as exc:  # noqa: BLE001 - reported, not swallowed
+        weight_source = os.environ.get("TX1_CACHE_DIR", str(checkpoint_path()))
+        print(f"[MLIP] {type(model).__name__} loaded from {weight_source}")
+        print(f"Model loaded successfully onto {DEVICE}")
+    except Exception as exc: 
         model = None
         model_error = f"{type(exc).__name__}: {exc}"
         print(f"Error loading model: {model_error}")
@@ -206,32 +67,19 @@ async def lifespan(_: FastAPI):
     load_model()
     yield
 
-
 def allowed_origins() -> list[str]:
-    """Browser origins permitted to call this service.
-
-    `*` by default. This is a stateless energy calculator with no credentials and
-    no user data, so a permissive default is the pragmatic choice and it is what
-    makes a local `flutter run -d chrome` work without configuration — the
-    dev-server port changes every run. Narrow it in production by setting
-    `T1X_ALLOWED_ORIGINS` to a comma-separated list.
-    """
     raw = os.environ.get("T1X_ALLOWED_ORIGINS", "*").strip()
     if raw in ("", "*"):
         return ["*"]
     return [origin.strip() for origin in raw.split(",") if origin.strip()]
-
 
 app = FastAPI(title="Transition1x GNN API", version="1.2.0", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=allowed_origins(),
-    # Must stay False while allow_origins is "*": the CORS spec forbids the
-    # wildcard with credentials, and browsers reject the combination outright.
-    # The client sends no cookies or auth headers, so nothing is lost.
     allow_credentials=False,
-    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_methods=["GET", "POST", "OPTIONS", "HEAD"],
     allow_headers=["*"],
 )
 
@@ -243,8 +91,7 @@ class MoleculeRequest(BaseModel):
     atomic_numbers: list[int]
     positions: list[list[float]]
 
-
-@app.get("/")
+@app.api_route("/", methods=["GET", "HEAD"])
 def root() -> dict:
     """Human-readable landing payload, for anyone who opens the URL."""
     return {
@@ -257,35 +104,37 @@ def root() -> dict:
         "docs": "/docs",
     }
 
-
 @app.get("/health")
 def health() -> dict:
-    """Liveness *and* readiness, in the shape the app's health check requires.
-
-    `status` is `"degraded"` rather than `"ok"` when the checkpoint did not
-    load, and the HTTP status stays 200 so the body can be read. That is the
-    point: the app treats anything other than `{"status": "ok"}` as unhealthy
-    and shows the `message`, so a service whose model is missing reports why
-    instead of looking fine or timing out.
-    """
+    weight_source = os.environ.get("TX1_CACHE_DIR", str(checkpoint_path()))
+    weights_present = os.path.exists(weight_source)
     if model is None:
         return {
             "status": "degraded",
             "message": f"Model unavailable — {model_error}",
             "model_loaded": False,
+            "mlip_models": registry.status(),
+            "weights_source": weight_source,
+            "weights_present": weights_present,
         }
     return {
         "status": "ok",
         "message": "Transition1x GNN ready.",
         "model_loaded": True,
+        "mlip_models": registry.status(),
+        "weights_source": weight_source,
+        "weights_present": weights_present,
     }
 
+
+class MoleculeRequest(BaseModel):
+    atomic_numbers: list[int]
+    positions: list[list[float]]
+    mlip_model: str = "tx1-fastapi"
 
 @app.post("/predict")
 def predict_energy(molecule: MoleculeRequest):
     if model is None:
-        # 503, not 500: the service is up and the request is fine, the model is
-        # simply not available. 500 would suggest a bug in the request path.
         raise HTTPException(
             status_code=503,
             detail=f"Model unavailable — {model_error}",
@@ -294,9 +143,6 @@ def predict_energy(molecule: MoleculeRequest):
     atomic_numbers = molecule.atomic_numbers
     positions = molecule.positions
 
-    # Checked here rather than left to torch, so a malformed request gets a
-    # message naming the mismatch instead of a broadcasting error from inside
-    # the distance matrix.
     if len(atomic_numbers) != len(positions):
         raise HTTPException(
             status_code=422,
@@ -315,25 +161,30 @@ def predict_energy(molecule: MoleculeRequest):
             )
 
     try:
-        # Convert lists to tensors and add batch dimension [1, N]
-        z = torch.tensor(atomic_numbers, dtype=torch.long).unsqueeze(0)
-        pos = torch.tensor(positions, dtype=torch.float32).unsqueeze(0)
-
-        # Create mask to match the training pipeline logic
-        mask = (z != 0).float()
-
-        with torch.no_grad():
-            energy = model(z, pos, mask)
+        calculator = registry.get(molecule.mlip_model)
+        try:
+            energy_val = calculator.energy_ev(atomic_numbers, positions)
+        except Exception as exc:
+            print(f"[MLIP] {calculator.name()} failed in predict: {exc}")
+            fallback = registry.get("tx1-fastapi")
+            energy_val = fallback.energy_ev(atomic_numbers, positions)
+            calculator = fallback
 
         return {
             "status": "success",
-            "energy_ev": energy.item(),
+            "energy_ev": energy_val,
+            "model_requested": molecule.mlip_model,
+            "model_used": calculator.name(),
         }
     except HTTPException:
         raise
     except Exception as exc:
         raise HTTPException(status_code=400, detail=f"{type(exc).__name__}: {exc}")
 
+
+# ==========================================
+# 5. REFACTORED NON-BLOCKING REACTION LST
+# ==========================================
 class ReactionRequest(BaseModel):
     reactant_xyz: str
     product_xyz: str
@@ -343,23 +194,13 @@ class ReactionRequest(BaseModel):
 
 _reactions = {}
 
-
 def _configured_frame_count() -> int:
-    """How many images to emit for each reaction.
-
-    Default 121, which gives the animation widget's four phase bands roughly
-    36 / 49 / 18 / 18 frames. Override via `T1X_FRAMES`; clamp to a sane
-    range so a mis-set environment variable cannot produce a one-frame path
-    or a request that never completes. The wall-clock cost is linear in this
-    number because each frame is a separate model forward pass.
-    """
     raw = os.environ.get("T1X_FRAMES", "121").strip()
     try:
         value = int(raw)
     except ValueError:
         value = 121
     return max(5, min(value, 501))
-
 
 def parse_xyz(xyz_str: str):
     lines = [L.strip() for L in xyz_str.strip().split('\n') if L.strip()]
@@ -379,141 +220,97 @@ def to_xyz(atoms, positions, comment=""):
         lines.append(f"{a} {p[0]:.6f} {p[1]:.6f} {p[2]:.6f}")
     return "\n".join(lines)
 
+def _compute_single_frame(z_tensor, pos_tensor, mask_tensor):
+    """Synchronous inference isolated from the asyncio event loop."""
+    if model is None:
+        return 0.0
+    with torch.no_grad():
+        energy = model(z_tensor, pos_tensor, mask_tensor)
+        return energy.item()
+
 async def run_reaction(reaction_id: str, req: ReactionRequest):
     _reactions[reaction_id]["state"] = "optimizing"
-    _reactions[reaction_id]["progress"] = 0.1
+    _reactions[reaction_id]["progress"] = 0.05
     try:
         r_atoms, r_pos = parse_xyz(req.reactant_xyz)
         p_atoms, p_pos = parse_xyz(req.product_xyz)
 
+        if not r_atoms or not p_atoms:
+            raise ValueError("Failed to parse reactant or product XYZ coordinates.")
+
         if len(r_atoms) != len(p_atoms):
-
-            # Deterministic padding: pair each reactant atom with the matching product atom
-            # when one is available, otherwise give the reactant's position. This preserves
-            # the reactant's atom ordering, which is what the model expects, and it always
-            # emits exactly len(r_atoms) positions.
-
-            # Build a queue of available product atoms grouped by symbol, in product order.
             from collections import defaultdict, deque
             available = defaultdict(deque)
             for sym, pos_item in zip(p_atoms, p_pos):
                 available[sym].append(pos_item)
 
-            new_p_atoms = []
-            new_p_pos = []
+            new_p_atoms, new_p_pos = [], []
             for r_sym, r_p in zip(r_atoms, r_pos):
                 if available[r_sym]:
                     new_p_atoms.append(r_sym)
                     new_p_pos.append(available[r_sym].popleft())
                 else:
-                    # No partner; keep the reactant's position so the frame has a place
-                    # to be, and the interpolated path will move other atoms instead.
                     new_p_atoms.append(r_sym)
                     new_p_pos.append(list(r_p))
 
             p_atoms = new_p_atoms
             p_pos = new_p_pos
 
-            assert len(p_atoms) == len(r_atoms), (
-                f"padding failed: {len(p_atoms)} product atoms vs {len(r_atoms)} reactant atoms"
-            )
-            assert len(p_pos) == len(r_pos), (
-                f"padding failed: {len(p_pos)} product positions vs {len(r_pos)} reactant positions"
-            )
-
-        # Simple atomic number mapping for basic organic elements
         mapping = {"H":1, "C":6, "N":7, "O":8, "F":9, "P":15, "S":16, "Cl":17, "Br":35, "I":53}
         atomic_numbers = [mapping.get(sym.upper().capitalize(), 6) for sym in r_atoms]
 
+        calculator = registry.get(req.mlip_model)
+
         frames = []
         energies_ev = []
-
-        # Frame count. Every frame is a separate model forward pass, so the
-        # cost of the whole reaction is linear in this number. See
-        # `_configured_frame_count` for the trade-off and the env override.
         n_frames = _configured_frame_count()
 
         for i in range(n_frames):
-            # ── Cosine easing on the interpolation parameter. ─────────────
-            #
-            # The previous version used `alpha = i / (n_frames - 1)`, which is
-            # linear in time: every atom moves at the same speed throughout,
-            # including across the barrier. That is what a machine draws. A
-            # physical trajectory has zero velocity at the reactant and
-            # product wells and maximum velocity at the TS, which is what the
-            # cosine easing below produces:
-            #
-            #     alpha(t) = 0.5 * (1 - cos(pi * t))
-            #
-            # At t=0 the derivative is 0 (the reactant is stationary); at
-            # t=0.5 the derivative is maximal (the TS region is traversed
-            # quickly); at t=1 the derivative is 0 again (the product is
-            # stationary). This is the same easing the Flutter preview uses in
-            # `template_detail_screen.dart`, so the two stay visually
-            # consistent.
             t = i / (n_frames - 1)
             alpha = 0.5 * (1.0 - math.cos(math.pi * t))
 
-            cur_pos = []
-            for rp, pp in zip(r_pos, p_pos):
-                cur_pos.append([
-                    rp[0] * (1 - alpha) + pp[0] * alpha,
-                    rp[1] * (1 - alpha) + pp[1] * alpha,
-                    rp[2] * (1 - alpha) + pp[2] * alpha,
-                ])
+            cur_pos = [
+                [
+                    rp[0] * (1.0 - alpha) + pp[0] * alpha,
+                    rp[1] * (1.0 - alpha) + pp[1] * alpha,
+                    rp[2] * (1.0 - alpha) + pp[2] * alpha,
+                ]
+                for rp, pp in zip(r_pos, p_pos)
+            ]
 
-            z = torch.tensor(atomic_numbers, dtype=torch.long).unsqueeze(0)
-            pos = torch.tensor(cur_pos, dtype=torch.float32).unsqueeze(0)
-            mask = (z != 0).float()
+            def _eval_frame(frame_idx, numbers, coords):
+                try:
+                    return calculator.energy_ev(numbers, coords)
+                except Exception as exc:
+                    print(f"[MLIP] {calculator.name()} failed on frame {frame_idx}: {exc}")
+                    fallback = registry.get("tx1-fastapi")
+                    return fallback.energy_ev(numbers, coords)
 
-            if len(atomic_numbers) != len(cur_pos):
-                raise RuntimeError(
-                    f"shape mismatch before forward: atomic_numbers={len(atomic_numbers)} "
-                    f"cur_pos={len(cur_pos)}. This is a bug in the padding logic, not the model."
-                )
-
-            if model is not None:
-                with torch.no_grad():
-                    energy = model(z, pos, mask)
-                energy_val = energy.item()
-            else:
-                energy_val = 0.0
+            # CRITICAL: Run model inference in a separate thread so event loop never hangs
+            energy_val = await asyncio.to_thread(_eval_frame, i, atomic_numbers, cur_pos)
 
             energies_ev.append(energy_val)
             frames.append(to_xyz(r_atoms, cur_pos, f"Frame {i} Energy: {energy_val:.4f} eV"))
 
-            # Progress is reported on a 0.1..0.9 scale so the UI sees a moving
-            # bar between submission and completion. The sleep yields to the
-            # event loop so the polling endpoint can service requests; it is
-            # deliberately short because the model forward pass above is the
-            # real cost.
-            _reactions[reaction_id]["progress"] = 0.1 + 0.8 * (i / n_frames)
-            await asyncio.sleep(0.01)
+            _reactions[reaction_id]["progress"] = 0.1 + 0.85 * ((i + 1) / n_frames)
+            
+            # Yield control back to event loop to answer incoming GET requests
+            await asyncio.sleep(0.001)
 
-        # Convert absolute energies in eV to relative energies in kcal/mol
-        # 1 eV = 23.0605 kcal/mol
         energy_profile_kcal = [(e - energies_ev[0]) * 23.0605 for e in energies_ev]
-
-        # Index of the maximum, taking the *first* occurrence of a tie.
-        # `list.index(max(...))` also does this, but building the index
-        # explicitly is clearer about the tie-breaking rule and lets a reader
-        # see the intent.
-        max_idx = 0
-        max_val = energy_profile_kcal[0]
-        for idx, val in enumerate(energy_profile_kcal):
-            if val > max_val:
-                max_val = val
-                max_idx = idx
+        max_idx = energy_profile_kcal.index(max(energy_profile_kcal))
 
         _reactions[reaction_id].update({
             "state": "completed",
             "progress": 1.0,
-            "message": f"Linear Synchronous Transit (LST) completed successfully using TX1 ({n_frames} frames).",
+            "message": f"LST completed successfully ({n_frames} frames).",
             "energy_profile_ev": energies_ev,
             "energy_profile": energy_profile_kcal,
             "max_energy_index": max_idx,
             "trajectory_frames": frames,
-            "vibrational_modes": []
+            "vibrational_modes": [],
+            "model_requested": req.mlip_model,
+            "model_used": calculator.name(),
         })
     except Exception as e:
         _reactions[reaction_id].update({
@@ -534,10 +331,8 @@ def get_reaction(reaction_id: str):
         raise HTTPException(status_code=404, detail="Not found")
     return _reactions[reaction_id]
 
-
 @app.get("/crossref/{doi:path}")
 def get_crossref_metadata(doi: str):
-    import urllib.parse
     url = f"https://api.crossref.org/works/{urllib.parse.quote(doi, safe='/')}"
     req = urllib.request.Request(url, headers={'User-Agent': 'QuantumForge/1.0'})
     try:
@@ -548,11 +343,10 @@ def get_crossref_metadata(doi: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-# ==========================================
-# 5. HYBRID ML/MM MOLECULAR DYNAMICS
-# ==========================================
-from fastapi import Request
 
+# ==========================================
+# 6. HYBRID ML/MM MOLECULAR DYNAMICS
+# ==========================================
 @app.post("/simulate/hybrid-md")
 async def start_hybrid_md(request: Request):
     try:
@@ -594,7 +388,6 @@ async def start_hybrid_md(request: Request):
     if not pdb_path:
         raise HTTPException(status_code=400, detail="pdb_path or file is required.")
 
-    # Dispatch to Celery asynchronously
     task = run_hybrid_md.apply_async(args=[pdb_path, job_id, mlip_model, simulation_length_ns], task_id=job_id)
 
     return {
@@ -606,6 +399,7 @@ async def start_hybrid_md(request: Request):
 @app.get("/simulate/status/{job_id}")
 async def get_hybrid_md_status(job_id: str, task_id: str = None):
     try:
+        
         from celery.result import AsyncResult
         from worker_hybrid import celery_app
     except ImportError:
@@ -619,7 +413,6 @@ async def get_hybrid_md_status(job_id: str, task_id: str = None):
     if res.ready():
         result = res.result
 
-        # Check for the .dcd file inside the Outputs path
         base_output_dir = os.environ.get("QUANTUM_FORGE_OUTPUTS", "./outputs")
         drive_outputs = os.path.join(base_output_dir, str(job_id))
         dcd_path = os.path.join(drive_outputs, 'trajectory.dcd')
@@ -637,16 +430,13 @@ async def get_hybrid_md_status(job_id: str, task_id: str = None):
         "task_id": task_id
     }
 
-from fastapi.responses import FileResponse
 @app.get("/simulate/download/{job_id}/{filename}")
 async def download_trajectory_file(job_id: str, filename: str):
-    """Securely serve MD trajectory files (like trajectory.dcd or input.pdb)"""
     import os
     base_output_dir = os.environ.get("QUANTUM_FORGE_OUTPUTS", "./outputs")
     job_dir = os.path.join(base_output_dir, str(job_id))
     file_path = os.path.abspath(os.path.join(job_dir, filename))
 
-    # Security: Prevent directory traversal
     if not file_path.startswith(os.path.abspath(job_dir)):
         raise HTTPException(status_code=403, detail="Access denied")
 

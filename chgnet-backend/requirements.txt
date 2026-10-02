@@ -1,0 +1,12 @@
+# Python 3.11 or newer.
+# Uses the `X | None` union syntax introduced in 3.10; pydantic needs it.
+# On 3.9, install eval_type_backport as a workaround.
+
+fastapi>=0.110.0
+uvicorn[standard]>=0.28.0
+pydantic>=2.6.0
+python-dotenv>=1.0.0
+torch>=2.2.0
+chgnet>=0.3.5
+pymatgen>=2024.1.1
+ase>=3.22.0

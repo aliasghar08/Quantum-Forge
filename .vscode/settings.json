@@ -1,3 +1,4 @@
 {
-    "cmake.sourceDirectory": "C:/Quantom Forge Repo/Quantom-Forge/quantum_forge/linux"
+    "cmake.sourceDirectory": "${workspaceFolder}/quantum_forge/linux",
+    "python.analysis.useImportHeuristic": true
 }

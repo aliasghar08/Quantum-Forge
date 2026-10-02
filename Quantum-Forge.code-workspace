@@ -1,0 +1,22 @@
+{
+    "folders": [
+        {
+            "path": "tx1-fastapi-backend"
+        },
+        {
+            "path": "mace-backend"
+        },
+        {
+            "path": "chgnet-backend"
+        },
+        {
+            "path": "ani2x-backend"
+        },
+        {
+            "path": "gfn2-xtb-backend"
+        }
+    ],
+    "settings": {
+        "python.analysis.useImportHeuristic": true
+    }
+}

@@ -24,3 +24,18 @@ MACE/
 # OS
 .DS_Store
 Thumbs.db
+
+# Model checkpoints and weights (except repo-bundled checkpoints)
+*.pt
+!tx1-fastapi-backend/t1x_model_checkpoint.pt
+*.model
+*.ckpt
+weights/
+opt/
+
+Miniconda3-*.sh
+.venv/
+envs/
+**/.venv/
+**/__pycache__/
+**/.pytest_cache/

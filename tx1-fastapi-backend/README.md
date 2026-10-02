@@ -58,12 +58,23 @@ validation.
 | --- | --- | --- |
 | `T1X_CHECKPOINT` | the `t1x_model_checkpoint.pt` next to `main.py` | Checkpoint location |
 | `T1X_ALLOWED_ORIGINS` | `*` | Comma-separated browser origins, or `*` |
-| `PORT` | `8000` | Port uvicorn binds |
+| `PORT` | `8005` | Port uvicorn binds (Render defaults to 8000) |
 
 ## Deploying
 
-`Dockerfile` builds a self-contained image with the checkpoint baked in.
-`render.yaml` at the repository root is a Render blueprint for it.
+`Dockerfile` builds a self-contained multi-stage image with both the legacy GNN checkpoint and MACE-MP-0 `small` weights baked in.
+
+### Render Configuration
+
+- The service must be deployed as a **Docker** service, not a native Python service.
+- On Render: Service Settings → Environment → **Runtime = Docker**. Set **Dockerfile Path** to `tx1-fastapi-backend/Dockerfile` if the repo root is above the backend directory (or `Dockerfile` if `rootDir` is set to `tx1-fastapi-backend`).
+- Environment variables to set:
+  - `T1X_FRAMES=31` (from the earlier tuning pass)
+  - `T1X_ALLOWED_ORIGINS=https://quantom-forge.web.app` (or `*` for development)
+  - `T1X_CHECKPOINT=/app/t1x_model_checkpoint.pt`
+- Expect the **first build to take 5–10 minutes** — `pip install torch` alone is ~2 minutes and the MACE weight download is ~1 minute.
+- Container image size: ~1.2 GB (torch is the bulk of it).
+- `render.yaml` at the repository root is a Render blueprint for it.
 
 **The service name in the blueprint determines the URL, and it does not match the
 URL the app currently defaults to.** `render.yaml` declares
@@ -74,8 +85,9 @@ the value in Settings ▸ Compute. Left as-is rather than guessed at, because a
 mismatch produces a service that deploys cleanly and is never called.
 
 Two things to know about the free plan: it **spins down when idle**, so the first
-request after a quiet period pays a cold start plus the model load; and the image
-is large, because the CPU-only PyTorch wheel is a few hundred MB.
+request after a quiet period pays a cold start plus the model load; but because MACE weights
+are baked into the Docker image, cold starts do not pay any runtime weight download cost.
+The server runs with `--workers 1` to strictly preserve the 512 MB memory budget.
 
 ## Status in the app
 

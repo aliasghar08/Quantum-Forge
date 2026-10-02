@@ -351,7 +351,97 @@ class AvogadroInterchange {
     return buffer.toString();
   }
 
+  /// Exports [structure] as a Protein Data Bank (PDB) document.
+  static String toPdb(
+    AvogadroStructure structure, {
+    String? title,
+  }) {
+    final buffer = StringBuffer();
+    final effectiveTitle = title ?? structure.title;
+    if (effectiveTitle.isNotEmpty) {
+      buffer.writeln('TITLE     ${_truncate(effectiveTitle, 70)}');
+    }
+    final atoms = structure.atoms;
+    for (var i = 0; i < atoms.length; i++) {
+      final atom = atoms[i];
+      final serial = (i + 1).toString().padLeft(5);
+      final sym = atom.symbol.toUpperCase();
+      final atomName = sym.length == 1 ? ' $sym  ' : sym.padRight(4);
+      const resName = 'MOL';
+      const chain = 'A';
+      const resSeq = '   1';
+      final x = _fixed(atom.x, 3).padLeft(8);
+      final y = _fixed(atom.y, 3).padLeft(8);
+      final z = _fixed(atom.z, 3).padLeft(8);
+      const occ = '  1.00';
+      const temp = '  0.00';
+      final elem = atom.symbol.padLeft(2);
+
+      buffer.writeln(
+        'ATOM  $serial $atomName $resName $chain$resSeq    $x$y$z$occ$temp          $elem',
+      );
+    }
+
+    if (structure.bonds.isNotEmpty) {
+      final adj = <int, List<int>>{};
+      for (final bond in structure.bonds) {
+        if (bond.a < 0 || bond.a >= atoms.length || bond.b < 0 || bond.b >= atoms.length) continue;
+        final aSerial = bond.a + 1;
+        final bSerial = bond.b + 1;
+        adj.putIfAbsent(aSerial, () => <int>[]).add(bSerial);
+        adj.putIfAbsent(bSerial, () => <int>[]).add(aSerial);
+      }
+      for (var i = 0; i < atoms.length; i++) {
+        final aSerial = i + 1;
+        final neighbors = adj[aSerial];
+        if (neighbors == null || neighbors.isEmpty) continue;
+        for (var k = 0; k < neighbors.length; k += 4) {
+          final chunk = neighbors.skip(k).take(4);
+          final conectLine = StringBuffer('CONECT${aSerial.toString().padLeft(5)}');
+          for (final n in chunk) {
+            conectLine.write(n.toString().padLeft(5));
+          }
+          buffer.writeln(conectLine.toString());
+        }
+      }
+    }
+    buffer.writeln('END');
+    return buffer.toString();
+  }
+
+  /// Exports [structure] as a Crystallographic Information File (CIF).
+  static String toCif(
+    AvogadroStructure structure, {
+    String? title,
+  }) {
+    final buffer = StringBuffer();
+    final effectiveTitle = title ?? structure.title;
+    final slug = _slug(effectiveTitle.isEmpty ? 'structure' : effectiveTitle);
+    buffer.writeln('data_$slug');
+    buffer.writeln('_entry.id $slug');
+    buffer.writeln("_audit.creation_method 'Quantum Forge'");
+    buffer.writeln('loop_');
+    buffer.writeln('  _atom_site_label');
+    buffer.writeln('  _atom_site_type_symbol');
+    buffer.writeln('  _atom_site_Cartn_x');
+    buffer.writeln('  _atom_site_Cartn_y');
+    buffer.writeln('  _atom_site_Cartn_z');
+    final atoms = structure.atoms;
+    for (var i = 0; i < atoms.length; i++) {
+      final atom = atoms[i];
+      final label = '${atom.symbol}${i + 1}';
+      final symbol = atom.symbol;
+      final x = _fixed(atom.x, 5);
+      final y = _fixed(atom.y, 5);
+      final z = _fixed(atom.z, 5);
+      buffer.writeln('  ${_pad(label, 6)} ${_pad(symbol, 4)} ${_pad(x, 10)} ${_pad(y, 10)} $z');
+    }
+    return buffer.toString();
+  }
+
   // ── helpers ──────────────────────────────────────────────────────────────
+  static String _truncate(String value, int maxLength) =>
+      value.length <= maxLength ? value : value.substring(0, maxLength);
   /// Hill-order molecular formula, e.g. `C8H10N4O2`.
   static String formulaOf(List<Atom> atoms) => hillFormula(atoms);
 

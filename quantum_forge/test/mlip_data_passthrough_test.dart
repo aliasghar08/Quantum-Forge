@@ -58,6 +58,15 @@ void main() {
     expect(status.vibrationalModes!.first.frequency, lessThan(0));
   });
 
+  test('parses model_used when provided in response', () {
+    final status = ReactionStatusResponse.fromJson({
+      ..._liveResponse,
+      'model_used': 'MACE-MP-0-small',
+    });
+
+    expect(status.modelUsed, 'MACE-MP-0-small');
+  });
+
   test('keeps the backend failure reason separate from the generic message', () {
     final status = ReactionStatusResponse.fromJson({
       'reaction_id': 'failed-run',

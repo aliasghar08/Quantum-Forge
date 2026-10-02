@@ -18,6 +18,7 @@ import 'package:quantum_forge/features/reaction_library/data/reaction_templates.
 import 'package:quantum_forge/features/reaction_library/presentation/widgets/library_header.dart';
 import 'package:quantum_forge/features/reaction_library/presentation/widgets/library_filter_bar.dart';
 import 'package:quantum_forge/features/reaction_library/presentation/widgets/library_grid.dart';
+import 'package:quantum_forge/features/reaction_library/presentation/widgets/pubmed_panel.dart';
 import 'package:quantum_forge/features/reaction_library/data/firestore_library_repository.dart';
 
 class LibraryScreen extends StatefulWidget {
@@ -182,6 +183,14 @@ class _LibraryScreenState extends State<LibraryScreen> {
   // ── Event handlers ─────────────────────────────────────────────────────────
 
   void _onSearchChanged(String value) {
+    if (value.trim().toLowerCase().startsWith('pm:')) {
+      _debounce?.cancel();
+      final query = value.trim().substring(3).trim();
+      if (query.isNotEmpty) {
+        showPubmedPanel(context, query: query);
+      }
+      return;
+    }
     _debounce?.cancel();
     _debounce = Timer(_searchDebounce, () {
       if (!mounted) return;

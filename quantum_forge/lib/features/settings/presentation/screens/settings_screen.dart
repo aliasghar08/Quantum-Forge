@@ -876,6 +876,8 @@ class _ExportPreview extends StatelessWidget {
       ExportFormat.cjson => AvogadroInterchange.toCjson(structure),
       ExportFormat.cml => AvogadroInterchange.toCml(structure),
       ExportFormat.sdf => AvogadroInterchange.toSdf(structure),
+      ExportFormat.pdb => AvogadroInterchange.toPdb(structure),
+      ExportFormat.cif => AvogadroInterchange.toCif(structure),
       ExportFormat.xyz => AvogadroInterchange.toXyz(
           structure,
           precision: settings.exportPrecision,
@@ -1306,7 +1308,9 @@ class _BackendUrlFieldState extends State<_BackendUrlField> {
 
   /// Probes the configured backend and reports the result inline.
   Future<void> _testConnection() async {
-    final url = context.read<AppSettingsNotifier>().settings.backendUrl;
+    final quantumSettings = context.read<QuantumSettingsNotifier>().value;
+    final appSettings = context.read<AppSettingsNotifier>().settings;
+    final url = appSettings.effectiveBackendUrl(quantumSettings.mlipModel);
     setState(() {
       _testing = true;
       _health = null;

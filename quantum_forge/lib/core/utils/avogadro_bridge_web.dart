@@ -77,6 +77,16 @@ class AvogadroBridge {
     _scheduleRevoke(url);
   }
 
+  static const Map<String, String> _mimeForFormat = <String, String>{
+    'xyz': 'chemical/x-xyz',
+    'cjson': 'application/json',
+    'cml': 'application/xml',
+    'sdf': 'chemical/x-mdl-sdfile',
+    'mol': 'chemical/x-mdl-molfile',
+    'pdb': 'chemical/x-pdb',
+    'cif': 'chemical/x-cif',
+  };
+
   /// Downloads a structure in the requested interchange format.
   static void downloadStructure(
     AvogadroStructure structure, {
@@ -85,17 +95,18 @@ class AvogadroBridge {
     bool includeTitleLine = true,
     String? filenameOverride,
   }) {
-    final (content, mime) = switch (format.toLowerCase()) {
-      'cjson' => (AvogadroInterchange.toCjson(structure), 'chemical/x-cjson'),
-      'cml' => (AvogadroInterchange.toCml(structure), 'chemical/x-cml'),
-      'sdf' || 'mol' => (AvogadroInterchange.toSdf(structure), 'chemical/x-mdl-molfile'),
-      _ => (
-          AvogadroInterchange.toXyz(
-            structure,
-            precision: precision,
-            includeTitleLine: includeTitleLine,
-          ),
-          'chemical/x-xyz',
+    final lower = format.toLowerCase();
+    final mime = _mimeForFormat[lower] ?? 'chemical/x-xyz';
+    final content = switch (lower) {
+      'cjson' => AvogadroInterchange.toCjson(structure),
+      'cml' => AvogadroInterchange.toCml(structure),
+      'sdf' || 'mol' => AvogadroInterchange.toSdf(structure),
+      'pdb' => AvogadroInterchange.toPdb(structure),
+      'cif' => AvogadroInterchange.toCif(structure),
+      _ => AvogadroInterchange.toXyz(
+          structure,
+          precision: precision,
+          includeTitleLine: includeTitleLine,
         ),
     };
     final name = filenameOverride ?? safeFilename(structure.title, format);

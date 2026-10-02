@@ -21,6 +21,7 @@ class QuantumSettings {
   final int charge;
   final int spinMultiplicity;
   final String mlipModel;
+  final String backendUrl;
   final String solventModel;
   final double temperatureK;
 
@@ -54,6 +55,7 @@ class QuantumSettings {
     this.charge = 0,
     this.spinMultiplicity = 1,
     this.mlipModel = 'tx1-fastapi',
+    this.backendUrl = '',
     this.solventModel = 'Vacuum',
     this.temperatureK = 298.15,
     // Catalyst
@@ -79,6 +81,24 @@ class QuantumSettings {
     this.conformationalSearch = false,
   });
 
+  /// The effective URL to use for the currently selected MLIP model.
+  ///
+  /// Prefers the explicit `backendUrl` override when the user has set one;
+  /// otherwise falls back to the local development URL for whichever
+  /// `mlipModel` is selected.
+  String get effectiveBackendUrl {
+    if (backendUrl.isNotEmpty) return backendUrl;
+    return switch (mlipModel) {
+      'tx1-fastapi' => 'http://localhost:8005',
+      'MACE-MP-0' => 'http://localhost:8001',
+      'MACE-OFF23' => 'http://localhost:8001',
+      'ANI-2x' => 'http://localhost:8003',
+      'CHGNet' => 'http://localhost:8002',
+      'GFN2-xTB' => 'http://localhost:8004',
+      _ => 'http://localhost:8005',
+    };
+  }
+
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
@@ -87,6 +107,7 @@ class QuantumSettings {
       other.charge == charge &&
       other.spinMultiplicity == spinMultiplicity &&
       other.mlipModel == mlipModel &&
+      other.backendUrl == backendUrl &&
       other.solventModel == solventModel &&
       other.temperatureK == temperatureK &&
       other.catalyst == catalyst &&
@@ -114,6 +135,7 @@ class QuantumSettings {
       charge,
       spinMultiplicity,
       mlipModel,
+      backendUrl,
       solventModel,
       temperatureK,
       catalyst,
@@ -140,6 +162,7 @@ class QuantumSettings {
     int? charge,
     int? spinMultiplicity,
     String? mlipModel,
+    String? backendUrl,
     String? solventModel,
     double? temperatureK,
     String? catalyst,
@@ -164,6 +187,7 @@ class QuantumSettings {
       charge: charge ?? this.charge,
       spinMultiplicity: spinMultiplicity ?? this.spinMultiplicity,
       mlipModel: mlipModel ?? this.mlipModel,
+      backendUrl: backendUrl ?? this.backendUrl,
       solventModel: solventModel ?? this.solventModel,
       temperatureK: temperatureK ?? this.temperatureK,
       catalyst: catalyst ?? this.catalyst,
@@ -190,6 +214,7 @@ class QuantumSettings {
         'charge': charge,
         'spin_multiplicity': spinMultiplicity,
         'mlip_model': mlipModel,
+        'backend_url': backendUrl,
         'solvent_model': solventModel,
         'temperature_k': temperatureK,
         'catalyst': catalyst,
@@ -230,6 +255,7 @@ class QuantumSettingsNotifier extends ValueNotifier<QuantumSettings> {
   static const _keyCharge = '${_k}charge';
   static const _keySpin = '${_k}spin';
   static const _keyMlip = '${_k}mlip';
+  static const _keyBackendUrl = '${_k}backend_url';
   static const _keySolvent = '${_k}solvent';
   static const _keyTemp = '${_k}temp';
   static const _keyAlgo = '${_k}algo';
@@ -256,6 +282,7 @@ class QuantumSettingsNotifier extends ValueNotifier<QuantumSettings> {
         charge: AppStorage.getInt(_keyCharge) ?? 0,
         spinMultiplicity: AppStorage.getInt(_keySpin) ?? 1,
         mlipModel: AppStorage.getString(_keyMlip) ?? 'tx1-fastapi',
+        backendUrl: AppStorage.getString(_keyBackendUrl) ?? '',
         solventModel: AppStorage.getString(_keySolvent) ?? 'Vacuum',
         temperatureK: AppStorage.getDouble(_keyTemp) ?? 298.15,
         catalyst: AppStorage.getString(_keyCatalyst) ?? 'None',
@@ -289,6 +316,7 @@ class QuantumSettingsNotifier extends ValueNotifier<QuantumSettings> {
       AppStorage.setInt(_keyCharge, s.charge);
       AppStorage.setInt(_keySpin, s.spinMultiplicity);
       AppStorage.setString(_keyMlip, s.mlipModel);
+      AppStorage.setString(_keyBackendUrl, s.backendUrl);
       AppStorage.setString(_keySolvent, s.solventModel);
       AppStorage.setDouble(_keyTemp, s.temperatureK);
       AppStorage.setString(_keyCatalyst, s.catalyst);
@@ -319,6 +347,9 @@ class QuantumSettingsNotifier extends ValueNotifier<QuantumSettings> {
     value = updated;
     _pendingWrite = _save(updated);
   }
+
+  void setBackendUrl(String url) =>
+      update((s) => s.copyWith(backendUrl: url.trim()));
 
   /// Completes when the queued write has reached storage.
   ///
