@@ -15,7 +15,7 @@ import 'package:quantum_forge/core/utils/avogadro_deep_link.dart';
 import 'package:quantum_forge/core/utils/avogadro_interchange.dart';
 import 'package:quantum_forge/core/utils/molecular.dart';
 
-/// The exact CJSON body `avogadro_plugin/quantom_forge_export.py` serialises
+/// The exact CJSON body `avogadro_plugin/quantum_forge_export.py` serialises
 /// for water, so a change on either side of the bridge is caught here.
 const String waterCjson =
     '{"chemicalJson":1,"name":"Water","atoms":{"coords":{"3d":[0.0,0.0,0.11779,'

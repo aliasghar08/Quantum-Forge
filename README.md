@@ -1,4 +1,4 @@
-# Quantom Forge 🧪⚛️
+# Quantum Forge 🧪⚛️
 
 <p align="center">
   <img src="https://img.shields.io/badge/Flutter-02569B?style=for-the-badge&logo=flutter&logoColor=white" alt="Flutter" />
@@ -7,7 +7,7 @@
   <img src="https://img.shields.io/badge/Firebase-FFCA28?style=for-the-badge&logo=firebase&logoColor=black" alt="Firebase" />
 </p>
 
-**Quantom Forge** is an AI-assisted quantum chemistry optimisation and visualisation
+**Quantum Forge** is an AI-assisted quantum chemistry optimisation and visualisation
 workstation built **for the web** with Flutter. It gives researchers and students a
 single browser dashboard for building molecules, modelling transition states, and
 inspecting thermodynamic and kinetic results — with a two-way bridge to desktop
@@ -15,7 +15,7 @@ inspecting thermodynamic and kinetic results — with a two-way bridge to deskto
 
 ## 🌐 Web-first platform
 
-Quantom Forge targets the browser. WebGL and Flutter Web deliver the whole
+Quantum Forge targets the browser. WebGL and Flutter Web deliver the whole
 computational-chemistry surface without a desktop install, on Windows, macOS or
 Linux.
 
@@ -288,7 +288,7 @@ The script builds the image, starts it in the background, waits for `/health` to
 ## 📁 Layout
 
 ```
-Quantom-Forge/
+Quantum-Forge/
 ├── quantum_forge/        # Flutter Web App (Frontend)
 │   ├── lib/              # Core application logic, features, and UI
 │   │   ├── core/         # Core services, themes, and Avogadro bridges
@@ -304,8 +304,8 @@ Quantom-Forge/
 │   └── build-all-backends.sh # Sequential build & verification of all 5 backends
 
 ├── mace-backend/         # MACE-MP-0 Foundation Potential service (Port 8001)
-├── ani2x-backend/        # ANI-2x Deep Learning Potential service (Port 8002)
-├── chgnet-backend/       # CHGNet Universal Potential service (Port 8003)
+├── chgnet-backend/       # CHGNet Universal Potential service (Port 8002)
+├── ani2x-backend/        # ANI-2x Deep Learning Potential service (Port 8003)
 ├── gfn2-xtb-backend/     # GFN2-xTB Semi-Empirical QM service (Port 8004)
 ├── tx1-fastapi-backend/  # Transition1x GNN compute service (Port 8005)
 └── .github/              # CI/CD Workflows for automated analysis and deployment

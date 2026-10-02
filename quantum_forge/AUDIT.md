@@ -173,7 +173,7 @@ reproduced in the code before being fixed.
 | `lib/core/utils/xyz_parser.dart` | Honours the declared atom count (frame-aware), added `serialize()`, delegates analysis to `molecular.dart` |
 | `lib/core/utils/molecule_parser.dart` | Now a façade over `AvogadroCodec` (adds CJSON support) instead of a divergent duplicate |
 | `lib/core/utils/element_data.dart` | Added `atomicNumber`, `symbolForAtomicNumber`, `canonicalSymbol` |
-| `avogadro_plugin/quantom_forge_export.py` | **Rewritten for the Avogadro 2.0 API**: accepts the request JSON as argv *or* stdin, emits CJSON, keeps base64 padding, `QUANTUM_FORGE_URL` override, size guard, `--copy` / `--status` modes, and always answers with `message`/`error` JSON instead of crashing |
+| `avogadro_plugin/quantum_forge_export.py` | **Rewritten for the Avogadro 2.0 API**: accepts the request JSON as argv *or* stdin, emits CJSON, keeps base64 padding, `QUANTUM_FORGE_URL` override, size guard, `--copy` / `--status` modes, and always answers with `message`/`error` JSON instead of crashing |
 | `avogadro_plugin/avogadro.toml`, `pyproject.toml` | **New**: plugin metadata with three menu commands (required for any current Avogadro) |
 | `avogadro_plugin/install_plugin.py` | **New**: cross-platform installer with `--dry-run` / `--force` / `--uninstall` |
 | `avogadro_plugin/README.md` | Rewritten for the real API, layout and troubleshooting |
@@ -306,7 +306,7 @@ user would see in it. An unfocused read returns `""` even when the field holds t
 The plugin was additionally exercised end to end from the shell:
 
 ```
-$ echo '{"cjson":{...water...}}' | QUANTUM_FORGE_NO_BROWSER=1 python quantom_forge_export.py
+$ echo '{"cjson":{...water...}}' | QUANTUM_FORGE_NO_BROWSER=1 python quantum_forge_export.py
 https://quantom-forge.web.app/?import_struct=eyJjaGVtaWNhbEpzb24i…%3D%3D&fmt=cjson&source=avogadro&name=Water
 {"message": "Opened Quantum Forge (https://quantom-forge.web.app) with 3 atoms."}
 ```

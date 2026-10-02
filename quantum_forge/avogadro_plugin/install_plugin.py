@@ -4,7 +4,7 @@
 # ----------------------------------------------------------------------------
 # Copies this folder into Avogadro 2's user plugin directory:
 #
-#     <USERDATA>/OpenChemistry/Avogadro/plugins/python/quantom-forge
+#     <USERDATA>/OpenChemistry/Avogadro/plugins/python/quantum-forge
 #
 # The old README told users to drop a single .py file into `commands/`, which
 # stopped working when Avogadro 1.103 required every plugin to be a folder with
@@ -26,10 +26,10 @@ import shutil
 import sys
 from pathlib import Path
 
-PLUGIN_NAME = "quantom-forge"
+PLUGIN_NAME = "quantum-forge"
 SOURCE_DIR = Path(__file__).resolve().parent
 #: Files that make up the installed plugin (metadata + scripts + notes).
-PAYLOAD = ("avogadro.toml", "pyproject.toml", "quantom_forge_export.py", "README.md")
+PAYLOAD = ("avogadro.toml", "pyproject.toml", "quantum_forge_export.py", "README.md")
 
 
 def user_data_dir() -> Path:

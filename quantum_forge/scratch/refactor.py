@@ -1,7 +1,7 @@
 import re
 import os
 
-file_path = r"c:\Quantom Forge Repo\Quantom-Forge\quantum_forge\lib\core\widgets\reaction_animation_widget.dart"
+file_path = r"c:\Quantum Forge Repo\Quantum-Forge\quantum_forge\lib\core\widgets\reaction_animation_widget.dart"
 
 with open(file_path, "r", encoding="utf-8") as f:
     content = f.read()

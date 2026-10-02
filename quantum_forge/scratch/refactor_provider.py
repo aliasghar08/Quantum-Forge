@@ -1,6 +1,6 @@
 import os
 
-file_path = r"c:\Quantom Forge Repo\Quantom-Forge\quantum_forge\lib\state\reaction_provider.dart"
+file_path = r"c:\Quantum Forge Repo\Quantum-Forge\quantum_forge\lib\state\reaction_provider.dart"
 
 with open(file_path, "r", encoding="utf-8") as f:
     content = f.read()

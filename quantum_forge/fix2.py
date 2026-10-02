@@ -1,6 +1,6 @@
 import re
 
-path = r'c:\Quantom Forge Repo\Quantom-Forge\quantum_forge\lib\features\reaction_runner\presentation\screens\dashboard_screen.dart'
+path = r'c:\Quantum Forge Repo\Quantum-Forge\quantum_forge\lib\features\reaction_runner\presentation\screens\dashboard_screen.dart'
 with open(path, 'r', encoding='utf-8') as f:
     content = f.read()
 

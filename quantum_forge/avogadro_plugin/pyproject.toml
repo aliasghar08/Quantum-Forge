@@ -11,7 +11,7 @@ requires = ["setuptools>=61"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "quantom-forge-avogadro"
+name = "quantum-forge-avogadro"
 version = "2.0.0"
 description = "Exchange structures between Avogadro 2 and the Quantum Forge web workstation."
 requires-python = ">=3.9"
@@ -22,7 +22,7 @@ dependencies = []
 
 [tool.avogadro]
 name = "Quantum Forge"
-identifier = "quantom-forge"
+identifier = "quantum-forge"
 version = "2.0.0"
 description = "Exchange structures between Avogadro 2 and the Quantum Forge web workstation."
 url = "https://quantom-forge.web.app"
@@ -31,16 +31,16 @@ url = "https://quantom-forge.web.app"
 name = "Export to Quantum Forge Web"
 description = "Open the current molecule in the Quantum Forge web dashboard."
 menu-path = "Extensions|Quantum Forge"
-command = "quantom_forge_export.py"
+command = "quantum_forge_export.py"
 
 [[tool.avogadro.menu-commands]]
 name = "Copy Quantum Forge Link"
 description = "Copy a Quantum Forge deep link for the current molecule to the clipboard."
 menu-path = "Extensions|Quantum Forge"
-command = "quantom_forge_export.py --copy"
+command = "quantum_forge_export.py --copy"
 
 [[tool.avogadro.menu-commands]]
 name = "Check Quantum Forge Connection"
 description = "Show the Quantum Forge endpoint Quantum Forge plugins will open."
 menu-path = "Extensions|Quantum Forge"
-command = "quantom_forge_export.py --status"
+command = "quantum_forge_export.py --status"

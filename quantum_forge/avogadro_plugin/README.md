@@ -8,7 +8,7 @@ either direction.
 avogadro_plugin/
 ├── avogadro.toml            # plugin metadata (Avogadro 2.0+ reads this first)
 ├── pyproject.toml           # fallback metadata for tooling / older builds
-├── quantom_forge_export.py  # the menu commands
+├── quantum_forge_export.py  # the menu commands
 ├── install_plugin.py        # one-command installer for all platforms
 └── README.md
 ```
@@ -26,13 +26,13 @@ Use `--dry-run` to preview and `--force` to replace an existing install.
 
 **Manual**
 
-Copy this whole folder to `…/OpenChemistry/Avogadro/plugins/python/quantom-forge`:
+Copy this whole folder to `…/OpenChemistry/Avogadro/plugins/python/quantum-forge`:
 
 | Platform | Path |
 | --- | --- |
-| Windows | `%LOCALAPPDATA%\OpenChemistry\Avogadro\plugins\python\quantom-forge` |
-| macOS | `~/Library/Application Support/OpenChemistry/Avogadro/plugins/python/quantom-forge` |
-| Linux | `~/.local/share/OpenChemistry/Avogadro/plugins/python/quantom-forge` |
+| Windows | `%LOCALAPPDATA%\OpenChemistry\Avogadro\plugins\python\quantum-forge` |
+| macOS | `~/Library/Application Support/OpenChemistry/Avogadro/plugins/python/quantum-forge` |
+| Linux | `~/.local/share/OpenChemistry/Avogadro/plugins/python/quantum-forge` |
 
 > The folder name matters. Avogadro only accepts plugin names made of letters,
 > digits and hyphens — no underscores or spaces.
@@ -111,7 +111,7 @@ The script is a normal command-line program, so it can be exercised directly:
 echo '{"cjson":{"chemicalJson":1,
   "atoms":{"coords":{"3d":[0,0,0.117,0,0.755,-0.471,0,-0.755,-0.471]},
            "elements":{"number":[8,1,1]}}}}' \
-  | QUANTUM_FORGE_NO_BROWSER=1 python quantom_forge_export.py
+  | QUANTUM_FORGE_NO_BROWSER=1 python quantum_forge_export.py
 ```
 
 It prints a `{"message": …}` JSON object and the deep link, without opening a

@@ -1082,19 +1082,19 @@ class _AvogadroTabState extends State<_AvogadroTab> {
           children: [
             const _CodeBlock(
               title: 'Windows',
-              code: r'%LOCALAPPDATA%\OpenChemistry\Avogadro\plugins\python\quantom-forge',
+              code: r'%LOCALAPPDATA%\OpenChemistry\Avogadro\plugins\python\quantum-forge',
             ),
             const Divider(height: 1),
             const _CodeBlock(
               title: 'macOS',
               code:
-                  '~/Library/Application Support/OpenChemistry/Avogadro/plugins/python/quantom-forge',
+                  '~/Library/Application Support/OpenChemistry/Avogadro/plugins/python/quantum-forge',
             ),
             const Divider(height: 1),
             const _CodeBlock(
               title: 'Linux',
               code:
-                  '~/.local/share/OpenChemistry/Avogadro/plugins/python/quantom-forge',
+                  '~/.local/share/OpenChemistry/Avogadro/plugins/python/quantum-forge',
             ),
             const Divider(height: 1),
             Padding(
