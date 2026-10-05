@@ -5,6 +5,7 @@ import 'package:quantum_forge/features/reaction_library/data/reaction_templates.
 import 'package:quantum_forge/core/widgets/animations/staggered_animation_list.dart';
 import 'package:provider/provider.dart';
 import 'package:quantum_forge/core/settings/app_settings_provider.dart';
+import 'package:quantum_forge/core/config/api_endpoints.dart';
 import 'package:quantum_forge/core/services/backend_compute_service.dart';
 import 'package:quantum_forge/core/utils/xyz_parser.dart';
 import 'package:quantum_forge/core/utils/avogadro_element_data.dart';
@@ -120,9 +121,13 @@ class _PublicationDetailsScreenState extends State<PublicationDetailsScreen> {
       final productPos = productAtoms.map((a) => [a.x, a.y, a.z]).toList();
 
       const computeService = BackendComputeService();
-      String url = settings.gnnBackendUrl;
+      String url = ApiEndpoints.sanitize(settings.gnnBackendUrl);
       if (quantumSettings.mlipModel == 'MACE-MP-0') {
-        url = 'http://127.0.0.1:8001';
+        url = ApiEndpoints.forModel('MACE-MP-0');
+      }
+      if (url.isEmpty) {
+        if (mounted) setState(() => _isLoadingEnergies = false);
+        return;
       }
       final rEnergy = await computeService.predictEnergy(url, reactantZ, reactantPos);
       final pEnergy = await computeService.predictEnergy(url, productZ, productPos);

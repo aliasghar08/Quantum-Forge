@@ -16,9 +16,28 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart' show debugPrint;
 
+import 'package:quantum_forge/core/config/api_endpoints.dart';
 import 'package:quantum_forge/core/services/web_services.dart';
 import 'package:quantum_forge/features/reaction_runner/data/models/reaction_models.dart';
 import 'package:quantum_forge/state/settings_provider.dart';
+
+/// A backend call failed. Unlike the browser's bare `TypeError: Failed to
+/// fetch`, this says *which* URL failed and, when the server answered at all,
+/// with which HTTP status.
+class BackendException implements Exception {
+  final String url;
+
+  /// HTTP status, or null when no response arrived (CORS rejection, DNS
+  /// failure, connection refused, mixed-content block).
+  final int? statusCode;
+  final String reason;
+
+  const BackendException(this.url, this.reason, {this.statusCode});
+
+  @override
+  String toString() => 'Backend request to $url failed'
+      '${statusCode != null ? ' (HTTP $statusCode)' : ''}: $reason';
+}
 
 /// Result of a backend liveness probe, suitable for display in Settings.
 class BackendHealth {
@@ -57,6 +76,48 @@ class BackendComputeService {
     return base;
   }
 
+  /// Runs [call] and converts any failure into a [BackendException].
+  ///
+  /// `fetch()` hides the cause of a network-level failure behind
+  /// `TypeError: Failed to fetch`, so this does what the browser won't:
+  /// it pre-empts the mixed-content case, extracts the HTTP status when there
+  /// was one, and otherwise lists the real candidates for the failure.
+  static Future<T> _guard<T>(String url, Future<T> Function() call) async {
+    final onHttpsPage = Uri.base.scheme == 'https';
+    if (onHttpsPage &&
+        url.startsWith('http://') &&
+        !ApiEndpoints.isLoopback(url)) {
+      throw BackendException(
+        url,
+        'Mixed content: this page is served over HTTPS, so the browser blocks '
+        'plain-http requests. Use an https:// backend URL.',
+      );
+    }
+    try {
+      return await call();
+    } on BackendException {
+      rethrow;
+    } catch (e) {
+      final text = e.toString();
+      final status = RegExp(r'HTTP (\d{3})').firstMatch(text)?.group(1);
+      if (status != null) {
+        throw BackendException(url, text, statusCode: int.parse(status));
+      }
+      final isFetchFailure = text.contains('Failed to fetch') ||
+          text.contains('XMLHttpRequest') ||
+          text.contains('NetworkError');
+      throw BackendException(
+        url,
+        isFetchFailure
+            ? 'No response (browser reports only "$text"). Likely causes: server '
+                'down or cold-starting, CORS preflight rejected (check the '
+                'server allows origin ${Uri.base.scheme}://${Uri.base.host}), a loopback address '
+                'reached from a hosted page, or a mixed-content block.'
+            : text,
+      );
+    }
+  }
+
   Map<String, dynamic> _body(
     String reactantXyz,
     String productXyz,
@@ -71,6 +132,10 @@ class BackendComputeService {
       'update_teval': settings.updateTeval,
       'convergence': _convergence(settings),
       'mlip_model': settings.mlipModel,
+      // Solvent and temperature were selectable in the UI but never sent, so
+      // every run silently ignored them.
+      'solvent_model': settings.solventModel,
+      'temperature_k': settings.temperatureK,
       'hf_token': settings.hfToken.isEmpty ? null : settings.hfToken,
     };
   }
@@ -83,9 +148,12 @@ class BackendComputeService {
     QuantumSettings settings,
   ) async {
     final base = _base(backendUrl);
-    final json = await WebServices.postJson(
-      '$base/reactions/submit',
-      _body(reactantXyz, productXyz, settings),
+    final json = await _guard(
+      base,
+      () => WebServices.postJson(
+        '$base/reactions/submit',
+        _body(reactantXyz, productXyz, settings),
+      ),
     );
     final id = json['reaction_id'] as String?;
     if (id == null || id.isEmpty) {
@@ -104,7 +172,10 @@ class BackendComputeService {
     final base = _base(backendUrl);
     for (var i = 0; i < maxAttempts; i++) {
       await Future<void>.delayed(interval);
-      final raw = await WebServices.fetchString('$base/reactions/$reactionId');
+      final raw = await _guard(
+        base,
+        () => WebServices.fetchString('$base/reactions/$reactionId'),
+      );
       final Map<String, dynamic> json;
       try {
         json = jsonDecode(raw) as Map<String, dynamic>;

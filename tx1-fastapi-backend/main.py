@@ -22,7 +22,7 @@ os.environ.setdefault("PYTORCH_ENABLE_MPS_FALLBACK", "1")
 import torch.nn as nn
 from fastapi import FastAPI, HTTPException, BackgroundTasks, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel
 
 # Hardware acceleration for Apple Silicon (M1 Pro) or fallback to CPU
@@ -67,20 +67,51 @@ async def lifespan(_: FastAPI):
     load_model()
     yield
 
+# Origins allowed to call this API from a browser. Override with
+# T1X_ALLOWED_ORIGINS="https://a.example,https://b.example" (or "*").
+DEFAULT_ORIGINS = [
+    "https://quantom-forge.web.app",
+    "https://quantom-forge.firebaseapp.com",
+]
+
+
 def allowed_origins() -> list[str]:
-    raw = os.environ.get("T1X_ALLOWED_ORIGINS", "*").strip()
-    if raw in ("", "*"):
+    raw = os.environ.get("T1X_ALLOWED_ORIGINS", "").strip()
+    if raw == "*":
         return ["*"]
-    return [origin.strip() for origin in raw.split(",") if origin.strip()]
+    extra = [origin.strip() for origin in raw.split(",") if origin.strip()]
+    return DEFAULT_ORIGINS + extra
+
 
 app = FastAPI(title="Transition1x GNN API", version="1.2.0", lifespan=lifespan)
+
+
+# Registered BEFORE CORSMiddleware so it sits INSIDE it. Starlette's outer
+# ServerErrorMiddleware builds the 500 page for an unhandled exception *outside*
+# CORSMiddleware, so that response has no Access-Control-Allow-Origin and the
+# browser reports a plain "TypeError: Failed to fetch" instead of the real 500.
+# Converting the exception to a JSON response here keeps it inside CORS.
+@app.middleware("http")
+async def json_errors_inside_cors(request: Request, call_next):
+    try:
+        return await call_next(request)
+    except Exception as exc:  # noqa: BLE001 - last-resort boundary
+        print(f"[500] {request.method} {request.url.path}: {type(exc).__name__}: {exc}")
+        return JSONResponse(
+            status_code=500,
+            content={"detail": f"{type(exc).__name__}: {exc}"},
+        )
+
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=allowed_origins(),
+    # Local dev: any loopback port (Flutter debug picks a random one).
+    allow_origin_regex=r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$",
     allow_credentials=False,
     allow_methods=["GET", "POST", "OPTIONS", "HEAD"],
     allow_headers=["*"],
+    max_age=600,
 )
 
 
@@ -191,6 +222,11 @@ class ReactionRequest(BaseModel):
     charge: int = 0
     spin_multiplicity: int = 1
     mlip_model: str = "tx1-fastapi"
+    # Sent by the Flutter app. Accepted and echoed back in the result so the
+    # request is no longer silently lossy. The LST/GNN path does not model
+    # solvation, which the result states via `solvent_applied: False`.
+    solvent_model: str = "Vacuum"
+    temperature_k: float = 298.15
 
 _reactions = {}
 
@@ -311,6 +347,9 @@ async def run_reaction(reaction_id: str, req: ReactionRequest):
             "vibrational_modes": [],
             "model_requested": req.mlip_model,
             "model_used": calculator.name(),
+            "solvent_model": req.solvent_model,
+            "temperature_k": req.temperature_k,
+            "solvent_applied": False,
         })
     except Exception as e:
         _reactions[reaction_id].update({

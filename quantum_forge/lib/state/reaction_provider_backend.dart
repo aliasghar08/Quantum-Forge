@@ -94,11 +94,14 @@ extension ReactionProviderBackendExt on ReactionNotifier {
         }
       }
       isLoadingNotifier.value = false;
+      backendDiagnosticNotifier.value = null;
       return true;
     } catch (e) {
       isSubmitting = false;
       errorNotifier.value = null;
-      debugPrint('Compute node ($url) unavailable: $e. Gracefully falling back to local Transformer TS engine.');
+      // BackendException already names the URL and HTTP status (if any).
+      backendDiagnosticNotifier.value = e.toString();
+      debugPrint('[Backend] $e — falling back to on-device Transformer engine.');
       // Return false so caller seamlessly runs the local high-performance simulation!
       return false;
     }

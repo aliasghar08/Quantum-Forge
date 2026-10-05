@@ -30,7 +30,14 @@ extension ReactionProviderGuestExt on ReactionNotifier {
       }
     }
 
-    emit(ReactionState.pending, 0.0, 'Queued (Transformer Reaction Engine)…');
+    final why = backendDiagnosticNotifier.value;
+    emit(
+      ReactionState.pending,
+      0.0,
+      why == null
+          ? 'Queued (Transformer Reaction Engine)…'
+          : 'Compute node unavailable — running on-device. $why',
+    );
     await Future.delayed(const Duration(milliseconds: 400));
     emit(ReactionState.optimizing, 0.20, 'Transformer Self-Attention: Encoding 3D point cloud & covalent topology…');
     await Future.delayed(const Duration(milliseconds: 600));

@@ -50,6 +50,12 @@ class ReactionNotifier extends ValueNotifier<ReactionStatusResponse?> {
 
   final ValueNotifier<String?> errorNotifier = ValueNotifier<String?>(null);
 
+  /// Why the last compute-node request was abandoned (URL, HTTP status or
+  /// network cause), or null. Non-blocking: the run continues on the on-device
+  /// engine, but the reason stays inspectable instead of vanishing.
+  final ValueNotifier<String?> backendDiagnosticNotifier =
+      ValueNotifier<String?>(null);
+
   ReactionNotifier(
     this._auth,
     this._storage,

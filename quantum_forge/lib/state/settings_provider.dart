@@ -14,6 +14,7 @@
 // ============================================================================
 
 import 'package:flutter/foundation.dart';
+import 'package:quantum_forge/core/config/api_endpoints.dart';
 import 'package:quantum_forge/core/services/app_storage.dart';
 
 class QuantumSettings {
@@ -83,22 +84,11 @@ class QuantumSettings {
 
   /// The effective URL to use for the currently selected MLIP model.
   ///
-  /// Prefers the explicit `backendUrl` override when the user has set one;
-  /// otherwise falls back to the local development URL for whichever
-  /// `mlipModel` is selected.
-  String get effectiveBackendUrl {
-    if (backendUrl.isNotEmpty) return backendUrl;
-    if (kIsWeb) return '';
-    return switch (mlipModel) {
-      'tx1-fastapi' => 'http://localhost:8005',
-      'MACE-MP-0' => 'http://localhost:8001',
-      'MACE-OFF23' => 'http://localhost:8001',
-      'ANI-2x' => 'http://localhost:8003',
-      'CHGNet' => 'http://localhost:8002',
-      'GFN2-xTB' => 'http://localhost:8004',
-      _ => 'http://localhost:8005',
-    };
-  }
+  /// Debug builds use local `127.0.0.1` dev servers; release builds use an
+  /// `https://` production URL only (see [ApiEndpoints]). An explicit
+  /// `backendUrl` override wins in both. Empty means "no usable backend".
+  String get effectiveBackendUrl =>
+      ApiEndpoints.forModel(mlipModel, userOverride: backendUrl);
 
   @override
   bool operator ==(Object other) {

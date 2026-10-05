@@ -9,6 +9,7 @@
 // ============================================================================
 
 import 'package:flutter/foundation.dart';
+import 'package:quantum_forge/core/config/api_endpoints.dart';
 import 'package:quantum_forge/core/services/app_storage.dart';
 
 /// Default ColabReaction (DMF/MLIP) compute backend.
@@ -185,22 +186,13 @@ class AppSettings {
 
   /// The effective URL to use for the currently selected MLIP model.
   ///
-  /// Prefers the explicit `backendUrl` override when the user has set one
-  /// (and it is not the default remote placeholder); otherwise falls back
-  /// to the local development URL for whichever `mlipModel` is selected.
+  /// A user-typed `backendUrl` (anything other than the stored default) wins;
+  /// otherwise [ApiEndpoints] picks local `127.0.0.1` servers in debug builds
+  /// and the secure production URL in release builds.
   String effectiveBackendUrl([String mlipModel = 'tx1-fastapi']) {
-    if (backendUrl.isNotEmpty && backendUrl != kDefaultComputeBackendUrl) {
-      return backendUrl;
-    }
-    return switch (mlipModel) {
-      'tx1-fastapi' => 'http://localhost:8005',
-      'MACE-MP-0' => 'http://localhost:8001',
-      'MACE-OFF23' => 'http://localhost:8001',
-      'ANI-2x' => 'http://localhost:8003',
-      'CHGNet' => 'http://localhost:8002',
-      'GFN2-xTB' => 'http://localhost:8004',
-      _ => 'http://localhost:8005',
-    };
+    final custom =
+        backendUrl != kDefaultComputeBackendUrl ? backendUrl : '';
+    return ApiEndpoints.forModel(mlipModel, userOverride: custom);
   }
 
   /// True when a real GNN backend has been configured.
