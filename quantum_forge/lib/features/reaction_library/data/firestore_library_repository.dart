@@ -1,5 +1,7 @@
+import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:quantum_forge/features/reaction_library/data/reaction_templates.dart';
 
 /// Result page returned by paginated queries.
@@ -171,6 +173,40 @@ class FirestoreLibraryRepository {
       return templates.length;
     } catch (e) {
       debugPrint('FirestoreLibraryRepository.seedLibrary error: $e');
+      return 0;
+    }
+  }
+
+  // ── Auto-save / Contribution ───────────────────────────────────────────────
+
+  /// Saves or updates a single reaction template directly into Firestore /library.
+  /// Used to auto-save run reactions or add custom medical/pharmacological reactions.
+  Future<bool> saveReaction(ReactionTemplate template) async {
+    try {
+      await _col.doc(template.id).set(template.toJson(), SetOptions(merge: true));
+      debugPrint('FirestoreLibraryRepository: Saved ${template.id} to library.');
+      return true;
+    } catch (e) {
+      debugPrint('FirestoreLibraryRepository.saveReaction error: $e');
+      return false;
+    }
+  }
+
+  /// Automatically ensures the core medical & pharmaceutical reactions for
+  /// MBBS and Pharm-D students are seeded into Firestore /library.
+  Future<int> autoSeedMedicalLibrary() async {
+    try {
+      final jsonStr = await rootBundle.loadString('assets/medical_reactions.json');
+      final list = jsonDecode(jsonStr) as List<dynamic>;
+      final templates = list.map((item) {
+        final m = item as Map<String, dynamic>;
+        return ReactionTemplate.fromJson(m, m['id'] as String);
+      }).toList();
+      final count = await seedLibrary(templates);
+      debugPrint('Auto-seeded $count medical templates into Firestore.');
+      return count;
+    } catch (e) {
+      debugPrint('FirestoreLibraryRepository.autoSeedMedicalLibrary error: $e');
       return 0;
     }
   }

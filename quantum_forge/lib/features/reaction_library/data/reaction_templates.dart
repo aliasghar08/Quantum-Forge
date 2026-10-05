@@ -4,6 +4,8 @@
 // coordinates optimized at B3LYP/6-31G* level (CCCBDB/NIST sources).
 // ============================================================================
 
+import 'package:quantum_forge/features/reaction_library/data/medical_reaction_templates.dart';
+
 enum ReactionCategory {
   pericyclic,
   radical,
@@ -13,6 +15,8 @@ enum ReactionCategory {
   nucleophilic,
   electrochemistry,
   inorganic,
+  pharmaceutical,
+  biochemical,
 }
 
 class QuantumDefaults {
@@ -1202,6 +1206,7 @@ H    14.163    0.000    0.000
 ''';
 
 final List<ReactionTemplate> kReactionTemplates = [
+  ...kMedicalReactionTemplates,
   ReactionTemplate(
     id: 'eas-01',
     name: 'Electrophilic Aromatic Substitution (EAS)',

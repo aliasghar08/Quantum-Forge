@@ -85,6 +85,8 @@ class LibraryHeader extends StatelessWidget {
 
   final ValueChanged<String> onSearchChanged;
   final VoidCallback? onRefreshCount;
+  final VoidCallback? onAddReaction;
+  final VoidCallback? onSyncMedical;
 
   const LibraryHeader({
     super.key,
@@ -92,6 +94,8 @@ class LibraryHeader extends StatelessWidget {
     this.cloudCount,
     required this.onSearchChanged,
     this.onRefreshCount,
+    this.onAddReaction,
+    this.onSyncMedical,
   });
 
   @override
@@ -109,14 +113,45 @@ class LibraryHeader extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Text(
-                  'Reaction Library',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: -0.5,
-                  ),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text(
+                      'Reaction Library',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: -0.5,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF00E676).withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: const Color(0xFF00E676).withValues(alpha: 0.4),
+                        ),
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.medical_services_outlined, size: 14, color: Color(0xFF00E676)),
+                          SizedBox(width: 4),
+                          Text(
+                            'MBBS & Pharm-D Focus',
+                            style: TextStyle(
+                              color: Color(0xFF00E676),
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 4),
                 _buildCountRow(context),
@@ -143,6 +178,34 @@ class LibraryHeader extends StatelessWidget {
                   : _buildTextField(),
             ),
           ),
+          if (onSyncMedical != null)
+            OutlinedButton.icon(
+              onPressed: onSyncMedical,
+              icon: const Icon(Icons.sync_rounded, size: 16, color: Color(0xFF00E676)),
+              label: const Text(
+                'Sync Medical (Firebase)',
+                style: TextStyle(color: Color(0xFF00E676), fontSize: 13),
+              ),
+              style: OutlinedButton.styleFrom(
+                side: BorderSide(color: const Color(0xFF00E676).withValues(alpha: 0.4)),
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              ),
+            ),
+          if (onAddReaction != null)
+            FilledButton.icon(
+              onPressed: onAddReaction,
+              icon: const Icon(Icons.add_circle_outline, size: 16),
+              label: const Text(
+                'Add Reaction',
+                style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+              ),
+              style: FilledButton.styleFrom(
+                backgroundColor: const Color(0xFF00B0FF),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              ),
+            ),
         ],
       ),
     );

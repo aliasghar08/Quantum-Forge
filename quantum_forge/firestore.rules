@@ -17,10 +17,9 @@ service cloud.firestore {
     }
 
     // Public reaction-template library: readable by everyone (including signed
-    // out guests), writable only by signed-in users (used for seeding).
+    // out guests), writable for automatic seeding, medical library sync, and contributions.
     match /library/{templateId} {
-      allow read: if true;
-      allow write: if request.auth != null;
+      allow read, write: if true;
     }
   }
 }

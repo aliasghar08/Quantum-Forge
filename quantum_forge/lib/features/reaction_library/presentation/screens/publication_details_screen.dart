@@ -247,7 +247,10 @@ class _PublicationDetailsScreenState extends State<PublicationDetailsScreen> {
             doi: widget.template.doi,
           ),
           const SizedBox(height: 20),
-          PublicationRelatedVideosCard(query: title),
+          PublicationRelatedVideosCard(
+            query: title,
+            template: widget.template,
+          ),
         ],
       ),
     );

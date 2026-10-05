@@ -452,6 +452,8 @@ class TemplateDetailScreen extends StatelessWidget {
       ReactionCategory.nucleophilic => const Color(0xFF66BB6A),
       ReactionCategory.electrochemistry => const Color(0xFFE040FB),
       ReactionCategory.inorganic => const Color(0xFF8D6E63),
+      ReactionCategory.pharmaceutical => const Color(0xFF00E676),
+      ReactionCategory.biochemical => const Color(0xFF00B0FF),
     };
   }
 
@@ -465,6 +467,8 @@ class TemplateDetailScreen extends StatelessWidget {
       ReactionCategory.nucleophilic => 'Nucleophilic',
       ReactionCategory.electrochemistry => 'Electrochemistry',
       ReactionCategory.inorganic => 'Inorganic',
+      ReactionCategory.pharmaceutical => 'Pharmaceutical (Pharm-D)',
+      ReactionCategory.biochemical => 'Biochemical (MBBS)',
     };
   }
 

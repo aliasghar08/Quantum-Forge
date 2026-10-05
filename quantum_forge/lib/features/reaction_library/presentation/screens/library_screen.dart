@@ -101,22 +101,49 @@ class _LibraryScreenState extends State<LibraryScreen> {
     try {
       final page = await _repo.getPage(category: _filterCategory);
       if (!mounted) return;
-      if (page.items.isEmpty) {
-        // Firestore empty — auto-seed the 41 curated base templates.
-        await _seedCurated();
+      final items = List<ReactionTemplate>.from(page.items);
+      
+      // When viewing 'All', always surface MBBS & Pharm-D medical reactions first
+      if (_filterCategory == null) {
+        final existingIds = items.map((e) => e.id).toSet();
+        final medicalToPrepend = kReactionTemplates
+            .where((t) => (t.category == ReactionCategory.pharmaceutical ||
+                           t.category == ReactionCategory.biochemical) &&
+                          !existingIds.contains(t.id))
+            .toList();
+        items.insertAll(0, medicalToPrepend);
+      }
+
+      if (items.isEmpty) {
+        // Fallback to local curated & medical templates
+        final fallback = _filterCategory == null
+            ? kReactionTemplates
+            : kReactionTemplates.where((t) => t.category == _filterCategory).toList();
+        setState(() {
+          _items = fallback;
+          _isFirstLoad = false;
+          _hasMore = false;
+        });
+        unawaited(_seedCurated());
         return;
       }
       setState(() {
-        _items = page.items;
+        _items = items;
         _nextCursor = page.nextCursor;
         _hasMore = page.hasMore;
         _isFirstLoad = false;
       });
     } catch (e) {
       if (!mounted) return;
+      // Resilient fallback for offline / permission constraints
+      final fallback = _filterCategory == null
+          ? kReactionTemplates
+          : kReactionTemplates.where((t) => t.category == _filterCategory).toList();
       setState(() {
-        _error = 'Could not load library. Check your connection.';
+        _items = fallback;
+        _error = '';
         _isFirstLoad = false;
+        _hasMore = false;
       });
     }
   }
@@ -147,10 +174,27 @@ class _LibraryScreenState extends State<LibraryScreen> {
       final results =
           await _repo.search(query, category: _filterCategory);
       if (!mounted) return;
+      
+      // If Firestore search returns few/none, search local medical templates too
+      final qLower = query.toLowerCase();
+      final localMatches = kReactionTemplates.where((t) {
+        final matchesCat = _filterCategory == null || t.category == _filterCategory;
+        final matchesText = t.name.toLowerCase().contains(qLower) ||
+            t.description.toLowerCase().contains(qLower) ||
+            t.tags.any((tag) => tag.toLowerCase().contains(qLower));
+        return matchesCat && matchesText;
+      }).toList();
+
+      final combined = <ReactionTemplate>[...results];
+      final seen = results.map((r) => r.id).toSet();
+      for (final m in localMatches) {
+        if (seen.add(m.id)) combined.add(m);
+      }
+
       setState(() {
-        _items = results;
+        _items = combined;
         _nextCursor = null;
-        _hasMore = false; // search results are not paginated further
+        _hasMore = false;
         _isFirstLoad = false;
       });
     } catch (e) {
@@ -167,17 +211,253 @@ class _LibraryScreenState extends State<LibraryScreen> {
     if (mounted) setState(() => _cloudCount = count);
   }
 
-  /// Seeds only the 41 curated templates on first run (not the 200K variants).
+  /// Seeds both medical and curated templates to Firestore
   Future<void> _seedCurated() async {
-    debugPrint('Firestore empty — seeding curated templates...');
+    debugPrint('Seeding medical and curated templates to Firestore...');
     try {
+      await _repo.autoSeedMedicalLibrary();
       await _repo.seedLibrary(kReactionTemplates);
     } catch (e) {
       debugPrint('Seed failed: $e');
     }
     if (!mounted) return;
-    // Re-fetch after seeding
     _loadFirstPage();
+  }
+
+  Future<void> _syncMedicalToFirebase() async {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Syncing MBBS & Pharm-D medical reactions to Firebase…'),
+        duration: Duration(seconds: 1),
+      ),
+    );
+    final count = await _repo.autoSeedMedicalLibrary();
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Successfully synced $count medical reactions to Firebase!'),
+        backgroundColor: const Color(0xFF00E676),
+      ),
+    );
+    _fetchCloudCount();
+    _loadFirstPage();
+  }
+
+  void _showAddReactionDialog() {
+    final nameCtrl = TextEditingController();
+    final iupacCtrl = TextEditingController();
+    final descCtrl = TextEditingController();
+    final reactantCtrl = TextEditingController();
+    final productCtrl = TextEditingController();
+    final tagsCtrl = TextEditingController(text: 'Pharm-D, MBBS');
+    var selectedCat = ReactionCategory.pharmaceutical;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDlgState) => AlertDialog(
+          backgroundColor: const Color(0xFF161B22),
+          title: const Row(
+            children: [
+              Icon(Icons.medical_services_rounded, color: Color(0xFF00E676)),
+              SizedBox(width: 8),
+              Text(
+                'Add Reaction to Firebase Library',
+                style: TextStyle(color: Colors.white, fontSize: 18),
+              ),
+            ],
+          ),
+          content: SingleChildScrollView(
+            child: SizedBox(
+              width: 500,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Contribute a reaction tailored for MBBS or Pharm-D students.',
+                    style: TextStyle(color: Colors.white60, fontSize: 13),
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: nameCtrl,
+                    style: const TextStyle(color: Colors.white),
+                    decoration: const InputDecoration(
+                      labelText: 'Reaction Name *',
+                      labelStyle: TextStyle(color: Colors.white70),
+                      hintText: 'e.g. Aspirin Synthesis & COX Inhibition',
+                      hintStyle: TextStyle(color: Colors.white30),
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: iupacCtrl,
+                    style: const TextStyle(color: Colors.white),
+                    decoration: const InputDecoration(
+                      labelText: 'Chemical Equation / IUPAC',
+                      labelStyle: TextStyle(color: Colors.white70),
+                      hintText: 'Salicylic acid + acetic anhydride → aspirin',
+                      hintStyle: TextStyle(color: Colors.white30),
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  DropdownButtonFormField<ReactionCategory>(
+                    initialValue: selectedCat,
+                    dropdownColor: const Color(0xFF21262D),
+                    style: const TextStyle(color: Colors.white),
+                    decoration: const InputDecoration(
+                      labelText: 'Category *',
+                      labelStyle: TextStyle(color: Colors.white70),
+                      border: OutlineInputBorder(),
+                    ),
+                    items: const [
+                      DropdownMenuItem(
+                        value: ReactionCategory.pharmaceutical,
+                        child: Text('💊 Pharmaceutical (Pharm-D)'),
+                      ),
+                      DropdownMenuItem(
+                        value: ReactionCategory.biochemical,
+                        child: Text('🩺 Biochemical (MBBS)'),
+                      ),
+                      DropdownMenuItem(
+                        value: ReactionCategory.ionic,
+                        child: Text('Ionic / Organic'),
+                      ),
+                      DropdownMenuItem(
+                        value: ReactionCategory.thermal,
+                        child: Text('Thermal'),
+                      ),
+                    ],
+                    onChanged: (val) {
+                      if (val != null) setDlgState(() => selectedCat = val);
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: descCtrl,
+                    maxLines: 3,
+                    style: const TextStyle(color: Colors.white),
+                    decoration: const InputDecoration(
+                      labelText: 'Clinical / Medical Description',
+                      labelStyle: TextStyle(color: Colors.white70),
+                      hintText: 'Mechanism, enzyme target, clinical pharmacology relevance…',
+                      hintStyle: TextStyle(color: Colors.white30),
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: reactantCtrl,
+                    maxLines: 2,
+                    style: const TextStyle(color: Colors.white, fontFamily: 'monospace'),
+                    decoration: const InputDecoration(
+                      labelText: 'Reactant XYZ Coordinates',
+                      labelStyle: TextStyle(color: Colors.white70),
+                      hintText: 'Paste XYZ block or atoms…',
+                      hintStyle: TextStyle(color: Colors.white30),
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: productCtrl,
+                    maxLines: 2,
+                    style: const TextStyle(color: Colors.white, fontFamily: 'monospace'),
+                    decoration: const InputDecoration(
+                      labelText: 'Product XYZ Coordinates',
+                      labelStyle: TextStyle(color: Colors.white70),
+                      hintText: 'Paste XYZ block or atoms…',
+                      hintStyle: TextStyle(color: Colors.white30),
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: tagsCtrl,
+                    style: const TextStyle(color: Colors.white),
+                    decoration: const InputDecoration(
+                      labelText: 'Tags (comma-separated)',
+                      labelStyle: TextStyle(color: Colors.white70),
+                      hintText: 'Pharm-D, MBBS, NSAID, COX',
+                      hintStyle: TextStyle(color: Colors.white30),
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: const Text('Cancel', style: TextStyle(color: Colors.white60)),
+            ),
+            FilledButton.icon(
+              icon: const Icon(Icons.cloud_upload_outlined, size: 16),
+              label: const Text('Save to Firebase'),
+              style: FilledButton.styleFrom(
+                backgroundColor: const Color(0xFF00E676),
+                foregroundColor: Colors.black,
+              ),
+              onPressed: () async {
+                final name = nameCtrl.text.trim();
+                if (name.isEmpty) return;
+                Navigator.of(ctx).pop();
+
+                final newId = 'custom-${DateTime.now().millisecondsSinceEpoch}';
+                final tags = tagsCtrl.text
+                    .split(',')
+                    .map((s) => s.trim())
+                    .where((s) => s.isNotEmpty)
+                    .toList();
+
+                final template = ReactionTemplate(
+                  id: newId,
+                  name: name,
+                  iupacName: iupacCtrl.text.trim(),
+                  description: descCtrl.text.trim(),
+                  category: selectedCat,
+                  reactantXyz: reactantCtrl.text.trim().isNotEmpty
+                      ? reactantCtrl.text.trim()
+                      : '1\nAtoms\nC 0.0 0.0 0.0',
+                  productXyz: productCtrl.text.trim().isNotEmpty
+                      ? productCtrl.text.trim()
+                      : '1\nAtoms\nC 1.5 0.0 0.0',
+                  referenceEa: 15.0,
+                  doi: '',
+                  journalRef: 'User Contributed',
+                  tags: tags,
+                );
+
+                final saved = await _repo.saveReaction(template);
+                if (!mounted) return;
+                if (saved) {
+                  setState(() {
+                    _items.insert(0, template);
+                  });
+                  _fetchCloudCount();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Saved "${template.name}" to Firebase Library!'),
+                      backgroundColor: const Color(0xFF00E676),
+                    ),
+                  );
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Failed to save to Firebase. Check connection.'),
+                      backgroundColor: Colors.redAccent,
+                    ),
+                  );
+                }
+              },
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   // ── Event handlers ─────────────────────────────────────────────────────────
@@ -232,6 +512,8 @@ class _LibraryScreenState extends State<LibraryScreen> {
               setState(() => _cloudCount = null);
               _fetchCloudCount();
             },
+            onSyncMedical: _syncMedicalToFirebase,
+            onAddReaction: _showAddReactionDialog,
           ),
           LibraryFilterBar(
             selectedCategory: _filterCategory,

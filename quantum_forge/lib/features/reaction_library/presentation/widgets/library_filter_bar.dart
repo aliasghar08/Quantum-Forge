@@ -14,9 +14,23 @@ class LibraryFilterBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final categories = [null, ...ReactionCategory.values];
+    final categories = [
+      null,
+      ReactionCategory.pharmaceutical,
+      ReactionCategory.biochemical,
+      ReactionCategory.ionic,
+      ReactionCategory.pericyclic,
+      ReactionCategory.radical,
+      ReactionCategory.organometallic,
+      ReactionCategory.thermal,
+      ReactionCategory.nucleophilic,
+      ReactionCategory.electrochemistry,
+      ReactionCategory.inorganic,
+    ];
     final labels = {
-      null: 'All',
+      null: 'All Reactions',
+      ReactionCategory.pharmaceutical: '💊 Pharm-D / Drugs',
+      ReactionCategory.biochemical: '🩺 MBBS / Clinical',
       ReactionCategory.pericyclic: 'Pericyclic',
       ReactionCategory.radical: 'Radical',
       ReactionCategory.organometallic: 'Organometallic',

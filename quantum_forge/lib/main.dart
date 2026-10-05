@@ -1,9 +1,7 @@
 import 'dart:async' show unawaited;
-import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 import 'package:quantum_forge/features/reaction_runner/presentation/screens/dashboard_screen.dart';
 import 'package:quantum_forge/core/theme/theme_provider.dart';
@@ -16,13 +14,11 @@ import 'package:quantum_forge/state/reaction_provider.dart';
 import 'package:quantum_forge/core/services/chemical_resolver_service.dart';
 
 import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:quantum_forge/firebase_options.dart';
 import 'package:quantum_forge/core/services/firebase_auth_service.dart';
 import 'package:quantum_forge/core/services/firestore_reaction_repository.dart';
 import 'package:quantum_forge/core/services/auth_service.dart';
 import 'package:quantum_forge/features/reaction_library/data/firestore_library_repository.dart';
-import 'package:quantum_forge/features/reaction_library/data/reaction_templates.dart';
 import 'package:quantum_forge/core/services/session_state_service.dart';
 import 'package:quantum_forge/core/services/feedback_service.dart';
 
@@ -114,36 +110,17 @@ Future<void> initialiseCloudFeatures() async {
   unawaited(_seedLibrary());
 }
 
-// Top-level function for Isolate
-List<Map<String, dynamic>> _parseMassiveJson(String jsonStr) {
-  final massiveJson = jsonDecode(jsonStr) as List<dynamic>;
-  return massiveJson.map((e) => e as Map<String, dynamic>).toList();
-}
 
 Future<void> _seedLibrary() async {
-  // Seeding writes to Firestore, which unauthenticated guests cannot do. Skip
-  // silently for them — the library falls back to the bundled templates, so the
-  // app stays fully usable without an account and no permission error is raised.
-  if (FirebaseAuth.instance.currentUser == null) return;
-  
-  List<ReactionTemplate> templatesToSeed = List.from(kReactionTemplates);
-  
   try {
-    final massiveJsonStr = await rootBundle.loadString('assets/massive_reactions.json');
-    // Offload the heavy JSON decoding to a background Isolate (Web Worker)
-    final massiveJsonList = await compute(_parseMassiveJson, massiveJsonStr);
-    
-    for (var map in massiveJsonList) {
-      final id = map['id'] as String;
-      templatesToSeed.add(ReactionTemplate.fromJson(map, id));
+    final repo = FirestoreLibraryRepository();
+    // Automatically seed core MBBS and Pharm-D medical reactions into Firestore /library
+    final medCount = await repo.autoSeedMedicalLibrary();
+    if (medCount > 0) {
+      debugPrint('Medical reactions automatically seeded to Firestore: $medCount items.');
     }
   } catch (e) {
-    debugPrint('Could not load massive reactions asset: $e');
-  }
-
-  final written = await FirestoreLibraryRepository().seedLibrary(templatesToSeed);
-  if (written > 0) {
-    debugPrint('Reaction library seed complete ($written templates).');
+    debugPrint('Reaction library background auto-seed: $e');
   }
 }
 class QuantumForgeApp extends StatefulWidget {

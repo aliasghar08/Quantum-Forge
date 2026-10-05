@@ -24,6 +24,7 @@ import 'package:quantum_forge/features/reaction_runner/data/models/results_summa
 import 'package:quantum_forge/features/reaction_runner/presentation/widgets/dashboard_cards/results_header_card.dart';
 import 'package:quantum_forge/features/reaction_runner/presentation/widgets/quantum_controls_panel.dart';
 import 'package:quantum_forge/features/reaction_library/data/reaction_templates.dart';
+import 'package:quantum_forge/features/reaction_library/data/firestore_library_repository.dart';
 import 'package:quantum_forge/features/reaction_library/presentation/screens/library_screen.dart';
 import 'package:quantum_forge/features/reaction_library/presentation/widgets/pubmed_panel.dart';
 // Dashboard card widgets
@@ -664,16 +665,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildQuickTemplates() {
-    final topTemplates = kReactionTemplates.take(3).toList();
+    final topTemplates = kReactionTemplates.take(4).toList();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Or try a sample reaction to test the engine:',
-          style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.5),
-              fontSize: 13,
-              fontWeight: FontWeight.w600),
+        Row(
+          children: [
+            const Icon(Icons.medical_services_outlined, size: 16, color: Color(0xFF00E676)),
+            const SizedBox(width: 6),
+            Text(
+              'High-yield medical & clinical reactions (MBBS & Pharm-D):',
+              style: TextStyle(
+                  color: Colors.white.withValues(alpha: 0.8),
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600),
+            ),
+          ],
         ),
         const SizedBox(height: 12),
         Wrap(
@@ -1418,6 +1425,162 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 
+  void _saveCurrentToLibrary(ReactionStatusResponse status) {
+    final active = _viewModel.activeTemplate;
+    final rList = [..._viewModel.reactants, ..._viewModel.catalysts];
+    final pList = [..._viewModel.products, ..._viewModel.catalysts];
+    final rFile = active != null ? null : _viewModel.mergeXyz(rList, 'reactant');
+    final pFile = active != null ? null : _viewModel.mergeXyz(pList, 'product');
+    final String rXyz = active?.reactantXyz ??
+        (rFile?.bytes != null ? utf8.decode(rFile!.bytes!, allowMalformed: true) : '');
+    final String pXyz = active?.productXyz ??
+        (pFile?.bytes != null ? utf8.decode(pFile!.bytes!, allowMalformed: true) : '');
+
+    final nameCtrl = TextEditingController(text: active?.name ?? 'Clinical / Drug Reaction');
+    final iupacCtrl = TextEditingController(text: active?.iupacName ?? '');
+    final descCtrl = TextEditingController(
+      text: active?.description ?? 'Simulated reaction path via Quantum Forge compute engine.',
+    );
+    var selectedCat = active?.category ?? ReactionCategory.pharmaceutical;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDlgState) => AlertDialog(
+          backgroundColor: const Color(0xFF161B22),
+          title: const Row(
+            children: [
+              Icon(Icons.cloud_upload_rounded, color: Color(0xFF00E676)),
+              SizedBox(width: 8),
+              Text(
+                'Save to Firebase Library',
+                style: TextStyle(color: Colors.white, fontSize: 18),
+              ),
+            ],
+          ),
+          content: SingleChildScrollView(
+            child: SizedBox(
+              width: 480,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: nameCtrl,
+                    style: const TextStyle(color: Colors.white),
+                    decoration: const InputDecoration(
+                      labelText: 'Reaction Name *',
+                      labelStyle: TextStyle(color: Colors.white70),
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: iupacCtrl,
+                    style: const TextStyle(color: Colors.white),
+                    decoration: const InputDecoration(
+                      labelText: 'IUPAC / Chemical Equation',
+                      labelStyle: TextStyle(color: Colors.white70),
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  DropdownButtonFormField<ReactionCategory>(
+                    initialValue: selectedCat,
+                    dropdownColor: const Color(0xFF21262D),
+                    style: const TextStyle(color: Colors.white),
+                    decoration: const InputDecoration(
+                      labelText: 'Category *',
+                      labelStyle: TextStyle(color: Colors.white70),
+                      border: OutlineInputBorder(),
+                    ),
+                    items: const [
+                      DropdownMenuItem(
+                        value: ReactionCategory.pharmaceutical,
+                        child: Text('💊 Pharmaceutical (Pharm-D)'),
+                      ),
+                      DropdownMenuItem(
+                        value: ReactionCategory.biochemical,
+                        child: Text('🩺 Biochemical (MBBS)'),
+                      ),
+                      DropdownMenuItem(
+                        value: ReactionCategory.ionic,
+                        child: Text('Ionic / Acid-Base'),
+                      ),
+                    ],
+                    onChanged: (val) {
+                      if (val != null) setDlgState(() => selectedCat = val);
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: descCtrl,
+                    maxLines: 3,
+                    style: const TextStyle(color: Colors.white),
+                    decoration: const InputDecoration(
+                      labelText: 'Description / Clinical Notes',
+                      labelStyle: TextStyle(color: Colors.white70),
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: const Text('Cancel', style: TextStyle(color: Colors.white60)),
+            ),
+            FilledButton.icon(
+              icon: const Icon(Icons.cloud_upload_outlined, size: 16),
+              label: const Text('Save to Firebase'),
+              style: FilledButton.styleFrom(
+                backgroundColor: const Color(0xFF00E676),
+                foregroundColor: Colors.black,
+              ),
+              onPressed: () async {
+                final name = nameCtrl.text.trim();
+                if (name.isEmpty) return;
+                Navigator.of(ctx).pop();
+
+                final docId = active?.id.isNotEmpty == true
+                    ? active!.id
+                    : 'sim-${DateTime.now().millisecondsSinceEpoch}';
+
+                final template = ReactionTemplate(
+                  id: docId,
+                  name: name,
+                  iupacName: iupacCtrl.text.trim(),
+                  description: descCtrl.text.trim(),
+                  category: selectedCat,
+                  reactantXyz: rXyz,
+                  productXyz: pXyz,
+                  referenceEa: active?.referenceEa ?? 15.0,
+                  doi: active?.doi ?? '',
+                  journalRef: active?.journalRef ?? 'Quantum Forge Simulation',
+                  tags: active?.tags ?? ['Pharm-D', 'MBBS', 'Simulated'],
+                );
+
+                final saved = await FirestoreLibraryRepository().saveReaction(template);
+                if (!mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      saved
+                          ? 'Successfully saved "${template.name}" to Firebase Library!'
+                          : 'Failed to save to Firebase Library.',
+                    ),
+                    backgroundColor: saved ? const Color(0xFF00E676) : Colors.redAccent,
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   // ── Results area ───────────────────────────────────────────────────────────
   Widget _buildResultsArea(ReactionStatusResponse status) {
     final palette = context.watch<ThemeNotifier>().palette;
@@ -1517,6 +1680,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: palette.success.withValues(alpha: 0.15),
                     foregroundColor: palette.success,
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  ),
+                ),
+                ElevatedButton.icon(
+                  onPressed: () => _saveCurrentToLibrary(status),
+                  icon: const Icon(Icons.cloud_upload_rounded, size: 16),
+                  label: const Text('Save to Firebase Library'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF00E676).withValues(alpha: 0.15),
+                    foregroundColor: const Color(0xFF00E676),
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   ),
                 ),
