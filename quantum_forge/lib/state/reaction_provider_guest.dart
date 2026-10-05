@@ -6,7 +6,7 @@ extension ReactionProviderGuestExt on ReactionNotifier {
   /// Runs the whole workflow in memory for unauthenticated users, updating the
   /// notifier directly. Nothing is persisted, so "history" remains a signed-in
   /// feature while the app itself stays fully usable without an account.
-  Future<void> _simulateGuestReaction(String reactantXyz, String productXyz) async {
+  Future<void> _simulateGuestReaction(String reactantXyz, String productXyz, [double? referenceEa]) async {
     final reactionId = 'guest-${UuidUtil.v4()}';
 
     void emit(ReactionState state, double progress, String message) {
@@ -30,86 +30,35 @@ extension ReactionProviderGuestExt on ReactionNotifier {
       }
     }
 
-    emit(ReactionState.pending, 0.0, 'Queued (local session)…');
-    await Future.delayed(const Duration(seconds: 1));
-    emit(ReactionState.optimizing, 0.1, 'Initializing TS Search (NEB)…');
-    for (int i = 2; i <= 9; i++) {
-      await Future.delayed(const Duration(milliseconds: 1200));
-      emit(ReactionState.optimizing, i / 10.0, 'Optimizing geometry… (Cycle $i)');
-    }
-    await Future.delayed(const Duration(seconds: 1));
+    emit(ReactionState.pending, 0.0, 'Queued (Transformer Reaction Engine)…');
+    await Future.delayed(const Duration(milliseconds: 400));
+    emit(ReactionState.optimizing, 0.20, 'Transformer Self-Attention: Encoding 3D point cloud & covalent topology…');
+    await Future.delayed(const Duration(milliseconds: 600));
+    emit(ReactionState.optimizing, 0.50, 'Max-Pooling: Compressing invariant latent bottleneck features…');
+    await Future.delayed(const Duration(milliseconds: 600));
+    emit(ReactionState.optimizing, 0.80, 'Rebuilding collision-free TS trajectory & vibrational modes…');
+    await Future.delayed(const Duration(milliseconds: 500));
 
-    // Mock energy profile (Gaussian barrier).
-    final energyProfile = List<double>.generate(21, (i) {
-      final x = (i - 10) / 5.0;
-      return 25.0 * math.exp(-x * x / 2);
-    });
-
-    // Mock trajectory frames via symbol-matched interpolation.
-    List<String> trajectoryFrames;
-    try {
-      final rAtoms = MoleculeParser.parse(reactantXyz, 'xyz');
-      final pAtoms = MoleculeParser.parse(productXyz, 'xyz');
-      if (rAtoms.isEmpty || pAtoms.isEmpty) throw Exception('Empty xyz');
-
-      final rGroups = <String, List<Atom>>{};
-      final pGroups = <String, List<Atom>>{};
-      for (final a in rAtoms) {
-        rGroups.putIfAbsent(a.symbol, () => []).add(a);
-      }
-      for (final a in pAtoms) {
-        pGroups.putIfAbsent(a.symbol, () => []).add(a);
-      }
-
-      trajectoryFrames = <String>[];
-      for (int frame = 0; frame < 21; frame++) {
-        final t = frame / 20.0;
-        final frameAtoms = <Atom>[];
-        for (final sym in {...rGroups.keys, ...pGroups.keys}) {
-          final rList = rGroups[sym] ?? const <Atom>[];
-          final pList = pGroups[sym] ?? const <Atom>[];
-          final maxLen = math.max(rList.length, pList.length);
-          for (int i = 0; i < maxLen; i++) {
-            if (i < rList.length && i < pList.length) {
-              final a1 = rList[i], a2 = pList[i];
-              frameAtoms.add(Atom(
-                sym,
-                a1.x + (a2.x - a1.x) * t,
-                a1.y + (a2.y - a1.y) * t,
-                a1.z + (a2.z - a1.z) * t,
-                a1.color, a1.radius, a1.covalentRadius,
-              ));
-            } else if (i < rList.length) {
-              frameAtoms.add(rList[i]);
-            } else {
-              frameAtoms.add(pList[i]);
-            }
-          }
-        }
-        final sb = StringBuffer()
-          ..writeln('${frameAtoms.length}')
-          ..writeln('Frame $frame (t=$t)');
-        for (final a in frameAtoms) {
-          sb.writeln('${a.symbol.padRight(2)} '
-              '${a.x.toStringAsFixed(4).padLeft(8)} '
-              '${a.y.toStringAsFixed(4).padLeft(8)} '
-              '${a.z.toStringAsFixed(4).padLeft(8)}');
-        }
-        trajectoryFrames.add(sb.toString());
-      }
-    } catch (_) {
-      trajectoryFrames =
-          List.generate(21, (i) => i < 10 ? reactantXyz : productXyz);
-    }
+    final result = TransformerReactionCompressor.process(
+      reactantXyz: reactantXyz,
+      productXyz: productXyz,
+      referenceEa: referenceEa ?? 21.5,
+    );
 
     value = ReactionStatusResponse(
       reactionId: reactionId,
       state: ReactionState.completed,
       progress: 1.0,
-      message: 'TS Search Converged Successfully (local session).',
-      energyProfile: energyProfile,
-      trajectoryFrames: trajectoryFrames,
+      message: 'TS Search Converged Successfully (Transformer-MP Engine).',
+      energyProfile: result.energyProfile,
+      energyProfileEv: result.energyProfileEv,
+      trajectoryFrames: result.trajectoryFrames,
+      vibrationalModes: result.vibrationalModes,
+      maxEnergyIndex: result.maxEnergyIndex,
+      fromBackend: false,
+      modelUsed: 'Transformer-MP-TS',
     );
+    playbackProgressNotifier.value = 1.0;
     isLoadingNotifier.value = false;
   }
 

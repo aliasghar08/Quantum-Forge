@@ -15,10 +15,9 @@ import 'package:quantum_forge/core/settings/app_settings_provider.dart';
 import 'package:quantum_forge/features/reaction_runner/data/models/reaction_models.dart';
 import 'package:quantum_forge/state/settings_provider.dart';
 import 'package:quantum_forge/features/reaction_library/data/reaction_templates.dart';
-import 'package:quantum_forge/core/utils/molecule_parser.dart';
 import 'package:quantum_forge/core/utils/uuid_util.dart';
+import 'package:quantum_forge/core/algorithms/transformer_reaction_compressor.dart';
 import 'dart:convert';
-import 'dart:math' as math;
 
 part 'reaction_provider_dispatch.dart';
 part 'reaction_provider_simulation.dart';

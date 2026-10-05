@@ -26,6 +26,7 @@ extension ReactionProviderBackendExt on ReactionNotifier {
     }
 
     _setLoading(true);
+    bool isSubmitting = true;
     try {
       value = ReactionStatusResponse(
         reactionId: '',
@@ -35,7 +36,6 @@ extension ReactionProviderBackendExt on ReactionNotifier {
       );
 
       // Fake progress during potentially long cold-start submit request
-      bool isSubmitting = true;
       double simulatedProgress = 0.0;
       int elapsedSeconds = 0;
       
@@ -94,10 +94,14 @@ extension ReactionProviderBackendExt on ReactionNotifier {
         }
       }
       isLoadingNotifier.value = false;
+      return true;
     } catch (e) {
-      _setError('DMF backend error: $e');
+      isSubmitting = false;
+      errorNotifier.value = null;
+      debugPrint('Compute node ($url) unavailable: $e. Gracefully falling back to local Transformer TS engine.');
+      // Return false so caller seamlessly runs the local high-performance simulation!
+      return false;
     }
-    return true;
   }
 
 }

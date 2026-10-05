@@ -88,6 +88,7 @@ class QuantumSettings {
   /// `mlipModel` is selected.
   String get effectiveBackendUrl {
     if (backendUrl.isNotEmpty) return backendUrl;
+    if (kIsWeb) return '';
     return switch (mlipModel) {
       'tx1-fastapi' => 'http://localhost:8005',
       'MACE-MP-0' => 'http://localhost:8001',

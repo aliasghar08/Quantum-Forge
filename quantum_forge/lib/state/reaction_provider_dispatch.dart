@@ -96,7 +96,7 @@ extension ReactionProviderDispatchExt on ReactionNotifier {
       // Guests run locally; the template cache and Firestore persistence only
       // apply to signed-in users.
       if (!await _auth.isAuthenticated()) {
-        await _simulateGuestReaction(template.reactantXyz, template.productXyz);
+        await _simulateGuestReaction(template.reactantXyz, template.productXyz, template.referenceEa);
         return;
       }
 
@@ -150,7 +150,7 @@ extension ReactionProviderDispatchExt on ReactionNotifier {
       _listenToReactionUpdates(reactionId);
       
       // Simulate backend processing
-      _simulateReactionProcessing(reactionId, template.reactantXyz, template.productXyz);
+      _simulateReactionProcessing(reactionId, template.reactantXyz, template.productXyz, template.referenceEa);
     } catch (e) {
       _setError('Failed to dispatch template reaction: $e');
     }
