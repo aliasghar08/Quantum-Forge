@@ -250,7 +250,15 @@ class LibraryHeader extends StatelessWidget {
             duration: const Duration(milliseconds: 1200),
             style: accentStyle,
           ),
-          Text(' reactions from Firebase', style: subtitleStyle),
+          Text(
+            ' (${_formatWithCommas(cloudCount!)}) reactions in Firebase',
+            style: subtitleStyle,
+          ),
+          const SizedBox(width: 6),
+          Tooltip(
+            message: 'Live Firestore count: ${_formatWithCommas(cloudCount!)} documents. Click to refresh.',
+            child: Icon(Icons.cloud_done_outlined, size: 14, color: Colors.cyanAccent.withValues(alpha: 0.7)),
+          ),
         ] else if (cloudCount == null)
           _ShimmerPill()
         else
@@ -258,6 +266,13 @@ class LibraryHeader extends StatelessWidget {
         ],
       ),
       ),
+    );
+  }
+
+  static String _formatWithCommas(int n) {
+    return n.toString().replaceAllMapped(
+      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+      (Match m) => '${m[1]},',
     );
   }
 
