@@ -24,9 +24,9 @@ class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
 
   static Route<void> route() => MaterialPageRoute<void>(
-        builder: (_) => const SettingsScreen(),
-        settings: const RouteSettings(name: '/settings'),
-      );
+    builder: (_) => const SettingsScreen(),
+    settings: const RouteSettings(name: '/settings'),
+  );
 
   @override
   State<SettingsScreen> createState() => _SettingsScreenState();
@@ -61,8 +61,15 @@ class _SettingsScreenState extends State<SettingsScreen>
         actions: [
           TextButton.icon(
             onPressed: () => _confirmReset(context),
-            icon: Icon(Icons.restart_alt, size: 18, color: palette.textSecondary),
-            label: Text('Reset', style: TextStyle(color: palette.textSecondary)),
+            icon: Icon(
+              Icons.restart_alt,
+              size: 18,
+              color: palette.textSecondary,
+            ),
+            label: Text(
+              'Reset',
+              style: TextStyle(color: palette.textSecondary),
+            ),
           ),
           const SizedBox(width: 8),
         ],
@@ -78,7 +85,10 @@ class _SettingsScreenState extends State<SettingsScreen>
               labelColor: palette.accent,
               unselectedLabelColor: palette.textMuted,
               tabs: const [
-                Tab(text: 'Appearance', icon: Icon(Icons.palette_outlined, size: 18)),
+                Tab(
+                  text: 'Appearance',
+                  icon: Icon(Icons.palette_outlined, size: 18),
+                ),
                 Tab(text: 'Editor', icon: Icon(Icons.draw_outlined, size: 18)),
                 Tab(text: 'Export', icon: Icon(Icons.ios_share, size: 18)),
                 Tab(text: 'Avogadro', icon: Icon(Icons.hub_outlined, size: 18)),
@@ -181,7 +191,11 @@ class ThemeFamilyHeader extends StatelessWidget {
             const SizedBox(height: 6),
             Text(
               subtitle!,
-              style: TextStyle(color: palette.textMuted, fontSize: 12, height: 1.4),
+              style: TextStyle(
+                color: palette.textMuted,
+                fontSize: 12,
+                height: 1.4,
+              ),
             ),
           ],
         ],
@@ -238,13 +252,22 @@ class _SwitchRow extends StatelessWidget {
       value: value,
       onChanged: onChanged,
       activeThumbColor: palette.accent,
-      secondary: icon == null ? null : Icon(icon, color: palette.textMuted, size: 20),
-      title: Text(title, style: TextStyle(color: palette.textPrimary, fontSize: 14)),
+      secondary: icon == null
+          ? null
+          : Icon(icon, color: palette.textMuted, size: 20),
+      title: Text(
+        title,
+        style: TextStyle(color: palette.textPrimary, fontSize: 14),
+      ),
       subtitle: subtitle == null
           ? null
           : Text(
               subtitle!,
-              style: TextStyle(color: palette.textMuted, fontSize: 12, height: 1.35),
+              style: TextStyle(
+                color: palette.textMuted,
+                fontSize: 12,
+                height: 1.35,
+              ),
             ),
     );
   }
@@ -283,13 +306,20 @@ class _ChoiceRow<T> extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title,
-                    style: TextStyle(color: palette.textPrimary, fontSize: 14)),
+                Text(
+                  title,
+                  style: TextStyle(color: palette.textPrimary, fontSize: 14),
+                ),
                 if (subtitle != null) ...[
                   const SizedBox(height: 3),
-                  Text(subtitle!,
-                      style: TextStyle(
-                          color: palette.textMuted, fontSize: 12, height: 1.35)),
+                  Text(
+                    subtitle!,
+                    style: TextStyle(
+                      color: palette.textMuted,
+                      fontSize: 12,
+                      height: 1.35,
+                    ),
+                  ),
                 ],
               ],
             ),
@@ -340,8 +370,10 @@ class _SliderRow extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: Text(title,
-                    style: TextStyle(color: palette.textPrimary, fontSize: 14)),
+                child: Text(
+                  title,
+                  style: TextStyle(color: palette.textPrimary, fontSize: 14),
+                ),
               ),
               Text(
                 valueLabel,
@@ -412,8 +444,8 @@ class _AppearanceTab extends StatelessWidget {
               final columns = constraints.maxWidth > 980
                   ? 3
                   : constraints.maxWidth > 640
-                      ? 2
-                      : 1;
+                  ? 2
+                  : 1;
               return GridView.count(
                 crossAxisCount: columns,
                 shrinkWrap: true,
@@ -426,7 +458,8 @@ class _AppearanceTab extends StatelessWidget {
                     ThemeCard(
                       theme: AppTheme.fromId(t.id),
                       selected: themeNotifier.currentTheme.id == t.id,
-                      onSelect: () => themeNotifier.setTheme(AppTheme.fromId(t.id)),
+                      onSelect: () =>
+                          themeNotifier.setTheme(AppTheme.fromId(t.id)),
                     ),
                 ],
               );
@@ -460,7 +493,8 @@ class _AppearanceTab extends StatelessWidget {
             _SwitchRow(
               icon: Icons.info_outline,
               title: 'Show tooltips',
-              subtitle: 'Hover hints on icon-only controls in the rail and editor.',
+              subtitle:
+                  'Hover hints on icon-only controls in the rail and editor.',
               value: settings.showTooltips,
               onChanged: context.read<AppSettingsNotifier>().setShowTooltips,
             ),
@@ -478,15 +512,21 @@ class _AppearanceTab extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Quick cycle',
-                            style: TextStyle(
-                                color: palette.textPrimary, fontSize: 14)),
+                        Text(
+                          'Quick cycle',
+                          style: TextStyle(
+                            color: palette.textPrimary,
+                            fontSize: 14,
+                          ),
+                        ),
                         const SizedBox(height: 3),
                         Text(
                           'Active preset: ${themeNotifier.currentTheme.label} '
                           '(${themeNotifier.currentTheme.family})',
                           style: TextStyle(
-                              color: palette.textMuted, fontSize: 12),
+                            color: palette.textMuted,
+                            fontSize: 12,
+                          ),
                         ),
                       ],
                     ),
@@ -544,7 +584,7 @@ class ThemeCard extends StatelessWidget {
                     color: outline.accent.withValues(alpha: 0.22),
                     blurRadius: 14,
                     offset: const Offset(0, 4),
-                  )
+                  ),
                 ]
               : null,
         ),
@@ -599,7 +639,11 @@ class ThemeCard extends StatelessWidget {
             const SizedBox(height: 10),
             Text(
               t.description,
-              style: TextStyle(color: t.textSecondary, fontSize: 11.5, height: 1.35),
+              style: TextStyle(
+                color: t.textSecondary,
+                fontSize: 11.5,
+                height: 1.35,
+              ),
               maxLines: 3,
               overflow: TextOverflow.ellipsis,
             ),
@@ -608,10 +652,7 @@ class ThemeCard extends StatelessWidget {
               children: [
                 _Chip(label: t.family, color: t.accent),
                 const SizedBox(width: 6),
-                _Chip(
-                  label: t.isLight ? 'Light' : 'Dark',
-                  color: t.bondColor,
-                ),
+                _Chip(label: t.isLight ? 'Light' : 'Dark', color: t.bondColor),
                 const SizedBox(width: 6),
                 _Chip(label: t.atomStyle.name, color: t.accentAlt),
               ],
@@ -639,7 +680,11 @@ class _Chip extends StatelessWidget {
       ),
       child: Text(
         label,
-        style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.w600),
+        style: TextStyle(
+          color: color,
+          fontSize: 10,
+          fontWeight: FontWeight.w600,
+        ),
       ),
     );
   }
@@ -696,7 +741,8 @@ class _EditorTab extends StatelessWidget {
         const ThemeFamilyHeader(
           title: 'Rendering',
           icon: Icons.blur_on,
-          subtitle: 'Affects the 3D builder, the trajectory viewer and the '
+          subtitle:
+              'Affects the 3D builder, the trajectory viewer and the '
               'template previews.',
         ),
         _SettingsCard(
@@ -734,7 +780,8 @@ class _EditorTab extends StatelessWidget {
             const Divider(height: 1),
             _SliderRow(
               title: 'Bond perception tolerance',
-              valueLabel: '${settings.bondTolerance.toStringAsFixed(2)} × Σ r(cov)',
+              valueLabel:
+                  '${settings.bondTolerance.toStringAsFixed(2)} × Σ r(cov)',
               value: settings.bondTolerance,
               min: 1.05,
               max: 1.9,
@@ -794,7 +841,8 @@ class _ExportTab extends StatelessWidget {
         const ThemeFamilyHeader(
           title: 'Structure format',
           icon: Icons.ios_share,
-          subtitle: 'Used by “Export structure” in the editor and by the '
+          subtitle:
+              'Used by “Export structure” in the editor and by the '
               'Avogadro hand-off.',
         ),
         _SettingsCard(
@@ -804,7 +852,7 @@ class _ExportTab extends StatelessWidget {
               title: 'Default format',
               subtitle: settings.defaultExportFormat.isAvogadroNative
                   ? 'CJSON is Avogadro 2’s native format — bonds and metadata '
-                      'survive the round trip.'
+                        'survive the round trip.'
                   : settings.defaultExportFormat.label,
               value: settings.defaultExportFormat,
               items: [
@@ -830,7 +878,11 @@ class _ExportTab extends StatelessWidget {
               child: Text(
                 '5 decimals matches the 1e-5 Å noise floor of most MLIP '
                 'optimisers; more digits only inflate the file.',
-                style: TextStyle(color: palette.textMuted, fontSize: 11.5, height: 1.35),
+                style: TextStyle(
+                  color: palette.textMuted,
+                  fontSize: 11.5,
+                  height: 1.35,
+                ),
               ),
             ),
             const Divider(height: 1),
@@ -871,7 +923,10 @@ class _ExportPreview extends StatelessWidget {
       atomFor('H', 0.00000, 0.75545, -0.47116),
       atomFor('H', 0.00000, -0.75545, -0.47116),
     ];
-    final structure = AvogadroInterchange.structure(atoms, title: 'Water (H₂O)');
+    final structure = AvogadroInterchange.structure(
+      atoms,
+      title: 'Water (H₂O)',
+    );
     final preview = switch (settings.defaultExportFormat) {
       ExportFormat.cjson => AvogadroInterchange.toCjson(structure),
       ExportFormat.cml => AvogadroInterchange.toCml(structure),
@@ -879,10 +934,10 @@ class _ExportPreview extends StatelessWidget {
       ExportFormat.pdb => AvogadroInterchange.toPdb(structure),
       ExportFormat.cif => AvogadroInterchange.toCif(structure),
       ExportFormat.xyz => AvogadroInterchange.toXyz(
-          structure,
-          precision: settings.exportPrecision,
-          includeTitleLine: settings.includeTitleLine,
-        ),
+        structure,
+        precision: settings.exportPrecision,
+        includeTitleLine: settings.includeTitleLine,
+      ),
     };
     final lines = preview.split('\n');
     final shown = lines.take(14).join('\n');
@@ -902,7 +957,11 @@ class _ExportPreview extends StatelessWidget {
           children: [
             Row(
               children: [
-                Icon(Icons.description_outlined, size: 14, color: palette.accent),
+                Icon(
+                  Icons.description_outlined,
+                  size: 14,
+                  color: palette.accent,
+                ),
                 const SizedBox(width: 8),
                 Text(
                   'water.${settings.defaultExportFormat.extension}',
@@ -1055,17 +1114,24 @@ class _AvogadroTabState extends State<_AvogadroTab> {
               padding: const EdgeInsets.all(16),
               child: Row(
                 children: [
-                  Icon(Icons.check_circle_outline,
-                      size: 18, color: palette.success),
+                  Icon(
+                    Icons.check_circle_outline,
+                    size: 18,
+                    color: palette.success,
+                  ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
                       'Active endpoint: ${settings.bridgeBaseUrl}',
-                      style: TextStyle(color: palette.textSecondary, fontSize: 12.5),
+                      style: TextStyle(
+                        color: palette.textSecondary,
+                        fontSize: 12.5,
+                      ),
                     ),
                   ),
                   TextButton.icon(
-                    onPressed: () => WebServices.openUrl(settings.bridgeBaseUrl),
+                    onPressed: () =>
+                        WebServices.openUrl(settings.bridgeBaseUrl),
                     icon: const Icon(Icons.open_in_new, size: 16),
                     label: const Text('Test'),
                   ),
@@ -1082,7 +1148,8 @@ class _AvogadroTabState extends State<_AvogadroTab> {
           children: [
             const _CodeBlock(
               title: 'Windows',
-              code: r'%LOCALAPPDATA%\OpenChemistry\Avogadro\plugins\python\quantum-forge',
+              code:
+                  r'%LOCALAPPDATA%\OpenChemistry\Avogadro\plugins\python\quantum-forge',
             ),
             const Divider(height: 1),
             const _CodeBlock(
@@ -1104,7 +1171,11 @@ class _AvogadroTabState extends State<_AvogadroTab> {
                 'already contains the Avogadro metadata (pyproject.toml + '
                 'avogadro.toml) plus the export command. Restart Avogadro, then '
                 'use Extensions ▸ Quantum Forge ▸ Export to Quantum Forge Web.',
-                style: TextStyle(color: palette.textMuted, fontSize: 12, height: 1.45),
+                style: TextStyle(
+                  color: palette.textMuted,
+                  fontSize: 12,
+                  height: 1.45,
+                ),
               ),
             ),
           ],
@@ -1129,11 +1200,14 @@ class _CodeBlock extends StatelessWidget {
         children: [
           SizedBox(
             width: 70,
-            child: Text(title,
-                style: TextStyle(
-                    color: palette.textPrimary,
-                    fontSize: 12.5,
-                    fontWeight: FontWeight.w700)),
+            child: Text(
+              title,
+              style: TextStyle(
+                color: palette.textPrimary,
+                fontSize: 12.5,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
           ),
           Expanded(
             child: SelectableText(
@@ -1191,7 +1265,8 @@ class _ComputeTab extends StatelessWidget {
               min: 100,
               max: 1000,
               divisions: 180,
-              onChanged: (v) => notifier.update((c) => c.copyWith(temperatureK: v)),
+              onChanged: (v) =>
+                  notifier.update((c) => c.copyWith(temperatureK: v)),
             ),
             const Divider(height: 1),
             _SliderRow(
@@ -1267,7 +1342,11 @@ class _ComputeTab extends StatelessWidget {
           child: Text(
             'Credentials (Hugging Face token) stay in the Quantum Controls '
             'panel so they are never rendered on a wide settings surface.',
-            style: TextStyle(color: palette.textMuted, fontSize: 11.5, height: 1.4),
+            style: TextStyle(
+              color: palette.textMuted,
+              fontSize: 11.5,
+              height: 1.4,
+            ),
           ),
         ),
       ],
@@ -1338,7 +1417,8 @@ class _BackendUrlFieldState extends State<_BackendUrlField> {
             style: TextStyle(color: palette.textPrimary, fontSize: 13),
             decoration: const InputDecoration(
               labelText: 'Backend base URL',
-              hintText: 'https://aliasgharinnocent-tx1-backend.hf.space',
+              hintText:
+                  'https://quantom-forge-gnn-227207155336.us-central1.run.app',
               prefixIcon: Icon(Icons.dns_outlined, size: 18),
             ),
             onChanged: context.read<AppSettingsNotifier>().setBackendUrl,
@@ -1351,17 +1431,23 @@ class _BackendUrlFieldState extends State<_BackendUrlField> {
                     ? Icons.check_circle_outline
                     : Icons.science_outlined,
                 size: 15,
-                color: settings.hasComputeBackend ? palette.success : palette.textMuted,
+                color: settings.hasComputeBackend
+                    ? palette.success
+                    : palette.textMuted,
               ),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   settings.hasComputeBackend
                       ? 'Real DMF backend active — reactions are optimised '
-                          'server-side.'
+                            'server-side.'
                       : 'No backend configured — using the built-in illustrative '
-                          'simulation.',
-                  style: TextStyle(color: palette.textMuted, fontSize: 11.5, height: 1.4),
+                            'simulation.',
+                  style: TextStyle(
+                    color: palette.textMuted,
+                    fontSize: 11.5,
+                    height: 1.4,
+                  ),
                 ),
               ),
             ],

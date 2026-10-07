@@ -1,14 +1,15 @@
 // ============================================================================
 // Backend compute service — bridge to the ColabReaction (DMF) API
 // ----------------------------------------------------------------------------
-// Talks to the FastAPI backend in `backend/` that runs the Direct MaxFlux +
-// MLIP machine-learning-potential reaction-path search. When no backend URL is
-// configured, the app keeps its local (illustrative) simulation; when it is
-// configured, reactions are dispatched here for the real optimisation.
+// Talks to the FastAPI backend in `tx1-fastapi-backend/` that runs the Direct
+// MaxFlux + MLIP machine-learning-potential reaction-path search. When no
+// backend URL is configured, the app keeps its local (illustrative) simulation;
+// when it is configured, reactions are dispatched here for the real
+// optimisation.
 //
-// The request/response shapes mirror `backend/app/models/reaction.py`.
+// The request/response shapes mirror `tx1-fastapi-backend/main.py`.
 //
-// Deployed backend: https://aliasgharinnocent-tx1-backend.hf.space
+// Deployed backend: https://quantom-forge-gnn-227207155336.us-central1.run.app
 // (see `kDefaultComputeBackendUrl` in core/settings/app_settings_provider.dart)
 // ============================================================================
 
@@ -35,7 +36,8 @@ class BackendException implements Exception {
   const BackendException(this.url, this.reason, {this.statusCode});
 
   @override
-  String toString() => 'Backend request to $url failed'
+  String toString() =>
+      'Backend request to $url failed'
       '${statusCode != null ? ' (HTTP $statusCode)' : ''}: $reason';
 }
 
@@ -103,16 +105,17 @@ class BackendComputeService {
       if (status != null) {
         throw BackendException(url, text, statusCode: int.parse(status));
       }
-      final isFetchFailure = text.contains('Failed to fetch') ||
+      final isFetchFailure =
+          text.contains('Failed to fetch') ||
           text.contains('XMLHttpRequest') ||
           text.contains('NetworkError');
       throw BackendException(
         url,
         isFetchFailure
             ? 'No response (browser reports only "$text"). Likely causes: server '
-                'down or cold-starting, CORS preflight rejected (check the '
-                'server allows origin ${Uri.base.scheme}://${Uri.base.host}), a loopback address '
-                'reached from a hosted page, or a mixed-content block.'
+                  'down or cold-starting, CORS preflight rejected (check the '
+                  'server allows origin ${Uri.base.scheme}://${Uri.base.host}), a loopback address '
+                  'reached from a hosted page, or a mixed-content block.'
             : text,
       );
     }
@@ -184,7 +187,7 @@ class BackendComputeService {
       }
       final state = (json['state'] as String?) ?? 'pending';
       yield _toStatus(json);
-      
+
       if (state == 'completed' || state == 'error') {
         return;
       }
@@ -266,13 +269,10 @@ class BackendComputeService {
   ) async {
     final base = _base(gnnBackendUrl);
     try {
-      final json = await WebServices.postJson(
-        '$base/predict',
-        {
-          'atomic_numbers': atomicNumbers,
-          'positions': positions,
-        },
-      );
+      final json = await WebServices.postJson('$base/predict', {
+        'atomic_numbers': atomicNumbers,
+        'positions': positions,
+      });
 
       if (json['status'] == 'success' && json['energy_ev'] != null) {
         return (json['energy_ev'] as num).toDouble();
@@ -317,9 +317,13 @@ class BackendComputeService {
   // ==========================================
   // Hybrid ML/MM MD Pipeline
   // ==========================================
-  
+
   /// Submits the PDB for hybrid MD simulation and returns the job_id.
-  Future<String> submitHybridMd(String backendUrl, String pdbPath, {double simulationLengthNs = 200.0}) async {
+  Future<String> submitHybridMd(
+    String backendUrl,
+    String pdbPath, {
+    double simulationLengthNs = 200.0,
+  }) async {
     final base = _base(backendUrl);
     final json = await WebServices.postJson(
       '$base/simulate/hybrid-md',
@@ -335,28 +339,36 @@ class BackendComputeService {
 
   /// Polls the status using a Stream to yield updates every 10 seconds.
   /// Yields a HybridMdStatus containing state and optionally trajectory data.
-  Stream<HybridMdStatus> pollHybridMdStream(String backendUrl, String jobId) async* {
+  Stream<HybridMdStatus> pollHybridMdStream(
+    String backendUrl,
+    String jobId,
+  ) async* {
     final base = _base(backendUrl);
-    
+
     // We yield the pending state initially
     yield HybridMdStatus(jobId: jobId, state: 'PENDING');
-    
+
     while (true) {
       await Future<void>.delayed(const Duration(seconds: 10));
-      
+
       try {
         final raw = await WebServices.fetchString(
           '$base/simulate/status/$jobId',
           headers: {'Bypass-Tunnel-Reminder': 'true'},
         );
         final json = jsonDecode(raw) as Map<String, dynamic>;
-        
+
         final state = json['status'] as String? ?? 'PENDING';
         final trajectoryDir = json['trajectory_dir'] as String?;
         final frameCount = json['frame_count'] as int?;
-        
-        yield HybridMdStatus(jobId: jobId, state: state, trajectoryDir: trajectoryDir, frameCount: frameCount);
-        
+
+        yield HybridMdStatus(
+          jobId: jobId,
+          state: state,
+          trajectoryDir: trajectoryDir,
+          frameCount: frameCount,
+        );
+
         if (state == 'SUCCESS' || state == 'FAILURE' || state == 'REVOKED') {
           break;
         }

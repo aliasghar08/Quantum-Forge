@@ -14,19 +14,24 @@ import 'package:quantum_forge/core/services/app_storage.dart';
 
 /// Default ColabReaction (DMF/MLIP) compute backend.
 ///
-/// The deployed Hugging Face Space that hosts the FastAPI service in
-/// `backend/app/main.py`. Pre-filling it means a fresh install talks to the real
-/// DMF/MLIP pipeline out of the box; clear the field in Settings to fall back to
-/// the local illustrative simulation, or point it at `http://127.0.0.1:7860`
-/// while running the backend locally.
+/// The deployed Google Cloud Run service that hosts the FastAPI pipeline in
+/// `tx1-fastapi-backend/main.py`. Pre-filling it means a fresh install talks
+/// to the real DMF/MLIP pipeline out of the box; clear the field in Settings
+/// to fall back to the local illustrative simulation, or point it at
+/// `http://127.0.0.1:8005` while running the backend locally.
+///
+/// Migrated from Hugging Face Spaces to Cloud Run on 2026-10-07. Verify with:
+///   gcloud run services describe quantom-forge-gnn --region us-central1
 const String kDefaultComputeBackendUrl =
-    'https://aliasgharinnocent-tx1-backend.hf.space';
+    'https://quantom-forge-gnn-227207155336.us-central1.run.app';
 
 /// Default Transition1x GNN compute backend.
 ///
-/// The deployed Render service hosting the FastAPI GNN molecular energy prediction
-/// endpoint.
-const String kDefaultGnnBackendUrl = 'https://quantom-forge-1.onrender.com';
+/// Same Cloud Run service as [kDefaultComputeBackendUrl] — the FastAPI app
+/// exposes both the DMF reaction-path endpoints and the Transition1x GNN
+/// `/predict` endpoint from one container.
+const String kDefaultGnnBackendUrl =
+    'https://quantom-forge-gnn-227207155336.us-central1.run.app';
 
 /// Where exported structures are stored when handed to Avogadro.
 ///
@@ -186,12 +191,21 @@ class AppSettings {
 
   /// The effective URL to use for the currently selected MLIP model.
   ///
-  /// A user-typed `backendUrl` (anything other than the stored default) wins;
-  /// otherwise [ApiEndpoints] picks local `127.0.0.1` servers in debug builds
-  /// and the secure production URL in release builds.
+  /// Precedence:
+  ///   1. In **debug** builds, any non-empty URL typed into Settings wins —
+  ///      even if it happens to equal the compile-time default. Without this,
+  ///      the debug-mode localhost fallback in [ApiEndpoints.forModel] shadows
+  ///      the Cloud Run URL the user typed, and "Test connection" silently
+  ///      probes 127.0.0.1 instead.
+  ///   2. In **release** builds, a user-typed URL that differs from the
+  ///      compile-time default wins; otherwise the default flows through
+  ///      [ApiEndpoints] (which sanitises it and blocks loopback in release).
   String effectiveBackendUrl([String mlipModel = 'tx1-fastapi']) {
-    final custom =
-        backendUrl != kDefaultComputeBackendUrl ? backendUrl : '';
+    final typed = backendUrl.trim();
+    if (kDebugMode && typed.isNotEmpty) {
+      return ApiEndpoints.forModel(mlipModel, userOverride: typed);
+    }
+    final custom = typed != kDefaultComputeBackendUrl ? typed : '';
     return ApiEndpoints.forModel(mlipModel, userOverride: custom);
   }
 
@@ -396,7 +410,9 @@ class AppSettingsNotifier extends ChangeNotifier {
         includeTitleLine: AppStorage.getBool(_keyIncludeTitle) ?? true,
         autoSaveIntervalMinutes: AppStorage.getInt(_keyAutoSaveInterval) ?? 5,
         avogadroBridgeEnabled: AppStorage.getBool(_keyBridgeEnabled) ?? true,
-        bridgeTarget: _bridgeTargetFromName(AppStorage.getString(_keyBridgeTarget)),
+        bridgeTarget: _bridgeTargetFromName(
+          AppStorage.getString(_keyBridgeTarget),
+        ),
         customBaseUrl: AppStorage.getString(_keyCustomBaseUrl) ?? '',
         cleanUrlAfterImport: AppStorage.getBool(_keyCleanUrl) ?? true,
         autoImportDeepLink: AppStorage.getBool(_keyAutoImport) ?? true,
@@ -430,10 +446,7 @@ class AppSettingsNotifier extends ChangeNotifier {
       AppStorage.setBool(_keyShowBonds, s.showBonds);
       AppStorage.setBool(_keyShowHydrogens, s.showHydrogens);
       AppStorage.setDouble(_keyBondTolerance, s.bondTolerance);
-      AppStorage.setString(
-        _keyDefaultExportFormat,
-        s.defaultExportFormat.name,
-      );
+      AppStorage.setString(_keyDefaultExportFormat, s.defaultExportFormat.name);
       AppStorage.setInt(_keyExportPrecision, s.exportPrecision);
       AppStorage.setBool(_keyIncludeTitle, s.includeTitleLine);
       AppStorage.setInt(_keyAutoSaveInterval, s.autoSaveIntervalMinutes);
