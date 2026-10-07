@@ -28,9 +28,13 @@ class ApiEndpoints {
 
   /// Hosted compute backend used by release builds. One service answers every
   /// MLIP: the model is chosen by the `mlip_model` field of the request.
+  ///
+  /// Migrated from Hugging Face Spaces to Google Cloud Run on 2026-10-07.
+  /// The GNN service is deployed at:
+  ///   gcloud run services describe quantom-forge-gnn --region us-central1
   static const String productionBaseUrl = String.fromEnvironment(
     'PROD_API_BASE_URL',
-    defaultValue: 'https://aliasgharinnocent-tx1-backend.hf.space',
+    defaultValue: 'https://quantom-forge-gnn-227207155336.us-central1.run.app',
   );
 
   /// Local development servers, one per MLIP microservice.
