@@ -35,13 +35,13 @@ class _AuthScreenState extends State<AuthScreen> {
       final password = _passwordController.text;
 
       final authService = context.read<AuthService>();
-      
+
       if (_isLogin) {
         await authService.signIn(email, password);
       } else {
         await authService.signUp(email, password);
       }
-      
+
       widget.onLoginSuccess();
     } catch (e) {
       setState(() {
@@ -68,6 +68,100 @@ class _AuthScreenState extends State<AuthScreen> {
       setState(() {
         _error = e.toString().replaceAll('Exception: ', '');
       });
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  /// Sends a Firebase password-reset email.
+  ///
+  /// The dialog asks for the email rather than reusing the field silently: a
+  /// user who mistyped their sign-in address has no other way to correct it,
+  /// and the reset is exactly where a typo is most expensive. The email is
+  /// pre-filled from the sign-in field when it's non-empty so the common case
+  /// is "type the address, hit Send" — not "type it twice".
+  Future<void> _showResetPasswordDialog() async {
+    final controller = TextEditingController(
+      text: _emailController.text.trim(),
+    );
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Reset password'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'We will email you a link to choose a new password.',
+              style: TextStyle(fontSize: 13),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: controller,
+              autofocus: true,
+              keyboardType: TextInputType.emailAddress,
+              decoration: const InputDecoration(
+                labelText: 'Email',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.email_outlined),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Send link'),
+          ),
+        ],
+      ),
+    );
+
+    final email = controller.text.trim();
+    controller.dispose();
+
+    if (confirmed != true || email.isEmpty) return;
+
+    // Validate the shape of the address before asking Firebase to send a mail.
+    // Cheap client-side guard against "asdf" typos; Firebase would accept the
+    // request and quietly fail to deliver.
+    final emailPattern = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
+    if (!emailPattern.hasMatch(email)) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('That does not look like an email address.')),
+        );
+      }
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+
+    try {
+      final authService = context.read<AuthService>();
+      await authService.sendPasswordResetEmail(email);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Reset link sent to $email')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _error = e.toString().replaceAll('Exception: ', '');
+        });
+      }
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
@@ -140,7 +234,26 @@ class _AuthScreenState extends State<AuthScreen> {
                   obscureText: true,
                   onSubmitted: (_) => _submit(),
                 ),
-                const SizedBox(height: 32),
+                // Reset link is only meaningful on the sign-in form. On the
+                // sign-up form it would be confusing ("reset what?") because
+                // no account exists yet.
+                if (_isLogin)
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton(
+                      onPressed: _isLoading ? null : _showResetPasswordDialog,
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 4),
+                        minimumSize: const Size(0, 32),
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                      child: const Text(
+                        'Forgot password?',
+                        style: TextStyle(fontSize: 13),
+                      ),
+                    ),
+                  ),
+                const SizedBox(height: 24),
                 ElevatedButton(
                   onPressed: _isLoading ? null : _submit,
                   style: ElevatedButton.styleFrom(

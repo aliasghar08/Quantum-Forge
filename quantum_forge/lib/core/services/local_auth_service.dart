@@ -36,4 +36,14 @@ class LocalAuthService implements AuthService {
 
   @override
   Future<void> signInWithGoogle() async {}
+
+  @override
+  Future<void> sendPasswordResetEmail(String email) async {
+    // No account, no password, nothing to reset. Callers should not offer the
+    // "Forgot password?" affordance when running against this service — the
+    // throw is a contract violation, not a user-facing error path.
+    throw UnsupportedError(
+      'Password reset is not available in offline mode.',
+    );
+  }
 }

@@ -3,12 +3,19 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Reactions live under the owning user's document path
-    // (`users/{uid}/reactions/{id}`). A user has full ownership of their own
-    // reactions; queries scoped to that path are provably allowed, with no
-    // cross-user reads and no collection-group lookups.
-    match /users/{userId}/reactions/{reactionId} {
+    // The user's own profile document. Every signed-in user owns exactly one.
+    // Fields written here (email, displayName, lastSeen, createdAt) come from
+    // `FirebaseAuthService._syncUserProfile`. Rules are field-agnostic — the
+    // write either lands on the user's own doc or is rejected outright.
+    match /users/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
+
+      // Everything under the user's document inherits the same ownership.
+      // Reactions are the only thing here today; adding new subcollections
+      // (settings, workspaces, history) requires no rule change.
+      match /{document=**} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
     }
 
     // Legacy top-level jobs (kept for older clients).
@@ -17,7 +24,13 @@ service cloud.firestore {
     }
 
     // Public reaction-template library: readable by everyone (including signed
-    // out guests), writable for automatic seeding, medical library sync, and contributions.
+    // out guests), writable for automatic seeding, medical library sync, and
+    // contributions.
+    //
+    // NOTE: this rule is deliberately permissive. Tighten it when the library
+    // stops being seeded automatically (see `FirestoreLibraryRepository.
+    // autoSeedMedicalLibrary()` in `main.dart`). At minimum, restrict `write`
+    // to `request.auth != null`; ideally to an admin claim.
     match /library/{templateId} {
       allow read, write: if true;
     }

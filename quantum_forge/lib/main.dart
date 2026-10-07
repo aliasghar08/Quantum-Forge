@@ -3,7 +3,7 @@ import 'dart:async' show unawaited;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'package:quantum_forge/features/reaction_runner/presentation/screens/dashboard_screen.dart';
+import 'package:quantum_forge/core/services/firebase_auth_gate.dart';
 import 'package:quantum_forge/core/theme/theme_provider.dart';
 import 'package:quantum_forge/core/settings/app_settings_provider.dart';
 import 'package:quantum_forge/core/services/local_storage_service.dart';
@@ -56,13 +56,17 @@ void main() {
       providers: [
         Provider<AuthService>.value(value: authService),
         Provider<SessionStateService>.value(value: sessionStateService),
-        ChangeNotifierProvider<QuantumSettingsNotifier>.value(value: settingsNotifier),
+        ChangeNotifierProvider<QuantumSettingsNotifier>.value(
+          value: settingsNotifier,
+        ),
         ChangeNotifierProvider<ReactionNotifier>.value(value: reactionNotifier),
         Provider<FilePickerService>.value(value: filePickerService),
         Provider<ReactionRepository>.value(value: reactionRepository),
         Provider<ChemicalResolverService>.value(value: chemicalResolverService),
         ChangeNotifierProvider<ThemeNotifier>.value(value: themeNotifier),
-        ChangeNotifierProvider<AppSettingsNotifier>.value(value: appSettingsNotifier),
+        ChangeNotifierProvider<AppSettingsNotifier>.value(
+          value: appSettingsNotifier,
+        ),
       ],
       child: const QuantumForgeApp(),
     ),
@@ -84,6 +88,11 @@ void main() {
   // an account and the library falls back to bundled templates — so nothing about
   // them should be able to delay or prevent the first frame. If Firebase never
   // arrives, the features that need it report their own failure when used.
+  //
+  // AuthGate (the `home:` widget below) is the piece that waits for Firebase
+  // before deciding whether to show the sign-in form. Without it, a returning
+  // user would see the sign-in form on every cold start, because the app would
+  // check `currentUser` before Firebase had restored the persisted session.
   unawaited(initialiseCloudFeatures());
 }
 
@@ -110,19 +119,21 @@ Future<void> initialiseCloudFeatures() async {
   unawaited(_seedLibrary());
 }
 
-
 Future<void> _seedLibrary() async {
   try {
     final repo = FirestoreLibraryRepository();
     // Automatically seed core MBBS and Pharm-D medical reactions into Firestore /library
     final medCount = await repo.autoSeedMedicalLibrary();
     if (medCount > 0) {
-      debugPrint('Medical reactions automatically seeded to Firestore: $medCount items.');
+      debugPrint(
+        'Medical reactions automatically seeded to Firestore: $medCount items.',
+      );
     }
   } catch (e) {
     debugPrint('Reaction library background auto-seed: $e');
   }
 }
+
 class QuantumForgeApp extends StatefulWidget {
   const QuantumForgeApp({super.key});
 
@@ -142,15 +153,19 @@ class _QuantumForgeAppState extends State<QuantumForgeApp> {
         final themeData = settings.isCompactMode
             ? themeNotifier.themeData.copyWith(
                 visualDensity: VisualDensity.compact,
-                listTileTheme: themeNotifier.themeData.listTileTheme
-                    .copyWith(minVerticalPadding: 4),
+                listTileTheme: themeNotifier.themeData.listTileTheme.copyWith(
+                  minVerticalPadding: 4,
+                ),
               )
             : themeNotifier.themeData;
 
         return Shortcuts(
           shortcuts: const {
-            SingleActivator(LogicalKeyboardKey.keyT, control: true, shift: true):
-                _CycleThemeIntent(),
+            SingleActivator(
+              LogicalKeyboardKey.keyT,
+              control: true,
+              shift: true,
+            ): _CycleThemeIntent(),
           },
           child: Actions(
             actions: {
@@ -216,7 +231,7 @@ class _QuantumForgeAppState extends State<QuantumForgeApp> {
                   ),
                 );
               },
-              home: const DashboardScreen(),
+              home: const AuthGate(),
             ),
           ),
         );
