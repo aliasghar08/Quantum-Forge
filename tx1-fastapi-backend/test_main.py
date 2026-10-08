@@ -201,6 +201,49 @@ def test_hybrid_md_reports_503_when_worker_unavailable():
     assert "offline" in detail or "available" in detail or "unreachable" in detail
 
 
+def test_reorder_product_permutes_to_match_reactant():
+    from main import _reorder_product_to_match_reactant
+
+    r_atoms = ["N", "O", "C", "C"]
+    p_atoms = ["N", "C", "C", "O"]
+    p_pos = [[1.0, 1.0, 1.0], [2.0, 2.0, 2.0], [3.0, 3.0, 3.0], [4.0, 4.0, 4.0]]
+
+    new_atoms, new_pos = _reorder_product_to_match_reactant(r_atoms, p_atoms, p_pos)
+    assert new_atoms == ["N", "O", "C", "C"]
+    # Oxygen in product was at index 3 ([4.0, 4.0, 4.0]), must now be at index 1
+    assert new_pos[1] == [4.0, 4.0, 4.0]
+    # Carbons were at indices 1 and 2 ([2.0, 2.0, 2.0], [3.0, 3.0, 3.0])
+    assert new_pos[2] == [2.0, 2.0, 2.0]
+    assert new_pos[3] == [3.0, 3.0, 3.0]
+
+
+def test_reorder_product_preserves_already_matching_order():
+    from main import _reorder_product_to_match_reactant
+
+    r_atoms = ["C", "O", "H"]
+    p_atoms = ["C", "O", "H"]
+    p_pos = [[0.0, 0.0, 0.0], [1.0, 1.0, 1.0], [2.0, 2.0, 2.0]]
+
+    new_atoms, new_pos = _reorder_product_to_match_reactant(r_atoms, p_atoms, p_pos)
+    assert new_atoms == p_atoms
+    assert new_pos == p_pos
+
+
+def test_reorder_product_raises_value_error_on_mismatched_atoms():
+    from main import _reorder_product_to_match_reactant
+
+    r_atoms = ["C", "C", "O"]
+    p_atoms = ["C", "C", "N"]
+    p_pos = [[0.0, 0.0, 0.0], [1.0, 1.0, 1.0], [2.0, 2.0, 2.0]]
+
+    try:
+        _reorder_product_to_match_reactant(r_atoms, p_atoms, p_pos)
+        assert False, "expected ValueError"
+    except ValueError as exc:
+        assert "Reactant and product do not have the same atoms" in str(exc)
+
+
+
 # ── Standalone runner ────────────────────────────────────────────────────────
 
 def _run_standalone() -> int:

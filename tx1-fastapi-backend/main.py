@@ -269,6 +269,58 @@ def to_xyz(atoms, positions, comment=""):
         lines.append(f"{a} {p[0]:.6f} {p[1]:.6f} {p[2]:.6f}")
     return "\n".join(lines)
 
+def _reorder_product_to_match_reactant(
+    r_atoms: list[str],
+    p_atoms: list[str],
+    p_pos: list[list[float]],
+) -> tuple[list[str], list[list[float]]]:
+    """Permute the product so slot i describes the same element as the reactant.
+
+    Interpolation is a positional zip — `r_pos[i]` blends with `p_pos[i]` — so
+    for the path to be chemically meaningful, both lists must describe the same
+    atom in the same slot. Equal atom counts do NOT imply matching order: the
+    Beckmann reactant has O at index 1 and its product has O at index 7.
+
+    Raises ValueError when the two structures are not the same molecule. That
+    case cannot be interpolated — trying to blend C6H7NO into C5H8NO produces a
+    path that no calculation produced, and silently labelling the last frame
+    with the reactant's elements hides the error rather than surfacing it.
+    """
+    from collections import Counter, defaultdict, deque
+
+    r_norm = [a.upper().capitalize() for a in r_atoms]
+    p_norm = [a.upper().capitalize() for a in p_atoms]
+
+    r_counts = Counter(r_norm)
+    p_counts = Counter(p_norm)
+
+    if r_counts != p_counts:
+        missing = r_counts - p_counts
+        extra = p_counts - r_counts
+        raise ValueError(
+            "Reactant and product do not have the same atoms. "
+            f"Missing from product: {dict(missing)}. "
+            f"Extra in product: {dict(extra)}. "
+            "A reaction path between different molecules is not physical — "
+            "the template's reactantXyz and productXyz need correction."
+        )
+
+    if r_norm == p_norm:
+        return p_atoms, p_pos
+
+    buckets: dict[str, deque[int]] = defaultdict(deque)
+    for idx, sym in enumerate(p_norm):
+        buckets[sym].append(idx)
+
+    new_atoms: list[str] = []
+    new_pos: list[list[float]] = []
+    for sym in r_norm:
+        src = buckets[sym].popleft()
+        new_atoms.append(p_atoms[src])
+        new_pos.append(p_pos[src])
+
+    return new_atoms, new_pos
+
 async def run_reaction(reaction_id: str, req: ReactionRequest):
     _reactions[reaction_id]["state"] = "optimizing"
     _reactions[reaction_id]["progress"] = 0.05
@@ -279,23 +331,7 @@ async def run_reaction(reaction_id: str, req: ReactionRequest):
         if not r_atoms or not p_atoms:
             raise ValueError("Failed to parse reactant or product XYZ coordinates.")
 
-        if len(r_atoms) != len(p_atoms):
-            from collections import defaultdict, deque
-            available = defaultdict(deque)
-            for sym, pos_item in zip(p_atoms, p_pos):
-                available[sym].append(pos_item)
-
-            new_p_atoms, new_p_pos = [], []
-            for r_sym, r_p in zip(r_atoms, r_pos):
-                if available[r_sym]:
-                    new_p_atoms.append(r_sym)
-                    new_p_pos.append(available[r_sym].popleft())
-                else:
-                    new_p_atoms.append(r_sym)
-                    new_p_pos.append(list(r_p))
-
-            p_atoms = new_p_atoms
-            p_pos = new_p_pos
+        p_atoms, p_pos = _reorder_product_to_match_reactant(r_atoms, p_atoms, p_pos)
 
         mapping = {"H":1, "C":6, "N":7, "O":8, "F":9, "P":15, "S":16, "Cl":17, "Br":35, "I":53}
         atomic_numbers = [mapping.get(sym.upper().capitalize(), 6) for sym in r_atoms]
@@ -418,15 +454,17 @@ def get_crossref_metadata(doi: str):
 # value.
 # ==========================================
 
+from typing import Optional
+
 class DftAttachmentRequest(BaseModel):
     level_of_theory: str = ""
-    ts_energy_hartree: float | None = None
-    reactant_energy_hartree: float | None = None
-    imaginary_frequency_cm1: float | None = None
+    ts_energy_hartree: Optional[float] = None
+    reactant_energy_hartree: Optional[float] = None
+    imaginary_frequency_cm1: Optional[float] = None
     notes: str = ""
-    single_point_method: str | None = None
-    log_file_name: str | None = None
-    log_file_text: str | None = None
+    single_point_method: Optional[str] = None
+    log_file_name: Optional[str] = None
+    log_file_text: Optional[str] = None
 
 
 _HARTREE_TO_KCAL_MOL = 627.5094740631
