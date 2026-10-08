@@ -41,10 +41,50 @@ extension _ReactionAnimationCanvasExt on _ReactionAnimationWidgetState {
     }
 
   Widget _buildCanvas() {
-    return _cachedCanvas ??= NglViewer(
+    final viewer = _cachedCanvas ??= NglViewer(
       key: _viewerKey,
       width: double.infinity,
       height: double.infinity,
+    );
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        viewer,
+        Positioned(
+          top: 10,
+          right: 10,
+          child: _ViewerControlBar(
+            onZoomIn: _viewerZoomIn,
+            onZoomOut: _viewerZoomOut,
+            onReset: () {
+              _claimKeyboard();
+              _viewerKey.currentState?.resetView();
+            },
+            onToggleSettings: _toggleViewerSettings,
+            settingsOpen: _viewerSettingsOpen,
+          ),
+        ),
+        if (_viewerSettingsOpen)
+          Positioned(
+            top: 48,
+            right: 10,
+            bottom: 10,
+            width: MediaQuery.of(context).size.width < 640 ? 200 : 240,
+            child: _ViewerSettingsPanel(
+              radiusScale: _radiusScale,
+              aspectRatio: _aspectRatio,
+              background: _viewerBackground,
+              autoRotate: _autoRotate,
+              rotateSpeed: _rotateSpeed,
+              onRadiusScaleChanged: _setRadiusScale,
+              onAspectRatioChanged: _setAspectRatio,
+              onBackgroundChanged: _setViewerBackground,
+              onAutoRotateChanged: _setAutoRotate,
+              onRotateSpeedChanged: _setRotateSpeed,
+              onResetAll: _resetViewerSettings,
+            ),
+          ),
+      ],
     );
   }
 

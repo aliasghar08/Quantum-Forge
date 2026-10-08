@@ -218,6 +218,16 @@ class NglViewerState extends State<NglViewer> {
   /// Fits the camera to the structure currently on screen.
   void resetView() => _engine?.resetView();
 
+  /// Zooms the camera by the given factor (e.g. 0.8 to zoom in, 1.25 to zoom out).
+  void zoomBy(double factor) => _engine?.zoomBy(factor);
+
+  /// Sets the viewer background color ("black", "white", "#1B1B22").
+  void setBackground(String color) => _engine?.setBackground(color);
+
+  /// Starts or stops auto-rotation around the Y axis.
+  void setAutoRotate({required bool enabled, double speed = 0.5}) =>
+      _engine?.setAutoRotate(enabled: enabled, speed: speed);
+
   /// Re-measures the canvas, for callers that know the layout changed.
   void handleResize() => _engine?.handleResize();
 

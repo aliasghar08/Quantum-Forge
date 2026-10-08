@@ -187,6 +187,20 @@ extension _ReactionAnimationPlaybackExt on _ReactionAnimationWidgetState {
       _jumpTo(_endFrame);
       return KeyEventResult.handled;
     }
+    if (event.logicalKey == LogicalKeyboardKey.equal ||
+        event.logicalKey == LogicalKeyboardKey.add) {
+      _viewerZoomIn();
+      return KeyEventResult.handled;
+    }
+    if (event.logicalKey == LogicalKeyboardKey.minus) {
+      _viewerZoomOut();
+      return KeyEventResult.handled;
+    }
+    if (event.logicalKey == LogicalKeyboardKey.keyF) {
+      _claimKeyboard();
+      _viewerKey.currentState?.resetView();
+      return KeyEventResult.handled;
+    }
     return KeyEventResult.ignored;
   }
 

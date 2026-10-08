@@ -63,6 +63,15 @@ class NglEngine {
   /// Fits the camera to the current structure. No-op.
   void resetView() {}
 
+  /// Zooms the camera. No-op on non-web targets.
+  void zoomBy(double factor) {}
+
+  /// Sets the viewer background. No-op on non-web targets.
+  void setBackground(String color) {}
+
+  /// Starts or stops auto-rotate. No-op on non-web targets.
+  void setAutoRotate({required bool enabled, double speed = 0.5}) {}
+
   /// Re-measures the canvas. No-op.
   void handleResize() {}
 

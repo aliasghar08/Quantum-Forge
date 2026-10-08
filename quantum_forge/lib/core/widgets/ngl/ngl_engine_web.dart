@@ -800,20 +800,70 @@ class NglEngine {
     }
   }
 
-  /// Zooms the camera by the given number of wheel-delta units.
-  void zoomBy(double delta) {
-    if (_disposed || delta == 0) return;
+  /// Zooms the camera by multiplying the distance by [factorOrDelta]
+  /// (e.g. 0.8 = zoom in, 1.25 = zoom out) or by wheel delta units.
+  void zoomBy(double factorOrDelta) {
+    if (_disposed || factorOrDelta == 0) return;
     final stage = _stage;
     if (stage == null) return;
     try {
       final controls = stage.getProperty<JSObject?>('viewerControls'.toJS);
       if (controls == null) return;
-      final factor = math.exp(delta * 0.001).clamp(0.5, 2.0);
+      final double factor;
+      if (factorOrDelta > 0.1 && factorOrDelta < 5.0) {
+        factor = factorOrDelta.clamp(0.2, 5.0);
+      } else {
+        factor = math.exp(factorOrDelta * 0.001).clamp(0.5, 2.0);
+      }
       controls.callMethod('zoom'.toJS, factor.toJS);
     } catch (error, stack) {
       assert(() {
         // ignore: avoid_print
         print('Quantum Forge: NGL zoom failed — $error\n$stack');
+        return true;
+      }());
+    }
+  }
+
+  /// Sets the viewer background to a CSS colour string ("black", "white",
+  /// "#1B1B22"). NGL accepts any string CSS understands.
+  void setBackground(String color) {
+    if (_disposed) return;
+    final stage = _stage;
+    if (stage == null) return;
+    try {
+      final params = JSObject()
+        ..setProperty('backgroundColor'.toJS, color.toJS);
+      stage.callMethod('setParameters'.toJS, params);
+    } catch (error, stack) {
+      assert(() {
+        // ignore: avoid_print
+        print('Quantum Forge: setBackground failed — $error\n$stack');
+        return true;
+      }());
+    }
+  }
+
+  /// Starts or stops the auto-rotate animation.
+  void setAutoRotate({required bool enabled, double speed = 0.5}) {
+    if (_disposed) return;
+    final stage = _stage;
+    if (stage == null) return;
+    try {
+      if (enabled) {
+        final s = speed.clamp(0.1, 3.0);
+        stage.callMethod('setSpin'.toJS, true.toJS);
+        final anim = stage.getProperty<JSObject?>('spinAnimation'.toJS);
+        if (anim != null) {
+          anim.setProperty('angle'.toJS, (0.005 * s).toJS);
+        }
+      } else {
+        stage.callMethod('setSpin'.toJS, false.toJS);
+      }
+    } catch (error, stack) {
+      assert(() {
+        // ignore: avoid_print
+        print('Quantum Forge: setAutoRotate failed — $error\n$stack');
         return true;
       }());
     }

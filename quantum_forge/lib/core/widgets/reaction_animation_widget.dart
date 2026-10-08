@@ -68,6 +68,7 @@ part 'reaction_animation_readout.dart';
 part 'reaction_animation_player.dart';
 part 'reaction_animation_bond_energies.dart';
 part 'reaction_animation_spinbox.dart';
+part 'reaction_animation_viewer_controls.dart';
 part 'reaction_animation_state_core.dart';
 part 'reaction_animation_state_playback.dart';
 part 'reaction_animation_state_computed.dart';
@@ -228,6 +229,33 @@ class _ReactionAnimationWidgetState extends State<ReactionAnimationWidget> {
   /// NGL calls `'element'` is selectable so the two can be compared side by side
   /// on the same structure.
   NglPalette _palette = NglPalette.avogadro;
+
+  // ── Viewer control state ────────────────────────────────────────────────
+  //
+  // These hold the current values for the settings panel. They start at the
+  // same defaults the engine uses when no style override is present, so the
+  // panel and the actual NGL rendering begin in sync.
+
+  /// True while the settings panel is open. Independent of the animation
+  /// playing state — settings can be changed mid-playback.
+  bool _viewerSettingsOpen = false;
+
+  /// Atom radius multiplier. 0.5 is the ball-and-stick default; higher values
+  /// produce a space-filling look, lower values a wireframe.
+  double _radiusScale = kNglBallAndStickRadiusScale;
+
+  /// Bond cylinder aspect ratio. 2.0 is the default; higher values thicken
+  /// the bond without thickening the atom.
+  double _aspectRatio = kNglBallAndStickAspectRatio;
+
+  /// Viewer background preset.
+  _ViewerBackground _viewerBackground = _ViewerBackground.dark;
+
+  /// Whether the camera spins continuously around the Y axis.
+  bool _autoRotate = false;
+
+  /// Spin speed when [_autoRotate] is on, in NGL's native units.
+  double _rotateSpeed = 0.5;
 
   /// Whether numbered bond badges are drawn on the 3D structure.
   ///

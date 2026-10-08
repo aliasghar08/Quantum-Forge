@@ -113,7 +113,12 @@ extension _ReactionAnimationCoreExt on _ReactionAnimationWidgetState {
   // ── Structure push ────────────────────────────────────────────────────────
 
   /// The style the renderer is currently drawing with.
-  NglStyle get _style => NglStyle(displayType: _displayType, palette: _palette);
+  NglStyle get _style => NglStyle(
+        displayType: _displayType,
+        palette: _palette,
+        radiusScale: _radiusScale,
+        aspectRatio: _aspectRatio,
+      );
 
   /// Sends the current path to the viewer.
   ///
