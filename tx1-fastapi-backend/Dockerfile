@@ -14,7 +14,7 @@ ENV PATH="/opt/venv/bin:$PATH"
 
 COPY requirements.txt .
 RUN pip install --no-cache-dir --upgrade pip \
- && pip install --no-cache-dir -r requirements.txt
+ && pip install --no-cache-dir --extra-index-url https://download.pytorch.org/whl/cpu -r requirements.txt
 
 # Pre-download MACE-MP-0 fallback weights into /opt/weights
 ENV MACE_CACHE_DIR=/opt/weights

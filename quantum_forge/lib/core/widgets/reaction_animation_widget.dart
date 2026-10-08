@@ -51,6 +51,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:quantum_forge/core/theme/theme_provider.dart';
 import 'package:quantum_forge/core/utils/xyz_parser.dart';
 import 'package:quantum_forge/state/settings_provider.dart';
 import 'ngl/avogadro_geometry.dart';
@@ -61,6 +62,7 @@ import 'ngl/ngl_viewer.dart';
 
 part 'reaction_animation_header.dart';
 part 'reaction_animation_canvas.dart';
+part 'reaction_animation_energy_graph.dart';
 part 'reaction_animation_timeline.dart';
 part 'reaction_animation_readout.dart';
 part 'reaction_animation_player.dart';
@@ -174,13 +176,17 @@ class _ReactionAnimationWidgetState extends State<ReactionAnimationWidget> {
   static int buildCount = 0;
   static int reloadCount = 0;
   static int initCount = 0;
+  // ignore: unused_field
   static int disposeCount = 0;
+  // ignore: unused_field
   static int didUpdateCount = 0;
 
+  // ignore: unused_field
   late final int _instanceId;
 
   final GlobalKey<NglViewerState> _viewerKey = GlobalKey<NglViewerState>();
   final FocusNode _playerFocus = FocusNode(debugLabel: 'reaction-player');
+  Widget? _cachedCanvas;
 
   // ── Trajectory ────────────────────────────────────────────────────────────
   List<List<Atom>?> _parsedFrames = const <List<Atom>?>[];
@@ -372,6 +378,7 @@ class _ReactionAnimationWidgetState extends State<ReactionAnimationWidget> {
               : _buildCanvasSlotBounded(constraints),
           if (_showBondEnergies) _buildBondEnergiesPanel(),
           if (_frameCount > 1) ...[
+            buildEnergyGraph(),
             _buildTimeline(),
             _buildReadout(),
             const Divider(height: 18, thickness: 1, color: Colors.white12),
@@ -388,7 +395,7 @@ class _ReactionAnimationWidgetState extends State<ReactionAnimationWidget> {
   /// A fixed `AspectRatio(1.2)` gives the canvas a height of
   /// `width / 1.2` — 1022 px at a 1228 px viewport, which alone exceeds the
   /// whole card's slot. We keep the 1.2 ratio on narrow screens (so phones
-  /// still look right), but clamp the height to `[220, 420]` so desktop
+  /// still look right), but clamp the height to `[220, 300]` so desktop
   /// layouts do not blow up. The outer scroll view handles any residual
   /// overflow past the clamp.
 

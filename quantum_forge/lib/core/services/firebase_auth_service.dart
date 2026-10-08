@@ -77,21 +77,33 @@ class FirebaseAuthService implements AuthService {
   /// lives in the Firebase Auth user record and is reachable via `user.photoURL`
   /// on every session — duplicating it in Firestore would just be a cache we'd
   /// have to keep in sync.
+  /// Last sync timestamp to prevent write amplification.
+  DateTime? _lastSyncedAt;
+  String? _lastSyncedUid;
+
+  /// Writes (or updates) `users/{uid}` with the current profile.
+  /// Throttled to at most once per 12 hours per user session to conserve Firestore reads/writes.
   Future<void> _syncUserProfile(User user) async {
+    final now = DateTime.now();
+    if (_lastSyncedUid == user.uid &&
+        _lastSyncedAt != null &&
+        now.difference(_lastSyncedAt!).inHours < 12) {
+      return;
+    }
     try {
       final docRef = _db.collection('users').doc(user.uid);
       final snapshot = await docRef.get();
       final data = <String, dynamic>{
         'uid': user.uid,
         'email': user.email,
-        'displayName':
-            user.displayName ??
-            (user.email != null ? user.email!.split('@').first : null),
+        'displayName': user.displayName ?? user.email?.split('@').first,
         'emailVerified': user.emailVerified,
         'lastSeen': FieldValue.serverTimestamp(),
         if (!snapshot.exists) 'createdAt': FieldValue.serverTimestamp(),
       };
       await docRef.set(data, SetOptions(merge: true));
+      _lastSyncedAt = now;
+      _lastSyncedUid = user.uid;
     } catch (e) {
       // Never rethrow: a profile-sync failure must not break the sign-in flow.
       // The user stays signed in; the profile just won't be up to date.
@@ -102,23 +114,13 @@ class FirebaseAuthService implements AuthService {
   @override
   Future<String> getUserId() async {
     _ensureListener();
-    final user = _auth.currentUser;
-    if (user != null) {
-      unawaited(_syncUserProfile(user));
-      return user.uid;
-    }
-    // Fallback if accessed before sign in, though ideally shouldn't happen.
-    return '';
+    return _auth.currentUser?.uid ?? '';
   }
 
   @override
   Future<bool> isAuthenticated() async {
     _ensureListener();
-    final user = _auth.currentUser;
-    if (user != null) {
-      unawaited(_syncUserProfile(user));
-    }
-    return user != null;
+    return _auth.currentUser != null;
   }
 
   @override
@@ -170,5 +172,11 @@ class FirebaseAuthService implements AuthService {
     // is not registered — it does not tell the caller whether an account
     // exists. The UI reports the same generic "link sent" either way.
     await _auth.sendPasswordResetEmail(email: email);
+  }
+
+  /// Cancels active auth subscriptions.
+  void dispose() {
+    _authSub?.cancel();
+    _authSub = null;
   }
 }

@@ -179,6 +179,28 @@ def test_predict_rejects_an_empty_molecule():
     assert "No atoms" in response.json()["detail"]
 
 
+# ── Reactions & Security ─────────────────────────────────────────────────────
+
+def test_reaction_endpoints_reject_invalid_uuid():
+    response = client().get("/reactions/not-a-valid-uuid")
+    assert response.status_code == 400, response.text
+    assert "Invalid reaction ID format" in response.json()["detail"]
+
+    response_export = client().get("/reactions/not-a-valid-uuid/export-ts")
+    assert response_export.status_code == 400, response_export.text
+    assert "Invalid reaction ID format" in response_export.json()["detail"]
+
+
+def test_hybrid_md_reports_503_when_worker_unavailable():
+    response = client().post(
+        "/simulate/hybrid-md",
+        json={"pdb_path": "test.pdb", "mlip_model": "tx1-fastapi"},
+    )
+    assert response.status_code == 503, response.text
+    detail = response.json()["detail"].lower()
+    assert "offline" in detail or "available" in detail or "unreachable" in detail
+
+
 # ── Standalone runner ────────────────────────────────────────────────────────
 
 def _run_standalone() -> int:

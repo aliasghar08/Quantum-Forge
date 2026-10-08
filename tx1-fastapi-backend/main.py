@@ -12,6 +12,8 @@ import urllib.error
 import urllib.parse
 import json
 import uuid
+import re
+from collections import OrderedDict
 from datetime import datetime, timezone
 import asyncio
 
@@ -100,7 +102,7 @@ async def json_errors_inside_cors(request: Request, call_next):
         print(f"[500] {request.method} {request.url.path}: {type(exc).__name__}: {exc}")
         return JSONResponse(
             status_code=500,
-            content={"detail": f"{type(exc).__name__}: {exc}"},
+            content={"detail": "Internal server error"},
         )
 
 
@@ -229,7 +231,17 @@ class ReactionRequest(BaseModel):
     solvent_model: str = "Vacuum"
     temperature_k: float = 298.15
 
-_reactions = {}
+UUID_REGEX = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$", re.IGNORECASE)
+
+MAX_STORED_REACTIONS = 100
+_reactions: OrderedDict[str, dict] = OrderedDict()
+
+def _store_reaction(rid: str, payload: dict) -> None:
+    """Store reaction status with LRU eviction to prevent unbounded memory growth."""
+    while len(_reactions) >= MAX_STORED_REACTIONS:
+        _reactions.popitem(last=False)
+    _reactions[rid] = payload
+    _reactions.move_to_end(rid)
 
 def _configured_frame_count() -> int:
     raw = os.environ.get("T1X_FRAMES", "121").strip()
@@ -256,14 +268,6 @@ def to_xyz(atoms, positions, comment=""):
     for a, p in zip(atoms, positions):
         lines.append(f"{a} {p[0]:.6f} {p[1]:.6f} {p[2]:.6f}")
     return "\n".join(lines)
-
-def _compute_single_frame(z_tensor, pos_tensor, mask_tensor):
-    """Synchronous inference isolated from the asyncio event loop."""
-    if model is None:
-        return 0.0
-    with torch.no_grad():
-        energy = model(z_tensor, pos_tensor, mask_tensor)
-        return energy.item()
 
 async def run_reaction(reaction_id: str, req: ReactionRequest):
     _reactions[reaction_id]["state"] = "optimizing"
@@ -301,6 +305,15 @@ async def run_reaction(reaction_id: str, req: ReactionRequest):
         frames = []
         energies_ev = []
         n_frames = _configured_frame_count()
+        fallback_used = False
+
+        # Test calculator on initial frame first to avoid mixing potentials mid-run
+        try:
+            calculator.energy_ev(atomic_numbers, r_pos)
+        except Exception as exc:
+            print(f"[MLIP] {calculator.name()} unavailable for reaction {reaction_id}: {exc}; falling back to tx1-fastapi")
+            calculator = registry.get("tx1-fastapi")
+            fallback_used = True
 
         for i in range(n_frames):
             t = i / (n_frames - 1)
@@ -319,9 +332,7 @@ async def run_reaction(reaction_id: str, req: ReactionRequest):
                 try:
                     return calculator.energy_ev(numbers, coords)
                 except Exception as exc:
-                    print(f"[MLIP] {calculator.name()} failed on frame {frame_idx}: {exc}")
-                    fallback = registry.get("tx1-fastapi")
-                    return fallback.energy_ev(numbers, coords)
+                    raise RuntimeError(f"MLIP {calculator.name()} failed on frame {frame_idx}: {exc}") from exc
 
             # CRITICAL: Run model inference in a separate thread so event loop never hangs
             energy_val = await asyncio.to_thread(_eval_frame, i, atomic_numbers, cur_pos)
@@ -348,6 +359,7 @@ async def run_reaction(reaction_id: str, req: ReactionRequest):
             "vibrational_modes": [],
             "model_requested": req.mlip_model,
             "model_used": calculator.name(),
+            "fallback_used": fallback_used,
             "solvent_model": req.solvent_model,
             "temperature_k": req.temperature_k,
             "solvent_applied": False,
@@ -365,19 +377,22 @@ async def submit_reaction(req: ReactionRequest, background_tasks: BackgroundTask
     # every poll response omits `reaction_id`, the Dart parser defaults to '',
     # and any follow-up call that needs the id (export-ts, attach-dft) hits a
     # URL like `/reactions//export-ts` and 404s.
-    _reactions[reaction_id] = {
+    _store_reaction(reaction_id, {
         "reaction_id": reaction_id,
         "state": "pending",
         "progress": 0.0,
         "req": req,
-    }
+    })
     background_tasks.add_task(run_reaction, reaction_id, req)
     return {"reaction_id": reaction_id}
 
 @app.get("/reactions/{reaction_id}")
 def get_reaction(reaction_id: str):
+    if not UUID_REGEX.match(reaction_id):
+        raise HTTPException(status_code=400, detail="Invalid reaction ID format.")
     if reaction_id not in _reactions:
         raise HTTPException(status_code=404, detail="Not found")
+    _reactions.move_to_end(reaction_id)
     return _reactions[reaction_id]
 
 @app.get("/crossref/{doi:path}")
@@ -462,9 +477,13 @@ def export_transition_state(reaction_id: str):
     downloads the response body verbatim; there is no re-serialisation on
     the Dart side.
     """
+    if not UUID_REGEX.match(reaction_id):
+        raise HTTPException(status_code=400, detail="Invalid reaction ID format.")
+
     reaction = _reactions.get(reaction_id)
     if reaction is None:
         raise HTTPException(status_code=404, detail="Reaction not found.")
+    _reactions.move_to_end(reaction_id)
     if reaction.get("state") != "completed":
         raise HTTPException(
             status_code=409,
@@ -530,9 +549,13 @@ def attach_dft(reaction_id: str, body: DftAttachmentRequest):
     or neither: a barrier from one number is meaningless, and half a paste
     usually means the value landed in the wrong field.
     """
+    if not UUID_REGEX.match(reaction_id):
+        raise HTTPException(status_code=400, detail="Invalid reaction ID format.")
+
     reaction = _reactions.get(reaction_id)
     if reaction is None:
         raise HTTPException(status_code=404, detail="Reaction not found.")
+    _reactions.move_to_end(reaction_id)
 
     has_ts = body.ts_energy_hartree is not None
     has_reactant = body.reactant_energy_hartree is not None
@@ -578,8 +601,8 @@ def attach_dft(reaction_id: str, body: DftAttachmentRequest):
 async def start_hybrid_md(request: Request):
     try:
         from worker_hybrid import run_hybrid_md
-    except ImportError:
-        raise HTTPException(status_code=500, detail="Celery worker module not available.")
+    except (ImportError, Exception):
+        raise HTTPException(status_code=503, detail="Hybrid MD worker module is not available.")
 
     content_type = request.headers.get("content-type", "")
     job_id = str(uuid.uuid4())
@@ -615,7 +638,11 @@ async def start_hybrid_md(request: Request):
     if not pdb_path:
         raise HTTPException(status_code=400, detail="pdb_path or file is required.")
 
-    task = run_hybrid_md.apply_async(args=[pdb_path, job_id, mlip_model, simulation_length_ns], task_id=job_id)
+    try:
+        task = run_hybrid_md.apply_async(args=[pdb_path, job_id, mlip_model, simulation_length_ns], task_id=job_id)
+    except Exception as exc:
+        print(f"[503] Celery broker unreachable: {exc}")
+        raise HTTPException(status_code=503, detail="Hybrid MD worker queue is currently offline or unreachable.")
 
     return {
         "status": "ACCEPTED",
@@ -626,36 +653,37 @@ async def start_hybrid_md(request: Request):
 @app.get("/simulate/status/{job_id}")
 async def get_hybrid_md_status(job_id: str, task_id: str = None):
     try:
-        
         from celery.result import AsyncResult
         from worker_hybrid import celery_app
-    except ImportError:
-        raise HTTPException(status_code=500, detail="Celery not installed.")
+    except (ImportError, Exception):
+        raise HTTPException(status_code=503, detail="Celery service currently unavailable.")
 
     if not task_id:
         task_id = job_id
 
-    res = AsyncResult(task_id, app=celery_app)
+    try:
+        res = AsyncResult(task_id, app=celery_app)
+        if res.ready():
+            result = res.result
 
-    if res.ready():
-        result = res.result
+            base_output_dir = os.environ.get("QUANTUM_FORGE_OUTPUTS", "./outputs")
+            drive_outputs = os.path.join(base_output_dir, str(job_id))
+            dcd_path = os.path.join(drive_outputs, 'trajectory.dcd')
+            dcd_exists = os.path.exists(dcd_path)
 
-        base_output_dir = os.environ.get("QUANTUM_FORGE_OUTPUTS", "./outputs")
-        drive_outputs = os.path.join(base_output_dir, str(job_id))
-        dcd_path = os.path.join(drive_outputs, 'trajectory.dcd')
-        dcd_exists = os.path.exists(dcd_path)
+            if isinstance(result, dict):
+                result['dcd_exists'] = dcd_exists
+                result['trajectory_dir'] = drive_outputs
 
-        if isinstance(result, dict):
-            result['dcd_exists'] = dcd_exists
-            result['trajectory_dir'] = drive_outputs
+            return result
 
-        return result
-
-    return {
-        "status": res.state,
-        "job_id": job_id,
-        "task_id": task_id
-    }
+        return {
+            "status": res.state,
+            "job_id": job_id,
+            "task_id": task_id
+        }
+    except Exception as exc:
+        raise HTTPException(status_code=503, detail="Hybrid MD worker queue is currently offline.")
 
 @app.get("/simulate/download/{job_id}/{filename}")
 async def download_trajectory_file(job_id: str, filename: str):

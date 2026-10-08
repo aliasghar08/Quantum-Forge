@@ -14,11 +14,9 @@ extension ReactionProviderBackendExt on ReactionNotifier {
     QuantumSettings settings,
   ) async {
     final explicitOverride = (backendUrlProvider?.call() ?? '').trim();
-    var url = settings.effectiveBackendUrl;
-    if (explicitOverride.isNotEmpty &&
-        explicitOverride != kDefaultComputeBackendUrl) {
-      url = explicitOverride;
-    }
+    var url = explicitOverride.isNotEmpty
+        ? explicitOverride
+        : settings.effectiveBackendUrl;
     if (url.isEmpty) return false;
     if (reactantXyz.isEmpty || productXyz.isEmpty) {
       _setError('The backend needs both a reactant and a product structure.');

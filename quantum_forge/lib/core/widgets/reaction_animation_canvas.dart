@@ -6,7 +6,8 @@ extension _ReactionAnimationCanvasExt on _ReactionAnimationWidgetState {
       // Unbounded (e.g. Dashboard): dynamically give the canvas a reasonable height.
       final screenH = MediaQuery.of(context).size.height;
       final screenW = MediaQuery.of(context).size.width;
-      final height = (screenW < 600) ? screenH * 0.40 : screenH * 0.75;
+      final rawH = (screenW < 600) ? screenH * 0.40 : screenH * 0.75;
+      final height = rawH.clamp(220.0, 300.0);
       return SizedBox(
         height: height,
         child: GestureDetector(
@@ -22,11 +23,11 @@ extension _ReactionAnimationCanvasExt on _ReactionAnimationWidgetState {
   Widget _buildCanvasSlotBounded(BoxConstraints constraints) {
       // Bounded (e.g. Analytics page): use a responsive ratio so it fits cleanly
       // inside the bounded space without forcing a massive fixed height.
-      final maxH = MediaQuery.of(context).size.height * 0.50;
+      const maxH = 300.0;
       final byRatio = constraints.maxWidth.isFinite
           ? constraints.maxWidth / 1.2
           : maxH;
-      final height = byRatio.clamp(220.0, maxH);
+      final height = byRatio.clamp(220.0, 300.0);
       return SizedBox(
         height: height,
         child: GestureDetector(
@@ -40,11 +41,11 @@ extension _ReactionAnimationCanvasExt on _ReactionAnimationWidgetState {
     }
 
   Widget _buildCanvas() {
-      return NglViewer(
-        key: _viewerKey,
-        width: double.infinity,
-        height: double.infinity,
-      );
-    }
+    return _cachedCanvas ??= NglViewer(
+      key: _viewerKey,
+      width: double.infinity,
+      height: double.infinity,
+    );
+  }
 
 }

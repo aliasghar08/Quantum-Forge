@@ -18,21 +18,11 @@ service cloud.firestore {
       }
     }
 
-    // Legacy top-level jobs (kept for older clients).
-    match /jobs/{jobId} {
-      allow read, write: if request.auth != null;
-    }
-
-    // Public reaction-template library: readable by everyone (including signed
-    // out guests), writable for automatic seeding, medical library sync, and
-    // contributions.
-    //
-    // NOTE: this rule is deliberately permissive. Tighten it when the library
-    // stops being seeded automatically (see `FirestoreLibraryRepository.
-    // autoSeedMedicalLibrary()` in `main.dart`). At minimum, restrict `write`
-    // to `request.auth != null`; ideally to an admin claim.
+    // Public reaction-template library: readable by everyone (including guests),
+    // writable only by administrators to prevent public tampering or deletion.
     match /library/{templateId} {
-      allow read, write: if true;
+      allow read: if true;
+      allow write: if request.auth != null && request.auth.token.admin == true;
     }
   }
 }

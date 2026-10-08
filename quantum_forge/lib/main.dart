@@ -18,7 +18,6 @@ import 'package:quantum_forge/firebase_options.dart';
 import 'package:quantum_forge/core/services/firebase_auth_service.dart';
 import 'package:quantum_forge/core/services/firestore_reaction_repository.dart';
 import 'package:quantum_forge/core/services/auth_service.dart';
-import 'package:quantum_forge/features/reaction_library/data/firestore_library_repository.dart';
 import 'package:quantum_forge/core/services/session_state_service.dart';
 import 'package:quantum_forge/core/services/feedback_service.dart';
 
@@ -114,24 +113,6 @@ Future<void> initialiseCloudFeatures() async {
     return;
   }
 
-  // Seeding is a developer convenience: it must never block a cold start or take
-  // the app down when Firestore is unreachable or the rules reject it.
-  unawaited(_seedLibrary());
-}
-
-Future<void> _seedLibrary() async {
-  try {
-    final repo = FirestoreLibraryRepository();
-    // Automatically seed core MBBS and Pharm-D medical reactions into Firestore /library
-    final medCount = await repo.autoSeedMedicalLibrary();
-    if (medCount > 0) {
-      debugPrint(
-        'Medical reactions automatically seeded to Firestore: $medCount items.',
-      );
-    }
-  } catch (e) {
-    debugPrint('Reaction library background auto-seed: $e');
-  }
 }
 
 class QuantumForgeApp extends StatefulWidget {

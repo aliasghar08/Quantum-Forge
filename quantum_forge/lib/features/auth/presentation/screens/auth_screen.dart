@@ -128,7 +128,7 @@ class _AuthScreenState extends State<AuthScreen> {
     final email = controller.text.trim();
     controller.dispose();
 
-    if (confirmed != true || email.isEmpty) return;
+    if (!mounted || confirmed != true || email.isEmpty) return;
 
     // Validate the shape of the address before asking Firebase to send a mail.
     // Cheap client-side guard against "asdf" typos; Firebase would accept the

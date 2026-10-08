@@ -152,7 +152,7 @@ class ReactionStatusResponse {
   }
 
   factory ReactionStatusResponse.fromJson(Map<String, dynamic> json) {
-    ReactionState parseState(String stateStr) {
+    ReactionState parseState(String? stateStr) {
       switch (stateStr) {
         case 'pending': return ReactionState.pending;
         case 'optimizing': return ReactionState.optimizing;
@@ -163,9 +163,9 @@ class ReactionStatusResponse {
     }
 
     return ReactionStatusResponse(
-      reactionId: json['reaction_id'] as String,
-      state: parseState(json['state'] as String),
-      progress: (json['progress'] as num).toDouble(),
+      reactionId: json['reaction_id'] as String? ?? '',
+      state: parseState(json['state'] as String?),
+      progress: (json['progress'] as num?)?.toDouble() ?? 0.0,
       message: json['message'] as String?,
       error: json['error'] as String?,
       energyProfile: (json['energy_profile'] as List<dynamic>?)

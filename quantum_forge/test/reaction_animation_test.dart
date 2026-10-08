@@ -42,7 +42,7 @@ Future<void> pumpAnimation(
   List<double>? energyProfileEv,
   int? maxEnergyIndex,
   int? frameRateOverride,
-  Size surface = const Size(900, 1700),
+  Size surface = const Size(900, 2200),
 }) async {
   tester.view.physicalSize = surface;
   tester.view.devicePixelRatio = 1.0;
@@ -105,6 +105,7 @@ Future<void> pause(WidgetTester tester) async {
   final button = find.byKey(const Key('qf-play-button'));
   if (tester.widget<FilledButton>(button).onPressed != null &&
       find.text('Pause').evaluate().isNotEmpty) {
+    await tester.ensureVisible(button);
     await tester.tap(button);
     await tester.pump();
   }
@@ -461,6 +462,24 @@ void main() {
     expect(find.text('1 FPS'), findsOneWidget);
     // 3 frames at 1 FPS.
     expect(find.text('3.0 s'), findsOneWidget);
+
+    expect(tester.takeException(), isNull);
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
+
+  testWidgets('renders interactive energy profile strip and jumps on tap', (
+    tester,
+  ) async {
+    await pumpAnimation(
+      tester,
+      energyProfile: const <double>[0.0, 10.5, -3.2],
+      maxEnergyIndex: 1,
+    );
+    await pause(tester);
+
+    // CustomPaint widgets for curve and playhead exist
+    expect(find.byType(CustomPaint), findsWidgets);
+    expect(shownFrame(tester), equals(1));
 
     expect(tester.takeException(), isNull);
     await tester.pumpWidget(const SizedBox.shrink());
