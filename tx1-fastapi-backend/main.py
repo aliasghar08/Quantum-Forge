@@ -361,7 +361,16 @@ async def run_reaction(reaction_id: str, req: ReactionRequest):
 @app.post("/reactions/submit")
 async def submit_reaction(req: ReactionRequest, background_tasks: BackgroundTasks):
     reaction_id = str(uuid.uuid4())
-    _reactions[reaction_id] = {"state": "pending", "progress": 0.0, "req": req}
+    # The id is included inside the dict, not just used as the key. Without it,
+    # every poll response omits `reaction_id`, the Dart parser defaults to '',
+    # and any follow-up call that needs the id (export-ts, attach-dft) hits a
+    # URL like `/reactions//export-ts` and 404s.
+    _reactions[reaction_id] = {
+        "reaction_id": reaction_id,
+        "state": "pending",
+        "progress": 0.0,
+        "req": req,
+    }
     background_tasks.add_task(run_reaction, reaction_id, req)
     return {"reaction_id": reaction_id}
 
