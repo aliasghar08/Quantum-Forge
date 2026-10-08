@@ -800,22 +800,35 @@ class NglEngine {
     }
   }
 
-  /// Zooms the camera by multiplying the distance by [factorOrDelta]
-  /// (e.g. 0.8 = zoom in, 1.25 = zoom out) or by wheel delta units.
-  void zoomBy(double factorOrDelta) {
-    if (_disposed || factorOrDelta == 0) return;
+  /// Passes [delta] to NGL's camera zoom.
+  ///
+  /// Sign convention matches browser wheel event: negative = closer (zoom in),
+  /// positive = further (zoom out).
+  ///
+  /// In NGL, `viewerControls.zoom(d)` scales distance by `(1 - d)`, where
+  /// `d` is a small fractional change (e.g. 0.1 = 10% closer).
+  /// A delta of ±25 maps to a ~12.5% step (`-delta * 0.005`).
+  void zoomBy(double delta) {
+    if (_disposed || delta == 0) return;
     final stage = _stage;
     if (stage == null) return;
     try {
       final controls = stage.getProperty<JSObject?>('viewerControls'.toJS);
       if (controls == null) return;
-      final double factor;
-      if (factorOrDelta > 0.1 && factorOrDelta < 5.0) {
-        factor = factorOrDelta.clamp(0.2, 5.0);
-      } else {
-        factor = math.exp(factorOrDelta * 0.001).clamp(0.5, 2.0);
-      }
-      controls.callMethod('zoom'.toJS, factor.toJS);
+
+      final distNumber = controls.callMethod<JSNumber>('getCameraDistance'.toJS);
+      final dist = distNumber.toDartDouble;
+
+      final clampedDelta = delta.clamp(-200.0, 200.0);
+      final d = (-clampedDelta * 0.005).clamp(-0.5, 0.5);
+
+      // Distance floor: refuse if zooming in would go below 4.0 Å from focus
+      if (d > 0 && dist < 4.0) return;
+
+      controls.callMethod('zoom'.toJS, d.toJS);
+
+      final viewer = stage.getProperty<JSObject?>('viewer'.toJS);
+      viewer?.callMethod('requestRender'.toJS);
     } catch (error, stack) {
       assert(() {
         // ignore: avoid_print

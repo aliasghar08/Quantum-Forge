@@ -485,31 +485,31 @@ void main() {
     await tester.pumpWidget(const SizedBox.shrink());
   });
 
-  testWidgets('renders floating viewer controls and toggles settings panel', (
+  testWidgets('renders header viewer controls and toggles settings panel', (
     tester,
   ) async {
     await pumpAnimation(tester);
     await pause(tester);
 
-    // Floating toolbar icons exist
-    expect(find.byTooltip('Zoom in (+)'), findsOneWidget);
-    expect(find.byTooltip('Zoom out (-)'), findsOneWidget);
-    expect(find.byTooltip('Reset view (F)'), findsOneWidget);
-    expect(find.byTooltip('Viewer settings'), findsOneWidget);
+    // Header viewer control icons exist
+    expect(find.byTooltip('Zoom in ( + )'), findsOneWidget);
+    expect(find.byTooltip('Zoom out ( − )'), findsOneWidget);
+    expect(find.byTooltip('Reset view (fit molecule)'), findsOneWidget);
+    expect(find.byTooltip('Viewer appearance'), findsOneWidget);
 
     // Tap zoom buttons & reset view (verify no exception)
-    await tester.tap(find.byTooltip('Zoom in (+)'));
+    await tester.tap(find.byTooltip('Zoom in ( + )'));
     await tester.pump();
-    await tester.tap(find.byTooltip('Zoom out (-)'));
+    await tester.tap(find.byTooltip('Zoom out ( − )'));
     await tester.pump();
-    await tester.tap(find.byTooltip('Reset view (F)'));
+    await tester.tap(find.byTooltip('Reset view (fit molecule)'));
     await tester.pump();
 
     // Settings panel is closed initially
     expect(find.text('SCALING'), findsNothing);
 
     // Open settings panel
-    await tester.tap(find.byTooltip('Viewer settings'));
+    await tester.tap(find.byTooltip('Viewer appearance'));
     await tester.pump();
 
     // Verify settings panel content appears
@@ -526,8 +526,8 @@ void main() {
     await tester.pump();
 
     // Close settings panel
-    expect(find.byTooltip('Close settings'), findsOneWidget);
-    await tester.tap(find.byTooltip('Close settings'));
+    expect(find.byTooltip('Close viewer settings'), findsOneWidget);
+    await tester.tap(find.byTooltip('Close viewer settings'));
     await tester.pump();
     expect(find.text('SCALING'), findsNothing);
 

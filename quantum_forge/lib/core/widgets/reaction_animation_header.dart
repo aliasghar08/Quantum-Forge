@@ -43,6 +43,23 @@ extension _ReactionAnimationHeaderExt on _ReactionAnimationWidgetState {
               _claimKeyboard();
               _viewerKey.currentState?.resetView();
             }, tooltip: 'Reset view (fit molecule)'),
+            _iconButton(
+              Icons.zoom_in,
+              _viewerZoomIn,
+              tooltip: 'Zoom in ( + )',
+            ),
+            _iconButton(
+              Icons.zoom_out,
+              _viewerZoomOut,
+              tooltip: 'Zoom out ( − )',
+            ),
+            _iconButton(
+              _viewerSettingsOpen ? Icons.close : Icons.tune,
+              _toggleViewerSettings,
+              tooltip: _viewerSettingsOpen
+                  ? 'Close viewer settings'
+                  : 'Viewer appearance',
+            ),
           ],
         ),
       );

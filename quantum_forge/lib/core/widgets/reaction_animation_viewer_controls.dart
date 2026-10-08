@@ -34,115 +34,7 @@ enum _ViewerBackground {
   final String label;
 }
 
-/// Floating control bar. Sits top-right, above the axes triad.
-///
-/// Every button is a 30×30 tap target on wide canvases (≥ 480 px), 26×26 on
-/// narrow ones, so a phone does not lose canvas area to controls. Icons are
-/// drawn at 55 % of the tap target for a comfortable ratio — this is the same
-/// proportion Material's `IconButton` uses.
-class _ViewerControlBar extends StatelessWidget {
-  const _ViewerControlBar({
-    required this.onZoomIn,
-    required this.onZoomOut,
-    required this.onReset,
-    required this.onToggleSettings,
-    required this.settingsOpen,
-  });
 
-  final VoidCallback onZoomIn;
-  final VoidCallback onZoomOut;
-  final VoidCallback onReset;
-  final VoidCallback onToggleSettings;
-  final bool settingsOpen;
-
-  @override
-  Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final compact = constraints.maxWidth < 480;
-        final size = compact ? 26.0 : 30.0;
-
-        return Container(
-          decoration: BoxDecoration(
-            color: Colors.black.withValues(alpha: 0.58),
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.35),
-                blurRadius: 10,
-                offset: const Offset(0, 3),
-              ),
-            ],
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _barButton(
-                icon: Icons.add,
-                size: size,
-                tooltip: 'Zoom in (+)',
-                onTap: onZoomIn,
-              ),
-              _barButton(
-                icon: Icons.remove,
-                size: size,
-                tooltip: 'Zoom out (-)',
-                onTap: onZoomOut,
-              ),
-              _barButton(
-                icon: Icons.center_focus_strong,
-                size: size,
-                tooltip: 'Reset view (F)',
-                onTap: onReset,
-              ),
-              _barButton(
-                icon: settingsOpen ? Icons.close : Icons.tune,
-                size: size,
-                tooltip: settingsOpen ? 'Close settings' : 'Viewer settings',
-                onTap: onToggleSettings,
-                active: settingsOpen,
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _barButton({
-    required IconData icon,
-    required double size,
-    required String tooltip,
-    required VoidCallback onTap,
-    bool active = false,
-  }) {
-    return Tooltip(
-      message: tooltip,
-      waitDuration: const Duration(milliseconds: 400),
-      child: Material(
-        color: active
-            ? Colors.white.withValues(alpha: 0.14)
-            : Colors.transparent,
-        borderRadius: BorderRadius.circular(8),
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(8),
-          hoverColor: Colors.white.withValues(alpha: 0.08),
-          child: SizedBox(
-            width: size,
-            height: size,
-            child: Icon(
-              icon,
-              size: size * 0.55,
-              color: active ? Colors.white : Colors.white70,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
 
 /// Settings panel — opens beneath the control bar. 240 px wide on desktop,
 /// fills the available width minus 16 px margins on narrow canvases.
@@ -447,12 +339,12 @@ extension _ViewerControlsIntegration on _ReactionAnimationWidgetState {
 
   void _viewerZoomIn() {
     _claimKeyboard();
-    _viewerKey.currentState?.zoomBy(0.8);
+    _viewerKey.currentState?.zoomBy(-25);
   }
 
   void _viewerZoomOut() {
     _claimKeyboard();
-    _viewerKey.currentState?.zoomBy(1.25);
+    _viewerKey.currentState?.zoomBy(25);
   }
 
   // ── Settings panel visibility ───────────────────────────────────────────
