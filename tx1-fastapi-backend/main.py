@@ -12,6 +12,7 @@ import urllib.error
 import urllib.parse
 import json
 import uuid
+from datetime import datetime, timezone
 import asyncio
 
 import torch
@@ -22,7 +23,7 @@ os.environ.setdefault("PYTORCH_ENABLE_MPS_FALLBACK", "1")
 import torch.nn as nn
 from fastapi import FastAPI, HTTPException, BackgroundTasks, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, Response
 from pydantic import BaseModel
 
 # Hardware acceleration for Apple Silicon (M1 Pro) or fallback to CPU
@@ -381,6 +382,184 @@ def get_crossref_metadata(doi: str):
         raise HTTPException(status_code=e.code, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+# ==========================================
+# 5b. DFT HANDOFF
+# ------------------------------------------
+# Export the MLIP transition-state geometry for an external DFT run, and
+# attach the refinement that comes back. Barrier is derived here from the two
+# absolute Hartrees so the API is the single authority on the conversion —
+# the app never re-computes it and therefore cannot disagree with the stored
+# value.
+# ==========================================
+
+class DftAttachmentRequest(BaseModel):
+    level_of_theory: str = ""
+    ts_energy_hartree: float | None = None
+    reactant_energy_hartree: float | None = None
+    imaginary_frequency_cm1: float | None = None
+    notes: str = ""
+    single_point_method: str | None = None
+    log_file_name: str | None = None
+    log_file_text: str | None = None
+
+
+_HARTREE_TO_KCAL_MOL = 627.5094740631
+
+
+def _now_iso() -> str:
+    return datetime.now(timezone.utc).isoformat(timespec="seconds")
+
+
+def _ts_frame_index(reaction: dict) -> int:
+    """Index of the transition-state image.
+
+    Prefers the solver's own `max_energy_index`; falls back to argmax of the
+    relative profile only when the backend did not record one. Never guesses
+    when both are absent — the caller raises instead.
+    """
+    idx = reaction.get("max_energy_index")
+    if isinstance(idx, int) and idx >= 0:
+        return idx
+    profile = reaction.get("energy_profile") or []
+    if profile:
+        return max(range(len(profile)), key=lambda i: profile[i])
+    raise ValueError("no transition-state index available")
+
+
+def _rewrite_xyz_comment(xyz_text: str, comment: str) -> str:
+    """Replace the XYZ comment (line 2) and normalise the trailing newline.
+
+    XYZ format is: line 1 = atom count, line 2 = comment, then N atom lines.
+    The atom block is preserved verbatim so the geometry the DFT program sees
+    is exactly the one DMF produced; only the comment is swapped for the
+    provenance line.
+    """
+    lines = xyz_text.rstrip("\n").split("\n")
+    if len(lines) < 2:
+        return xyz_text
+    lines[1] = comment
+    return "\n".join(lines) + "\n"
+
+
+@app.get("/reactions/{reaction_id}/export-ts")
+def export_transition_state(reaction_id: str):
+    """Return the transition-state geometry as an XYZ document.
+
+    The comment line carries provenance — reaction id, image index, MLIP
+    model, barrier — so a geometry that ends up in a supplementary file can
+    be traced back to the exact solver run that produced it. The client
+    downloads the response body verbatim; there is no re-serialisation on
+    the Dart side.
+    """
+    reaction = _reactions.get(reaction_id)
+    if reaction is None:
+        raise HTTPException(status_code=404, detail="Reaction not found.")
+    if reaction.get("state") != "completed":
+        raise HTTPException(
+            status_code=409,
+            detail=(
+                f"Reaction is {reaction.get('state')}, not completed "
+                "— no TS to export."
+            ),
+        )
+
+    frames = reaction.get("trajectory_frames") or []
+    if not frames:
+        raise HTTPException(
+            status_code=409, detail="Reaction has no trajectory frames."
+        )
+
+    try:
+        idx = _ts_frame_index(reaction)
+    except ValueError as exc:
+        raise HTTPException(status_code=409, detail=str(exc))
+
+    if idx < 0 or idx >= len(frames):
+        raise HTTPException(
+            status_code=500,
+            detail=(
+                f"Transition-state index {idx} is outside the trajectory "
+                f"(0..{len(frames) - 1})."
+            ),
+        )
+
+    profile = reaction.get("energy_profile") or []
+    barrier = profile[idx] if 0 <= idx < len(profile) else None
+    model = (
+        reaction.get("model_used")
+        or reaction.get("model_requested")
+        or "unknown"
+    )
+
+    comment = (
+        f"reaction={reaction_id} image={idx} mlip={model} "
+        f"barrier_kcal_mol={barrier if barrier is not None else 'n/a'} "
+        f"source=Quantum Forge"
+    )
+    xyz = _rewrite_xyz_comment(frames[idx], comment)
+
+    return Response(
+        content=xyz,
+        media_type="chemical/x-xyz",
+        headers={
+            "Content-Disposition": (
+                f'attachment; filename="{reaction_id}_mlip_ts.xyz"'
+            ),
+            "Cache-Control": "no-store",
+        },
+    )
+
+
+@app.post("/reactions/{reaction_id}/attach-dft")
+def attach_dft(reaction_id: str, body: DftAttachmentRequest):
+    """Attach a DFT refinement to a completed reaction.
+
+    Barrier is derived here from the two absolute Hartrees so the API is the
+    single authority on the conversion. Both energies are required together
+    or neither: a barrier from one number is meaningless, and half a paste
+    usually means the value landed in the wrong field.
+    """
+    reaction = _reactions.get(reaction_id)
+    if reaction is None:
+        raise HTTPException(status_code=404, detail="Reaction not found.")
+
+    has_ts = body.ts_energy_hartree is not None
+    has_reactant = body.reactant_energy_hartree is not None
+    if has_ts != has_reactant:
+        raise HTTPException(
+            status_code=422,
+            detail=(
+                "A barrier needs BOTH energies — supply ts_energy_hartree "
+                "and reactant_energy_hartree together, or neither."
+            ),
+        )
+
+    barrier: float | None = None
+    if has_ts and has_reactant:
+        barrier = (
+            body.ts_energy_hartree - body.reactant_energy_hartree
+        ) * _HARTREE_TO_KCAL_MOL
+
+    attachment = {
+        "attachment_id": str(uuid.uuid4()),
+        "level_of_theory": body.level_of_theory.strip(),
+        "ts_energy_hartree": body.ts_energy_hartree,
+        "reactant_energy_hartree": body.reactant_energy_hartree,
+        "imaginary_frequency_cm1": body.imaginary_frequency_cm1,
+        "notes": body.notes.strip(),
+        "log_file_name": body.log_file_name,
+        # log_file_text is intentionally NOT echoed back — it can be megabytes
+        # of cluster output and the client never renders it. Stored here only
+        # if we later need to serve it from a separate download route.
+        "single_point_method": body.single_point_method,
+        "attached_at": _now_iso(),
+        "barrier_kcal_mol": barrier,
+    }
+
+    reaction.setdefault("dft_attachments", []).append(attachment)
+    return attachment
 
 
 # ==========================================
