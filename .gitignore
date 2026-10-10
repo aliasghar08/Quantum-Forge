@@ -38,5 +38,14 @@ Miniconda3-*.sh
 envs/
 **/.venv/
 **/__pycache__/
-**/.pytest_cache/
 *.save
+.bucket_name
+.instance_name
+data/raw/
+data/curated/
+data/processed/
+models/local_dev/
+models/production/
+eval/results/*.json
+!eval/results/.gitkeep
+*.log

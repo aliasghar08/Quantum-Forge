@@ -307,7 +307,7 @@ class ProfessionalDrawer extends StatelessWidget {
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        'Sign in to sync history',
+                                        'Sign in to Research Account',
                                         style: TextStyle(
                                           color: palette.textPrimary,
                                           fontSize: 13,
@@ -315,7 +315,7 @@ class ProfessionalDrawer extends StatelessWidget {
                                         ),
                                       ),
                                       Text(
-                                        'Everything else works without an account',
+                                        'Access workspace & cloud history',
                                         style: TextStyle(
                                           color: palette.textMuted,
                                           fontSize: 10.5,
@@ -375,6 +375,15 @@ class ProfessionalDrawer extends StatelessWidget {
                             onPressed: () {
                               Navigator.pop(context); // close the drawer
                               Navigator.of(context).push(SettingsScreen.route());
+                            },
+                          ),
+                          IconButton(
+                            tooltip: showTooltips ? 'Sign out' : null,
+                            icon: Icon(Icons.logout_rounded,
+                                color: palette.textMuted, size: 20),
+                            onPressed: () async {
+                              Navigator.pop(context);
+                              await FirebaseAuth.instance.signOut();
                             },
                           ),
                         ],

@@ -114,13 +114,54 @@ class _AuthGateState extends State<AuthGate> {
   @override
   Widget build(BuildContext context) {
     if (!_ready) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
+      return Scaffold(
+        backgroundColor: const Color(0xFF0A0E17),
+        body: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF00E5FF), Color(0xFF7C4DFF)],
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF00E5FF).withValues(alpha: 0.3),
+                      blurRadius: 16,
+                    ),
+                  ],
+                ),
+                child: const Icon(Icons.hub_rounded, size: 24, color: Colors.black87),
+              ),
+              const SizedBox(height: 20),
+              const SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: Color(0xFF00E5FF),
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Connecting to Quantum Forge...',
+                style: TextStyle(
+                  color: Colors.white70,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                  letterSpacing: 0.2,
+                ),
+              ),
+            ],
+          ),
+        ),
       );
     }
     if (_user == null) {
-      // The stream drives the transition once sign-in succeeds; the callback
-      // is a no-op so we don't need to navigate manually.
       return AuthScreen(onLoginSuccess: _noop);
     }
     return const DashboardScreen();

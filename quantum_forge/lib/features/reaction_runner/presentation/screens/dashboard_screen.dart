@@ -372,25 +372,27 @@ class _DashboardScreenState extends State<DashboardScreen> {
           builder: (context, constraints) {
             final isDesktop = constraints.maxWidth >= 900;
             
+            final palette = context.watch<ThemeNotifier>().palette;
             final mainContent = Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                _buildTelemetryBanner(palette),
                 // Header
                 if (isDesktop)
                   Row(
                     children: [
-                      Expanded(child: _buildHeaderTitle()),
+                      Expanded(child: _buildHeaderTitle(palette)),
                       const SizedBox(width: 16),
-                      _buildExecuteButton(isLoading, status),
+                      _buildExecuteButton(isLoading, status, palette),
                     ],
                   )
                 else
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      _buildHeaderTitle(),
+                      _buildHeaderTitle(palette),
                       const SizedBox(height: 16),
-                      _buildExecuteButton(isLoading, status),
+                      _buildExecuteButton(isLoading, status, palette),
                     ],
                   ),
                 const SizedBox(height: 20),
@@ -492,61 +494,304 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildHeaderTitle() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          _viewModel.activeTemplate?.name ?? 'Custom Reaction',
-          style: const TextStyle(
-              color: Colors.white,
-              fontSize: 28,
-              fontWeight: FontWeight.bold,
-              letterSpacing: -0.5),
-          overflow: TextOverflow.ellipsis,
-        ),
-        if (_viewModel.activeTemplate != null) ...[
-          const SizedBox(height: 4),
-          Text(
-            _viewModel.activeTemplate!.iupacName,
-            style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.5),
-                fontSize: 14,
-                fontStyle: FontStyle.italic,
-                letterSpacing: 0.3),
-            overflow: TextOverflow.ellipsis,
+  Widget _buildTelemetryBanner(QuantumTheme palette) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 20),
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+      decoration: BoxDecoration(
+        color: palette.panel.withValues(alpha: 0.85),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: palette.border),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.25),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
           ),
         ],
+      ),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          return Wrap(
+            spacing: 20,
+            runSpacing: 12,
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              _telemetryStat(
+                icon: Icons.psychology_outlined,
+                accentColor: palette.accent,
+                title: 'Surrogate MLIP Potential',
+                value: 'tx1-v2 PaiNN-lite (5x Ensemble)',
+                badge: 'Equivariant E(3)',
+              ),
+              _telemetryStat(
+                icon: Icons.track_changes_outlined,
+                accentColor: const Color(0xFF10B981),
+                title: 'Barrier Accuracy',
+                value: '2.26 kcal/mol MAE',
+                badge: 'Transition1x HCNO',
+              ),
+              _telemetryStat(
+                icon: Icons.shield_outlined,
+                accentColor: const Color(0xFF818CF8),
+                title: 'Calibrated Uncertainty',
+                value: '±1σ & ±2σ Error Bands',
+                badge: 'τ = 4.93 Scaled',
+              ),
+              _telemetryStat(
+                icon: Icons.cloud_done_outlined,
+                accentColor: const Color(0xFF38BDF8),
+                title: 'FastAPI Backend',
+                value: 'Cloud Run us-central1',
+                badge: 'Online v2',
+                isLive: true,
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _telemetryStat({
+    required IconData icon,
+    required Color accentColor,
+    required String title,
+    required String value,
+    required String badge,
+    bool isLive = false,
+  }) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(7),
+          decoration: BoxDecoration(
+            color: accentColor.withValues(alpha: 0.12),
+            borderRadius: BorderRadius.circular(9),
+            border: Border.all(color: accentColor.withValues(alpha: 0.3)),
+          ),
+          child: Icon(icon, color: accentColor, size: 17),
+        ),
+        const SizedBox(width: 9),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    color: Colors.white54,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                if (isLive) ...[
+                  const SizedBox(width: 6),
+                  Container(
+                    width: 6,
+                    height: 6,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: const Color(0xFF10B981),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF10B981).withValues(alpha: 0.8),
+                          blurRadius: 4,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ],
+            ),
+            const SizedBox(height: 1.5),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  value,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(width: 6),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                  decoration: BoxDecoration(
+                    color: accentColor.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    badge,
+                    style: TextStyle(
+                      color: accentColor,
+                      fontSize: 9,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ],
     );
   }
 
-  Widget _buildExecuteButton(bool isLoading, ReactionStatusResponse status) {
-    return FilledButton.icon(
-      onPressed: _canDispatch ? _dispatch : null,
-      style: FilledButton.styleFrom(
-        backgroundColor: const Color(0xFF4FC3F7),
-        foregroundColor: Colors.black87,
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        disabledBackgroundColor: Colors.white12,
-        disabledForegroundColor: Colors.white30,
+  Widget _buildHeaderTitle(QuantumTheme palette) {
+    final hasTemplate = _viewModel.activeTemplate != null;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: palette.panel.withValues(alpha: 0.7),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: palette.border),
       ),
-      icon: isLoading ||
-              status.state == ReactionState.optimizing ||
-              status.state == ReactionState.pending
-          ? const SizedBox(
-              width: 16,
-              height: 16,
-              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black54),
-            )
-          : const Icon(Icons.play_arrow_rounded, size: 20),
-      label: Text(
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(9),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [palette.accent, palette.accentAlt],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: const Icon(Icons.hub_rounded, size: 20, color: Colors.black87),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Flexible(
+                      child: Text(
+                        _viewModel.activeTemplate?.name ?? 'Custom Reaction Setup',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 20,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: -0.3,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: hasTemplate
+                            ? const Color(0xFF10B981).withValues(alpha: 0.15)
+                            : palette.accent.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(
+                          color: hasTemplate
+                              ? const Color(0xFF10B981).withValues(alpha: 0.4)
+                              : palette.accent.withValues(alpha: 0.4),
+                        ),
+                      ),
+                      child: Text(
+                        hasTemplate ? 'LIBRARY TEMPLATE' : 'CUSTOM GEOMETRY',
+                        style: TextStyle(
+                          color: hasTemplate ? const Color(0xFF34D399) : palette.accent,
+                          fontSize: 9.5,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 0.4,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  _viewModel.activeTemplate?.iupacName ??
+                      'Configure chemical inputs below to optimize minimum energy paths & compute kinetic barriers',
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.55),
+                    fontSize: 12,
+                    fontStyle: hasTemplate ? FontStyle.italic : FontStyle.normal,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+          if (!hasTemplate) ...[
+            const SizedBox(width: 12),
+            OutlinedButton.icon(
+              onPressed: () => _viewModel.setNavDestination(NavDestination.library),
+              icon: Icon(Icons.auto_stories_outlined, size: 15, color: palette.accent),
+              label: Text(
+                'Browse 1,200+ Library',
+                style: TextStyle(color: palette.accent, fontSize: 12, fontWeight: FontWeight.w700),
+              ),
+              style: OutlinedButton.styleFrom(
+                side: BorderSide(color: palette.accent.withValues(alpha: 0.4)),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(9)),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildExecuteButton(bool isLoading, ReactionStatusResponse status, QuantumTheme palette) {
+    final isRunning = isLoading ||
         status.state == ReactionState.optimizing ||
-                status.state == ReactionState.pending
-            ? 'Running...'
-            : 'Execute TS Search',
-        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+        status.state == ReactionState.pending;
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(14),
+        gradient: _canDispatch
+            ? LinearGradient(
+                colors: [palette.accent, palette.accentAlt],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              )
+            : null,
+        boxShadow: _canDispatch
+            ? [
+                BoxShadow(
+                  color: palette.accent.withValues(alpha: 0.35),
+                  blurRadius: 14,
+                  offset: const Offset(0, 3),
+                ),
+              ]
+            : null,
+      ),
+      child: FilledButton.icon(
+        onPressed: _canDispatch ? _dispatch : null,
+        style: FilledButton.styleFrom(
+          backgroundColor: _canDispatch ? Colors.transparent : Colors.white12,
+          foregroundColor: _canDispatch ? Colors.black87 : Colors.white38,
+          shadowColor: Colors.transparent,
+          padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 16),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        ),
+        icon: isRunning
+            ? const SizedBox(
+                width: 17,
+                height: 17,
+                child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black87),
+              )
+            : const Icon(Icons.rocket_launch_rounded, size: 19),
+        label: Text(
+          isRunning ? 'Optimizing Reaction...' : 'Execute TS Search',
+          style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14, letterSpacing: 0.2),
+        ),
       ),
     );
   }
@@ -612,25 +857,97 @@ class _DashboardScreenState extends State<DashboardScreen> {
       valueListenable: context.read<QuantumSettingsNotifier>(),
       builder: (context, settings, _) {
         return Container(
-          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 18),
           decoration: BoxDecoration(
-            color: Colors.black.withValues(alpha: 0.2),
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+            color: Colors.black.withValues(alpha: 0.35),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
           ),
-          child: Wrap(
-            spacing: 16,
-            runSpacing: 12,
-            alignment: WrapAlignment.spaceBetween,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _vitalItem(Icons.bolt, 'Charge',
-                  settings.charge > 0 ? '+${settings.charge}' : settings.charge.toString()),
-              _vitalItem(Icons.rotate_right, 'Spin',
-                  settings.spinMultiplicity.toString()),
-              _vitalItem(Icons.memory, 'Model', settings.mlipModel),
-              _vitalItem(Icons.water_drop_outlined, 'Solvent', settings.solventModel),
-              _vitalItem(Icons.thermostat, 'Temp',
-                  '${settings.temperatureK.toStringAsFixed(0)} K'),
+              Row(
+                children: [
+                  const Icon(Icons.tune_rounded, size: 15, color: Color(0xFF38BDF8)),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Workspace Quantum Parameters & Vitals',
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.9),
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 0.2,
+                    ),
+                  ),
+                  const Spacer(),
+                  InkWell(
+                    onTap: () {
+                      if (!_viewModel.controlsPanelOpen) {
+                        _viewModel.toggleControlsPanel();
+                      }
+                    },
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          'Configure in Side Panel',
+                          style: TextStyle(
+                            color: Colors.cyanAccent.shade200,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        Icon(Icons.arrow_forward_ios, size: 10, color: Colors.cyanAccent.shade200),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Wrap(
+                spacing: 12,
+                runSpacing: 10,
+                alignment: WrapAlignment.start,
+                children: [
+                  _vitalItem(
+                    Icons.bolt_rounded,
+                    'System Charge',
+                    settings.charge > 0 ? '+${settings.charge}' : settings.charge.toString(),
+                    const Color(0xFFFBBF24),
+                  ),
+                  _vitalItem(
+                    Icons.rotate_right_rounded,
+                    'Spin Multiplicity',
+                    '2S+1 = ${settings.spinMultiplicity}',
+                    const Color(0xFFA78BFA),
+                  ),
+                  _vitalItem(
+                    Icons.memory_rounded,
+                    'Surrogate MLIP',
+                    settings.mlipModel,
+                    const Color(0xFF38BDF8),
+                  ),
+                  _vitalItem(
+                    Icons.water_drop_outlined,
+                    'Solvation Model',
+                    settings.solventModel,
+                    const Color(0xFF34D399),
+                  ),
+                  _vitalItem(
+                    Icons.thermostat_rounded,
+                    'Temperature',
+                    '${settings.temperatureK.toStringAsFixed(1)} K',
+                    const Color(0xFFF472B6),
+                  ),
+                  _vitalItem(
+                    Icons.speed_rounded,
+                    'Optimizer',
+                    settings.optimizerAlgorithm.toUpperCase(),
+                    const Color(0xFF60A5FA),
+                  ),
+                ],
+              ),
             ],
           ),
         );
@@ -638,110 +955,166 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _vitalItem(IconData icon, String label, String value) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(icon, size: 16, color: Colors.cyanAccent.withValues(alpha: 0.8)),
-        const SizedBox(width: 8),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(label,
+  Widget _vitalItem(IconData icon, String label, String value, Color accent) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: accent.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(9),
+        border: Border.all(color: accent.withValues(alpha: 0.25)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 16, color: accent),
+          const SizedBox(width: 8),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                label,
                 style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.5),
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold)),
-            const SizedBox(height: 2),
-            Text(value,
+                  color: Colors.white.withValues(alpha: 0.55),
+                  fontSize: 9.5,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 1),
+              Text(
+                value,
                 style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold)),
-          ],
-        ),
-      ],
+                  color: Colors.white,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 
   Widget _buildQuickTemplates() {
-    final topTemplates = kReactionTemplates.take(4).toList();
+    final topTemplates = kReactionTemplates.take(6).toList();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           children: [
-            const Icon(Icons.medical_services_outlined, size: 16, color: Color(0xFF00E676)),
-            const SizedBox(width: 6),
-            Text(
-              'High-yield medical & clinical reactions (MBBS & Pharm-D):',
+            Container(
+              padding: const EdgeInsets.all(5),
+              decoration: BoxDecoration(
+                color: const Color(0xFF10B981).withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: const Icon(Icons.medical_services_outlined, size: 15, color: Color(0xFF34D399)),
+            ),
+            const SizedBox(width: 8),
+            const Text(
+              'Curated High-Yield Medical & Clinical Reaction Presets',
               style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.8),
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600),
+                color: Colors.white,
+                fontSize: 13.5,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0.1,
+              ),
+            ),
+            const Spacer(),
+            TextButton.icon(
+              onPressed: () => _viewModel.setNavDestination(NavDestination.library),
+              icon: const Icon(Icons.auto_stories_outlined, size: 14),
+              label: const Text('Browse 1,200+ Library →'),
+              style: TextButton.styleFrom(
+                foregroundColor: const Color(0xFF38BDF8),
+                textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+              ),
             ),
           ],
         ),
         const SizedBox(height: 12),
         Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: topTemplates
-              .map((t) => InkWell(
-                    onTap: () {
-                      _viewModel.loadTemplate(t);
-                      context.read<QuantumSettingsNotifier>().update((q) => q.copyWith(
-                        charge: t.defaults.charge,
-                        spinMultiplicity: t.defaults.spinMultiplicity,
-                        mlipModel: t.defaults.mlipModel,
-                        optimizerAlgorithm: t.defaults.optimizerAlgorithm,
-                      ));
-                    },
-                    borderRadius: BorderRadius.circular(8),
-                    child: Container(
-                      constraints: const BoxConstraints(maxWidth: 200, minWidth: 120),
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 12),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.03),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                            color: Colors.white.withValues(alpha: 0.1)),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(Icons.science,
-                                  size: 14, color: Colors.blue.shade300),
-                              const SizedBox(width: 6),
-                              Flexible(
-                                child: Text(
-                                  t.name,
-                                  style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.bold),
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            t.iupacName,
-                            style: TextStyle(
-                                color: Colors.white.withValues(alpha: 0.4),
-                                fontSize: 11),
+          spacing: 10,
+          runSpacing: 10,
+          children: topTemplates.map((t) {
+            return InkWell(
+              onTap: () {
+                _viewModel.loadTemplate(t);
+                context.read<QuantumSettingsNotifier>().update((q) => q.copyWith(
+                  charge: t.defaults.charge,
+                  spinMultiplicity: t.defaults.spinMultiplicity,
+                  mlipModel: t.defaults.mlipModel,
+                  optimizerAlgorithm: t.defaults.optimizerAlgorithm,
+                ));
+              },
+              borderRadius: BorderRadius.circular(10),
+              child: Container(
+                constraints: const BoxConstraints(maxWidth: 240, minWidth: 160),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.03),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(Icons.science_rounded, size: 14, color: Colors.cyanAccent.shade200),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            t.name,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 12.5,
+                              fontWeight: FontWeight.w700,
+                            ),
                             overflow: TextOverflow.ellipsis,
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
-                  ))
-              .toList(),
+                    const SizedBox(height: 5),
+                    Text(
+                      t.iupacName,
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.45),
+                        fontSize: 10.5,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF38BDF8).withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            'Click to Load',
+                            style: TextStyle(
+                              color: Colors.cyanAccent.shade200,
+                              fontSize: 9.5,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                        const Spacer(),
+                        const Icon(Icons.arrow_forward, size: 12, color: Colors.white30),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }).toList(),
         ),
       ],
     );
