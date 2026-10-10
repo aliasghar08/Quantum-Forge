@@ -485,7 +485,21 @@ def get_reaction(reaction_id: str):
 @app.get("/crossref/{doi:path}")
 def get_crossref_metadata(doi: str):
     url = f"https://api.crossref.org/works/{urllib.parse.quote(doi, safe='/')}"
-    req = urllib.request.Request(url, headers={'User-Agent': 'QuantumForge/1.0'})
+    req = urllib.request.Request(url, headers={'User-Agent': 'QuantumForge/1.0 (mailto:admin@quantumforge.app)'})
+    try:
+        with urllib.request.urlopen(req) as response:
+            return json.loads(response.read().decode())
+    except urllib.error.HTTPError as e:
+        raise HTTPException(status_code=e.code, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/crossref-search")
+def search_crossref(q: str, rows: int = 5):
+    query = urllib.parse.quote_plus(q)
+    url = f"https://api.crossref.org/works?query.bibliographic={query}&rows={rows}&sort=relevance"
+    req = urllib.request.Request(url, headers={'User-Agent': 'QuantumForge/1.0 (mailto:admin@quantumforge.app)'})
     try:
         with urllib.request.urlopen(req) as response:
             return json.loads(response.read().decode())

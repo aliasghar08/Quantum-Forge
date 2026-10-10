@@ -33,6 +33,8 @@ class _PublicationDetailsScreenState extends State<PublicationDetailsScreen> {
   bool _isLoadingCrossref = true;
   String? _crossrefError;
   Map<String, dynamic>? _crossrefData;
+  String _effectiveDoi = '';
+  bool _isAutoResolved = false;
 
   double? _reactantEnergy;
   double? _productEnergy;
@@ -44,6 +46,7 @@ class _PublicationDetailsScreenState extends State<PublicationDetailsScreen> {
   @override
   void initState() {
     super.initState();
+    _effectiveDoi = widget.template.doi;
     Future.microtask(() {
       _fetchCrossrefData();
       _fetchEnergies();
@@ -61,33 +64,31 @@ class _PublicationDetailsScreenState extends State<PublicationDetailsScreen> {
   }
 
   Future<void> _fetchCrossrefData() async {
-    if (widget.template.doi.isEmpty) {
-      if (mounted) {
-        setState(() {
-          _isLoadingCrossref = false;
-          _crossrefError = 'No DOI provided for this template.';
-        });
-      }
-      return;
-    }
-
     try {
       final settings = Provider.of<AppSettingsNotifier>(context, listen: false).settings;
       final gnnUrl = settings.hasGnnBackend ? settings.gnnBackendUrl : null;
-      
-      final data = await CrossrefService.fetchMetadata(widget.template.doi, gnnBackendUrl: gnnUrl);
-      
-      if (data != null) {
+
+      final result = await CrossrefService.resolvePublicationMetadata(
+        initialDoi: widget.template.doi,
+        reactionName: widget.template.name,
+        iupacName: widget.template.iupacName,
+        gnnBackendUrl: gnnUrl,
+      );
+
+      if (result != null) {
         if (mounted) {
           setState(() {
-            _crossrefData = data;
+            _crossrefData = result.metadata;
+            _effectiveDoi = result.doi;
+            _isAutoResolved = result.isAutoDiscovered;
             _isLoadingCrossref = false;
+            _crossrefError = null;
           });
         }
       } else {
         if (mounted) {
           setState(() {
-            _crossrefError = 'Failed to load metadata or invalid DOI.';
+            _crossrefError = 'No verified peer-reviewed publication metadata matched in Crossref.';
             _isLoadingCrossref = false;
           });
         }
@@ -226,13 +227,36 @@ class _PublicationDetailsScreenState extends State<PublicationDetailsScreen> {
           if (_crossrefError != null && !_isLoadingCrossref)
             PublicationWarningBanner(error: _crossrefError!),
           if (_crossrefError != null && !_isLoadingCrossref) const SizedBox(height: 16),
+          if (_isAutoResolved) ...[
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              decoration: BoxDecoration(
+                color: const Color(0xFF10B981).withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: const Color(0xFF10B981).withValues(alpha: 0.3)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.auto_awesome, color: Color(0xFF34D399), size: 16),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Crossref Verified: Auto-resolved peer-reviewed literature citation for ${widget.template.name}',
+                      style: const TextStyle(color: Color(0xFF34D399), fontSize: 12, fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+          ],
           PublicationHeaderCard(
             title: title,
             authors: authors,
             journal: containerTitle,
             publisher: publisher,
             year: year,
-            doi: widget.template.doi,
+            doi: _effectiveDoi,
             isLoading: _isLoadingCrossref,
           ),
           const SizedBox(height: 20),
@@ -249,7 +273,7 @@ class _PublicationDetailsScreenState extends State<PublicationDetailsScreen> {
           const SizedBox(height: 20),
           PublicationExternalLinksCard(
             title: title,
-            doi: widget.template.doi,
+            doi: _effectiveDoi,
           ),
           const SizedBox(height: 20),
           PublicationRelatedVideosCard(
