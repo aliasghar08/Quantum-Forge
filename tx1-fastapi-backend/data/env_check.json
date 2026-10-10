@@ -1,0 +1,30 @@
+{
+  "system": {
+    "python": "3.9.6",
+    "torch": "2.8.0",
+    "macos": "27.0.1",
+    "architecture": "arm64"
+  },
+  "mps": {
+    "built": true,
+    "available": true,
+    "recommended_max_memory_gb": 26.800603136
+  },
+  "benchmark": {
+    "ms_per_op": 0.6974005699157715,
+    "effective_gflops": 2867.792322340015
+  },
+  "disk": {
+    "free_gb": 160.08102416992188
+  },
+  "checkpoint_v1": {
+    "path": "/Users/aliasghar08/development/Quantum Forge Repo/Quantum-Forge/tx1-fastapi-backend/t1x_model_checkpoint.pt",
+    "epoch": 9,
+    "loss": 10.607007888125933,
+    "parameter_count": 186113
+  },
+  "forward_pass": {
+    "atoms": 20,
+    "ms_per_pass": 1.496138572692871
+  }
+}

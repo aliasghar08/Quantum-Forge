@@ -243,6 +243,77 @@ def test_reorder_product_raises_value_error_on_mismatched_atoms():
         assert "Reactant and product do not have the same atoms" in str(exc)
 
 
+def test_health_reports_loaded_strategies_and_digests():
+    res = client().get("/health")
+    assert res.status_code == 200
+    data = res.json()
+    assert "strategies_loaded" in data
+    assert "tx1-fastapi" in data["strategies_loaded"]
+    assert "tx1-v2" in data["strategies_loaded"]
+    assert "checkpoint_digests" in data
+    assert "tx1-fastapi" in data["checkpoint_digests"]
+
+
+def test_predict_with_tx1_v2_reports_uncertainty():
+    water = {
+        "atomic_numbers": [8, 1, 1],
+        "positions": [
+            [0.0, 0.0, 0.1173],
+            [0.0, 0.7572, -0.4692],
+            [0.0, -0.7572, -0.4692],
+        ],
+        "mlip_model": "tx1-v2",
+    }
+    res = client().post("/predict", json=water)
+    assert res.status_code == 200
+    data = res.json()
+    assert data["status"] == "success"
+    assert "energy_ev" in data
+    assert isinstance(data["energy_ev"], float)
+    assert "uncertainty_kcal_mol" in data
+    assert isinstance(data["uncertainty_kcal_mol"], float)
+    assert data["uncertainty_kcal_mol"] >= 0.0
+    assert data["strategy"] == "tx1-v2"
+
+
+def test_predict_batch_returns_list_of_predictions_with_uncertainty():
+    batch = {
+        "molecules": [
+            {
+                "atomic_numbers": [8, 1, 1],
+                "positions": [
+                    [0.0, 0.0, 0.1173],
+                    [0.0, 0.7572, -0.4692],
+                    [0.0, -0.7572, -0.4692],
+                ],
+            },
+            {
+                "atomic_numbers": [6, 1, 1, 1, 1],
+                "positions": [
+                    [0.0, 0.0, 0.0],
+                    [0.6, 0.6, 0.6],
+                    [-0.6, -0.6, 0.6],
+                    [-0.6, 0.6, -0.6],
+                    [0.6, -0.6, -0.6],
+                ],
+            },
+        ],
+        "strategy": "tx1-v2",
+    }
+    res = client().post("/predict/batch", json=batch)
+    assert res.status_code == 200
+    data = res.json()
+    assert data["status"] == "success"
+    assert "predictions" in data
+    assert len(data["predictions"]) == 2
+    for pred in data["predictions"]:
+        assert "energy_ev" in pred
+        assert "uncertainty_kcal_mol" in pred
+        assert isinstance(pred["energy_ev"], float)
+        assert isinstance(pred["uncertainty_kcal_mol"], float)
+    assert data["strategy"] == "tx1-v2"
+
+
 
 # ── Standalone runner ────────────────────────────────────────────────────────
 

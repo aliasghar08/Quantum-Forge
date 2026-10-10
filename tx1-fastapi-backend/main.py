@@ -59,6 +59,11 @@ def load_model() -> None:
         weight_source = os.environ.get("TX1_CACHE_DIR", str(checkpoint_path()))
         print(f"[MLIP] {type(model).__name__} loaded from {weight_source}")
         print(f"Model loaded successfully onto {DEVICE}")
+        try:
+            registry.get("tx1-v2")
+            print(f"[MLIP] tx1-v2 ensemble loaded successfully onto {DEVICE}")
+        except Exception as e:
+            print(f"[MLIP] Ensemble warmup note: {e}")
     except Exception as exc: 
         model = None
         model_error = f"{type(exc).__name__}: {exc}"
@@ -147,6 +152,8 @@ def health() -> dict:
             "status": "degraded",
             "message": f"Model unavailable — {model_error}",
             "model_loaded": False,
+            "strategies_loaded": registry.loaded_strategies(),
+            "checkpoint_digests": registry.checkpoint_digests(),
             "mlip_models": registry.status(),
             "weights_source": weight_source,
             "weights_present": weights_present,
@@ -155,6 +162,8 @@ def health() -> dict:
         "status": "ok",
         "message": "Transition1x GNN ready.",
         "model_loaded": True,
+        "strategies_loaded": registry.loaded_strategies(),
+        "checkpoint_digests": registry.checkpoint_digests(),
         "mlip_models": registry.status(),
         "weights_source": weight_source,
         "weights_present": weights_present,
@@ -165,6 +174,17 @@ class MoleculeRequest(BaseModel):
     atomic_numbers: list[int]
     positions: list[list[float]]
     mlip_model: str = "tx1-fastapi"
+
+
+class SingleMolecule(BaseModel):
+    atomic_numbers: list[int]
+    positions: list[list[float]]
+
+
+class BatchMoleculeRequest(BaseModel):
+    molecules: list[SingleMolecule]
+    strategy: str = "tx1-v2"
+
 
 @app.post("/predict")
 def predict_energy(molecule: MoleculeRequest):
@@ -196,8 +216,12 @@ def predict_energy(molecule: MoleculeRequest):
 
     try:
         calculator = registry.get(molecule.mlip_model)
+        uncertainty_kcal = 0.0
         try:
-            energy_val = calculator.energy_ev(atomic_numbers, positions)
+            if hasattr(calculator, "predict_with_uncertainty"):
+                energy_val, uncertainty_kcal = calculator.predict_with_uncertainty(atomic_numbers, positions)
+            else:
+                energy_val = calculator.energy_ev(atomic_numbers, positions)
         except Exception as exc:
             print(f"[MLIP] {calculator.name()} failed in predict: {exc}")
             fallback = registry.get("tx1-fastapi")
@@ -207,6 +231,8 @@ def predict_energy(molecule: MoleculeRequest):
         return {
             "status": "success",
             "energy_ev": energy_val,
+            "uncertainty_kcal_mol": round(uncertainty_kcal, 4),
+            "strategy": calculator.name(),
             "model_requested": molecule.mlip_model,
             "model_used": calculator.name(),
         }
@@ -214,6 +240,31 @@ def predict_energy(molecule: MoleculeRequest):
         raise
     except Exception as exc:
         raise HTTPException(status_code=400, detail=f"{type(exc).__name__}: {exc}")
+
+
+@app.post("/predict/batch")
+def predict_batch(req: BatchMoleculeRequest):
+    calculator = registry.get(req.strategy)
+    predictions = []
+    for mol in req.molecules:
+        uncert = 0.0
+        try:
+            if hasattr(calculator, "predict_with_uncertainty"):
+                e_val, uncert = calculator.predict_with_uncertainty(mol.atomic_numbers, mol.positions)
+            else:
+                e_val = calculator.energy_ev(mol.atomic_numbers, mol.positions)
+        except Exception as exc:
+            fallback = registry.get("tx1-fastapi")
+            e_val = fallback.energy_ev(mol.atomic_numbers, mol.positions)
+        predictions.append({
+            "energy_ev": e_val,
+            "uncertainty_kcal_mol": round(uncert, 4),
+        })
+    return {
+        "status": "success",
+        "predictions": predictions,
+        "strategy": calculator.name(),
+    }
 
 
 # ==========================================

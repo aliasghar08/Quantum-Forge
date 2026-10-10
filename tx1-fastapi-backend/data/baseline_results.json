@@ -1,0 +1,124 @@
+{
+  "total_evaluated": 200,
+  "barrier_mae_kcal": 315.0019,
+  "reaction_energy_mae_kcal": 136.667,
+  "max_barrier_error_kcal": 13048.3984,
+  "throughput_reactions_per_sec": 54.33,
+  "elapsed_seconds": 3.68,
+  "per_source_breakdown": {
+    "transition1x_variant": {
+      "count": 161,
+      "barrier_mae_kcal": 385.7509
+    },
+    "transition1x": {
+      "count": 37,
+      "barrier_mae_kcal": 20.5327
+    },
+    "clinical_milestone": {
+      "count": 2,
+      "barrier_mae_kcal": 67.3857
+    }
+  },
+  "worst_10_cases": [
+    {
+      "reaction_id": "med-penicillin-01_sub_6_Br",
+      "source": "transition1x_variant",
+      "ref_barrier_kcal": 20.9,
+      "pred_barrier_kcal": 13069.2984,
+      "barrier_error_kcal": 13048.3984,
+      "ref_reaction_energy_kcal": 0.0,
+      "pred_reaction_energy_kcal": -3.9277,
+      "reaction_energy_error_kcal": 3.9277
+    },
+    {
+      "reaction_id": "retro_da_sub_8_Br",
+      "source": "transition1x_variant",
+      "ref_barrier_kcal": 45.3,
+      "pred_barrier_kcal": 6999.1791,
+      "barrier_error_kcal": 6953.8791,
+      "ref_reaction_energy_kcal": 0.0,
+      "pred_reaction_energy_kcal": 11.0621,
+      "reaction_energy_error_kcal": 11.0621
+    },
+    {
+      "reaction_id": "e2_elimination_sub_11_Br",
+      "source": "transition1x_variant",
+      "ref_barrier_kcal": 20.9,
+      "pred_barrier_kcal": 6387.9033,
+      "barrier_error_kcal": 6367.0033,
+      "ref_reaction_energy_kcal": 0.0,
+      "pred_reaction_energy_kcal": 2948.3092,
+      "reaction_energy_error_kcal": 2948.3092
+    },
+    {
+      "reaction_id": "e2_elimination_sub_5_F",
+      "source": "transition1x_variant",
+      "ref_barrier_kcal": 20.2,
+      "pred_barrier_kcal": 6198.065,
+      "barrier_error_kcal": 6177.865,
+      "ref_reaction_energy_kcal": 0.0,
+      "pred_reaction_energy_kcal": 1841.7618,
+      "reaction_energy_error_kcal": 1841.7618
+    },
+    {
+      "reaction_id": "med-atp-01_sub_15_Br",
+      "source": "transition1x_variant",
+      "ref_barrier_kcal": 14.9,
+      "pred_barrier_kcal": 5476.0564,
+      "barrier_error_kcal": 5461.1564,
+      "ref_reaction_energy_kcal": 0.0,
+      "pred_reaction_energy_kcal": -97.0776,
+      "reaction_energy_error_kcal": 97.0776
+    },
+    {
+      "reaction_id": "e2_elimination_sub_6_Br",
+      "source": "transition1x_variant",
+      "ref_barrier_kcal": 20.9,
+      "pred_barrier_kcal": 4839.8116,
+      "barrier_error_kcal": 4818.9116,
+      "ref_reaction_energy_kcal": 0.0,
+      "pred_reaction_energy_kcal": 490.5102,
+      "reaction_energy_error_kcal": 490.5102
+    },
+    {
+      "reaction_id": "med-atp-01_sub_13_F",
+      "source": "transition1x_variant",
+      "ref_barrier_kcal": 14.2,
+      "pred_barrier_kcal": 4361.8582,
+      "barrier_error_kcal": 4347.6582,
+      "ref_reaction_energy_kcal": 0.0,
+      "pred_reaction_energy_kcal": -28.0897,
+      "reaction_energy_error_kcal": 28.0897
+    },
+    {
+      "reaction_id": "e2_elimination_sub_8_Cl",
+      "source": "transition1x_variant",
+      "ref_barrier_kcal": 20.6,
+      "pred_barrier_kcal": 3746.6608,
+      "barrier_error_kcal": 3726.0608,
+      "ref_reaction_energy_kcal": 0.0,
+      "pred_reaction_energy_kcal": 1389.3694,
+      "reaction_energy_error_kcal": 1389.3694
+    },
+    {
+      "reaction_id": "e2_elimination_sub_8_Br",
+      "source": "transition1x_variant",
+      "ref_barrier_kcal": 20.9,
+      "pred_barrier_kcal": 3571.4602,
+      "barrier_error_kcal": 3550.5602,
+      "ref_reaction_energy_kcal": 0.0,
+      "pred_reaction_energy_kcal": 1372.469,
+      "reaction_energy_error_kcal": 1372.469
+    },
+    {
+      "reaction_id": "med-atp-01_sub_14_Br",
+      "source": "transition1x_variant",
+      "ref_barrier_kcal": 14.9,
+      "pred_barrier_kcal": 2356.732,
+      "barrier_error_kcal": 2341.832,
+      "ref_reaction_energy_kcal": 0.0,
+      "pred_reaction_energy_kcal": 55.6962,
+      "reaction_energy_error_kcal": 55.6962
+    }
+  ]
+}

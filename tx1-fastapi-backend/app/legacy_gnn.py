@@ -1,9 +1,8 @@
-"""Wraps the original MolecularGraphNetwork checkpoint as an MLIPCalculator.
+"""Wraps the MolecularGraphNetwork checkpoint as an MLIPCalculator.
 
-Extracted from main.py so the registry can load it on demand instead of at
-module import time. The class definition and the checkpoint path resolution
-are byte-identical to the previous version — the only change is that the
-loader is a callable rather than a module-level global.
+Provides backward-compatible architecture supporting:
+- Legacy v1 distance-only network (no RBF, no cutoff)
+- Upgraded v2a network with Gaussian Radial Basis Functions (RBF) and smooth Cosine Cutoff Envelope
 """
 
 from __future__ import annotations
@@ -16,8 +15,20 @@ import torch.nn as nn
 
 
 class MolecularGraphNetwork(nn.Module):
-    def __init__(self, hidden_dim: int = 128, num_interactions: int = 3, max_Z: int = 119):
+    def __init__(
+        self,
+        hidden_dim: int = 128,
+        num_interactions: int = 3,
+        max_Z: int = 119,
+        num_rbf: int = 64,
+        rbf_rmin: float = 0.5,
+        rbf_rmax: float = 6.0,
+        cutoff: float = 6.0,
+        use_rbf: bool = False,
+        use_cutoff: bool = False,
+    ):
         super().__init__()
+        # Preserve all v1 layers exactly
         self.embedding = nn.Embedding(max_Z, hidden_dim)
 
         self.distance_expansion = nn.Sequential(
@@ -41,7 +52,19 @@ class MolecularGraphNetwork(nn.Module):
             nn.Linear(hidden_dim // 2, 1),
         )
 
-    def forward(self, z: torch.Tensor, pos: torch.Tensor, mask: torch.Tensor | None = None) -> torch.Tensor:
+        # New v2a components (only active when use_rbf is True)
+        self.use_rbf = use_rbf
+        self.use_cutoff = use_cutoff
+        self.cutoff = cutoff
+
+        if use_rbf:
+            self.register_buffer("rbf_centers", torch.linspace(rbf_rmin, rbf_rmax, num_rbf))
+            self.rbf_width = (rbf_rmax - rbf_rmin) / num_rbf
+            self.rbf_proj = nn.Linear(num_rbf, hidden_dim)
+
+    def forward(
+        self, z: torch.Tensor, pos: torch.Tensor, mask: torch.Tensor | None = None
+    ) -> torch.Tensor:
         if z.size(1) != pos.size(1):
             raise RuntimeError(
                 f"forward: z has {z.size(1)} atoms but pos has {pos.size(1)}"
@@ -52,7 +75,19 @@ class MolecularGraphNetwork(nn.Module):
         pos_expanded_2 = pos.unsqueeze(1)
         dist_matrix = torch.norm(pos_expanded_1 - pos_expanded_2, dim=-1)
 
-        dist_features = self.distance_expansion(dist_matrix.unsqueeze(-1))
+        if self.use_rbf:
+            # Gaussian RBF expansion
+            diff = dist_matrix.unsqueeze(-1) - self.rbf_centers
+            dist_features = torch.exp(-(diff ** 2) / (2 * self.rbf_width ** 2))
+            dist_features = self.rbf_proj(dist_features)
+            if self.use_cutoff:
+                # Smooth cosine envelope with zero derivative at cutoff
+                env = 0.5 * (torch.cos(torch.pi * dist_matrix / self.cutoff) + 1.0)
+                env = torch.where(dist_matrix < self.cutoff, env, torch.zeros_like(env))
+                dist_features = dist_features * env.unsqueeze(-1)
+        else:
+            # Original v1 path
+            dist_features = self.distance_expansion(dist_matrix.unsqueeze(-1))
 
         for layer in self.interaction_layers:
             expanded_nodes = node_features.unsqueeze(2).expand(-1, -1, pos.size(1), -1)
@@ -82,24 +117,27 @@ class Tx1Calculator:
 
     _model: MolecularGraphNetwork | None = None
 
-    def __init__(self) -> None:
+    def __init__(self, checkpoint: Path | None = None, use_rbf: bool = False, use_cutoff: bool = False) -> None:
+        self.checkpoint = checkpoint or checkpoint_path()
+        self.use_rbf = use_rbf
+        self.use_cutoff = use_cutoff
         self._load()
 
     def _load(self) -> None:
-        path = checkpoint_path()
-        if not path.is_file():
-            raise FileNotFoundError(f"checkpoint not found at {path}")
-        network = MolecularGraphNetwork()
-        checkpoint = torch.load(str(path), map_location=torch.device("cpu"))
+        if not self.checkpoint.is_file():
+            raise FileNotFoundError(f"checkpoint not found at {self.checkpoint}")
+        network = MolecularGraphNetwork(use_rbf=self.use_rbf, use_cutoff=self.use_cutoff)
+        checkpoint = torch.load(str(self.checkpoint), map_location=torch.device("cpu"), weights_only=False)
         state = checkpoint.get("model_state_dict", checkpoint) if isinstance(checkpoint, dict) else checkpoint
-        # Embedding expansion, unchanged.
+
+        # Embedding expansion if needed
         if "embedding.weight" in state:
             old = state["embedding.weight"]
             if old.shape[0] < network.embedding.weight.shape[0]:
                 new = torch.zeros_like(network.embedding.weight)
                 new[: old.shape[0]] = old
                 state["embedding.weight"] = new
-        network.load_state_dict(state)
+        network.load_state_dict(state, strict=False)
         network.eval()
         self._model = network
 
@@ -119,4 +157,6 @@ class Tx1Calculator:
         return float(energy.item())
 
     def name(self) -> str:
+        if self.use_rbf:
+            return "tx1-v2a"
         return "tx1-fastapi"
