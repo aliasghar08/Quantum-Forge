@@ -6,7 +6,12 @@ import 'package:quantum_forge/core/theme/theme_provider.dart';
 
 class AuthScreen extends StatefulWidget {
   final VoidCallback onLoginSuccess;
-  const AuthScreen({super.key, required this.onLoginSuccess});
+  final String? redirectMessage;
+  const AuthScreen({
+    super.key,
+    required this.onLoginSuccess,
+    this.redirectMessage,
+  });
 
   @override
   State<AuthScreen> createState() => _AuthScreenState();
@@ -326,6 +331,28 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
             ),
           ),
 
+          // Back button if navigated onto stack
+          Positioned(
+            top: 20,
+            left: 20,
+            child: SafeArea(
+              child: Navigator.of(context).canPop()
+                  ? Container(
+                      decoration: BoxDecoration(
+                        color: palette.panel.withValues(alpha: 0.8),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: palette.border),
+                      ),
+                      child: IconButton(
+                        tooltip: 'Return to Workbench',
+                        icon: Icon(Icons.arrow_back_rounded, color: palette.textPrimary, size: 20),
+                        onPressed: () => Navigator.of(context).pop(),
+                      ),
+                    )
+                  : const SizedBox.shrink(),
+            ),
+          ),
+
           // Main Center Content
           Center(
             child: FadeTransition(
@@ -583,6 +610,36 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
         crossAxisAlignment: CrossAxisAlignment.stretch,
         mainAxisSize: MainAxisSize.min,
         children: [
+          // Informational Redirect Notice (if triggered by protected action)
+          if (widget.redirectMessage != null)
+            Container(
+              margin: const EdgeInsets.only(bottom: 20),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              decoration: BoxDecoration(
+                color: palette.accent.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: palette.accent.withValues(alpha: 0.4)),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(Icons.lock_outline_rounded, size: 20, color: palette.accent),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      widget.redirectMessage!,
+                      style: TextStyle(
+                        color: palette.textPrimary,
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w600,
+                        height: 1.4,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
           // Segmented Tab Switcher
           Container(
             padding: const EdgeInsets.all(4),

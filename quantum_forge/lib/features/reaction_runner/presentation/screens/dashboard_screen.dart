@@ -51,6 +51,8 @@ import 'dart:convert';
 import 'package:quantum_forge/core/widgets/reaction_animation_widget.dart';
 import 'package:quantum_forge/core/services/feedback_service.dart';
 
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:quantum_forge/features/auth/presentation/screens/auth_screen.dart';
 import 'package:quantum_forge/core/services/chemical_resolver_service.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -155,7 +157,60 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
+  bool get _isUserSignedIn {
+    try {
+      return FirebaseAuth.instance.currentUser != null;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  Stream<User?> _authStateStream() {
+    try {
+      return FirebaseAuth.instance.authStateChanges();
+    } catch (_) {
+      return const Stream<User?>.empty();
+    }
+  }
+
+  void _redirectToAuth({String? message, VoidCallback? onSuccess}) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (ctx) => AuthScreen(
+          redirectMessage: message,
+          onLoginSuccess: () {
+            Navigator.of(ctx).pop();
+            if (mounted) {
+              setState(() {});
+              onSuccess?.call();
+            }
+          },
+        ),
+      ),
+    );
+  }
+
+  void _openLibrary() {
+    if (!_isUserSignedIn) {
+      _redirectToAuth(
+        message: 'Sign in required: Please log in with your researcher credentials to access the Reaction Library and 1,200+ reaction templates.',
+        onSuccess: () => _viewModel.setNavDestination(NavDestination.library),
+      );
+      return;
+    }
+    _viewModel.setNavDestination(NavDestination.library);
+  }
+
   void _dispatch() {
+    if (!_isUserSignedIn) {
+      _redirectToAuth(
+        message: 'Sign in required: Please log in with your researcher credentials to execute Transition-State search simulations.',
+        onSuccess: () {
+          _dispatch();
+        },
+      );
+      return;
+    }
     setState(() => _selectedFrameIndex = null);
     final settings = context.read<QuantumSettingsNotifier>().value;
     if (_viewModel.activeTemplate != null) {
@@ -171,6 +226,52 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 
+  void _showUserMenu(BuildContext context, User user, QuantumTheme palette) {
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        return Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: palette.drawer,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+            border: Border.all(color: palette.border),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: CircleAvatar(
+                  backgroundColor: palette.accent.withValues(alpha: 0.2),
+                  child: Icon(Icons.person, color: palette.accent),
+                ),
+                title: Text(
+                  user.displayName ?? user.email?.split('@').first ?? 'Researcher',
+                  style: TextStyle(color: palette.textPrimary, fontWeight: FontWeight.bold),
+                ),
+                subtitle: Text(
+                  user.email ?? 'Authenticated',
+                  style: TextStyle(color: palette.textMuted),
+                ),
+              ),
+              const Divider(),
+              ListTile(
+                leading: Icon(Icons.logout, color: Colors.redAccent.shade100),
+                title: Text('Sign Out', style: TextStyle(color: Colors.redAccent.shade100)),
+                onTap: () async {
+                  Navigator.pop(ctx);
+                  await FirebaseAuth.instance.signOut();
+                  if (mounted) setState(() {});
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final palette = context.watch<ThemeNotifier>().palette;
@@ -184,6 +285,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
           drawer: ProfessionalDrawer(
             current: _viewModel.navDest,
             onDestinationSelected: (d) {
+              if (d == NavDestination.library && !_isUserSignedIn) {
+                Navigator.pop(context); // Close drawer
+                _redirectToAuth(
+                  message: 'Sign in required: Please log in with your researcher credentials to access the Reaction Library and 1,200+ reaction templates.',
+                  onSuccess: () => _viewModel.setNavDestination(NavDestination.library),
+                );
+                return;
+              }
               _viewModel.setNavDestination(d);
               Navigator.pop(context); // Close drawer
             },
@@ -205,6 +314,62 @@ class _DashboardScreenState extends State<DashboardScreen> {
             iconTheme: IconThemeData(color: palette.textPrimary),
             elevation: 0,
             actions: [
+              StreamBuilder<User?>(
+                stream: _authStateStream(),
+                builder: (context, snapshot) {
+                  final user = snapshot.data;
+                  if (user == null) {
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 6),
+                      child: OutlinedButton.icon(
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: palette.accent,
+                          side: BorderSide(color: palette.accent.withValues(alpha: 0.5)),
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(9)),
+                        ),
+                        icon: const Icon(Icons.login_rounded, size: 15),
+                        label: const Text('Sign In', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
+                        onPressed: () => _redirectToAuth(),
+                      ),
+                    );
+                  }
+                  final displayName = user.displayName ?? user.email?.split('@').first ?? 'Researcher';
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 6),
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(9),
+                      onTap: () => _showUserMenu(context, user, palette),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: palette.panel,
+                          borderRadius: BorderRadius.circular(9),
+                          border: Border.all(color: palette.border),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            CircleAvatar(
+                              radius: 10,
+                              backgroundColor: palette.accent.withValues(alpha: 0.2),
+                              child: Text(
+                                (displayName.isNotEmpty ? displayName[0] : 'R').toUpperCase(),
+                                style: TextStyle(color: palette.accent, fontSize: 10, fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              displayName,
+                              style: TextStyle(color: palette.textPrimary, fontSize: 12, fontWeight: FontWeight.w600),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
               IconButton(
                 tooltip: settings.showTooltips ? 'Send Feedback' : null,
                 icon: Icon(Icons.feedback_outlined, color: palette.textSecondary),
@@ -332,7 +497,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return SizedBox(
       width: double.infinity,
       child: switch (_viewModel.navDest) {
-        NavDestination.library  => LibraryScreen(onTemplateSelected: _viewModel.loadTemplate),
+        NavDestination.library  => _isUserSignedIn
+            ? LibraryScreen(onTemplateSelected: _viewModel.loadTemplate)
+            : _buildLibraryAuthRequired(context.read<ThemeNotifier>().palette),
         NavDestination.history  => const HistoryScreen(),
         NavDestination.methodValidation => MethodValidationScreen(
               backendUrl:
@@ -348,6 +515,93 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
         NavDestination.newReaction   => _buildReactionWorkspace(),
       },
+    );
+  }
+
+  Widget _buildLibraryAuthRequired(QuantumTheme palette) {
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 520),
+        child: Container(
+          margin: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(32),
+          decoration: BoxDecoration(
+            color: palette.panel.withValues(alpha: 0.95),
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: palette.border),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.35),
+                blurRadius: 28,
+                offset: const Offset(0, 10),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 64,
+                height: 64,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: LinearGradient(
+                    colors: [palette.accent, palette.accentAlt],
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: palette.accent.withValues(alpha: 0.35),
+                      blurRadius: 20,
+                    ),
+                  ],
+                ),
+                child: const Icon(Icons.lock_rounded, size: 30, color: Colors.black87),
+              ),
+              const SizedBox(height: 20),
+              Text(
+                'Reaction Library Access Restricted',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: palette.textPrimary,
+                  fontSize: 20,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -0.3,
+                ),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                'Sign in with your researcher credentials to access the complete library of 1,200+ reaction mechanisms, transition state benchmarks, and pharmacological templates.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: palette.textMuted,
+                  fontSize: 13.5,
+                  height: 1.5,
+                ),
+              ),
+              const SizedBox(height: 28),
+              FilledButton.icon(
+                onPressed: () {
+                  _redirectToAuth(
+                    message: 'Sign in required: Please log in with your researcher credentials to access the Reaction Library and 1,200+ reaction templates.',
+                    onSuccess: () => setState(() {}),
+                  );
+                },
+                style: FilledButton.styleFrom(
+                  backgroundColor: palette.accent,
+                  foregroundColor: palette.onAccent,
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                icon: const Icon(Icons.login_rounded, size: 18),
+                label: const Text(
+                  'Sign In to Access Library',
+                  style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
@@ -478,7 +732,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget _bottomNavItem(BuildContext context, IconData icon, String label, NavDestination dest, QuantumTheme palette) {
     final active = _viewModel.navDest == dest;
     return GestureDetector(
-      onTap: () => _viewModel.setNavDestination(dest),
+      onTap: () {
+        if (dest == NavDestination.library && !_isUserSignedIn) {
+          _redirectToAuth(
+            message: 'Sign in required: Please log in with your researcher credentials to access the Reaction Library and 1,200+ reaction templates.',
+            onSuccess: () => _viewModel.setNavDestination(NavDestination.library),
+          );
+          return;
+        }
+        _viewModel.setNavDestination(dest);
+      },
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
@@ -730,7 +993,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           if (!hasTemplate) ...[
             const SizedBox(width: 12),
             OutlinedButton.icon(
-              onPressed: () => _viewModel.setNavDestination(NavDestination.library),
+              onPressed: _openLibrary,
               icon: Icon(Icons.auto_stories_outlined, size: 15, color: palette.accent),
               label: Text(
                 'Browse 1,200+ Library',
@@ -752,45 +1015,52 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final isRunning = isLoading ||
         status.state == ReactionState.optimizing ||
         status.state == ReactionState.pending;
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(14),
-        gradient: _canDispatch
-            ? LinearGradient(
-                colors: [palette.accent, palette.accentAlt],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              )
-            : null,
-        boxShadow: _canDispatch
-            ? [
-                BoxShadow(
-                  color: palette.accent.withValues(alpha: 0.35),
-                  blurRadius: 14,
-                  offset: const Offset(0, 3),
-                ),
-              ]
-            : null,
-      ),
-      child: FilledButton.icon(
-        onPressed: _canDispatch ? _dispatch : null,
-        style: FilledButton.styleFrom(
-          backgroundColor: _canDispatch ? Colors.transparent : Colors.white12,
-          foregroundColor: _canDispatch ? Colors.black87 : Colors.white38,
-          shadowColor: Colors.transparent,
-          padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 16),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+    return Tooltip(
+      message: _isUserSignedIn
+          ? 'Launch transition state search simulation'
+          : 'Sign in required to simulate reaction',
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(14),
+          gradient: _canDispatch
+              ? LinearGradient(
+                  colors: [palette.accent, palette.accentAlt],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                )
+              : null,
+          boxShadow: _canDispatch
+              ? [
+                  BoxShadow(
+                    color: palette.accent.withValues(alpha: 0.35),
+                    blurRadius: 14,
+                    offset: const Offset(0, 3),
+                  ),
+                ]
+              : null,
         ),
-        icon: isRunning
-            ? const SizedBox(
-                width: 17,
-                height: 17,
-                child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black87),
-              )
-            : const Icon(Icons.rocket_launch_rounded, size: 19),
-        label: Text(
-          isRunning ? 'Optimizing Reaction...' : 'Execute TS Search',
-          style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14, letterSpacing: 0.2),
+        child: FilledButton.icon(
+          onPressed: _canDispatch ? _dispatch : null,
+          style: FilledButton.styleFrom(
+            backgroundColor: _canDispatch ? Colors.transparent : Colors.white12,
+            foregroundColor: _canDispatch ? Colors.black87 : Colors.white38,
+            shadowColor: Colors.transparent,
+            padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 16),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          ),
+          icon: isRunning
+              ? const SizedBox(
+                  width: 17,
+                  height: 17,
+                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black87),
+                )
+              : Icon(_isUserSignedIn ? Icons.rocket_launch_rounded : Icons.lock_outline_rounded, size: 19),
+          label: Text(
+            isRunning
+                ? 'Optimizing Reaction...'
+                : (_isUserSignedIn ? 'Execute TS Search' : 'Execute TS Search (Sign In)'),
+            style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14, letterSpacing: 0.2),
+          ),
         ),
       ),
     );
@@ -1023,7 +1293,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
             const Spacer(),
             TextButton.icon(
-              onPressed: () => _viewModel.setNavDestination(NavDestination.library),
+              onPressed: _openLibrary,
               icon: const Icon(Icons.auto_stories_outlined, size: 14),
               label: const Text('Browse 1,200+ Library →'),
               style: TextButton.styleFrom(

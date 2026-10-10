@@ -28,7 +28,6 @@ import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-import 'package:quantum_forge/features/auth/presentation/screens/auth_screen.dart';
 import 'package:quantum_forge/features/reaction_runner/presentation/screens/dashboard_screen.dart';
 
 class AuthGate extends StatefulWidget {
@@ -46,7 +45,6 @@ class AuthGate extends StatefulWidget {
 
 class _AuthGateState extends State<AuthGate> {
   bool _ready = false;
-  User? _user;
   StreamSubscription<User?>? _sub;
 
   @override
@@ -83,10 +81,9 @@ class _AuthGateState extends State<AuthGate> {
     //    if nothing was persisted. Either way it arrives here before we route.
     try {
       _sub = FirebaseAuth.instance.authStateChanges().listen(
-        (user) {
+        (_) {
           if (!mounted) return;
           setState(() {
-            _user = user;
             _ready = true;
           });
         },
@@ -94,18 +91,15 @@ class _AuthGateState extends State<AuthGate> {
           debugPrint('authStateChanges error: $e');
           if (!mounted) return;
           setState(() {
-            _user = null;
             _ready = true;
           });
         },
       );
     } catch (e) {
-      // Firebase unavailable — treat as signed out. The sign-in form will
-      // surface a real error if the user tries to use it.
+      // Firebase unavailable — treat as ready.
       debugPrint('FirebaseAuth unavailable in AuthGate: $e');
       if (!mounted) return;
       setState(() {
-        _user = null;
         _ready = true;
       });
     }
@@ -161,11 +155,9 @@ class _AuthGateState extends State<AuthGate> {
         ),
       );
     }
-    if (_user == null) {
-      return AuthScreen(onLoginSuccess: _noop);
-    }
+    // Visitors and returning researchers can both view the Home Workbench.
+    // Protected operations (running simulations, opening the reaction library)
+    // require authentication and will route to AuthScreen.
     return const DashboardScreen();
   }
 }
-
-void _noop() {}

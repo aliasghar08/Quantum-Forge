@@ -19,6 +19,8 @@ import 'package:quantum_forge/features/reaction_library/presentation/widgets/lib
 import 'package:quantum_forge/features/reaction_library/presentation/widgets/library_filter_bar.dart';
 import 'package:quantum_forge/features/reaction_library/presentation/widgets/library_grid.dart';
 import 'package:quantum_forge/features/reaction_library/presentation/widgets/pubmed_panel.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:quantum_forge/features/auth/presentation/screens/auth_screen.dart';
 import 'package:quantum_forge/features/reaction_library/data/firestore_library_repository.dart';
 
 class LibraryScreen extends StatefulWidget {
@@ -493,6 +495,16 @@ class _LibraryScreenState extends State<LibraryScreen> {
   @override
   Widget build(BuildContext context) {
     final palette = ThemeNotifier.paletteOf(context);
+
+    bool isSignedIn = false;
+    try {
+      isSignedIn = FirebaseAuth.instance.currentUser != null;
+    } catch (_) {}
+
+    if (!isSignedIn) {
+      return _buildAuthRequired(context, palette);
+    }
+
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -590,6 +602,111 @@ class _LibraryScreenState extends State<LibraryScreen> {
       onTemplateSelected: widget.onTemplateSelected,
       isLoadingMore: _isLoadingMore,
       scrollController: _scrollController,
+    );
+  }
+
+  Widget _buildAuthRequired(BuildContext context, QuantumTheme palette) {
+    return Container(
+      width: double.infinity,
+      height: double.infinity,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: palette.backgroundGradient,
+        ),
+      ),
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 520),
+          child: Container(
+            margin: const EdgeInsets.all(24),
+            padding: const EdgeInsets.all(32),
+            decoration: BoxDecoration(
+              color: palette.panel.withValues(alpha: 0.95),
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: palette.border),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.35),
+                  blurRadius: 28,
+                  offset: const Offset(0, 10),
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 64,
+                  height: 64,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: LinearGradient(
+                      colors: [palette.accent, palette.accentAlt],
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: palette.accent.withValues(alpha: 0.35),
+                        blurRadius: 20,
+                      ),
+                    ],
+                  ),
+                  child: const Icon(Icons.lock_rounded, size: 30, color: Colors.black87),
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  'Reaction Library Requires Sign In',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: palette.textPrimary,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -0.3,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  'Please sign in with your researcher credentials to access 1,200+ reaction templates, verified transition state benchmarks, and PubMed medical literature.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: palette.textMuted,
+                    fontSize: 13.5,
+                    height: 1.5,
+                  ),
+                ),
+                const SizedBox(height: 28),
+                FilledButton.icon(
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (ctx) => AuthScreen(
+                          redirectMessage: 'Sign in required: Please log in with your researcher credentials to access the Reaction Library and 1,200+ reaction templates.',
+                          onLoginSuccess: () {
+                            Navigator.of(ctx).pop();
+                            if (mounted) setState(() {});
+                          },
+                        ),
+                      ),
+                    );
+                  },
+                  style: FilledButton.styleFrom(
+                    backgroundColor: palette.accent,
+                    foregroundColor: palette.onAccent,
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  icon: const Icon(Icons.login_rounded, size: 18),
+                  label: const Text(
+                    'Sign In to Access Library',
+                    style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
