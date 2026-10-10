@@ -87,6 +87,7 @@ class LibraryHeader extends StatelessWidget {
   final VoidCallback? onRefreshCount;
   final VoidCallback? onAddReaction;
   final VoidCallback? onSyncMedical;
+  final VoidCallback? onAutoGenerate;
 
   const LibraryHeader({
     super.key,
@@ -96,6 +97,7 @@ class LibraryHeader extends StatelessWidget {
     this.onRefreshCount,
     this.onAddReaction,
     this.onSyncMedical,
+    this.onAutoGenerate,
   });
 
   @override
@@ -178,6 +180,21 @@ class LibraryHeader extends StatelessWidget {
                   : _buildTextField(),
             ),
           ),
+          if (onAutoGenerate != null)
+            FilledButton.icon(
+              onPressed: onAutoGenerate,
+              icon: const Icon(Icons.auto_awesome_rounded, size: 16),
+              label: const Text(
+                'Auto-Generate Reactions',
+                style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+              ),
+              style: FilledButton.styleFrom(
+                backgroundColor: const Color(0xFF7C4DFF),
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              ),
+            ),
           if (onSyncMedical != null)
             OutlinedButton.icon(
               onPressed: onSyncMedical,

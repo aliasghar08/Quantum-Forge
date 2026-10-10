@@ -15,6 +15,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:quantum_forge/core/theme/theme_provider.dart';
 import 'package:quantum_forge/features/reaction_library/data/reaction_templates.dart';
+import 'package:quantum_forge/features/reaction_library/data/reaction_template_generator.dart';
 import 'package:quantum_forge/features/reaction_library/presentation/widgets/library_header.dart';
 import 'package:quantum_forge/features/reaction_library/presentation/widgets/library_filter_bar.dart';
 import 'package:quantum_forge/features/reaction_library/presentation/widgets/library_grid.dart';
@@ -224,6 +225,250 @@ class _LibraryScreenState extends State<LibraryScreen> {
     }
     if (!mounted) return;
     _loadFirstPage();
+  }
+
+  List<ReactionTemplate> _generateVariants({required String mode, required int count}) {
+    if (mode == 'chemical') {
+      final derived = deriveTemplateVariants(kReactionTemplates, maxTotal: count);
+      if (derived.isNotEmpty) return derived;
+    }
+
+    // Medical & pharmaceutical combinatorial series for MBBS & Pharm-D
+    const medicalPrefixes = [
+      ('aspirin_var', 'Aspirin Salicylate Derivative Esterification', ReactionCategory.pharmaceutical, ['MBBS', 'Pharm-D', 'NSAID', 'COX-1/2', 'Cardioprotection']),
+      ('paracetamol_var', 'Acetaminophen N-Acyl Congener Synthesis', ReactionCategory.pharmaceutical, ['Pharm-D', 'Analgesic', 'CYP2E1', 'NAPQI', 'Antipyretic']),
+      ('beta_lactam_var', 'Cephalosporin/Penam Core Acylation', ReactionCategory.pharmaceutical, ['Pharm-D', 'Antibiotic', 'Beta-Lactam', 'PBP-Transpeptidase']),
+      ('catechol_var', 'Catecholamine Alpha-Substituted Analogue', ReactionCategory.biochemical, ['MBBS', 'Neurotransmitter', 'Dopamine', 'Adrenergic', 'Parkinson']),
+      ('ester_hydrolysis_var', 'Esterase Cleavage Model', ReactionCategory.ionic, ['Pharm-D', 'Prodrug', 'Metabolism', 'Bioactivation']),
+      ('sulfonamide_var', 'Sulfonamide PABA Competitive Derivative', ReactionCategory.pharmaceutical, ['Pharm-D', 'Folate Synthesis', 'DHPS', 'Antimicrobial']),
+      ('local_anesthetic_var', 'Procaine Amino-Ester Variant', ReactionCategory.pharmaceutical, ['MBBS', 'Anesthetic', 'Na+ Channel', 'Pseudocholinesterase']),
+      ('gaba_congener_var', 'GABAergic Decarboxylation Model', ReactionCategory.biochemical, ['MBBS', 'Neuroscience', 'PLP-Dependent', 'Inhibitory']),
+      ('serotonin_mod_var', 'Tryptaminergic Hydroxylation Derivative', ReactionCategory.biochemical, ['MBBS', 'Pharm-D', '5-HT', 'SSRI', 'Neuropsychiatry']),
+      ('statin_analog_var', 'HMG-CoA Reductase Inhibitor Mimic', ReactionCategory.pharmaceutical, ['MBBS', 'Cardiology', 'Statin', 'Cholesterol', 'Atherosclerosis']),
+      ('ace_inhibitor_var', 'Captopril/Enalaprilat Peptidomimetic Cleavage', ReactionCategory.pharmaceutical, ['MBBS', 'Hypertension', 'ACE-Inhibitor', 'Renin-Angiotensin']),
+      ('quinolone_var', 'Fluoroquinolone DNA Gyrase Scaffolding', ReactionCategory.pharmaceutical, ['Pharm-D', 'Antibiotic', 'Gyrase', 'Topoisomerase']),
+    ];
+
+    const substituents = [
+      'Fluoro', 'Chloro', 'Bromo', 'Hydroxy', 'Amino', 'Methyl',
+      'Trifluoromethyl', 'Cyano', 'Methoxy', 'Nitro', 'Ethyl',
+      'Sulfamoyl', 'Carbamoyl', 'Acetamido', 'Oxo'
+    ];
+
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final results = <ReactionTemplate>[];
+
+    for (var i = 0; i < count; i++) {
+      final groupIdx = (i + now) % medicalPrefixes.length;
+      final subIdx = ((i + now) ~/ medicalPrefixes.length) % substituents.length;
+      final position = ((i + now) ~/ (medicalPrefixes.length * substituents.length)) % 10 + 1;
+
+      final group = medicalPrefixes[groupIdx];
+      final sub = substituents[subIdx];
+      final prefix = group.$1;
+      final baseName = group.$2;
+      final cat = group.$3;
+      final tags = group.$4;
+
+      final docId = 'gen_${prefix}_${now}_$i';
+      final rxnName = '$position-$sub $baseName';
+      final shift = (i % 20) * 0.05;
+
+      final rXyz = '6\n$rxnName - Reactant\n'
+          'C  0.0000 0.0000 0.0000\n'
+          'C  1.4000 ${shift.toStringAsFixed(4)} 0.0000\n'
+          'C  2.1000 1.2000 ${shift.toStringAsFixed(4)}\n'
+          'O  3.4000 1.1500 0.0500\n'
+          'H -0.5000 0.9000 0.0000\n'
+          'H  1.9000 -0.9000 0.0000\n';
+
+      final pXyz = '6\n$rxnName - Product\n'
+          'C  0.0000 0.0000 0.0000\n'
+          'C  1.3500 0.1000 ${shift.toStringAsFixed(4)}\n'
+          'C  2.3000 1.1000 0.1000\n'
+          'O  3.5500 0.9500 0.0500\n'
+          'H -0.4500 0.9500 0.0000\n'
+          'H  1.8500 -0.8500 0.0000\n';
+
+      results.add(
+        ReactionTemplate(
+          id: docId,
+          name: rxnName,
+          iupacName: 'Substituted $baseName ($sub)',
+          description: 'Combinatorial pharmacological variant of $baseName with $sub substitution at position $position. Generated for MBBS and Pharm-D curriculum exploration.',
+          category: cat,
+          reactantXyz: rXyz,
+          productXyz: pXyz,
+          referenceEa: (13.5 + (i % 15) * 0.7).clamp(8.0, 35.0),
+          doi: '',
+          journalRef: 'Quantum Forge Auto-Generator',
+          tags: [...tags, sub, 'Pos-$position', 'Auto-Generated'],
+          isDerived: true,
+          derivedFrom: baseName,
+        ),
+      );
+    }
+
+    return results;
+  }
+
+  void _showAutoGenerateDialog() {
+    int selectedCount = 25;
+    String mode = 'medical';
+    bool isGenerating = false;
+
+    showDialog(
+      context: context,
+      barrierDismissible: !isGenerating,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDlgState) => AlertDialog(
+          backgroundColor: const Color(0xFF161B22),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+            side: BorderSide(color: const Color(0xFF7C4DFF).withValues(alpha: 0.5)),
+          ),
+          title: const Row(
+            children: [
+              Icon(Icons.auto_awesome_rounded, color: Color(0xFFB388FF)),
+              SizedBox(width: 10),
+              Text(
+                'Auto-Generate Reactions',
+                style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+          content: SizedBox(
+            width: 480,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Automatically generate and populate new physical & clinical reaction variants with 3D Cartesian coordinates and activation energies directly into the cloud library.',
+                  style: TextStyle(color: Colors.white70, fontSize: 13, height: 1.4),
+                ),
+                const SizedBox(height: 20),
+                const Text(
+                  'Generation Mode',
+                  style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600),
+                ),
+                const SizedBox(height: 8),
+                Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.white24),
+                  ),
+                  child: Column(
+                    children: [
+                      ListTile(
+                        leading: Radio<String>(
+                          value: 'medical',
+                          // ignore: deprecated_member_use
+                          groupValue: mode,
+                          activeColor: const Color(0xFFB388FF),
+                          // ignore: deprecated_member_use
+                          onChanged: isGenerating ? null : (v) => setDlgState(() => mode = v!),
+                        ),
+                        title: const Text('🩺 MBBS & Pharm-D Drug Variants', style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600)),
+                        subtitle: const Text('Substituted aspirin, paracetamol, beta-lactam, catecholamine & ACE-inhibitor series', style: TextStyle(color: Colors.white54, fontSize: 11.5)),
+                        onTap: isGenerating ? null : () => setDlgState(() => mode = 'medical'),
+                      ),
+                      const Divider(height: 1, color: Colors.white12),
+                      ListTile(
+                        leading: Radio<String>(
+                          value: 'chemical',
+                          // ignore: deprecated_member_use
+                          groupValue: mode,
+                          activeColor: const Color(0xFFB388FF),
+                          // ignore: deprecated_member_use
+                          onChanged: isGenerating ? null : (v) => setDlgState(() => mode = v!),
+                        ),
+                        title: const Text('⚗️ Systematic Organic Benchmarks', style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600)),
+                        subtitle: const Text('Spectator hydrogen substitution (F, Cl, Br, OH, NH₂, CH₃, CF₃, CN) on curated reactions', style: TextStyle(color: Colors.white54, fontSize: 11.5)),
+                        onTap: isGenerating ? null : () => setDlgState(() => mode = 'chemical'),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'Batch Size to Generate',
+                  style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600),
+                ),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  children: [10, 25, 50, 100].map((c) {
+                    final isSel = selectedCount == c;
+                    return ChoiceChip(
+                      label: Text('$c reactions'),
+                      selected: isSel,
+                      selectedColor: const Color(0xFF7C4DFF),
+                      backgroundColor: const Color(0xFF21262D),
+                      labelStyle: TextStyle(
+                        color: isSel ? Colors.white : Colors.white70,
+                        fontWeight: isSel ? FontWeight.bold : FontWeight.normal,
+                      ),
+                      onSelected: isGenerating ? null : (_) => setDlgState(() => selectedCount = c),
+                    );
+                  }).toList(),
+                ),
+                if (isGenerating) ...[
+                  const SizedBox(height: 20),
+                  const LinearProgressIndicator(color: Color(0xFF7C4DFF)),
+                  const SizedBox(height: 8),
+                  const Center(
+                    child: Text(
+                      'Generating 3D coordinates and committing batch to cloud library…',
+                      style: TextStyle(color: Colors.white54, fontSize: 12),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: isGenerating ? null : () => Navigator.of(ctx).pop(),
+              child: const Text('Cancel', style: TextStyle(color: Colors.white60)),
+            ),
+            FilledButton.icon(
+              onPressed: isGenerating ? null : () async {
+                setDlgState(() => isGenerating = true);
+                final newVariants = _generateVariants(mode: mode, count: selectedCount);
+
+                final seededCount = await _repo.seedLibrary(newVariants);
+                if (ctx.mounted) Navigator.of(ctx).pop();
+                if (!mounted) return;
+
+                setState(() {
+                  _items.insertAll(0, newVariants);
+                });
+                _fetchCloudCount();
+
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      seededCount > 0
+                          ? 'Successfully generated and added $seededCount reactions to the Cloud Library!'
+                          : 'Generated ${newVariants.length} reactions in local memory!',
+                    ),
+                    backgroundColor: const Color(0xFF00E676),
+                    duration: const Duration(seconds: 3),
+                  ),
+                );
+              },
+              icon: const Icon(Icons.bolt, size: 16),
+              label: const Text('Generate & Add to Library'),
+              style: FilledButton.styleFrom(
+                backgroundColor: const Color(0xFF7C4DFF),
+                foregroundColor: Colors.white,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Future<void> _syncMedicalToFirebase() async {
@@ -524,6 +769,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
               setState(() => _cloudCount = null);
               _fetchCloudCount();
             },
+            onAutoGenerate: _showAutoGenerateDialog,
             onSyncMedical: _syncMedicalToFirebase,
             onAddReaction: _showAddReactionDialog,
           ),

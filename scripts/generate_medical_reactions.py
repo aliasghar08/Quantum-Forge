@@ -310,14 +310,16 @@ def main():
     # 3. Seed directly to Firebase Firestore /library via REST API
     print("Seeding to Firebase Firestore /library...")
     token = None
-    configstore_path = os.path.expanduser("~/.config/configstore/firebase-tools.json")
-    if os.path.exists(configstore_path):
-        with open(configstore_path) as f:
-            data = json.load(f)
-            token = data.get("tokens", {}).get("access_token")
+    try:
+        import sys
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        import seed_massive_firebase
+        token = seed_massive_firebase.get_auth_token()
+    except Exception as e:
+        print(f"Token resolution exception: {e}")
 
     if not token:
-        print("Warning: No Firebase access token found in firebase-tools.json. Skipping REST upload.")
+        print("Warning: No valid Firebase access token found. Skipping REST upload.")
         return
 
     success_count = 0
