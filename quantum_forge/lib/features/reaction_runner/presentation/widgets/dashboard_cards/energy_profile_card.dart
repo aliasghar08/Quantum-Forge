@@ -45,8 +45,9 @@ class EnergyProfileCard extends StatelessWidget {
                 ),
                 if (uncertainty != null)
                   _LegendDot(
-                    color: palette.accent,
-                    label: '±${uncertainty!.toStringAsFixed(1)} kcal·mol⁻¹ (1σ)',
+                    color: uncertainty! > 5.0 ? const Color(0xFFFFB300) : palette.accent,
+                    textColor: uncertainty! > 5.0 ? const Color(0xFFFFB300) : null,
+                    label: '±${uncertainty!.toStringAsFixed(1)} kcal/mol',
                   ),
                 if (referenceEa != null)
                   _LegendDot(
@@ -79,7 +80,8 @@ class EnergyProfileCard extends StatelessWidget {
 class _LegendDot extends StatelessWidget {
   final Color color;
   final String label;
-  const _LegendDot({required this.color, required this.label});
+  final Color? textColor;
+  const _LegendDot({required this.color, required this.label, this.textColor});
 
   @override
   Widget build(BuildContext context) {
@@ -89,7 +91,14 @@ class _LegendDot extends StatelessWidget {
       children: [
         Container(width: 8, height: 8, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
         const SizedBox(width: 5),
-        Text(label, style: TextStyle(color: palette.textMuted, fontSize: 10.5)),
+        Text(
+          label,
+          style: TextStyle(
+            color: textColor ?? palette.textMuted,
+            fontSize: 10.5,
+            fontWeight: textColor != null ? FontWeight.w600 : FontWeight.normal,
+          ),
+        ),
       ],
     );
   }

@@ -1487,6 +1487,55 @@ class _BackendUrlFieldState extends State<_BackendUrlField> {
               ],
             ],
           ),
+          const SizedBox(height: 16),
+          const Divider(height: 1),
+          const SizedBox(height: 12),
+          Text(
+            'GNN Potential Model Strategy',
+            style: TextStyle(
+              color: palette.textPrimary,
+              fontSize: 12.5,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Select the surrogate model architecture for fast screening and barrier estimation.',
+            style: TextStyle(color: palette.textMuted, fontSize: 11),
+          ),
+          const SizedBox(height: 8),
+          DropdownButtonFormField<String>(
+            value: settings.effectiveModelStrategy,
+            decoration: const InputDecoration(
+              isDense: true,
+              prefixIcon: Icon(Icons.psychology_outlined, size: 18),
+            ),
+            dropdownColor: palette.panel,
+            style: TextStyle(color: palette.textPrimary, fontSize: 13),
+            items: const [
+              DropdownMenuItem(
+                value: 'tx1-fastapi',
+                child: Text('tx1-fastapi (Legacy v1, distance-only)'),
+              ),
+              DropdownMenuItem(
+                value: 'tx1-v2a',
+                child: Text('tx1-v2a (RBF + cutoff, 186k params)'),
+              ),
+              DropdownMenuItem(
+                value: 'tx1-v2b',
+                child: Text('tx1-v2b (PaiNN-lite, single 473k model)'),
+              ),
+              DropdownMenuItem(
+                value: 'tx1-v2',
+                child: Text('tx1-v2 (PaiNN-lite 5x Ensemble + UQ)'),
+              ),
+            ],
+            onChanged: (val) {
+              if (val != null) {
+                context.read<AppSettingsNotifier>().setModelStrategy(val);
+              }
+            },
+          ),
         ],
       ),
     );

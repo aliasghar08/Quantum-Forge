@@ -163,6 +163,10 @@ class AppSettings {
   /// [kDefaultGnnBackendUrl].
   final String gnnBackendUrl;
 
+  /// Transition1x GNN model strategy ('tx1-fastapi', 'tx1-v2a', 'tx1-v2b', 'tx1-v2').
+  /// Defaults to 'tx1-fastapi' until v2 rollout is complete.
+  final String modelStrategy;
+
   const AppSettings({
     this.isCompactMode = false,
     this.reduceMotion = false,
@@ -184,10 +188,15 @@ class AppSettings {
     this.autoImportDeepLink = true,
     this.backendUrl = kDefaultComputeBackendUrl,
     this.gnnBackendUrl = kDefaultGnnBackendUrl,
+    this.modelStrategy = 'tx1-fastapi',
   });
 
   /// True when a real compute backend has been configured.
   bool get hasComputeBackend => backendUrl.trim().isNotEmpty;
+
+  /// Active model strategy for the GNN potential.
+  String get effectiveModelStrategy =>
+      modelStrategy.trim().isNotEmpty ? modelStrategy.trim() : 'tx1-fastapi';
 
   /// The effective URL to use for the currently selected MLIP model.
   ///
@@ -244,6 +253,7 @@ class AppSettings {
     bool? autoImportDeepLink,
     String? backendUrl,
     String? gnnBackendUrl,
+    String? modelStrategy,
   }) {
     return AppSettings(
       isCompactMode: isCompactMode ?? this.isCompactMode,
@@ -268,6 +278,7 @@ class AppSettings {
       autoImportDeepLink: autoImportDeepLink ?? this.autoImportDeepLink,
       backendUrl: backendUrl ?? this.backendUrl,
       gnnBackendUrl: gnnBackendUrl ?? this.gnnBackendUrl,
+      modelStrategy: modelStrategy ?? this.modelStrategy,
     );
   }
 
@@ -300,7 +311,8 @@ class AppSettings {
         other.cleanUrlAfterImport == cleanUrlAfterImport &&
         other.autoImportDeepLink == autoImportDeepLink &&
         other.backendUrl == backendUrl &&
-        other.gnnBackendUrl == gnnBackendUrl;
+        other.gnnBackendUrl == gnnBackendUrl &&
+        other.modelStrategy == modelStrategy;
   }
 
   @override
@@ -325,6 +337,7 @@ class AppSettings {
     autoImportDeepLink,
     backendUrl,
     gnnBackendUrl,
+    modelStrategy,
   ]);
 }
 
@@ -357,6 +370,7 @@ class AppSettingsNotifier extends ChangeNotifier {
   static const _keyCustomBaseUrl = '${_keyPrefix}bridge_custom_url';
   static const _keyBackendUrl = '${_keyPrefix}compute_backend_url';
   static const _keyGnnBackendUrl = '${_keyPrefix}gnn_backend_url';
+  static const _keyModelStrategy = '${_keyPrefix}model_strategy';
   static const _keyCleanUrl = '${_keyPrefix}clean_url_after_import';
   static const _keyAutoImport = '${_keyPrefix}auto_import_deep_link';
 
@@ -420,6 +434,8 @@ class AppSettingsNotifier extends ChangeNotifier {
             AppStorage.getString(_keyBackendUrl) ?? kDefaultComputeBackendUrl,
         gnnBackendUrl:
             AppStorage.getString(_keyGnnBackendUrl) ?? kDefaultGnnBackendUrl,
+        modelStrategy:
+            AppStorage.getString(_keyModelStrategy) ?? 'tx1-fastapi',
       );
     } catch (e) {
       debugPrint('AppSettingsNotifier: could not load settings — $e');
@@ -457,6 +473,7 @@ class AppSettingsNotifier extends ChangeNotifier {
       AppStorage.setBool(_keyAutoImport, s.autoImportDeepLink);
       AppStorage.setString(_keyBackendUrl, s.backendUrl);
       AppStorage.setString(_keyGnnBackendUrl, s.gnnBackendUrl);
+      AppStorage.setString(_keyModelStrategy, s.modelStrategy);
     } catch (e) {
       debugPrint('AppSettingsNotifier: could not persist settings — $e');
     }
@@ -531,6 +548,10 @@ class AppSettingsNotifier extends ChangeNotifier {
   /// Sets the Transition1x GNN compute backend base URL.
   void setGnnBackendUrl(String value) =>
       updateSettings((s) => s.copyWith(gnnBackendUrl: value.trim()));
+
+  /// Sets the Transition1x GNN model strategy ('tx1-fastapi', 'tx1-v2', etc.).
+  void setModelStrategy(String value) =>
+      updateSettings((s) => s.copyWith(modelStrategy: value.trim()));
 
   void resetToDefaults() {
     updateSettings((_) => const AppSettings());

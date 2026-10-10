@@ -9,5 +9,7 @@ tests/
 *.md
 outputs/
 inputs/
-*.pt
-!t1x_model_checkpoint.pt
+data/*.jsonl
+data/runs/
+*.epoch*.pt
+*_phase_a.pt

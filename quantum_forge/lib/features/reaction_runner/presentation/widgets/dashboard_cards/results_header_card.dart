@@ -66,6 +66,11 @@ class ResultsHeaderCard extends StatelessWidget {
               _MetaChip(icon: Icons.auto_awesome, label: displayMlip),
               _MetaChip(icon: Icons.account_tree_outlined, label: s.optimizerAlgorithm),
               _MetaChip(icon: Icons.tune, label: 'charge ${s.charge} · 2S+1=${s.spinMultiplicity}'),
+              _MetaChip(
+                icon: Icons.shield_outlined,
+                label: '±${summary.profileUncertainty.toStringAsFixed(1)} kcal/mol',
+                color: summary.profileUncertainty > 5.0 ? const Color(0xFFFFB300) : null,
+              ),
             ],
           ),
           const SizedBox(height: 12),
@@ -85,7 +90,7 @@ class ResultsHeaderCard extends StatelessWidget {
                   child: Text(
                     'Values are surrogate estimates (no ab initio engine) with '
                     '±1σ error bars. The energy profile carries a '
-                    '±${summary.profileUncertainty.toStringAsFixed(1)} kcal·mol⁻¹ band. '
+                    '±${summary.profileUncertainty.toStringAsFixed(1)} kcal/mol band. '
                     'MLIP is a screening method. Publication requires DFT refinement '
                     'of TS geometries. See the Attach DFT result panel.',
                     style: TextStyle(
@@ -111,24 +116,26 @@ class ResultsHeaderCard extends StatelessWidget {
 class _MetaChip extends StatelessWidget {
   final IconData icon;
   final String label;
-  const _MetaChip({required this.icon, required this.label});
+  final Color? color;
+  const _MetaChip({required this.icon, required this.label, this.color});
 
   @override
   Widget build(BuildContext context) {
     final palette = ThemeNotifier.paletteOf(context);
+    final effectiveColor = color ?? palette.textSecondary;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
       decoration: BoxDecoration(
         color: palette.panelAlt,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: palette.border),
+        border: Border.all(color: color != null ? color!.withValues(alpha: 0.4) : palette.border),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 13, color: palette.textMuted),
+          Icon(icon, size: 13, color: color ?? palette.textMuted),
           const SizedBox(width: 5),
-          Text(label, style: TextStyle(color: palette.textSecondary, fontSize: 11, fontWeight: FontWeight.w600)),
+          Text(label, style: TextStyle(color: effectiveColor, fontSize: 11, fontWeight: FontWeight.w600)),
         ],
       ),
     );
