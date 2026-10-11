@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:quantum_forge/core/services/auth_service.dart';
 import 'package:quantum_forge/core/theme/theme_provider.dart';
+import 'package:quantum_forge/core/widgets/quantum_forge_logo.dart';
 
 class AuthScreen extends StatefulWidget {
   final VoidCallback onLoginSuccess;
@@ -394,6 +395,8 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
+        const QuantumForgeLogo(size: 64, borderRadius: 16),
+        const SizedBox(height: 20),
         // Brand Chip
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
@@ -548,26 +551,7 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
   Widget _buildMobileHeader(QuantumTheme palette) {
     return Column(
       children: [
-        Container(
-          width: 56,
-          height: 56,
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [palette.accent, palette.accentAlt],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: palette.accent.withValues(alpha: 0.35),
-                blurRadius: 16,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: const Icon(Icons.hub_rounded, size: 30, color: Colors.black87),
-        ),
+        const QuantumForgeLogo(size: 60, borderRadius: 16),
         const SizedBox(height: 16),
         Text(
           'Quantum Forge',

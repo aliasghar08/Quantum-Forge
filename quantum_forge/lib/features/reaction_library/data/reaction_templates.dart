@@ -80,6 +80,21 @@ class ReactionTemplate {
   /// Name of the curated parent this entry was derived from, when [isDerived].
   final String? derivedFrom;
 
+  /// Literature-defined default catalyst (e.g. "Ceria (CeO2)", "H2SO4", "Dilute NaOH").
+  final String? defaultCatalystName;
+
+  /// Cartesian coordinates (XYZ) for the catalyst or surface when modeled explicitly.
+  final String? catalystXyz;
+
+  /// Measured or cited activation barrier under catalyzed conditions in kcal·mol⁻¹.
+  final double? literatureBarrierKcalMol;
+
+  /// Whether the literature reference explicitly involves a heterogeneous or homogeneous catalyst.
+  final bool hasLiteratureCatalyst;
+
+  /// High-impact DOI for the catalyzed pathway when distinct from the gas-phase reference [doi].
+  final String? literatureDoi;
+
   const ReactionTemplate({
     required this.id,
     required this.name,
@@ -95,7 +110,18 @@ class ReactionTemplate {
     this.defaults = const QuantumDefaults(),
     this.isDerived = false,
     this.derivedFrom,
-  });
+    this.defaultCatalystName,
+    this.catalystXyz,
+    this.literatureBarrierKcalMol,
+    bool? hasLiteratureCatalyst,
+    this.literatureDoi,
+  }) : hasLiteratureCatalyst = hasLiteratureCatalyst ??
+            (defaultCatalystName != null && defaultCatalystName != '');
+
+  double get effectiveLiteratureBarrier =>
+      literatureBarrierKcalMol ?? referenceEa;
+
+  String get effectiveLiteratureDoi => literatureDoi ?? doi;
 
   factory ReactionTemplate.fromJson(Map<String, dynamic> json, String id) {
     return ReactionTemplate(
@@ -118,6 +144,12 @@ class ReactionTemplate {
           : const QuantumDefaults(),
       isDerived: json['isDerived'] as bool? ?? false,
       derivedFrom: json['derivedFrom'] as String?,
+      defaultCatalystName: json['defaultCatalystName'] as String?,
+      catalystXyz: json['catalystXyz'] as String?,
+      literatureBarrierKcalMol:
+          (json['literatureBarrierKcalMol'] as num?)?.toDouble(),
+      hasLiteratureCatalyst: json['hasLiteratureCatalyst'] as bool?,
+      literatureDoi: json['literatureDoi'] as String?,
     );
   }
 
@@ -136,6 +168,12 @@ class ReactionTemplate {
       'defaults': defaults.toJson(),
       'isDerived': isDerived,
       'derivedFrom': derivedFrom,
+      if (defaultCatalystName != null) 'defaultCatalystName': defaultCatalystName,
+      if (catalystXyz != null) 'catalystXyz': catalystXyz,
+      if (literatureBarrierKcalMol != null)
+        'literatureBarrierKcalMol': literatureBarrierKcalMol,
+      'hasLiteratureCatalyst': hasLiteratureCatalyst,
+      if (literatureDoi != null) 'literatureDoi': literatureDoi,
     };
   }
 }
@@ -859,36 +897,6 @@ H  -2.340  3.560  0.000
 H  -4.780  3.540  0.000
 H  -4.780  1.660  0.000''';
 
-// ============================================================================
-// TEMPLATE 10: Grignard Addition (MeMgBr + Acetaldehyde)
-// ============================================================================
-const _grignardReactant = '''11
-Grignard: MeMgBr approaching acetaldehyde
-Mg  0.000  0.000  0.000
-Br -2.800  0.000  0.000
-C   1.960  0.000  0.000
-H   2.350  1.028  0.000
-H   2.350 -0.514  0.890
-H   2.350 -0.514 -0.890
-C   0.000  3.000  0.000
-O  -1.200  3.000  0.000
-C   0.800  4.200  0.000
-H   0.000  3.500  0.000
-H   1.880  4.200  0.000''';
-
-const _grignardProduct = '''11
-Grignard: Propan-1-ol (after workup, model)
-C   0.000  0.000  0.000
-C   1.530  0.000  0.000
-C   2.060  1.420  0.000
-O   2.060 -1.060  1.000
-H  -0.560 -0.940  0.000
-H  -0.400  0.960  0.000
-H   1.890  0.440  0.000
-H   3.150  1.440  0.000
-H   1.610  2.400  0.000
-H   1.500 -1.900  0.900
-H   2.000 -0.700  1.830''';
 
 // ============================================================================
 // TEMPLATE 11: Retro-Diels-Alder (Cyclohexene retrocyclization)
@@ -1032,6 +1040,66 @@ H     9.779   -1.315    1.481
 H     9.523   -2.381    0.039
 ''';
 
+const _prolineAldolReactant = '''26
+Proline-Catalyzed Aldol Reaction (reactant)
+C     0.000    0.000    0.000
+O     0.000    1.220    0.000
+C    -1.280   -0.780    0.000
+H    -1.280   -1.420    0.890
+H    -1.280   -1.420   -0.890
+H    -2.140   -0.120    0.000
+C     1.280   -0.780    0.000
+H     1.280   -1.420    0.890
+H     1.280   -1.420   -0.890
+H     2.140   -0.120    0.000
+C     5.000    0.000    0.000
+O     5.000    1.220    0.000
+H     4.100   -0.580    0.000
+C     6.250   -0.780    0.000
+C     7.450   -0.080    0.000
+H     7.450    1.000    0.000
+C     8.650   -0.780    0.000
+H     9.580   -0.240    0.000
+C     8.650   -2.180    0.000
+N     9.920   -2.920    0.000
+O    10.960   -2.280    0.000
+O     9.920   -4.140    0.000
+C     7.450   -2.880    0.000
+H     7.450   -3.960    0.000
+C     6.250   -2.180    0.000
+H     5.320   -2.720    0.000
+''';
+
+const _prolineAldolProduct = '''26
+Proline-Catalyzed Aldol Reaction (product)
+C     0.000    0.000    0.000
+O     0.000    1.220    0.000
+C    -1.280   -0.780    0.000
+H    -1.280   -1.420    0.890
+H    -1.280   -1.420   -0.890
+H    -2.140   -0.120    0.000
+C     1.280   -0.780    0.000
+H     1.280   -1.420    0.890
+H     1.280   -1.420   -0.890
+C     2.560    0.050    0.000
+H     2.560    0.700    0.890
+O     2.560    0.850   -1.180
+H     3.380    1.350   -1.180
+C     3.840   -0.750    0.000
+C     5.050   -0.080    0.000
+H     5.050    1.000    0.000
+C     6.250   -0.780    0.000
+H     7.180   -0.240    0.000
+C     6.250   -2.180    0.000
+N     7.520   -2.920    0.000
+O     8.560   -2.280    0.000
+O     7.520   -4.140    0.000
+C     5.050   -2.880    0.000
+H     5.050   -3.960    0.000
+C     3.840   -2.180    0.000
+H     2.910   -2.720    0.000
+''';
+
 const _aldolCondensationReactant = '''14
 Aldol Condensation (reactant)
 C     0.487   -0.046    0.035
@@ -1147,46 +1215,37 @@ H    10.712   -0.758    1.344
 H    14.226    0.167   -0.766
 ''';
 
-const _ninhydrinTestProduct = '''38
+const _ninhydrinTestProduct = '''29
 Ninhydrin Reaction (product)
-O     4.673   -2.703   -0.335
-C     4.465   -1.460   -0.310
-C     3.268   -0.846   -0.002
-C     2.035   -1.399    0.346
-C     0.969   -0.520    0.610
-C     1.154    0.877    0.522
-C     2.407    1.410    0.169
-C     3.449    0.518   -0.087
-C     4.760    0.760   -0.450
-O     5.267    1.900   -0.629
-C     5.400   -0.474   -0.587
-N     6.637   -0.711   -0.920
-C     7.667    0.287   -1.203
-C     8.279    0.808    0.072
-O     7.663    1.465    0.953
-C     9.689    0.453    0.145
-C    10.625    0.729    1.142
-C    11.941    0.267    0.965
-C    12.292   -0.455   -0.194
-C    11.330   -0.720   -1.184
-C    10.031   -0.250   -0.984
-C     8.856   -0.379   -1.834
-O     8.841   -0.963   -2.950
-H     1.899   -2.471    0.411
-H     0.000   -0.918    0.882
-H     0.326    1.543    0.727
-H     2.554    2.480    0.099
-H     7.297    1.101   -1.861
-H    10.348    1.285    2.029
-H    12.688    0.467    1.722
-H    13.307   -0.807   -0.322
-H    11.591   -1.273   -2.076
-O    16.307    0.103    0.000
-C    17.447   -0.379    0.000
-O    18.587   -0.861    0.000
-O    22.383    0.404    0.000
-H    21.587   -0.185    0.000
-H    23.153   -0.219    0.000
+O     2.094    2.434    0.057
+C     2.458    1.231   -0.020
+C     3.811    0.757    0.242
+C     4.947    1.476    0.617
+C     6.146    0.770    0.810
+C     6.188   -0.627    0.628
+C     5.030   -1.328    0.250
+C     3.851   -0.604    0.064
+C     2.527   -1.071   -0.321
+O     2.232   -2.272   -0.558
+C     1.560    0.087   -0.396
+N     0.360    0.087   -0.500
+C    -0.600    1.080   -0.100
+C    -2.000    0.650   -0.300
+O    -2.450   -0.450   -0.600
+O    -2.800    1.680   -0.100
+H     4.907    2.549    0.755
+H     7.043    1.302    1.101
+H     7.116   -1.163    0.779
+H     5.053   -2.401    0.108
+H    -0.450    1.980   -0.700
+H    -0.450    1.350    0.950
+H    -3.700    1.350   -0.250
+O     0.521   -2.500    1.500
+H     0.000   -3.200    1.200
+H     1.400   -2.800    1.700
+O     1.064    3.500   -1.500
+H     0.542    4.200   -1.200
+H     1.900    3.800   -1.700
 ''';
 
 const _iodometricTitrationReactant = '''22
@@ -1273,6 +1332,10 @@ final List<ReactionTemplate> kReactionTemplates = [
     doi: '10.1021/ja00831a019',
     journalRef: 'J. Am. Chem. Soc. 1974',
     tags: ['aldol', 'C-C bond'],
+    defaultCatalystName: 'Ceria (CeO2)',
+    literatureBarrierKcalMol: 18.5,
+    hasLiteratureCatalyst: true,
+    literatureDoi: '10.1021/ja00831a019',
   ),
   ReactionTemplate(
     id: 'fischer-01',
@@ -1286,6 +1349,10 @@ final List<ReactionTemplate> kReactionTemplates = [
     doi: '10.1021/ed083p626',
     journalRef: 'J. Chem. Educ. 2006',
     tags: ['ester', 'condensation'],
+    defaultCatalystName: 'H2SO4 (Sulfuric Acid)',
+    literatureBarrierKcalMol: 22.0,
+    hasLiteratureCatalyst: true,
+    literatureDoi: '10.1021/ed083p626',
   ),
   ReactionTemplate(
     id: 'epox-01',
@@ -1477,6 +1544,10 @@ final List<ReactionTemplate> kReactionTemplates = [
     journalRef: 'J. Am. Chem. Soc. 2004, 126, 2862',
     tags: ['Pd', 'cross-coupling', '4-membered-TS', 'Nobel-2010', 'd8'],
     defaults: const QuantumDefaults(charge: 0, spinMultiplicity: 1, mlipModel: 'MACE-MP-0'),
+    defaultCatalystName: 'Pd(OAc)2 (Palladium)',
+    literatureBarrierKcalMol: 18.7,
+    hasLiteratureCatalyst: true,
+    literatureDoi: '10.1021/ja034748y',
   ),
   ReactionTemplate(
     id: 'grignard',
@@ -1487,8 +1558,8 @@ final List<ReactionTemplate> kReactionTemplates = [
         'Zimmermann-Traxler-like TS. Mg coordinates to both the oxygen and carbon. '
         'Highly diastereoselective in chiral substrate contexts.',
     category: ReactionCategory.organometallic,
-    reactantXyz: _grignardReactant,
-    productXyz: _grignardProduct,
+    reactantXyz: _grignardAdditionReactant,
+    productXyz: _grignardAdditionProduct,
     referenceEa: 11.4,
     doi: '10.1021/ja065533n',
     journalRef: 'J. Am. Chem. Soc. 2007, 129, 3796',
@@ -1686,60 +1757,8 @@ H     0.000    1.400    0.000''',
         'mechanism are still debated. Ea for oxaphosphetane formation is ~8 kcal·mol⁻¹; '
         'retrocyclization Ea ~25 kcal·mol⁻¹. Widely used for alkene synthesis.',
     category: ReactionCategory.pericyclic,
-    reactantXyz: '''24
-Wittig reactant: methylenetriphenylphosphorane + formaldehyde
-P     0.000    0.000    0.000
-C     1.700    0.000    0.000
-H     2.200    0.950    0.000
-H     2.200   -0.950    0.000
-C    -0.800    1.700    0.000
-C    -0.800    2.400    1.200
-C    -0.800    3.800    1.200
-C    -0.800    4.500    0.000
-C    -0.800    3.800   -1.200
-C    -0.800    2.400   -1.200
-H    -0.800    1.900    2.156
-H    -0.800    4.400    2.156
-H    -0.800    5.590    0.000
-H    -0.800    4.400   -2.156
-H    -0.800    1.900   -2.156
-C    -0.800   -1.700    0.000
-C    -1.500   -2.400    1.200
-C    -1.500   -3.800    1.200
-C    -0.800   -4.500    0.000
-C    -0.100   -3.800   -1.200
-C    -0.100   -2.400   -1.200
-C     0.000    0.000    5.000
-O     0.000    0.000    6.210
-H     0.980    0.000    4.450
-H    -0.980    0.000    4.450''',
-    productXyz: '''24
-Wittig product: ethylene + triphenylphosphine oxide
-C     0.000    0.000    0.000
-C     1.335    0.000    0.000
-H    -0.545    0.945    0.000
-H    -0.545   -0.945    0.000
-H     1.880    0.945    0.000
-H     1.880   -0.945    0.000
-P     6.000    0.000    0.000
-O     7.550    0.000    0.000
-C     5.200    1.700    0.000
-C     5.200    2.400    1.200
-C     5.200    3.800    1.200
-C     5.200    4.500    0.000
-C     5.200    3.800   -1.200
-C     5.200    2.400   -1.200
-H     5.200    1.900    2.156
-H     5.200    4.400    2.156
-H     5.200    5.590    0.000
-H     5.200    4.400   -2.156
-H     5.200    1.900   -2.156
-C     5.200   -1.700    0.000
-C     4.500   -2.400    1.200
-C     4.500   -3.800    1.200
-C     5.200   -4.500    0.000
-C     5.900   -3.800   -1.200
-H     5.900   -2.400   -1.200''',
+    reactantXyz: _wittigReactionReactant,
+    productXyz: _wittigReactionProduct,
     referenceEa: 8.1,
     doi: '10.1021/cr040677k',
     journalRef: 'Chem. Rev. 2004, 104, 2857',
@@ -1824,6 +1843,10 @@ H     2.344   -2.644    0.000''',
     doi: '10.1021/ja0278544',
     journalRef: 'J. Am. Chem. Soc. 2002, 124, 14840',
     tags: ['click', 'CuAAC', 'triazole', 'Cu(I)', 'Nobel-2022', 'bioorthogonal'],
+    defaultCatalystName: 'Copper(I) [Cu(I)]',
+    literatureBarrierKcalMol: 14.9,
+    hasLiteratureCatalyst: true,
+    literatureDoi: '10.1021/ja0278544',
     defaults: const QuantumDefaults(
         mlipModel: 'MACE-MP-0', optimizerAlgorithm: 'NEB-CI'),
   ),
@@ -1895,6 +1918,10 @@ H     1.745   -0.950    5.000''',
     doi: '10.1021/cr400415k',
     journalRef: 'Chem. Rev. 2014, 114, 3659',
     tags: ['enzyme', 'Fe=O', 'radical-rebound', 'two-state', 'epoxidation', 'drug-metabolism'],
+    defaultCatalystName: 'Cytochrome P450 (Fe(IV)=O heme)',
+    literatureBarrierKcalMol: 14.2,
+    hasLiteratureCatalyst: true,
+    literatureDoi: '10.1021/cr400415k',
     defaults: const QuantumDefaults(
         charge: 0, spinMultiplicity: 2, mlipModel: 'MACE-MP-0',
         optimizerAlgorithm: 'NEB-CI'),
@@ -1912,75 +1939,16 @@ H     1.745   -0.950    5.000''',
         'alkoxide. Gives >99% ee for most aromatic aldehydes. Paradigmatic organocatalysis. '
         'Nobel Prize 2021 (List and MacMillan).',
     category: ReactionCategory.nucleophilic,
-    reactantXyz: '''28
-Proline-aldol: Z-enamine + 4-nitrobenzaldehyde
-N     0.000    0.000    0.000
-C     1.480    0.000    0.000
-C     2.000    1.480    0.000
-C     1.000    2.400    0.000
-C    -0.480    1.820    0.000
-C    -0.500   -0.500   -1.400
-O    -1.200   -1.500   -1.500
-O    -0.100    0.100   -2.400
-H    -0.100   -0.100   -3.340
-C    -1.480   -0.100    1.200
-C    -2.600    0.000    1.200
-H     0.800    3.450    0.000
-H     1.400    2.500    1.000
-H    -0.800    2.400    0.900
-H    -0.800    2.300   -0.900
-H     1.800    0.400   -0.950
-H     1.800    0.400    0.950
-H     2.200    1.600   -1.000
-H     2.200    1.600    1.000
-C    -1.900   -0.900    1.200
-H    -2.150    1.000    1.200
-H    -3.300   -0.900    1.200
-C     6.000    0.000    0.000
-O     7.200    0.000    0.000
-C     4.800    0.700    0.000
-C     3.600    0.000    0.000
-N     2.400    0.700    0.000
-O     2.400    1.900    0.000
-O     1.350    0.000    0.000
-H     4.800    1.788    0.000
-H     3.600   -1.088    0.000''',
-    productXyz: '''28
-Proline-aldol product: beta-hydroxyketone (S-config)
-O     0.000    0.000    0.000
-C     1.420    0.000    0.000
-C     2.120    1.260    0.000
-C     3.540    1.260    0.000
-O     4.240    0.000    0.000
-C     4.900    2.380    0.000
-C     6.290    2.380    0.000
-C     6.990    3.600    0.000
-C     6.290    4.820    0.000
-N     4.900    4.820    0.000
-O     4.200    6.040    0.000
-O     3.090    4.650    0.000
-H     1.820   -0.490   -0.920
-H     1.820   -0.490    0.920
-H     1.620    1.760   -0.920
-H     1.620    1.760    0.920
-H     3.980    1.740   -0.920
-H     3.980    1.740    0.920
-H     4.360    2.930   -0.920
-H     4.360    2.930    0.920
-H     6.830    1.450    0.000
-H     8.075    3.600    0.000
-H     6.830    5.750    0.000
-C    -1.420    0.000    0.000
-O    -2.120    1.040    0.000
-C    -2.120   -1.260    0.000
-H    -1.820    0.950   -0.100
-H    -2.820   -1.020   -0.800
-H    -2.820   -1.020    0.800
-H    -1.620   -2.140    0.000''',
+    reactantXyz: _prolineAldolReactant,
+    productXyz: _prolineAldolProduct,
     referenceEa: 10.4,
     doi: '10.1021/ja005513q',
     journalRef: 'J. Am. Chem. Soc. 2000, 122, 394',
     tags: ['organocatalysis', 'enamine', 'proline', 'asymmetric', 'Nobel-2021', 'aldol'],
+    defaultCatalystName: 'L-Proline',
+    literatureBarrierKcalMol: 10.4,
+    hasLiteratureCatalyst: true,
+    literatureDoi: '10.1021/ja005513q',
     defaults: const QuantumDefaults(
         mlipModel: 'tx1-fastapi', optimizerAlgorithm: 'NEB-CI'),
   ),
@@ -2022,6 +1990,10 @@ H    -1.620   -2.140    0.000''',
     doi: '10.1021/ed083p626',
     journalRef: 'J. Chem. Educ. 2006',
     tags: ['esterification', 'condensation'],
+    defaultCatalystName: 'H2SO4 (Sulfuric Acid)',
+    literatureBarrierKcalMol: 22.1,
+    hasLiteratureCatalyst: true,
+    literatureDoi: '10.1021/ed083p626',
   ),
   ReactionTemplate(
     id: 'friedel_crafts',
@@ -2035,6 +2007,10 @@ H    -1.620   -2.140    0.000''',
     doi: '10.1021/cr50003a004',
     journalRef: 'Chem. Rev. 1955',
     tags: ['EAS', 'alkylation'],
+    defaultCatalystName: 'AlCl3 (Aluminum Trichloride)',
+    literatureBarrierKcalMol: 14.3,
+    hasLiteratureCatalyst: true,
+    literatureDoi: '10.1021/cr50003a004',
   ),
   ReactionTemplate(
     id: 'suzuki_coupling_simple',
@@ -2048,6 +2024,10 @@ H    -1.620   -2.140    0.000''',
     doi: '10.1021/cr00039a007',
     journalRef: 'Chem. Rev. 1995',
     tags: ['coupling', 'palladium'],
+    defaultCatalystName: 'Pd(PPh3)4 (Tetrakis(triphenylphosphine)palladium)',
+    literatureBarrierKcalMol: 25.0,
+    hasLiteratureCatalyst: true,
+    literatureDoi: '10.1021/cr00039a007',
   ),
 
   ReactionTemplate(
@@ -2056,12 +2036,12 @@ H    -1.620   -2.140    0.000''',
     iupacName: 'Nucleophilic Substitution Type 1',
     description: 'Two-step substitution of a tertiary alkyl halide via a carbocation intermediate.',
     category: ReactionCategory.ionic,
-    reactantXyz: '14\ntert-butyl chloride (from PubChem 3D)\nCl 1.7293 0.0002 0.0008\nC -0.0682 0.0000 -0.0001\nC -0.5545 0.0974 1.4469\nC -0.5534 1.2048 -0.8082\nC -0.5532 -1.3024 -0.6394\nH -0.2014 -0.7497 2.0460\nH -0.2014 1.0172 1.9271\nH -1.6495 0.1005 1.4929\nH -0.2003 2.1470 -0.3738\nH -0.1994 1.1607 -1.8446\nH -1.6483 1.2435 -0.8348\nH -0.1999 -2.1778 -0.0825\nH -0.1992 -1.3976 -1.6723\nH -1.6481 -1.3446 -0.6605',
-    productXyz: '15\ntert-butyl alcohol (from PubChem 3D)\nO 0.0001 0.0886 1.4263\nC -0.0001 -0.0042 0.0012\nC -1.2740 -0.7243 -0.4388\nC 0.0316 1.4186 -0.5526\nC 1.2423 -0.7788 -0.4361\nH -2.1666 -0.1866 -0.0991\nH -1.3246 -0.8252 -1.5278\nH -1.3276 -1.7245 0.0059\nH 0.9155 1.9576 -0.1927\nH -0.8390 1.9921 -0.2141\nH 0.0439 1.4248 -1.6474\nH 1.2468 -1.7838 0.0007\nH 1.2975 -0.8731 -1.5255\nH 2.1543 -0.2842 -0.0826\nH -0.7978 0.5741 1.6975',
+    reactantXyz: _sn1Reactant,
+    productXyz: _sn1Product,
     referenceEa: 15.0,
     doi: '10.1021/ed075p93',
     journalRef: 'J. Chem. Educ.',
-    tags: ['verified', 'pubchem'],
+    tags: ['verified', 'substitution', 'carbocation'],
     defaults: const QuantumDefaults(),
   ),
 
@@ -2071,27 +2051,27 @@ H    -1.620   -2.140    0.000''',
     iupacName: 'Bimolecular Elimination',
     description: 'Concerted elimination of a proton and leaving group by a strong base.',
     category: ReactionCategory.ionic,
-    reactantXyz: '11\n2-bromopropane (from PubChem 3D)\nBr 1.7446 -0.0004 -0.1010\nC -0.1482 0.0001 0.3952\nC -0.7986 -1.2608 -0.1471\nC -0.7979 1.2612 -0.1471\nH -0.1683 0.0001 1.4894\nH -0.3119 -2.1587 0.2494\nH -1.8554 -1.3022 0.1367\nH -0.7416 -1.3080 -1.2404\nH -0.3107 2.1588 0.2494\nH -1.8548 1.3030 0.1366\nH -0.7408 1.3083 -1.2404',
-    productXyz: '9\npropene (from PubChem 3D)\nC 1.2818 -0.2031 0.0000\nC -0.0643 0.4402 0.0000\nC -1.2175 -0.2371 0.0000\nH 1.8429 0.1063 -0.8871\nH 1.2188 -1.2959 0.0000\nH 1.8429 0.1063 0.8871\nH -0.0950 1.5262 0.0000\nH -2.1647 0.2911 0.0000\nH -1.2390 -1.3212 0.0000',
+    reactantXyz: _e2Reactant,
+    productXyz: _e2Product,
     referenceEa: 15.0,
     doi: '10.1021/ed075p93',
     journalRef: 'J. Chem. Educ.',
-    tags: ['verified', 'pubchem'],
+    tags: ['verified', 'elimination'],
     defaults: const QuantumDefaults(),
   ),
 
   ReactionTemplate(
     id: 'ozonolysis',
     name: 'Ozonolysis',
-    iupacName: 'Oxidative Cleavage',
-    description: 'Cleavage of alkene double bonds using ozone to form carbonyl compounds.',
+    iupacName: 'Ethylene + Ozone → 1,2,3-Trioxolane',
+    description: 'Cleavage of alkene double bonds using ozone. Step 1: concerted [3+2] cycloaddition to primary ozonide (1,2,3-trioxolane).',
     category: ReactionCategory.thermal,
-    reactantXyz: '3\nozone (from PubChem 3D)\nO -0.0950 -0.4943 0.0000\nO 1.1489 0.2152 0.0000\nO -1.0540 0.2791 0.0000',
-    productXyz: '4\nformaldehyde (from PubChem 3D)\nO 0.6123 0.0000 0.0000\nC -0.6123 0.0000 0.0000\nH -1.2000 0.2426 -0.8998\nH -1.2000 -0.2424 0.8998',
+    reactantXyz: _ozonolysisReactant,
+    productXyz: _ozonolysisProduct,
     referenceEa: 15.0,
     doi: '10.1002/anie.197507451',
     journalRef: 'Angew. Chem. Int. Ed. 1975',
-    tags: ['verified', 'pubchem'],
+    tags: ['verified', 'cycloaddition', 'ozonolysis'],
     defaults: const QuantumDefaults(),
   ),
 
@@ -2101,12 +2081,12 @@ H    -1.620   -2.140    0.000''',
     iupacName: 'Ketone Oxidation',
     description: 'Oxidation of a ketone to an ester using a peroxyacid.',
     category: ReactionCategory.ionic,
-    reactantXyz: '17\ncyclohexanone (from PubChem 3D)\nO 2.2452 0.0000 0.2971\nC -1.8351 0.0002 -0.1136\nC -1.0637 -1.2580 0.2791\nC -1.0633 1.2580 0.2795\nC 0.3253 -1.2863 -0.3437\nC 0.3253 1.2861 -0.3441\nC 1.0663 0.0000 -0.0542\nH -2.0192 0.0003 -1.1948\nH -2.8133 0.0003 0.3804\nH -1.6242 -2.1474 -0.0298\nH -0.9746 -1.2977 1.3720\nH -0.9737 1.2972 1.3724\nH -1.6237 2.1476 -0.0288\nH 0.2636 -1.4050 -1.4309\nH 0.8970 -2.1286 0.0598\nH 0.8971 2.1285 0.0588\nH 0.2632 1.4043 -1.4313',
-    productXyz: '18\ncaprolactone (from PubChem 3D)\nO 0.6647 1.2158 0.0868\nO 2.4535 -0.1231 0.3601\nC -1.9021 -0.6989 0.0321\nC -0.6497 -1.5430 0.2460\nC -1.7275 0.7770 0.3797\nC 0.5166 -1.1127 -0.6319\nC -0.6509 1.4615 -0.4494\nC 1.2953 0.0235 -0.0235\nH -2.2307 -0.7913 -1.0107\nH -2.7109 -1.1096 0.6487\nH -0.9010 -2.5836 0.0072\nH -0.3643 -1.5199 1.3049\nH -2.6852 1.2797 0.2001\nH -1.4982 0.8741 1.4475\nH 0.2194 -0.8701 -1.6567\nH 1.2130 -1.9572 -0.7156\nH -0.6899 1.1954 -1.5111\nH -0.7954 2.5458 -0.3908',
+    reactantXyz: _baeyerVilligerReactant,
+    productXyz: _baeyerVilligerProduct,
     referenceEa: 15.0,
     doi: '10.1021/cr00015a004',
     journalRef: 'Chem. Rev.',
-    tags: ['verified', 'pubchem'],
+    tags: ['verified', 'oxidation'],
     defaults: const QuantumDefaults(),
   ),
 
@@ -2116,12 +2096,12 @@ H    -1.620   -2.140    0.000''',
     iupacName: 'Mitsunobu Coupling',
     description: 'Conversion of an alcohol into an ester/ether with inversion of stereochemistry.',
     category: ReactionCategory.ionic,
-    reactantXyz: '16\nbenzyl alcohol (from PubChem 3D)\nO 2.7427 0.0002 -0.7083\nC 0.5758 -0.0002 0.2720\nC 2.0447 -0.0001 0.5309\nC -0.1110 1.2079 0.1508\nC -0.1111 -1.2082 0.1507\nC -1.4847 1.2081 -0.0915\nC -1.4848 -1.2079 -0.0917\nC -2.1715 0.0002 -0.2128\nH 2.3502 0.8799 1.1071\nH 2.3501 -0.8828 1.1025\nH 0.4133 2.1555 0.2415\nH 0.4130 -2.1559 0.2413\nH -2.0194 2.1486 -0.1864\nH -2.0198 -2.1484 -0.1868\nH -3.2410 0.0003 -0.4018\nH 2.3709 0.7034 -1.2677',
-    productXyz: '21\nbenzyl acetate (from PubChem 3D)\nO 1.5574 0.0001 -0.3281\nO 3.4346 -0.0001 1.0184\nC -0.7090 -0.0002 0.3928\nC 0.7197 -0.0002 0.8212\nC -1.3770 1.2079 0.1924\nC -1.3771 -1.2082 0.1922\nC -2.7130 1.2081 -0.2084\nC -2.7132 -1.2079 -0.2088\nC -3.3810 0.0003 -0.4091\nC 2.9026 0.0002 -0.0835\nC 3.6559 0.0001 -1.3791\nH 0.9304 0.8849 1.4348\nH 0.9306 -0.8856 1.4344\nH -0.8669 2.1556 0.3432\nH -0.8673 -2.1561 0.3428\nH -3.2330 2.1487 -0.3650\nH -3.2334 -2.1483 -0.3656\nH -4.4211 0.0004 -0.7215\nH 3.4095 0.8983 -1.9509\nH 3.4111 -0.8993 -1.9498\nH 4.7303 0.0012 -1.1742',
+    reactantXyz: _mitsunobuReactant,
+    productXyz: _mitsunobuProduct,
     referenceEa: 15.0,
     doi: '10.1055/s-1981-29334',
     journalRef: 'Synthesis',
-    tags: ['verified', 'pubchem'],
+    tags: ['verified', 'coupling'],
     defaults: const QuantumDefaults(),
   ),
 
@@ -2131,12 +2111,12 @@ H    -1.620   -2.140    0.000''',
     iupacName: 'Primary Amine Synthesis',
     description: 'Synthesis of primary amines from phthalimide and alkyl halides.',
     category: ReactionCategory.ionic,
-    reactantXyz: '16\nphthalimide (from PubChem 3D)\nO -1.6232 -2.3093 0.0009\nO -1.6229 2.3094 0.0005\nN -2.0286 0.0001 -0.0003\nC 0.1223 -0.6943 -0.0004\nC 0.1224 0.6942 -0.0003\nC -1.2688 -1.1459 -0.0004\nC -1.2687 1.1460 -0.0002\nC 1.2925 -1.4245 -0.0002\nC 1.2926 1.4245 0.0000\nC 2.4912 -0.7052 0.0002\nC 2.4912 0.7051 0.0003\nH -3.0425 0.0001 0.0001\nH 1.2929 -2.5081 -0.0002\nH 1.2930 2.5081 0.0002\nH 3.4383 -1.2384 0.0004\nH 3.4384 1.2382 0.0006',
-    productXyz: '10\nethylamine (from PubChem 3D)\nN 1.2133 -0.2902 0.0000\nC 0.0295 0.5602 0.0000\nC -1.2428 -0.2700 0.0000\nH 0.0512 1.2078 0.8824\nH 0.0511 1.2078 -0.8825\nH -1.2991 -0.9094 -0.8874\nH -1.2991 -0.9093 0.8875\nH -2.1202 0.3846 0.0000\nH 1.1926 -0.9044 -0.8134\nH 1.1926 -0.9044 0.8134',
+    reactantXyz: _gabrielReactant,
+    productXyz: _gabrielProduct,
     referenceEa: 15.0,
     doi: '10.1021/ja01198a081',
     journalRef: 'J. Am. Chem. Soc.',
-    tags: ['verified', 'pubchem'],
+    tags: ['verified', 'amine'],
     defaults: const QuantumDefaults(),
   ),
 
@@ -2146,12 +2126,12 @@ H    -1.620   -2.140    0.000''',
     iupacName: 'Indole Synthesis',
     description: 'Reaction of a phenylhydrazine with a ketone to produce an indole.',
     category: ReactionCategory.thermal,
-    reactantXyz: '16\nphenylhydrazine (from PubChem 3D)\nN 1.9389 0.5543 0.0966\nN 2.8898 -0.4127 -0.1308\nC 0.5594 0.2639 0.0515\nC -0.3707 1.3020 -0.0023\nC 0.1253 -1.0617 0.0596\nC -1.7349 1.0145 -0.0482\nC -1.2388 -1.3492 0.0137\nC -2.1690 -0.3111 -0.0402\nH -0.0455 2.3392 -0.0093\nH 0.8197 -1.8961 0.1079\nH -2.4592 1.8227 -0.0901\nH -1.5774 -2.3812 0.0216\nH -3.2312 -0.5349 -0.0754\nH 2.2199 1.5260 0.0315\nH 3.7568 -0.1285 0.3229\nH 3.0919 -0.4425 -1.1294',
-    productXyz: '16\nindole (from PubChem 3D)\nN 1.5610 1.1123 -0.0001\nC 0.2536 0.6808 0.0000\nC 0.2815 -0.7155 0.0000\nC 1.6500 -1.1056 0.0002\nC -0.9394 1.4123 -0.0001\nC -0.9396 -1.4182 -0.0003\nC 2.4121 0.0399 0.0000\nC -2.1383 0.6938 0.0001\nC -2.1409 -0.6998 0.0001\nH 1.8497 2.0807 -0.0002\nH 2.0368 -2.1155 0.0002\nH -0.9385 2.4972 -0.0002\nH -0.9561 -2.5043 -0.0003\nH 3.4829 0.1869 0.0000\nH -3.0829 1.2317 0.0003\nH -3.0859 -1.2365 0.0002',
+    reactantXyz: _fischerIndoleReactant,
+    productXyz: _fischerIndoleProduct,
     referenceEa: 15.0,
     doi: '10.1002/1099-0690',
     journalRef: 'Eur. J. Org. Chem.',
-    tags: ['verified', 'pubchem'],
+    tags: ['verified', 'heterocycle'],
     defaults: const QuantumDefaults(),
   ),
 
@@ -2161,12 +2141,12 @@ H    -1.620   -2.140    0.000''',
     iupacName: 'Alcohol Oxidation',
     description: 'Oxidation of primary/secondary alcohols to aldehydes/ketones using oxalyl chloride and DMSO.',
     category: ReactionCategory.ionic,
-    reactantXyz: '10\nDMSO (from PubChem 3D)\nS 0.1817 0.0065 -0.5212\nO 1.4801 0.0532 0.2284\nC -0.8792 1.3112 0.1464\nC -0.7826 -1.3709 0.1464\nH -0.4483 2.2796 -0.1182\nH -0.9369 1.2252 1.2341\nH -1.8773 1.2284 -0.2901\nH -1.7840 -1.3601 -0.2900\nH -0.8463 -1.2894 1.2341\nH -0.2831 -2.3059 -0.1182',
-    productXyz: '9\ndimethyl sulfide (from PubChem 3D)\nS 0.0000 -0.7864 0.0000\nC -1.3707 0.3932 0.0000\nC 1.3707 0.3932 0.0000\nH -1.3327 1.0212 0.8939\nH -2.3171 -0.1541 0.0000\nH -1.3326 1.0214 -0.8937\nH 1.3327 1.0213 0.8939\nH 1.3326 1.0214 -0.8937\nH 2.3171 -0.1541 -0.0001',
+    reactantXyz: _swernReactant,
+    productXyz: _swernProduct,
     referenceEa: 15.0,
     doi: '10.1016/S0040-4020(01)96468-2',
     journalRef: 'Tetrahedron',
-    tags: ['verified', 'pubchem'],
+    tags: ['verified', 'oxidation'],
     defaults: const QuantumDefaults(),
   ),
 
@@ -2176,13 +2156,16 @@ H    -1.620   -2.140    0.000''',
     iupacName: 'Aldol Reaction and Dehydration',
     description: 'Reaction of enolates with carbonyl compounds followed by dehydration.',
     category: ReactionCategory.ionic,
-    reactantXyz: '7\nacetaldehyde (from PubChem 3D)\nO 1.1443 0.2412 0.0000\nC -1.2574 0.1815 0.0000\nC 0.1130 -0.4226 0.0000\nH -1.7938 -0.1493 0.8924\nH -1.1865 1.2719 0.0016\nH -1.7928 -0.1468 -0.8938\nH 0.1478 -1.5252 -0.0007',
-    productXyz: '11\ncrotonaldehyde (from PubChem 3D)\nO -2.3537 0.2370 0.0004\nC 1.1359 -0.3976 0.0002\nC 2.5002 0.2099 0.0002\nC 0.0089 0.3239 -0.0005\nC -1.2913 -0.3731 -0.0003\nH 1.0939 -1.4838 0.0008\nH 3.0526 -0.1152 -0.8867\nH 3.0524 -0.1143 0.8875\nH 2.4672 1.3041 -0.0003\nH 0.0090 1.4073 -0.0010\nH -1.2553 -1.4754 0.0001',
+    reactantXyz: _aldolCondensationReactant,
+    productXyz: _aldolCondensationProduct,
     referenceEa: 15.0,
     doi: '10.1039/C3CS60170A',
     journalRef: 'Chem. Soc. Rev.',
-    tags: ['verified', 'pubchem'],
+    tags: ['verified', 'aldol'],
     defaults: const QuantumDefaults(),
+    defaultCatalystName: 'Dilute NaOH (Base)',
+    literatureBarrierKcalMol: 15.0,
+    hasLiteratureCatalyst: true,
   ),
 
   ReactionTemplate(
@@ -2191,8 +2174,8 @@ H    -1.620   -2.140    0.000''',
     iupacName: 'Disproportionation of Aldehydes',
     description: 'Base-induced disproportionation of aldehydes lacking alpha protons.',
     category: ReactionCategory.ionic,
-    reactantXyz: '14\nbenzaldehyde (from PubChem 3D)\nO 2.8466 -0.3870 0.0002\nC 0.5644 0.2371 0.0000\nC -0.3437 1.2960 0.0000\nC 0.1013 -1.0787 0.0000\nC -1.7147 1.0393 0.0001\nC -1.2698 -1.3354 -0.0001\nC -2.1777 -0.2764 0.0000\nC 1.9937 0.5050 -0.0003\nH 0.0016 2.3267 0.0000\nH 0.7902 -1.9194 -0.0001\nH -2.4218 1.8637 0.0001\nH -1.6308 -2.3599 -0.0001\nH -3.2452 -0.4764 0.0000\nH 2.2986 1.5653 -0.0006',
-    productXyz: '16\nbenzyl alcohol (from PubChem 3D)\nO 2.7427 0.0002 -0.7083\nC 0.5758 -0.0002 0.2720\nC 2.0447 -0.0001 0.5309\nC -0.1110 1.2079 0.1508\nC -0.1111 -1.2082 0.1507\nC -1.4847 1.2081 -0.0915\nC -1.4848 -1.2079 -0.0917\nC -2.1715 0.0002 -0.2128\nH 2.3502 0.8799 1.1071\nH 2.3501 -0.8828 1.1025\nH 0.4133 2.1555 0.2415\nH 0.4130 -2.1559 0.2413\nH -2.0194 2.1486 -0.1864\nH -2.0198 -2.1484 -0.1868\nH -3.2410 0.0003 -0.4018\nH 2.3709 0.7034 -1.2677',
+    reactantXyz: _cannizzaroReactant,
+    productXyz: _cannizzaroProduct,
     referenceEa: 15.0,
     doi: '10.1021/cr60113a002',
     journalRef: 'Chem. Rev.',
@@ -2227,6 +2210,10 @@ H    -1.620   -2.140    0.000''',
     doi: '10.1021/ja963956s',
     journalRef: 'J. Am. Chem. Soc. 1997',
     tags: ['epoxidation', 'chinese-chemist', 'organocatalysis'],
+    defaultCatalystName: 'Fructose-Derived Chiral Ketone',
+    literatureBarrierKcalMol: 14.2,
+    hasLiteratureCatalyst: true,
+    literatureDoi: '10.1021/ja963956s',
     defaults: const QuantumDefaults(),
   ),
 
@@ -2335,6 +2322,10 @@ H    -1.620   -2.140    0.000''',
     doi: '10.1021/ja301889c',
     journalRef: 'J. Am. Chem. Soc. 2012',
     tags: ['electrochemistry', 'catalysis', 'OER', 'energy'],
+    defaultCatalystName: 'RuO2 (Ruthenium Oxide)',
+    literatureBarrierKcalMol: 18.0,
+    hasLiteratureCatalyst: true,
+    literatureDoi: '10.1021/ja301889c',
     defaults: const QuantumDefaults(charge: 0, spinMultiplicity: 1),
   ),
 ];
@@ -2416,3 +2407,325 @@ O 0.0000 0.0000 1.9000
 O 0.0000 1.3000 2.5000
 H 0.0000 1.3000 3.5000
 H 0.0000 -2.0000 4.0000''';
+
+const String _ozonolysisReactant = '''9
+Ethylene + Ozone [3+2] Cycloaddition Reactant
+C   -0.6650    0.0000    0.0000
+C    0.6650    0.0000    0.0000
+H   -1.2300    0.9250    0.0000
+H   -1.2300   -0.9250    0.0000
+H    1.2300    0.9250    0.0000
+H    1.2300   -0.9250    0.0000
+O    0.0000    0.0000    2.6500
+O   -1.0800    0.0000    3.3000
+O    1.0800    0.0000    3.3000''';
+
+const String _ozonolysisProduct = '''9
+1,2,3-Trioxolane (Molozonide) Product
+C   -0.7700    0.0000    0.0000
+C    0.7700    0.0000    0.0000
+H   -1.2500    0.9200   -0.3500
+H   -1.2500   -0.9200   -0.3500
+H    1.2500    0.9200   -0.3500
+H    1.2500   -0.9200   -0.3500
+O   -1.1000    0.0000    1.3800
+O    0.0000    0.0000    2.1000
+O    1.1000    0.0000    1.3800''';
+
+const String _sn1Reactant = '''17
+tert-butyl chloride + H2O (reactant)
+Cl 1.7293 0.0002 0.0008
+C -0.0682 0.0000 -0.0001
+C -0.5545 0.0974 1.4469
+C -0.5534 1.2048 -0.8082
+C -0.5532 -1.3024 -0.6394
+H -0.2014 -0.7497 2.0460
+H -0.2014 1.0172 1.9271
+H -1.6495 0.1005 1.4929
+H -0.2003 2.1470 -0.3738
+H -0.1994 1.1607 -1.8446
+H -1.6483 1.2435 -0.8348
+H -0.1999 -2.1778 -0.0825
+H -0.1992 -1.3976 -1.6723
+H -1.6481 -1.3446 -0.6605
+O 4.0000 0.0000 0.0000
+H 4.6000 0.7000 0.0000
+H 4.6000 -0.7000 0.0000''';
+
+const String _sn1Product = '''17
+tert-butyl alcohol + HCl (product)
+O 0.0001 0.0886 1.4263
+C -0.0001 -0.0042 0.0012
+C -1.2740 -0.7243 -0.4388
+C 0.0316 1.4186 -0.5526
+C 1.2423 -0.7788 -0.4361
+H -2.1666 -0.1866 -0.0991
+H -1.3246 -0.8252 -1.5278
+H -1.3276 -1.7245 0.0059
+H 0.9155 1.9576 -0.1927
+H -0.8390 1.9921 -0.2141
+H 0.0439 1.4248 -1.6474
+H 1.2468 -1.7838 0.0007
+H 1.2975 -0.8731 -1.5255
+H 2.1543 -0.2842 -0.0826
+H -0.7978 0.5741 1.6975
+Cl 4.0000 0.0000 0.0000
+H 5.2800 0.0000 0.0000''';
+
+const String _swernReactant = '''16
+DMSO + methanol (reactant)
+S 0.1817 0.0065 -0.5212
+O 1.4801 0.0532 0.2284
+C -0.8792 1.3112 0.1464
+C -0.7826 -1.3709 0.1464
+H -0.4483 2.2796 -0.1182
+H -0.9369 1.2252 1.2341
+H -1.8773 1.2284 -0.2901
+H -1.7840 -1.3601 -0.2900
+H -0.8463 -1.2894 1.2341
+H -0.2831 -2.3059 -0.1182
+C 4.0000 0.0000 0.0000
+O 5.4000 0.0000 0.0000
+H 5.7000 0.9000 0.0000
+H 3.6500 1.0000 0.0000
+H 3.6500 -0.5000 0.8600
+H 3.6500 -0.5000 -0.8600''';
+
+const String _swernProduct = '''16
+DMS + formaldehyde + H2O (product)
+S 0.0000 -0.7864 0.0000
+C -1.3707 0.3932 0.0000
+C 1.3707 0.3932 0.0000
+H -1.3327 1.0212 0.8939
+H -2.3171 -0.1541 0.0000
+H -1.3326 1.0214 -0.8937
+H 1.3327 1.0213 0.8939
+H 1.3326 1.0214 -0.8937
+H 2.3171 -0.1541 -0.0001
+C 4.0000 0.0000 0.0000
+O 5.2000 0.0000 0.0000
+H 3.4500 0.9400 0.0000
+H 3.4500 -0.9400 0.0000
+O 8.0000 0.0000 0.0000
+H 8.6000 0.7000 0.0000
+H 8.6000 -0.7000 0.0000''';
+
+const String _cannizzaroReactant = '''31
+2 Benzaldehyde + H2O (reactant)
+O 2.8466 -0.3870 0.0002
+C 0.5644 0.2371 0.0000
+C -0.3437 1.2960 0.0000
+C 0.1013 -1.0787 0.0000
+C -1.7147 1.0393 0.0001
+C -1.2698 -1.3354 -0.0001
+C -2.1777 -0.2764 0.0000
+C 1.9937 0.5050 -0.0003
+H 0.0016 2.3267 0.0000
+H 0.7902 -1.9194 -0.0001
+H -2.4218 1.8637 0.0001
+H -1.6308 -2.3599 -0.0001
+H -3.2452 -0.4764 0.0000
+H 2.2986 1.5653 -0.0006
+O 8.8466 -0.3870 0.0002
+C 6.5644 0.2371 0.0000
+C 5.6563 1.2960 0.0000
+C 6.1013 -1.0787 0.0000
+C 4.2853 1.0393 0.0001
+C 4.7302 -1.3354 -0.0001
+C 3.8223 -0.2764 0.0000
+C 7.9937 0.5050 -0.0003
+H 6.0016 2.3267 0.0000
+H 6.7902 -1.9194 -0.0001
+H 3.5782 1.8637 0.0001
+H 4.3692 -2.3599 -0.0001
+H 2.7548 -0.4764 0.0000
+H 8.2986 1.5653 -0.0006
+O 12.0000 0.0000 0.0000
+H 12.6000 0.7000 0.0000
+H 12.6000 -0.7000 0.0000''';
+
+const String _cannizzaroProduct = '''31
+Benzyl alcohol + Benzoic acid (product)
+O 2.7427 0.0002 -0.7083
+C 0.5758 -0.0002 0.2720
+C 2.0447 -0.0001 0.5309
+C -0.1110 1.2079 0.1508
+C -0.1111 -1.2082 0.1507
+C -1.4847 1.2081 -0.0915
+C -1.4848 -1.2079 -0.0917
+C -2.1715 0.0002 -0.2128
+H 2.3502 0.8799 1.1071
+H 2.3501 -0.8828 1.1025
+H 0.4133 2.1555 0.2415
+H 0.4130 -2.1559 0.2413
+H -2.0194 2.1486 -0.1864
+H -2.0198 -2.1484 -0.1868
+H -3.2410 0.0003 -0.4018
+H 2.3709 0.7034 -1.2677
+O 8.7427 0.0002 -0.7083
+O 10.0000 0.0000 0.8000
+C 6.5758 -0.0002 0.2720
+C 8.0447 -0.0001 0.5309
+C 5.8890 1.2079 0.1508
+C 5.8889 -1.2082 0.1507
+C 4.5153 1.2081 -0.0915
+C 4.5152 -1.2079 -0.0917
+C 3.8285 0.0002 -0.2128
+H 6.4133 2.1555 0.2415
+H 6.4130 -2.1559 0.2413
+H 3.9806 2.1486 -0.1864
+H 3.9802 -2.1484 -0.1868
+H 2.7590 0.0003 -0.4018
+H 10.6000 0.7000 0.7000''';
+
+const String _mitsunobuReactant = '''24
+benzyl alcohol + acetic acid (reactant)
+O 2.7427 0.0002 -0.7083
+C 0.5758 -0.0002 0.2720
+C 2.0447 -0.0001 0.5309
+C -0.1110 1.2079 0.1508
+C -0.1111 -1.2082 0.1507
+C -1.4847 1.2081 -0.0915
+C -1.4848 -1.2079 -0.0917
+C -2.1715 0.0002 -0.2128
+H 2.3502 0.8799 1.1071
+H 2.3501 -0.8828 1.1025
+H 0.4133 2.1555 0.2415
+H 0.4130 -2.1559 0.2413
+H -2.0194 2.1486 -0.1864
+H -2.0198 -2.1484 -0.1868
+H -3.2410 0.0003 -0.4018
+H 2.3709 0.7034 -1.2677
+C 6.0000 0.0000 0.0000
+C 7.4500 0.0000 0.0000
+O 5.4000 1.1000 0.0000
+O 5.3000 -1.1500 0.0000
+H 4.3500 -1.1000 0.0000
+H 7.8000 0.5000 0.8800
+H 7.8000 0.5000 -0.8800
+H 7.8000 -1.0200 0.0000''';
+
+const String _mitsunobuProduct = '''24
+benzyl acetate + H2O (product)
+O 1.5574 0.0001 -0.3281
+O 3.4346 -0.0001 1.0184
+C -0.7090 -0.0002 0.3928
+C 0.7197 -0.0002 0.8212
+C -1.3770 1.2079 0.1924
+C -1.3771 -1.2082 0.1922
+C -2.7130 1.2081 -0.2084
+C -2.7132 -1.2079 -0.2088
+C -3.3810 0.0003 -0.4091
+C 2.9026 0.0002 -0.0835
+C 3.6559 0.0001 -1.3791
+H 0.9304 0.8849 1.4348
+H 0.9306 -0.8856 1.4344
+H -0.8669 2.1556 0.3432
+H -0.8673 -2.1561 0.3428
+H -3.2330 2.1487 -0.3650
+H -3.2334 -2.1483 -0.3656
+H -4.4211 0.0004 -0.7215
+H 3.4095 0.8983 -1.9509
+H 3.4111 -0.8993 -1.9498
+H 4.7303 0.0012 -1.1742
+O 7.0000 0.0000 0.0000
+H 7.6000 0.7000 0.0000
+H 7.6000 -0.7000 0.0000''';
+
+const String _fischerIndoleReactant = '''23
+phenylhydrazine + acetaldehyde (reactant)
+N 1.9389 0.5543 0.0966
+N 2.8898 -0.4127 -0.1308
+C 0.5594 0.2639 0.0515
+C -0.3707 1.3020 -0.0023
+C 0.1253 -1.0617 0.0596
+C -1.7349 1.0145 -0.0482
+C -1.2388 -1.3492 0.0137
+C -2.1690 -0.3111 -0.0402
+H -0.0455 2.3392 -0.0093
+H 0.8197 -1.8961 0.1079
+H -2.4592 1.8227 -0.0901
+H -1.5774 -2.3812 0.0216
+H -3.2312 -0.5349 -0.0754
+H 2.2199 1.5260 0.0315
+H 3.7568 -0.1285 0.3229
+H 3.0919 -0.4425 -1.1294
+C 6.0000 0.0000 0.0000
+C 7.4500 0.0000 0.0000
+O 5.4000 1.1000 0.0000
+H 5.4000 -0.9000 0.0000
+H 7.8000 0.5000 0.8800
+H 7.8000 0.5000 -0.8800
+H 7.8000 -1.0200 0.0000''';
+
+const String _fischerIndoleProduct = '''23
+indole + NH3 + H2O (product)
+N 1.5610 1.1123 -0.0001
+C 0.2536 0.6808 0.0000
+C 0.2815 -0.7155 0.0000
+C 1.6500 -1.1056 0.0002
+C -0.9394 1.4123 -0.0001
+C -0.9396 -1.4182 -0.0003
+C 2.4121 0.0399 0.0000
+C -2.1383 0.6938 0.0001
+C -2.1409 -0.6998 0.0001
+H 1.8497 2.0807 -0.0002
+H 2.0368 -2.1155 0.0002
+H -0.9385 2.4972 -0.0002
+H -0.9561 -2.5043 -0.0003
+H 3.4829 0.1869 0.0000
+H -3.0829 1.2317 0.0003
+H -3.0859 -1.2365 0.0002
+N 5.0000 0.0000 0.0000
+H 5.5000 0.8000 0.0000
+H 5.5000 -0.4000 0.7000
+H 5.5000 -0.4000 -0.7000
+O 8.0000 0.0000 0.0000
+H 8.6000 0.7000 0.0000
+H 8.6000 -0.7000 0.0000''';
+
+const String _gabrielReactant = '''20
+phthalimide + ethylamine synthesis precursor (reactant)
+O -1.6232 -2.3093 0.0009
+O -1.6229 2.3094 0.0005
+N -2.0286 0.0001 -0.0003
+C 0.1223 -0.6943 -0.0004
+C 0.1224 0.6942 -0.0003
+C -1.2688 -1.1459 -0.0004
+C -1.2687 1.1460 -0.0002
+C 1.2925 -1.4245 -0.0002
+C 1.2926 1.4245 0.0000
+C 2.4912 -0.7052 0.0002
+C 2.4912 0.7051 0.0003
+H 1.2929 -2.5081 -0.0002
+H 1.2930 2.5081 0.0002
+H 3.4383 -1.2384 0.0004
+H 3.4384 1.2382 0.0006
+C -3.4500 0.0000 0.0000
+C -4.2000 1.2500 0.0000
+H -3.6500 -0.6000 0.8800
+H -3.6500 -0.6000 -0.8800
+H -4.0000 1.8500 0.8800''';
+
+const String _gabrielProduct = '''20
+phthalimide intermediate + ethyl fragment (product)
+O -1.6232 -2.3093 0.0009
+O -1.6229 2.3094 0.0005
+N -2.0286 0.0001 -0.0003
+C 0.1223 -0.6943 -0.0004
+C 0.1224 0.6942 -0.0003
+C -1.2688 -1.1459 -0.0004
+C -1.2687 1.1460 -0.0002
+C 1.2925 -1.4245 -0.0002
+C 1.2926 1.4245 0.0000
+C 2.4912 -0.7052 0.0002
+C 2.4912 0.7051 0.0003
+H 1.2929 -2.5081 -0.0002
+H 1.2930 2.5081 0.0002
+H 3.4383 -1.2384 0.0004
+H 3.4384 1.2382 0.0006
+C -5.0000 0.0000 0.0000
+C -6.2000 0.0000 0.0000
+H -4.5000 0.9000 0.0000
+H -4.5000 -0.9000 0.0000
+H -6.7000 0.9000 0.0000''';

@@ -1,8 +1,9 @@
 import 'dart:math' as math;
-
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:quantum_forge/core/utils/xyz_parser.dart';
 import 'package:quantum_forge/core/widgets/reaction_animation_widget.dart';
+import 'package:quantum_forge/features/auth/presentation/screens/auth_screen.dart';
 import 'package:quantum_forge/features/reaction_library/data/reaction_templates.dart';
 import 'package:quantum_forge/features/reaction_library/presentation/widgets/pubmed_panel.dart';
 import 'package:quantum_forge/features/reaction_runner/presentation/widgets/dashboard_cards/distinct_molecules_viewer.dart';
@@ -16,6 +17,28 @@ class TemplateDetailScreen extends StatelessWidget {
     required this.template,
     required this.onLoad,
   });
+
+  void _onSimulatePressed(BuildContext context) {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          builder: (ctx) => AuthScreen(
+            redirectMessage:
+                'Sign in required: Please log in with your researcher credentials to simulate this reaction.',
+            onLoginSuccess: () {
+              Navigator.of(ctx).pop();
+              Navigator.of(context).pop();
+              onLoad();
+            },
+          ),
+        ),
+      );
+      return;
+    }
+    Navigator.of(context).pop();
+    onLoad();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -156,10 +179,7 @@ class TemplateDetailScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 16),
                       FilledButton.icon(
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                          onLoad();
-                        },
+                        onPressed: () => _onSimulatePressed(context),
                         style: FilledButton.styleFrom(
                           backgroundColor: color,
                           foregroundColor: Colors.black,
@@ -232,10 +252,7 @@ class TemplateDetailScreen extends StatelessWidget {
                       ),
                       const Spacer(),
                       FilledButton.icon(
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                          onLoad();
-                        },
+                        onPressed: () => _onSimulatePressed(context),
                         style: FilledButton.styleFrom(
                           backgroundColor: color,
                           foregroundColor: Colors.black,

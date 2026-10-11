@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
+import '../../../../core/widgets/quantum_forge_logo.dart';
 
 /// Animated number display for the library header.
 ///
@@ -118,6 +119,8 @@ class LibraryHeader extends StatelessWidget {
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
+                    const QuantumForgeLogo(size: 30, borderRadius: 8),
+                    const SizedBox(width: 12),
                     const Text(
                       'Reaction Library',
                       style: TextStyle(

@@ -29,6 +29,7 @@ import 'package:flutter/material.dart';
 
 import 'package:quantum_forge/core/utils/unicode_math.dart';
 import 'package:quantum_forge/state/settings_provider.dart';
+import 'package:quantum_forge/features/reaction_library/data/reaction_templates.dart';
 
 // ── Quality tiers ───────────────────────────────────────────────────────────
 
@@ -171,6 +172,19 @@ class ResultsSummary {
   /// 1σ band for the Arrhenius plot, in natural-log (ln k) units.
   final double lnUncertainty;
 
+  /// Whether the literature reference describes a catalyzed pathway.
+  final bool hasLiteratureCatalyst;
+
+  /// Default literature catalyst name, if specified by the template.
+  final String? defaultCatalystName;
+
+  /// Whether a catalyst is currently considered active/applied in the calculation.
+  final bool isCatalystApplied;
+
+  /// True when the literature barrier is for a catalyzed reaction, but the
+  /// calculation was run uncatalyzed.
+  final bool isCatalystMismatched;
+
   const ResultsSummary({
     required this.settings,
     required this.metrics,
@@ -184,6 +198,10 @@ class ResultsSummary {
     required this.profileUncertainty,
     required this.rateVsTemp,
     required this.lnUncertainty,
+    this.hasLiteratureCatalyst = false,
+    this.defaultCatalystName,
+    this.isCatalystApplied = false,
+    this.isCatalystMismatched = false,
   });
 
   MetricEstimate byLabel(String label) =>
@@ -234,6 +252,7 @@ ResultsSummary computeResultsSummary({
   double? referenceEa,
   bool isRealData = false,
   double? realImaginaryFrequency,
+  ReactionTemplate? template,
 }) {
   // ── Energy scaling (surrogate response model) ────────────────────────────
   // The scaling below exists only so the *local illustrative simulation* — which
@@ -457,21 +476,32 @@ ResultsSummary computeResultsSummary({
     ));
   }
 
-  return ResultsSummary(
-    settings: settings,
-    metrics: metrics,
-    overallQuality:
-        isRealData ? MetricQuality.computed : MetricQuality.surrogate,
-    methodLabel: isRealData
-        ? 'MLIP · Direct MaxFlux (${settings.mlipModel})'
-        : 'Surrogate MLIP estimate (${settings.optimizerAlgorithm})',
-    referenceEa: scaledRefEa,
-    estimatedEa: ea,
-    eaError: eaError,
-    eaErrorPct: eaErrorPct,
-    energyProfile: scaledProfile,
-    profileUncertainty: _U.dH,
-    rateVsTemp: rateVsTemp,
-    lnUncertainty: sigmaLog10k * math.ln10,
-  );
-}
+    final hasLitCat = template?.hasLiteratureCatalyst ?? false;
+    final defaultCatName = template?.defaultCatalystName;
+    final isCatApplied = settings.applyLiteratureCatalyst &&
+        (settings.catalyst != 'None' && settings.catalyst != 'None (Gas-Phase / Intrinsic)' || hasLitCat);
+    final isCatMismatched = hasLitCat &&
+        (!settings.applyLiteratureCatalyst || settings.catalyst == 'None' || settings.catalyst == 'None (Gas-Phase / Intrinsic)');
+
+    return ResultsSummary(
+      settings: settings,
+      metrics: metrics,
+      overallQuality:
+          isRealData ? MetricQuality.computed : MetricQuality.surrogate,
+      methodLabel: isRealData
+          ? 'MLIP · Direct MaxFlux (${settings.mlipModel})'
+          : 'Surrogate MLIP estimate (${settings.optimizerAlgorithm})',
+      referenceEa: scaledRefEa,
+      estimatedEa: ea,
+      eaError: eaError,
+      eaErrorPct: eaErrorPct,
+      energyProfile: scaledProfile,
+      profileUncertainty: _U.dH,
+      rateVsTemp: rateVsTemp,
+      lnUncertainty: sigmaLog10k * math.ln10,
+      hasLiteratureCatalyst: hasLitCat,
+      defaultCatalystName: defaultCatName,
+      isCatalystApplied: isCatApplied,
+      isCatalystMismatched: isCatMismatched,
+    );
+  }

@@ -49,6 +49,20 @@ class _QuantumControlsPanelState extends State<QuantumControlsPanel> {
   static const _convergences = ['Loose', 'Normal', 'Tight', 'Very Tight'];
   static const _exportFormats = ['XYZ', 'PDB', 'JSON'];
 
+  TextEditingController? _customCatalystController;
+
+  @override
+  void initState() {
+    super.initState();
+    _customCatalystController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _customCatalystController?.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     final notifier = context.read<QuantumSettingsNotifier>();
@@ -73,6 +87,13 @@ class _QuantumControlsPanelState extends State<QuantumControlsPanel> {
                     icon: Icons.memory,
                     initiallyExpanded: true,
                     children: _buildSystemContent(settings, notifier),
+                  ),
+                  _buildExpansionTile(
+                    title: 'CATALYST CONFIGURATION',
+                    icon: Icons.science_outlined,
+                    initiallyExpanded:
+                        widget.activeTemplate?.hasLiteratureCatalyst == true,
+                    children: _buildCatalystContent(settings, notifier),
                   ),
                   _buildExpansionTile(
                     title: 'QUANTUM THEORY',
@@ -291,6 +312,180 @@ class _QuantumControlsPanelState extends State<QuantumControlsPanel> {
         decoration: _inputDecoration('Hugging Face API Token'),
         onChanged: (v) => n.update((q) => q.copyWith(hfToken: v)),
       ),
+    ];
+  }
+
+  // ---------------------------------------------------------------------------
+  // CATALYST CONTENT
+  // ---------------------------------------------------------------------------
+  List<Widget> _buildCatalystContent(
+    QuantumSettings s,
+    QuantumSettingsNotifier n,
+  ) {
+    final template = widget.activeTemplate;
+    final hasLiteratureCat = template?.hasLiteratureCatalyst == true;
+    final litCatName = template?.defaultCatalystName ?? 'None';
+
+    final catalystModes = [
+      if (hasLiteratureCat) 'Literature Default',
+      'None (Gas-Phase / Intrinsic)',
+      'Custom Catalyst',
+    ];
+
+    String selectedMode;
+    if (!s.applyLiteratureCatalyst ||
+        s.catalyst == 'None' ||
+        s.catalyst == 'None (Gas-Phase / Intrinsic)') {
+      selectedMode = 'None (Gas-Phase / Intrinsic)';
+    } else if (s.catalyst == 'Custom Catalyst' ||
+        (s.customCatalyst.isNotEmpty && s.catalyst == s.customCatalyst)) {
+      selectedMode = 'Custom Catalyst';
+    } else if (hasLiteratureCat &&
+        (s.catalyst == 'Literature Default' || s.catalyst == litCatName)) {
+      selectedMode = 'Literature Default';
+    } else {
+      selectedMode = hasLiteratureCat
+          ? 'Literature Default'
+          : 'None (Gas-Phase / Intrinsic)';
+    }
+
+    if (_customCatalystController != null &&
+        _customCatalystController!.text != s.customCatalyst) {
+      _customCatalystController!.text = s.customCatalyst;
+    }
+
+    return [
+      if (hasLiteratureCat) ...[
+        _switchRow(
+          'Apply Literature Catalyst ($litCatName)',
+          s.applyLiteratureCatalyst,
+          (val) {
+            n.update((q) => q.copyWith(
+              applyLiteratureCatalyst: val,
+              catalyst: val ? litCatName : 'None (Gas-Phase / Intrinsic)',
+            ));
+          },
+          tooltip:
+              'When enabled, applies the literature-defined catalyst ($litCatName) to match published experimental barriers.',
+        ),
+        const SizedBox(height: 12),
+      ] else ...[
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.04),
+            borderRadius: BorderRadius.circular(6),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+          ),
+          child: Row(
+            children: [
+              const Icon(Icons.info_outline, size: 14, color: Colors.white38),
+              const SizedBox(width: 8),
+              const Expanded(
+                child: Text(
+                  'Gas-phase reaction (no literature catalyst specified)',
+                  style: TextStyle(color: Colors.white38, fontSize: 11),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
+      ],
+
+      _dropdownField(
+        label: 'Catalyst Mode / Override',
+        value: selectedMode,
+        items: catalystModes,
+        tooltip:
+            'Select whether to use the literature catalyst, simulate purely intrinsic gas-phase kinetics, or specify a custom catalyst environment.',
+        onChanged: (mode) {
+          if (mode == 'Literature Default') {
+            n.update((q) => q.copyWith(
+              applyLiteratureCatalyst: true,
+              catalyst: litCatName,
+            ));
+          } else if (mode == 'None (Gas-Phase / Intrinsic)') {
+            n.update((q) => q.copyWith(
+              applyLiteratureCatalyst: false,
+              catalyst: 'None (Gas-Phase / Intrinsic)',
+            ));
+          } else if (mode == 'Custom Catalyst') {
+            final customVal =
+                s.customCatalyst.isNotEmpty ? s.customCatalyst : 'Custom Catalyst';
+            n.update((q) => q.copyWith(
+              applyLiteratureCatalyst: true,
+              catalyst: customVal,
+            ));
+          }
+        },
+      ),
+
+      if (selectedMode == 'Custom Catalyst') ...[
+        const SizedBox(height: 12),
+        TextFormField(
+          controller: _customCatalystController,
+          style: const TextStyle(color: Colors.white, fontSize: 13),
+          decoration: _inputDecoration('Custom Catalyst Formula / Name'),
+          onChanged: (val) {
+            n.update((q) => q.copyWith(
+              customCatalyst: val,
+              catalyst: val.isNotEmpty ? val : 'Custom Catalyst',
+            ));
+          },
+        ),
+      ],
+
+      if (hasLiteratureCat && s.applyLiteratureCatalyst) ...[
+        const SizedBox(height: 12),
+        Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: const Color(0xFF4FC3F7).withValues(alpha: 0.06),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: const Color(0xFF4FC3F7).withValues(alpha: 0.2),
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const Icon(
+                    Icons.auto_awesome,
+                    size: 13,
+                    color: Color(0xFF4FC3F7),
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    'Active: $litCatName',
+                    style: const TextStyle(
+                      color: Color(0xFF4FC3F7),
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+              if (template?.literatureBarrierKcalMol != null) ...[
+                const SizedBox(height: 4),
+                Text(
+                  'Literature Barrier: ${template!.literatureBarrierKcalMol!.toStringAsFixed(1)} kcal/mol',
+                  style: const TextStyle(color: Colors.white70, fontSize: 10),
+                ),
+              ],
+              if (template?.literatureDoi != null) ...[
+                const SizedBox(height: 2),
+                Text(
+                  'DOI: ${template!.literatureDoi}',
+                  style: const TextStyle(color: Colors.white38, fontSize: 9),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ],
     ];
   }
 
@@ -561,7 +756,8 @@ class _QuantumControlsPanelState extends State<QuantumControlsPanel> {
           ),
           const SizedBox(height: 6),
           Text(
-            'ΔE‡ = ${t.referenceEa} kcal·mol⁻¹',
+            'ΔE‡ = ${t.effectiveLiteratureBarrier} kcal·mol⁻¹'
+            '${t.hasLiteratureCatalyst && t.defaultCatalystName != null ? ' (${t.defaultCatalystName})' : ''}',
             style: const TextStyle(
               color: Colors.white,
               fontWeight: FontWeight.bold,

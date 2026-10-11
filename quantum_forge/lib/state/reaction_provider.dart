@@ -13,7 +13,6 @@ import 'package:quantum_forge/core/services/reaction_repository.dart';
 import 'package:quantum_forge/core/services/file_picker_service.dart';
 import 'package:quantum_forge/features/reaction_runner/data/models/reaction_models.dart';
 import 'package:quantum_forge/state/settings_provider.dart';
-import 'package:quantum_forge/features/reaction_library/data/reaction_templates.dart';
 import 'package:quantum_forge/core/utils/uuid_util.dart';
 import 'package:quantum_forge/core/algorithms/transformer_reaction_compressor.dart';
 import 'dart:convert';

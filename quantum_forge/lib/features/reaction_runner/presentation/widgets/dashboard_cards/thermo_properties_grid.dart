@@ -30,6 +30,20 @@ class ThermoPropertiesGrid extends StatelessWidget {
                   fontWeight: FontWeight.w800,
                 ),
               ),
+              const SizedBox(width: 6),
+              Tooltip(
+                message: 'Properties in this grid are evaluated in-app via Eyring TST\n'
+                    'and statistical mechanics (harmonic model), derived from\n'
+                    'the MLIP activation barrier Ea and TS imaginary frequency.',
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1E293B),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.white24),
+                ),
+                textStyle: const TextStyle(color: Colors.white, fontSize: 11, height: 1.4),
+                child: Icon(Icons.info_outline, size: 14, color: palette.textMuted),
+              ),
               const Spacer(),
               Text(
                 '±1σ · tabular figures',

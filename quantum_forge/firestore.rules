@@ -4,15 +4,9 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     // The user's own profile document. Every signed-in user owns exactly one.
-    // Fields written here (email, displayName, lastSeen, createdAt) come from
-    // `FirebaseAuthService._syncUserProfile`. Rules are field-agnostic — the
-    // write either lands on the user's own doc or is rejected outright.
     match /users/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
 
-      // Everything under the user's document inherits the same ownership.
-      // Reactions are the only thing here today; adding new subcollections
-      // (settings, workspaces, history) requires no rule change.
       match /{document=**} {
         allow read, write: if request.auth != null && request.auth.uid == userId;
       }
@@ -25,6 +19,14 @@ service cloud.firestore {
       allow read: if true;
       allow create, update: if request.auth != null;
       allow delete: if request.auth != null && request.auth.token.admin == true;
+    }
+
+    // Public shared reactions: readable by anyone (including guests).
+    // Anyone can generate/save a public share snapshot.
+    match /shared_reactions/{shareId} {
+      allow read: if true;
+      allow create: if true;
+      allow update, delete: if request.auth != null;
     }
   }
 }

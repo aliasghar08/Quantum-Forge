@@ -1,4 +1,6 @@
 import 'package:flutter/foundation.dart';
+export 'package:quantum_forge/features/reaction_library/data/reaction_templates.dart'
+    show ReactionTemplate;
 enum ReactionState { idle, pending, optimizing, completed, error }
 
 class VibrationalMode {
@@ -188,6 +190,22 @@ class ReactionStatusResponse {
       createdAt: json['created_at'] != null ? DateTime.tryParse(json['created_at'] as String) : null,
       modelUsed: json['model_used'] as String?,
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'reaction_id': reactionId,
+      'state': state.name,
+      'progress': progress,
+      if (message != null) 'message': message,
+      if (error != null) 'error': error,
+      if (energyProfile != null) 'energy_profile': energyProfile,
+      if (energyProfileEv != null) 'energy_profile_ev': energyProfileEv,
+      if (maxEnergyIndex != null) 'max_energy_index': maxEnergyIndex,
+      if (trajectoryFrames != null) 'trajectory_frames': trajectoryFrames,
+      if (createdAt != null) 'created_at': createdAt!.toIso8601String(),
+      if (modelUsed != null) 'model_used': modelUsed,
+    };
   }
 
   @override

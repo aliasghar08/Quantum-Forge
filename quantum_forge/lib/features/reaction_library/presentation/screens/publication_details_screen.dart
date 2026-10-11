@@ -19,6 +19,7 @@ import 'package:quantum_forge/features/reaction_library/presentation/widgets/pub
 import 'package:quantum_forge/features/reaction_library/presentation/widgets/publication/publication_energies_card.dart';
 import 'package:quantum_forge/features/reaction_library/presentation/widgets/publication/publication_external_links_card.dart';
 import 'package:quantum_forge/features/reaction_library/presentation/widgets/publication/publication_related_videos_card.dart';
+import 'package:quantum_forge/views/publications/publication_videos_section.dart';
 
 class PublicationDetailsScreen extends StatefulWidget {
   final ReactionTemplate template;
@@ -279,6 +280,10 @@ class _PublicationDetailsScreenState extends State<PublicationDetailsScreen> {
           PublicationRelatedVideosCard(
             query: title,
             template: widget.template,
+          ),
+          const SizedBox(height: 24),
+          PublicationVideosSection(
+            query: title,
           ),
         ],
       ),

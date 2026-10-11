@@ -4,6 +4,8 @@
 // ============================================================================
 
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:quantum_forge/features/auth/presentation/screens/auth_screen.dart';
 import 'package:quantum_forge/features/reaction_library/data/reaction_templates.dart';
 import 'package:quantum_forge/features/reaction_library/presentation/screens/template_detail_screen.dart';
 import 'package:quantum_forge/core/widgets/glass_container.dart';
@@ -90,6 +92,29 @@ class _ReactionCardWidgetState extends State<ReactionCardWidget> {
             child: InkWell(
               borderRadius: BorderRadius.circular(16),
               onTap: () {
+                final user = FirebaseAuth.instance.currentUser;
+                if (user == null) {
+                  Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (ctx) => AuthScreen(
+                        redirectMessage:
+                            'Sign in required: Please log in with your researcher credentials to access reaction details, 3D coordinates, and simulations.',
+                        onLoginSuccess: () {
+                          Navigator.of(ctx).pop();
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => TemplateDetailScreen(
+                                template: template,
+                                onLoad: widget.onLoad,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  );
+                  return;
+                }
                 Navigator.of(context).push(
                   MaterialPageRoute(
                     builder: (context) => TemplateDetailScreen(

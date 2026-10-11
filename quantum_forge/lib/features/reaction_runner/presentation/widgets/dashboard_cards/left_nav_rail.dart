@@ -12,9 +12,10 @@ import 'package:provider/provider.dart';
 
 import 'package:quantum_forge/core/settings/app_settings_provider.dart';
 import 'package:quantum_forge/core/theme/theme_provider.dart';
+import 'package:quantum_forge/core/services/feedback_service.dart';
 import 'package:quantum_forge/features/auth/presentation/screens/auth_screen.dart';
 import 'package:quantum_forge/features/settings/presentation/screens/settings_screen.dart';
-import 'package:quantum_forge/core/services/feedback_service.dart';
+import 'package:quantum_forge/core/widgets/quantum_forge_logo.dart';
 
 enum NavDestination { library, newReaction, editor, history, methodValidation }
 
@@ -84,26 +85,7 @@ class ProfessionalDrawer extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  Container(
-                    width: 36,
-                    height: 36,
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [palette.accent, palette.accentAlt],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius: BorderRadius.circular(10),
-                      boxShadow: [
-                        BoxShadow(
-                          color: palette.accent.withValues(alpha: 0.3),
-                          blurRadius: 8,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: Icon(Icons.science, color: palette.onAccent, size: 20),
-                  ),
+                  const QuantumForgeLogo(size: 38, borderRadius: 10),
                   const SizedBox(width: 14),
                   Expanded(
                     child: Column(

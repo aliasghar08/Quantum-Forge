@@ -49,3 +49,6 @@ models/production/
 eval/results/*.json
 !eval/results/.gitkeep
 *.log
+
+SESSION_STATE.md
+RECOVERED_SESSION_CONTEXT.md

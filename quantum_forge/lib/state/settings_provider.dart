@@ -42,6 +42,8 @@ class QuantumSettings {
 
   // --- Catalyst ---
   final String catalyst;
+  final bool applyLiteratureCatalyst;
+  final String customCatalyst;
 
   // --- Analysis ---
   final bool zpeCorrection;
@@ -61,6 +63,8 @@ class QuantumSettings {
     this.temperatureK = 298.15,
     // Catalyst
     this.catalyst = 'None',
+    this.applyLiteratureCatalyst = true,
+    this.customCatalyst = '',
     // Optimizer
     this.optimizerAlgorithm = 'NEB-CI',
     this.maxSteps = 300,
@@ -102,6 +106,8 @@ class QuantumSettings {
       other.solventModel == solventModel &&
       other.temperatureK == temperatureK &&
       other.catalyst == catalyst &&
+      other.applyLiteratureCatalyst == applyLiteratureCatalyst &&
+      other.customCatalyst == customCatalyst &&
       other.optimizerAlgorithm == optimizerAlgorithm &&
       other.maxSteps == maxSteps &&
       other.convergence == convergence &&
@@ -130,6 +136,8 @@ class QuantumSettings {
       solventModel,
       temperatureK,
       catalyst,
+      applyLiteratureCatalyst,
+      customCatalyst,
       optimizerAlgorithm,
       maxSteps,
       convergence,
@@ -157,6 +165,8 @@ class QuantumSettings {
     String? solventModel,
     double? temperatureK,
     String? catalyst,
+    bool? applyLiteratureCatalyst,
+    String? customCatalyst,
     String? optimizerAlgorithm,
     int? maxSteps,
     String? convergence,
@@ -182,6 +192,8 @@ class QuantumSettings {
       solventModel: solventModel ?? this.solventModel,
       temperatureK: temperatureK ?? this.temperatureK,
       catalyst: catalyst ?? this.catalyst,
+      applyLiteratureCatalyst: applyLiteratureCatalyst ?? this.applyLiteratureCatalyst,
+      customCatalyst: customCatalyst ?? this.customCatalyst,
       optimizerAlgorithm: optimizerAlgorithm ?? this.optimizerAlgorithm,
       maxSteps: maxSteps ?? this.maxSteps,
       convergence: convergence ?? this.convergence,
@@ -209,6 +221,8 @@ class QuantumSettings {
         'solvent_model': solventModel,
         'temperature_k': temperatureK,
         'catalyst': catalyst,
+        'apply_literature_catalyst': applyLiteratureCatalyst,
+        'custom_catalyst': customCatalyst,
         'optimizer_algorithm': optimizerAlgorithm,
         'max_steps': maxSteps,
         'convergence': convergence,
@@ -266,6 +280,8 @@ class QuantumSettingsNotifier extends ValueNotifier<QuantumSettings> {
   static const _keyExport = '${_k}export';
   static const _keyConf = '${_k}conf';
   static const _keyCatalyst = '${_k}catalyst';
+  static const _keyApplyLitCat = '${_k}apply_lit_catalyst';
+  static const _keyCustomCat = '${_k}custom_catalyst';
 
   Future<void> _load() async {
     try {
@@ -277,6 +293,8 @@ class QuantumSettingsNotifier extends ValueNotifier<QuantumSettings> {
         solventModel: AppStorage.getString(_keySolvent) ?? 'Vacuum',
         temperatureK: AppStorage.getDouble(_keyTemp) ?? 298.15,
         catalyst: AppStorage.getString(_keyCatalyst) ?? 'None',
+        applyLiteratureCatalyst: AppStorage.getBool(_keyApplyLitCat) ?? true,
+        customCatalyst: AppStorage.getString(_keyCustomCat) ?? '',
         optimizerAlgorithm: AppStorage.getString(_keyAlgo) ?? 'NEB-CI',
         maxSteps: AppStorage.getInt(_keySteps) ?? 300,
         convergence: AppStorage.getString(_keyConv) ?? 'Normal',
@@ -311,6 +329,8 @@ class QuantumSettingsNotifier extends ValueNotifier<QuantumSettings> {
       AppStorage.setString(_keySolvent, s.solventModel);
       AppStorage.setDouble(_keyTemp, s.temperatureK);
       AppStorage.setString(_keyCatalyst, s.catalyst);
+      AppStorage.setBool(_keyApplyLitCat, s.applyLiteratureCatalyst);
+      AppStorage.setString(_keyCustomCat, s.customCatalyst);
       AppStorage.setString(_keyAlgo, s.optimizerAlgorithm);
       AppStorage.setInt(_keySteps, s.maxSteps);
       AppStorage.setString(_keyConv, s.convergence);

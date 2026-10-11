@@ -137,6 +137,69 @@ class DashboardViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  void loadTemplateForView(ReactionTemplate template) {
+    _disposeEntries(_reactants);
+    _disposeEntries(_products);
+    _disposeEntries(_catalysts);
+    _reactants
+      ..clear()
+      ..add(MoleculeEntry(id: 'r0'));
+    _products
+      ..clear()
+      ..add(MoleculeEntry(id: 'p0'));
+    _catalysts
+      ..clear()
+      ..add(MoleculeEntry(id: 'c0'));
+    
+    _activeTemplate = template;
+    _navDest = NavDestination.newReaction;
+    notifyListeners();
+  }
+
+  void loadMoleculesFromData({
+    List<dynamic>? reactantsData,
+    List<dynamic>? productsData,
+    List<dynamic>? catalystsData,
+  }) {
+    _disposeEntries(_reactants);
+    _disposeEntries(_products);
+    _disposeEntries(_catalysts);
+    _reactants.clear();
+    _products.clear();
+    _catalysts.clear();
+
+    void populateList(List<dynamic>? data, List<MoleculeEntry> targetList, String prefix) {
+      if (data == null || data.isEmpty) {
+        targetList.add(MoleculeEntry(id: '${prefix}0'));
+        return;
+      }
+      for (int i = 0; i < data.length; i++) {
+        final item = data[i] as Map<String, dynamic>;
+        final entry = MoleculeEntry(id: '$prefix$i');
+        final name = item['name'] as String? ?? 'Molecule $i';
+        final xyz = item['xyz'] as String? ?? '';
+        if (xyz.isNotEmpty) {
+          final bytes = Uint8List.fromList(utf8.encode(xyz));
+          entry.file = PickedFile(
+            name: name.endsWith('.xyz') ? name : '$name.xyz',
+            bytes: bytes,
+            size: bytes.length,
+          );
+          entry.ctrl.text = name;
+        }
+        targetList.add(entry);
+      }
+    }
+
+    populateList(reactantsData, _reactants, 'r');
+    populateList(productsData, _products, 'p');
+    populateList(catalystsData, _catalysts, 'c');
+
+    _activeTemplate = null;
+    _navDest = NavDestination.newReaction;
+    notifyListeners();
+  }
+
   void clearTemplate() {
     _activeTemplate = null;
     notifyListeners();

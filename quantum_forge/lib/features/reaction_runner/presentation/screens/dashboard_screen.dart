@@ -6,8 +6,10 @@
 // ============================================================================
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:quantum_forge/core/services/file_picker_service.dart';
+import 'package:quantum_forge/core/services/shared_reaction_service.dart';
 import 'package:quantum_forge/state/reaction_provider.dart';
 import 'package:quantum_forge/features/reaction_runner/data/models/reaction_models.dart';
 import 'package:quantum_forge/state/settings_provider.dart';
@@ -27,6 +29,7 @@ import 'package:quantum_forge/features/reaction_library/data/reaction_templates.
 import 'package:quantum_forge/features/reaction_library/data/firestore_library_repository.dart';
 import 'package:quantum_forge/features/reaction_library/presentation/screens/library_screen.dart';
 import 'package:quantum_forge/features/reaction_library/presentation/widgets/pubmed_panel.dart';
+import 'package:quantum_forge/core/widgets/quantum_forge_logo.dart';
 // Dashboard card widgets
 import 'package:quantum_forge/features/reaction_runner/presentation/widgets/dashboard_cards/energy_profile_card.dart';
 import 'package:quantum_forge/features/reaction_runner/presentation/widgets/dashboard_cards/hero_metrics_row.dart';
@@ -81,7 +84,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
     _viewModel = DashboardViewModel(sessionService: sessionService);
     _viewModel.loadState();
     _viewModel.addListener(_onViewModelChanged);
-    WidgetsBinding.instance.addPostFrameCallback((_) => _handleIncomingStructure());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _handleIncomingStructure();
+      _handleIncomingSharedReaction();
+    });
   }
 
   void _onViewModelChanged() {
@@ -143,6 +149,262 @@ class _DashboardScreenState extends State<DashboardScreen> {
     AvogadroBridge.stripImportParams(Uri.base);
   }
 
+  Future<void> _handleIncomingSharedReaction() async {
+    final uri = Uri.base;
+    final shareId = uri.queryParameters['share'];
+    final templateId = uri.queryParameters['reaction'];
+
+    if (shareId != null && shareId.isNotEmpty) {
+      try {
+        final data = await SharedReactionService.getSharedReaction(shareId);
+        if (data != null && mounted) {
+          _loadSharedReactionData(data);
+        } else if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Shared reaction not found or may have expired.'),
+              duration: Duration(seconds: 4),
+            ),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Error loading shared reaction: $e'),
+              duration: const Duration(seconds: 4),
+            ),
+          );
+        }
+      }
+    } else if (templateId != null && templateId.isNotEmpty) {
+      final template = _findTemplateById(templateId);
+      if (template != null && mounted) {
+        _viewModel.loadTemplateForView(template);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Loaded shared template: ${template.name} (Public View)'),
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      }
+    }
+  }
+
+  ReactionTemplate? _findTemplateById(String id) {
+    for (final t in kReactionTemplates) {
+      if (t.id == id) return t;
+    }
+    return null;
+  }
+
+  void _loadSharedReactionData(Map<String, dynamic> data) {
+    final templateId = data['template_id'] as String?;
+    final rxnName = data['reaction_name'] as String? ?? 'Shared Reaction';
+
+    if (templateId != null && templateId.isNotEmpty) {
+      final template = _findTemplateById(templateId);
+      if (template != null) {
+        _viewModel.loadTemplateForView(template);
+      }
+    } else {
+      _viewModel.loadMoleculesFromData(
+        reactantsData: data['reactants'] as List<dynamic>?,
+        productsData: data['products'] as List<dynamic>?,
+        catalystsData: data['catalysts'] as List<dynamic>?,
+      );
+    }
+
+    if (data['status'] != null) {
+      try {
+        final statusMap = Map<String, dynamic>.from(data['status'] as Map);
+        final loadedStatus = ReactionStatusResponse.fromJson(statusMap);
+        context.read<ReactionNotifier>().value = loadedStatus;
+        setState(() => _selectedFrameIndex = null);
+      } catch (e) {
+        debugPrint('[DashboardScreen] Error decoding shared reaction status: $e');
+      }
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Viewing public shared reaction: $rxnName'),
+        backgroundColor: const Color(0xFF00B0FF),
+        duration: const Duration(seconds: 5),
+      ),
+    );
+  }
+
+  Future<void> _shareCurrentReaction([ReactionStatusResponse? status]) async {
+    final palette = ThemeNotifier.paletteOf(context);
+    final reactionNotifier = context.read<ReactionNotifier>();
+    final currentStatus = status ?? reactionNotifier.value;
+    final settings = context.read<QuantumSettingsNotifier>().value;
+
+    String rxName = _viewModel.activeTemplate?.name ?? 'Custom Reaction';
+    if (_viewModel.activeTemplate == null) {
+      final rCount = _viewModel.reactants.where((e) => e.resolved).length;
+      final pCount = _viewModel.products.where((e) => e.resolved).length;
+      if (rCount == 0 && pCount == 0) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Please select or configure a reaction before sharing.'),
+          ),
+        );
+        return;
+      }
+    }
+
+    // Show loading overlay
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => const Center(
+        child: Card(
+          color: Color(0xFF15151C),
+          child: Padding(
+            padding: EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CircularProgressIndicator(color: Color(0xFF00B0FF)),
+                SizedBox(height: 16),
+                Text('Generating public URL…', style: TextStyle(color: Colors.white)),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+
+    try {
+      final publicUrl = await SharedReactionService.createPublicShare(
+        reactionName: rxName,
+        templateId: _viewModel.activeTemplate?.id,
+        referenceEa: _viewModel.activeTemplate?.referenceEa,
+        reactants: _viewModel.reactants,
+        products: _viewModel.products,
+        catalysts: _viewModel.catalysts,
+        settings: settings,
+        status: currentStatus,
+      );
+
+      // Copy to clipboard
+      await Clipboard.setData(ClipboardData(text: publicUrl));
+
+      if (mounted) {
+        Navigator.of(context).pop(); // dismiss loading dialog
+        _showShareDialog(publicUrl, rxName, palette);
+      }
+    } catch (e) {
+      if (mounted) {
+        Navigator.of(context).pop(); // dismiss loading dialog
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to generate public URL: $e'),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+      }
+    }
+  }
+
+  void _showShareDialog(String url, String reactionName, QuantumTheme palette) {
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF15151C),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(18),
+          side: const BorderSide(color: Color(0xFF00B0FF), width: 1.2),
+        ),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: const Color(0xFF00B0FF).withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Icon(Icons.share_rounded, color: Color(0xFF00B0FF), size: 22),
+            ),
+            const SizedBox(width: 12),
+            const Expanded(
+              child: Text(
+                'Public Reaction Link Ready',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+              ),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Anyone with this link can view the complete reaction, 3D trajectory animation, and quantum properties freely without logging in.',
+              style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 13, height: 1.4),
+            ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.black.withValues(alpha: 0.5),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: SelectableText(
+                      url,
+                      style: const TextStyle(
+                        fontFamily: 'monospace',
+                        color: Color(0xFF4FC3F7),
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  IconButton(
+                    icon: const Icon(Icons.copy_rounded, color: Colors.white70, size: 18),
+                    tooltip: 'Copy link',
+                    onPressed: () {
+                      Clipboard.setData(ClipboardData(text: url));
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Public URL copied to clipboard!'),
+                          duration: Duration(seconds: 2),
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                const Icon(Icons.check_circle_rounded, color: Color(0xFF00E676), size: 16),
+                const SizedBox(width: 6),
+                Text(
+                  'Link copied to clipboard automatically',
+                  style: TextStyle(color: Colors.white.withValues(alpha: 0.6), fontSize: 11.5),
+                ),
+              ],
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('Done', style: TextStyle(color: Color(0xFF00B0FF), fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   void dispose() {
     _viewModel.dispose();
@@ -191,13 +453,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   void _openLibrary() {
-    if (!_isUserSignedIn) {
-      _redirectToAuth(
-        message: 'Sign in required: Please log in with your researcher credentials to access the Reaction Library and 1,200+ reaction templates.',
-        onSuccess: () => _viewModel.setNavDestination(NavDestination.library),
-      );
-      return;
-    }
     _viewModel.setNavDestination(NavDestination.library);
   }
 
@@ -285,14 +540,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
           drawer: ProfessionalDrawer(
             current: _viewModel.navDest,
             onDestinationSelected: (d) {
-              if (d == NavDestination.library && !_isUserSignedIn) {
-                Navigator.pop(context); // Close drawer
-                _redirectToAuth(
-                  message: 'Sign in required: Please log in with your researcher credentials to access the Reaction Library and 1,200+ reaction templates.',
-                  onSuccess: () => _viewModel.setNavDestination(NavDestination.library),
-                );
-                return;
-              }
               _viewModel.setNavDestination(d);
               Navigator.pop(context); // Close drawer
             },
@@ -303,17 +550,35 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
           appBar: AppBar(
             backgroundColor: palette.scaffold,
-            title: Text(
-              _navTitle(_viewModel.navDest),
-              style: TextStyle(
-                fontWeight: FontWeight.w800,
-                letterSpacing: -0.5,
-                color: palette.textPrimary,
-              ),
+            title: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const QuantumForgeLogo(size: 26, borderRadius: 7),
+                const SizedBox(width: 10),
+                Text(
+                  _navTitle(_viewModel.navDest),
+                  style: TextStyle(
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -0.5,
+                    color: palette.textPrimary,
+                  ),
+                ),
+              ],
             ),
             iconTheme: IconThemeData(color: palette.textPrimary),
             elevation: 0,
             actions: [
+              Tooltip(
+                message: 'Share Public URL for this reaction',
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  child: IconButton(
+                    icon: const Icon(Icons.share_rounded, size: 20),
+                    color: const Color(0xFF00B0FF),
+                    onPressed: () => _shareCurrentReaction(),
+                  ),
+                ),
+              ),
               StreamBuilder<User?>(
                 stream: _authStateStream(),
                 builder: (context, snapshot) {
@@ -497,9 +762,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return SizedBox(
       width: double.infinity,
       child: switch (_viewModel.navDest) {
-        NavDestination.library  => _isUserSignedIn
-            ? LibraryScreen(onTemplateSelected: _viewModel.loadTemplate)
-            : _buildLibraryAuthRequired(context.read<ThemeNotifier>().palette),
+        NavDestination.library  =>
+            LibraryScreen(onTemplateSelected: _viewModel.loadTemplate),
         NavDestination.history  => const HistoryScreen(),
         NavDestination.methodValidation => MethodValidationScreen(
               backendUrl:
@@ -518,92 +782,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildLibraryAuthRequired(QuantumTheme palette) {
-    return Center(
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 520),
-        child: Container(
-          margin: const EdgeInsets.all(24),
-          padding: const EdgeInsets.all(32),
-          decoration: BoxDecoration(
-            color: palette.panel.withValues(alpha: 0.95),
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: palette.border),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.35),
-                blurRadius: 28,
-                offset: const Offset(0, 10),
-              ),
-            ],
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 64,
-                height: 64,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: LinearGradient(
-                    colors: [palette.accent, palette.accentAlt],
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: palette.accent.withValues(alpha: 0.35),
-                      blurRadius: 20,
-                    ),
-                  ],
-                ),
-                child: const Icon(Icons.lock_rounded, size: 30, color: Colors.black87),
-              ),
-              const SizedBox(height: 20),
-              Text(
-                'Reaction Library Access Restricted',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: palette.textPrimary,
-                  fontSize: 20,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: -0.3,
-                ),
-              ),
-              const SizedBox(height: 10),
-              Text(
-                'Sign in with your researcher credentials to access the complete library of 1,200+ reaction mechanisms, transition state benchmarks, and pharmacological templates.',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: palette.textMuted,
-                  fontSize: 13.5,
-                  height: 1.5,
-                ),
-              ),
-              const SizedBox(height: 28),
-              FilledButton.icon(
-                onPressed: () {
-                  _redirectToAuth(
-                    message: 'Sign in required: Please log in with your researcher credentials to access the Reaction Library and 1,200+ reaction templates.',
-                    onSuccess: () => setState(() {}),
-                  );
-                },
-                style: FilledButton.styleFrom(
-                  backgroundColor: palette.accent,
-                  foregroundColor: palette.onAccent,
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-                icon: const Icon(Icons.login_rounded, size: 18),
-                label: const Text(
-                  'Sign In to Access Library',
-                  style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 
   // ── Reaction workspace ──────────────────────────────────────────────────────────
   Widget _buildReactionWorkspace() {
@@ -733,13 +911,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final active = _viewModel.navDest == dest;
     return GestureDetector(
       onTap: () {
-        if (dest == NavDestination.library && !_isUserSignedIn) {
-          _redirectToAuth(
-            message: 'Sign in required: Please log in with your researcher credentials to access the Reaction Library and 1,200+ reaction templates.',
-            onSuccess: () => _viewModel.setNavDestination(NavDestination.library),
-          );
-          return;
-        }
         _viewModel.setNavDestination(dest);
       },
       child: AnimatedContainer(
@@ -1892,29 +2063,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     ));
   }
 
-  /// Warning-toned SnackBar, used to flag fallback (non-MLIP) data.
-  ///
-  /// Distinct from [_notify] on purpose: this one has to be noticed, so it carries
-  /// an icon, the theme's warning colour and a longer dwell.
-  void _warn(String msg) {
-    if (!mounted) return;
-    final palette = context.read<ThemeNotifier>().palette;
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(
-        content: Row(
-          children: [
-            Icon(Icons.warning_amber_rounded, color: palette.warning, size: 20),
-            const SizedBox(width: 10),
-            Expanded(child: Text(msg)),
-          ],
-        ),
-        backgroundColor: palette.warning.withValues(alpha: 0.18),
-        behavior: SnackBarBehavior.floating,
-        duration: const Duration(seconds: 10),
-      ));
-  }
-
   /// Writes the converged structure (final frame) to a file.
   ///
   /// The old "Export Results (.zip)" button called a web stub that returned a
@@ -2250,18 +2398,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   .indexWhere((e) => e == energyProfile.reduce((a, b) => a > b ? a : b));
     }
 
-    // Tell the user, once per reaction, exactly which numbers are not MLIP output.
+    // Provenance details are now presented via an unobtrusive info icon/tooltip
+    // in the Results Header and Thermodynamic Properties grid rather than an intrusive
+    // 10-second floating bottom SnackBar.
     if (status.reactionId.isNotEmpty && _warnedFallbackFor != status.reactionId) {
       _warnedFallbackFor = status.reactionId;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          final configuredMlip = context.read<QuantumSettingsNotifier>().value.mlipModel;
-          final mlip = (status.modelUsed != null && status.modelUsed!.isNotEmpty)
-              ? status.modelUsed!
-              : configuredMlip;
-          _warn(fallbackDataWarning(fromBackend: status.fromBackend, modelName: mlip));
-        }
-      });
     }
 
     return ValueListenableBuilder<QuantumSettings>(
@@ -2282,10 +2423,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
         final summary = computeResultsSummary(
           settings: settings,
           energyProfile: energyProfile,
-          referenceEa: _viewModel.activeTemplate?.referenceEa,
+          referenceEa: _viewModel.activeTemplate?.effectiveLiteratureBarrier ??
+              _viewModel.activeTemplate?.referenceEa,
           isRealData: status.fromBackend,
           realImaginaryFrequency:
               mostNegative < 0.0 ? mostNegative : null,
+          template: _viewModel.activeTemplate,
         );
 
         return Column(
@@ -2337,6 +2480,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                 ),
                 ElevatedButton.icon(
+                  onPressed: () => _shareCurrentReaction(status),
+                  icon: const Icon(Icons.share_rounded, size: 16),
+                  label: const Text('Share Public URL'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF00B0FF).withValues(alpha: 0.15),
+                    foregroundColor: const Color(0xFF00B0FF),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  ),
+                ),
+                ElevatedButton.icon(
                   onPressed: () {
                     final query =
                         '${_viewModel.activeTemplate?.name ?? "custom reaction"} mechanism';
@@ -2359,6 +2512,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               summary: summary,
               reactionName: _viewModel.activeTemplate?.name,
               modelUsed: status.modelUsed,
+              onShare: () => _shareCurrentReaction(status),
             ),
             const SizedBox(height: 16),
 

@@ -1,11 +1,11 @@
 {
-    "name": "quantum_forge",
-    "short_name": "quantum_forge",
+    "name": "Quantum Forge — Reaction Dynamics Workstation",
+    "short_name": "Quantum Forge",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#0B1120",
+    "theme_color": "#0284C7",
+    "description": "Next-Generation Transition State MLIP & Quantum Chemistry Reaction Dynamics Workstation",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
