@@ -112,48 +112,6 @@ extension _ReactionAnimationPlayerExt on _ReactionAnimationWidgetState {
                 ),
               ],
             ),
-            const SizedBox(height: 4),
-
-            // Row 4 — Dynamic bonding?
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                SizedBox(
-                  width: 22,
-                  height: 22,
-                  child: Checkbox(
-                    key: const Key('qf-dynamic-bonding'),
-                    value: _dynamicBonding,
-                    visualDensity: VisualDensity.compact,
-                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    activeColor: const Color(0xFF4FC3F7),
-                    onChanged: (value) {
-                      _claimKeyboard();
-                      _setDynamicBonding(value ?? false);
-                    },
-                  ),
-                ),
-                const SizedBox(width: 8),
-                const Text(
-                  'Dynamic bonding?',
-                  style: TextStyle(color: Colors.white70, fontSize: 11),
-                ),
-                const SizedBox(width: 6),
-                Tooltip(
-                  message:
-                      'Re-perceive every bond from the current frame\'s '
-                      'coordinates, exactly as Avogadro does: covalent radii plus '
-                      'a 0.45 Å tolerance, hydrogen–hydrogen and the noble gases '
-                      'excluded. Off, the first frame\'s bonds are reused.',
-                  child: Icon(
-                    Icons.info_outline,
-                    size: 13,
-                    color: Colors.white.withValues(alpha: 0.35),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 4),
 
             // Row 5 — Frame rate: [N] FPS
             Row(

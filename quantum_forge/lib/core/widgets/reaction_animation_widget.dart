@@ -90,7 +90,7 @@ class ReactionAnimationWidget extends StatefulWidget {
     this.maxEnergyIndex,
     this.frameRateOverride,
     this.displayType = AvogadroDisplayType.ballAndStick,
-    this.dynamicBonding = false,
+    this.dynamicBonding = true,
     this.showBondNumbers = false,
     this.compactMode = false,
     this.pdbUrl,
@@ -216,7 +216,7 @@ class _ReactionAnimationWidgetState extends State<ReactionAnimationWidget> {
   int _startFrame = 0; // `m_firstFrameIdx->value() - 1`
   int _endFrame = 0; // `m_lastFrameIdx->value() - 1`
   int _frameRate = ReactionAnimationWidget.defaultFrameRate;
-  bool _dynamicBonding = false; // `m_dynamicBonding->setChecked(false)`
+  bool _dynamicBonding = true;
   bool _playing = true; // deviation: Avogadro starts stopped
   bool _fpsUserSet = false;
 

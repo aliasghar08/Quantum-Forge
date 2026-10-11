@@ -134,7 +134,7 @@ void main() {
       expect(find.text('Frame:'), findsOneWidget);
       expect(find.text('Start:'), findsOneWidget);
       expect(find.text('End:'), findsOneWidget);
-      expect(find.text('Dynamic bonding?'), findsOneWidget);
+      expect(find.text('Dynamic bonding?'), findsNothing);
       expect(find.text('Frame rate:'), findsOneWidget);
       expect(find.text('FPS'), findsOneWidget);
 
@@ -148,13 +148,8 @@ void main() {
       expect(find.byTooltip('Step back one frame (←)'), findsOneWidget);
       expect(find.byTooltip('Step forward one frame (→)'), findsOneWidget);
 
-      // Avogadro starts with Dynamic bonding unchecked.
-      expect(
-        tester
-            .widget<Checkbox>(find.byKey(const Key('qf-dynamic-bonding')))
-            .value,
-        isFalse,
-      );
+      // Dynamic bonding is enabled by default, with the toggle removed from the toolbar.
+      expect(find.byKey(const Key('qf-dynamic-bonding')), findsNothing);
 
       // Avogadro's frame-rate default is 5.
       expect(
@@ -308,14 +303,7 @@ void main() {
     // fragment. The first frame's bonds are what a static view draws.
     expect(find.text('2'), findsWidgets);
 
-    await tester.tap(find.byKey(const Key('qf-dynamic-bonding')));
-    await tester.pump();
-    expect(
-      tester
-          .widget<Checkbox>(find.byKey(const Key('qf-dynamic-bonding')))
-          .value,
-      isTrue,
-    );
+    // Dynamic bonding is active by default.
 
     // Frame 3 is O 1.16 A from C, H 0.64 A from O: still bonded, still 2.
     await tester.tap(find.byTooltip('Step forward one frame (→)'));

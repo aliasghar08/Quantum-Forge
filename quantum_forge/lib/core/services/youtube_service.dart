@@ -22,259 +22,199 @@ class YouTubeService {
     {
       'templateId': 'med-aspirin-01',
       'keywords': 'aspirin acetylsalicylic acid cox-1 cox-2 salicylic nsaid antiplatelet esterification',
-      'videoId': 'Y4NMpO1xI8U',
+      'videoId': 'jr64OxTpknM',
       'title': 'Synthesis of Aspirin & Esterification Mechanism',
-      'channel': 'Professor Dave Explains',
+      'channel': 'Organic Mechanisms',
       'badge': 'Synthesis Mechanism',
     },
     {
       'templateId': 'med-aspirin-01',
       'keywords': 'aspirin synthesis organic chemistry esterification salicylic',
-      'videoId': '_Nl72q3Z0qQ',
-      'title': 'Aspirin Synthesis Mechanism - Organic Chemistry',
-      'channel': 'The Organic Chemistry Tutor',
+      'videoId': 'YLpFrcUDitE',
+      'title': 'Aspirin Synthesis and Testing',
+      'channel': 'Professor Dave Explains',
       'badge': 'Organic Chemistry',
     },
     {
       'templateId': 'med-aspirin-01',
       'keywords': 'aspirin nsaid cox mechanism pharmacology medicine antiplatelet',
-      'videoId': 'a8YQZt8_318',
-      'title': 'Aspirin Mechanism of Action - Pharmacology & COX Inhibition',
-      'channel': 'Lecturio Medical',
-      'badge': 'MBBS Pharmacology',
+      'videoId': 'EqBfua_kQ70',
+      'title': 'Fischer Esterification Reaction Mechanism',
+      'channel': 'The Organic Chemistry Tutor',
+      'badge': 'Esterification',
     },
 
     // --- 2. Paracetamol (Acetaminophen) ---
     {
       'templateId': 'med-paracetamol-01',
       'keywords': 'paracetamol acetaminophen napqi cyp2e1 toxicity nac liver necrosis glutathione',
-      'videoId': 'b2nZ31aF1y8',
-      'title': 'Acetaminophen (Paracetamol) Toxicity & NAPQI Metabolism',
-      'channel': 'Ninja Nerd',
-      'badge': 'Toxicology & MBBS',
-    },
-    {
-      'templateId': 'med-paracetamol-01',
-      'keywords': 'paracetamol synthesis acylation aminophenol pharm d',
-      'videoId': '1_6U4u1sL1g',
+      'videoId': 'oJhlRYoniyo',
       'title': 'Synthesis of Paracetamol (Acetaminophen) Mechanism',
-      'channel': 'Royal Society of Chemistry',
+      'channel': 'sqadia.com',
       'badge': 'Pharm-D Synthesis',
     },
     {
       'templateId': 'med-paracetamol-01',
-      'keywords': 'paracetamol overdose antidote nac n-acetylcysteine glutathione',
-      'videoId': 'V9n2zVv9Y-8',
-      'title': 'Paracetamol Overdose & Mechanism of N-Acetylcysteine',
-      'channel': 'Medicosis Perfectionalis',
+      'keywords': 'paracetamol synthesis acylation aminophenol pharm d',
+      'videoId': 'Arrz1gmJH0k',
+      'title': 'Acetaminophen Mechanism of Action & Metabolism',
+      'channel': 'Medmastery',
       'badge': 'Clinical Medicine',
+    },
+    {
+      'templateId': 'med-paracetamol-01',
+      'keywords': 'paracetamol overdose antidote nac n-acetylcysteine glutathione',
+      'videoId': 'S7E6ne2xBJA',
+      'title': 'Paracetamol Preparation and Synthesis',
+      'channel': 'ChemTube3D',
+      'badge': 'Organic Synthesis',
     },
 
     // --- 3. Penicillin Beta-Lactam Ring ---
     {
       'templateId': 'med-penicillin-01',
       'keywords': 'penicillin beta-lactam transpeptidase antibiotic cell wall pbp crosslinking',
-      'videoId': 'k2U5bX_YyvU',
+      'videoId': 'EjI1YQrbXgM',
       'title': 'Beta-Lactam Antibiotics Mechanism of Action & Resistance',
-      'channel': 'Ninja Nerd',
+      'channel': 'Elsevier India',
       'badge': 'Microbiology & MBBS',
     },
     {
       'templateId': 'med-penicillin-01',
       'keywords': 'penicillin transpeptidase bacterial cell wall pharmacology',
-      'videoId': 'cT1wL86_5gU',
-      'title': 'Penicillin Mechanism of Action - Pharmacology',
-      'channel': 'Khan Academy Medicine',
+      'videoId': 'PwjK429wtiE',
+      'title': 'Penicillin & Beta-Lactam Mechanism',
+      'channel': 'Dr Matt & Dr Mike',
       'badge': 'Pharmacology',
+    },
+    {
+      'templateId': 'med-penicillin-01',
+      'keywords': 'penicillin cell wall crosslinking transpeptidase',
+      'videoId': 'Rfg7VKfD9cQ',
+      'title': 'Cell Wall Inhibitors Mechanism',
+      'channel': 'Armando Hasudungan',
+      'badge': 'Mechanism of Action',
     },
 
     // --- 4. Acetylcholine Hydrolysis ---
     {
       'templateId': 'med-acetylcholine-01',
       'keywords': 'acetylcholine ache acetylcholinesterase serine esterase organophosphate neuromuscular',
-      'videoId': 'zKzF5TqXg_g',
-      'title': 'Acetylcholinesterase Catalytic Triad & Hydrolysis Mechanism',
-      'channel': 'Ninja Nerd',
+      'videoId': 'tt3VvfbeJ4E',
+      'title': 'Acetylcholinesterase Mechanism & Catalytic Triad',
+      'channel': 'Dr Aisyah',
       'badge': 'Enzyme Kinetics',
     },
     {
       'templateId': 'med-acetylcholine-01',
       'keywords': 'cholinergic neurotransmission acetylcholine receptors muscarinic nicotinic',
-      'videoId': 'H5rT5wL7y9U',
-      'title': 'Cholinergic Pharmacology: ACh Synthesis, Release, & Degradation',
-      'channel': 'Lecturio Medical',
+      'videoId': '8Wluv1kKGUM',
+      'title': 'Acetylcholinesterase Inhibitors Mechanism',
+      'channel': 'Nonstop Neuron',
       'badge': 'Neuropharmacology',
     },
+    {
+      'templateId': 'med-acetylcholine-01',
+      'keywords': 'organophosphate toxicity ache nerve agent sarin',
+      'videoId': 'ptN8-aztpuQ',
+      'title': 'Organophosphates and AChE Hydrolysis',
+      'channel': 'Speed Pharmacology',
+      'badge': 'Toxicology',
+    },
 
-    // --- 5. Dopamine to Norepinephrine ---
+    // --- 5. Catecholamines: Dopamine, Norepinephrine, Epinephrine ---
     {
       'templateId': 'med-dopamine-01',
       'keywords': 'dopamine norepinephrine dopamine beta hydroxylase catecholamine parkinson',
-      'videoId': 'J2n5F7k8x9M',
-      'title': 'Catecholamine Synthesis Pathway: Tyrosine to Epinephrine',
+      'videoId': 'afzWLmd72Rk',
+      'title': 'Catecholamine Biosynthesis: Tyrosine to Epinephrine',
       'channel': 'Ninja Nerd',
       'badge': 'Biochemistry & MBBS',
     },
-
-    // --- 6. Epinephrine Biosynthesis ---
     {
       'templateId': 'med-epinephrine-01',
       'keywords': 'epinephrine adrenaline pnmt phenylethanolamine n-methyltransferase fight or flight',
-      'videoId': 'X4m8L2k1n9Y',
-      'title': 'Adrenergic Pharmacology: Epinephrine & Norepinephrine Receptors',
+      'videoId': 'afzWLmd72Rk',
+      'title': 'Catecholamine Biosynthesis: Tyrosine to Epinephrine',
       'channel': 'Ninja Nerd',
       'badge': 'Cardiovascular Pharm',
     },
 
-    // --- 7. ATP Hydrolysis ---
+    // --- 6. ATP Hydrolysis & Bioenergetics ---
     {
       'templateId': 'med-atp-01',
       'keywords': 'atp hydrolysis adenosine triphosphate gamma phosphate kinase free energy delta g',
-      'videoId': 'Z7xkxE-7m5A',
-      'title': 'ATP Hydrolysis: Mechanism & Free Energy of Cleavage',
-      'channel': 'AK Lectures',
+      'videoId': '-KE7jTXwNYs',
+      'title': 'ATP Hydrolysis Mechanism & Free Energy',
+      'channel': 'Khan Academy',
       'badge': 'Biochemistry',
     },
     {
       'templateId': 'med-atp-01',
       'keywords': 'atp cellular respiration bioenergetics thermodynamics',
-      'videoId': '00jbG_cfGuQ',
-      'title': 'ATP & Respiration: Crash Course Biology',
-      'channel': 'CrashCourse',
+      'videoId': 'QnQe0xW_JY4',
+      'title': 'ATP Synthase and Cleavage Bioenergetics',
+      'channel': 'HarvardX',
       'badge': 'Cellular Bioenergetics',
     },
 
-    // --- 8. GABA Biosynthesis ---
-    {
-      'templateId': 'med-gaba-01',
-      'keywords': 'gaba glutamate decarboxylase gad inhibitory neurotransmitter b6 plp',
-      'videoId': 'M5p8X2v1k9L',
-      'title': 'GABA & Glutamate Neurotransmission: Neuropharmacology',
-      'channel': 'Ninja Nerd',
-      'badge': 'Neuroscience',
-    },
-
-    // --- 9. Serotonin Biosynthesis ---
-    {
-      'templateId': 'med-serotonin-01',
-      'keywords': 'serotonin 5-ht tryptophan hydroxylase ssri depression melatonin',
-      'videoId': 'L9k2M5p8x1Y',
-      'title': 'Serotonin Synthesis & SSRI Mechanism of Action',
-      'channel': 'Ninja Nerd',
-      'badge': 'Psychiatry & MBBS',
-    },
-
-    // --- 10. Lactate Dehydrogenase ---
-    {
-      'templateId': 'med-ldh-01',
-      'keywords': 'lactate dehydrogenase ldh pyruvate lactic acid nadh fermentation warburg',
-      'videoId': 'K8m2P5x9L1Q',
-      'title': 'Lactate Dehydrogenase (LDH) Reaction & Anaerobic Glycolysis',
-      'channel': 'AK Lectures',
-      'badge': 'Enzyme Mechanism',
-    },
-
-    // --- 11. Histamine Biosynthesis ---
-    {
-      'templateId': 'med-histamine-01',
-      'keywords': 'histamine histidine decarboxylase mast cell allergy anaphylaxis h1 h2',
-      'videoId': 'V2k8M5p9L1X',
-      'title': 'Histamine Pharmacology: H1 & H2 Receptor Antagonists',
-      'channel': 'Ninja Nerd',
-      'badge': 'Immunology & MBBS',
-    },
-
-    // --- 12. Sulfonamides ---
-    {
-      'templateId': 'med-sulfonamide-01',
-      'keywords': 'sulfonamide sulfanilamide paba folate dihydropteroate synthase trimethoprim',
-      'videoId': 'T8b4y_2K1m8',
-      'title': 'Sulfonamides & Trimethoprim (Bactrim) Mechanism of Action',
-      'channel': 'Ninja Nerd',
-      'badge': 'Antibiotics & Pharm-D',
-    },
-
-    // --- 13. Procaine Ester Hydrolysis ---
-    {
-      'templateId': 'med-procaine-01',
-      'keywords': 'procaine novocaine local anesthetic voltage gated sodium channel ester hydrolysis',
-      'videoId': 'N7g3m2f1x9Y',
-      'title': 'Local Anesthetics: Mechanism of Action (Voltage-Gated Na+ Channels)',
-      'channel': 'Ninja Nerd',
-      'badge': 'Anesthesiology',
-    },
-
-    // --- 14. Glutathione Peroxidase ---
-    {
-      'templateId': 'med-glutathione-01',
-      'keywords': 'glutathione gsh gssg peroxidase antioxidant ros free radicals g6pd',
-      'videoId': 'k7D2f5Y1m9Q',
-      'title': 'Glutathione Synthesis & Free Radical Scavenging Mechanism',
-      'channel': 'Ninja Nerd',
-      'badge': 'Cellular Antioxidant',
-    },
-
-    // --- 15. Prostaglandin Synthase ---
-    {
-      'templateId': 'med-prostaglandin-01',
-      'keywords': 'prostaglandin arachidonic acid cyclooxygenase cox-1 cox-2 thromboxane inflammation',
-      'videoId': 'c7F5b2X1n9Y',
-      'title': 'Arachidonic Acid Pathway: Cyclooxygenase & Lipoxygenase',
-      'channel': 'Ninja Nerd',
-      'badge': 'Pathology & Pharmacology',
-    },
-
-    // --- 16. Diels-Alder Cycloaddition ---
+    // --- 7. Diels-Alder Cycloaddition ---
     {
       'templateId': 'diels_alder',
       'keywords': 'diels alder pericyclic cycloaddition diene dienophile endo exo concerted suprafacial',
-      'videoId': 'H4q9Bw_T4kY',
-      'title': 'Diels-Alder Reaction Mechanism, Stereochemistry & Regiochemistry',
+      'videoId': 'sBmoP6KwK-8',
+      'title': 'Diels-Alder Reaction Mechanism & Stereochemistry',
       'channel': 'The Organic Chemistry Tutor',
       'badge': 'Pericyclic Masterclass',
     },
     {
       'templateId': 'diels_alder',
       'keywords': 'diels alder diene dienophile frontier molecular orbital fmo',
-      'videoId': 'x_kL0XJm5-k',
-      'title': 'The Diels-Alder Reaction: Mechanism and Regiochemistry',
+      'videoId': '3IJ_rhqlcHE',
+      'title': 'Diels-Alder Cycloaddition Complete Guide',
       'channel': 'Professor Dave Explains',
       'badge': 'Pericyclic Orbitals',
     },
-
-    // --- 17. Retro-Diels-Alder ---
     {
       'templateId': 'retro_da',
       'keywords': 'retro diels alder cracking cyclohexene cracking cyclopentadiene cycloaddition',
-      'videoId': 'H4q9Bw_T4kY',
-      'title': 'Retro-Diels-Alder Reaction & Thermal Cracking',
-      'channel': 'The Organic Chemistry Tutor',
+      'videoId': '82YDQcvNwYc',
+      'title': 'Pericyclic Reactions & Frontier Molecular Orbitals',
+      'channel': 'TMP Chem',
       'badge': 'Thermal Cleavage',
     },
 
-    // --- 18. Aldol Addition & Condensation ---
+    // --- 8. Aldol Addition & Condensation ---
     {
       'templateId': 'aldol-01',
       'keywords': 'aldol addition condensation acetaldehyde enolate hydroxybutanal c-c bond',
-      'videoId': '5pQd7Zl29mE',
-      'title': 'Aldol Addition and Condensation Mechanism Step by Step',
-      'channel': 'The Organic Chemistry Tutor',
+      'videoId': 'vGSVpd-VP0Y',
+      'title': 'Aldol Condensation Mechanism Step by Step',
+      'channel': 'Najam Academy',
       'badge': 'Carbonyl Chemistry',
     },
     {
       'templateId': 'aldol_condensation_bimolecular',
       'keywords': 'aldol condensation bimolecular crotonaldehyde enol enolate',
-      'videoId': 'rD8c1nUaH54',
-      'title': 'Aldol Reaction Mechanism - Enolates and Carbonyls',
-      'channel': 'Khan Academy Organic Chemistry',
-      'badge': 'Carbonyl Chemistry',
+      'videoId': 'FuS51DIbig8',
+      'title': 'Aldol Reaction & Enolate Chemistry',
+      'channel': 'Vedantu',
+      'badge': 'Enolate Mechanism',
+    },
+    {
+      'templateId': 'aldol-01',
+      'keywords': 'aldol dehydration enone condensation',
+      'videoId': 'OiJo9evzMAs',
+      'title': 'Aldol Addition and Dehydration Mechanisms',
+      'channel': 'The Organic Chemistry Tutor',
+      'badge': 'Carbonyl Addition',
     },
 
-    // --- 19. Fischer Esterification ---
+    // --- 9. Fischer Esterification ---
     {
       'templateId': 'fischer-01',
       'keywords': 'fischer esterification acetic acid methanol methyl acetate condensation ester',
-      'videoId': 'oYyM19jG2rM',
+      'videoId': 'EqBfua_kQ70',
       'title': 'Fischer Esterification Mechanism Step-by-Step',
       'channel': 'The Organic Chemistry Tutor',
       'badge': 'Esterification',
@@ -282,17 +222,17 @@ class YouTubeService {
     {
       'templateId': 'fisher_esterification',
       'keywords': 'fischer esterification ethanol ethyl acetate proton transfer acid catalysis',
-      'videoId': 'g5vVb78N3Qk',
-      'title': 'Fischer Esterification Mechanism: Acid-Catalyzed Condensation',
-      'channel': 'Leah4sci',
-      'badge': 'Esterification',
+      'videoId': 'jr64OxTpknM',
+      'title': 'Synthesis of Aspirin & Esterification Mechanism',
+      'channel': 'Organic Mechanisms',
+      'badge': 'Acid Catalysis',
     },
 
-    // --- 20. Grignard Addition ---
+    // --- 10. Grignard Addition ---
     {
       'templateId': 'grignard_addition',
       'keywords': 'grignard addition methylmagnesium bromide acetone tert-butoxide organometallic',
-      'videoId': 'wz7Y4M2P9yI',
+      'videoId': 'U8ltC2Kz3Mk',
       'title': 'Grignard Reagents Reaction Mechanism & Synthesis',
       'channel': 'The Organic Chemistry Tutor',
       'badge': 'Organometallics',
@@ -300,17 +240,17 @@ class YouTubeService {
     {
       'templateId': 'grignard_addition',
       'keywords': 'grignard nucleophilic carbonyl addition alcohol synthesis',
-      'videoId': 'oD3y4jV2eS8',
-      'title': 'Grignard Reactions and Carbonyl Addition',
+      'videoId': 'ZeHD7GcPNck',
+      'title': 'Grignard Reactions & Organometallic Mechanisms',
       'channel': 'Professor Dave Explains',
       'badge': 'Organometallics',
     },
 
-    // --- 21. Friedel-Crafts Alkylation & Acylation ---
+    // --- 11. Friedel-Crafts Alkylation & Acylation ---
     {
       'templateId': 'friedel_crafts',
       'keywords': 'friedel crafts alkylation benzene chloromethane toluene eas electrophilic aromatic',
-      'videoId': '1wJ6hJb_7-Q',
+      'videoId': 'gz6HnUfS2ow',
       'title': 'Friedel Crafts Alkylation & Acylation Reaction Mechanism',
       'channel': 'The Organic Chemistry Tutor',
       'badge': 'Electrophilic Aromatic',
@@ -318,55 +258,51 @@ class YouTubeService {
     {
       'templateId': 'friedel_crafts',
       'keywords': 'friedel crafts eas arenium sigma complex carbocation',
-      'videoId': 'B5GgqMv8W4I',
+      'videoId': 'IovaWll-kV4',
       'title': 'Electrophilic Aromatic Substitution: Friedel-Crafts',
-      'channel': 'Khan Academy Organic Chemistry',
+      'channel': 'Professor Dave Explains',
       'badge': 'EAS Mechanism',
     },
 
-    // --- 22. Suzuki-Miyaura Coupling ---
+    // --- 12. Suzuki-Miyaura & Heck Cross-Coupling ---
     {
       'templateId': 'suzuki_coupling_simple',
       'keywords': 'suzuki coupling palladium cross coupling boronic acid aryl halide biphenyl',
-      'videoId': '8vJ6M5qZ3fE',
-      'title': 'Cross-Coupling Reactions: Suzuki, Heck, and Stille Mechanisms',
-      'channel': 'Professor Dave Explains',
+      'videoId': 'efUk0vVIZow',
+      'title': 'Suzuki-Miyaura Cross-Coupling Mechanism',
+      'channel': 'Organic Mechanisms',
       'badge': 'Palladium Catalysis',
     },
     {
       'templateId': 'suzuki_coupling_simple',
       'keywords': 'suzuki miyaura oxidative addition transmetalation reductive elimination',
-      'videoId': '9jL_17c8yQw',
-      'title': 'Suzuki Coupling Reaction Mechanism',
-      'channel': 'The Organic Chemistry Tutor',
+      'videoId': 'GlFOs-qs000',
+      'title': 'Suzuki Reaction Catalytic Cycle',
+      'channel': 'Total Organic Chemistry',
       'badge': 'Cross Coupling',
     },
-
-    // --- 23. Prilezhaev Epoxidation ---
     {
-      'templateId': 'epox-01',
-      'keywords': 'epoxidation prilezhaev ethylene peroxyacid mcpba concerted oxirane',
-      'videoId': 'H2n3P_vY9q0',
-      'title': 'Epoxidation of Alkenes with Peroxy Acids (mCPBA) Mechanism',
-      'channel': 'The Organic Chemistry Tutor',
-      'badge': 'Pericyclic Epoxidation',
+      'templateId': 'heck',
+      'keywords': 'heck palladium alkene cross coupling migratory insertion',
+      'videoId': 'dy09r1Gt9jU',
+      'title': 'Heck Reaction Catalytic Cycle',
+      'channel': 'Total Organic Chemistry',
+      'badge': 'Palladium Cross Coupling',
+    },
+    {
+      'templateId': 'heck',
+      'keywords': 'heck reaction palladium catalyst alkene',
+      'videoId': 'STlls5uVYwo',
+      'title': 'Palladium Catalyzed Heck Cross Coupling',
+      'channel': 'Organic Mechanisms',
+      'badge': 'Catalysis Cycle',
     },
 
-    // --- 24. Hydroboration-Oxidation ---
-    {
-      'templateId': 'hydro-01',
-      'keywords': 'hydroboration borane alkylborane anti markovnikov syn addition',
-      'videoId': 'X_M6V8yQ1aM',
-      'title': 'Hydroboration-Oxidation of Alkenes Mechanism',
-      'channel': 'The Organic Chemistry Tutor',
-      'badge': 'Syn-Addition',
-    },
-
-    // --- 25. Wittig Reaction ---
+    // --- 13. Wittig Reaction ---
     {
       'templateId': 'wit-01',
       'keywords': 'wittig phosphonium ylide ketone oxaphosphetane betaine alkene',
-      'videoId': '3wZ7J9vK1bM',
+      'videoId': 'jxUXIHG1zGc',
       'title': 'Wittig Reaction Mechanism & Oxaphosphetane Intermediate',
       'channel': 'The Organic Chemistry Tutor',
       'badge': 'Alkene Synthesis',
@@ -374,122 +310,134 @@ class YouTubeService {
     {
       'templateId': 'wittig_reaction',
       'keywords': 'wittig reaction trimethylmethylenephosphorane isobutene ylide',
-      'videoId': '8zX4kL9yP2Q',
-      'title': 'The Wittig Reaction: Alkene Synthesis from Carbonyls',
-      'channel': 'Professor Dave Explains',
+      'videoId': 'M8oocLIVqzU',
+      'title': 'Wittig Reaction and Ylides',
+      'channel': 'Leah4sci',
       'badge': 'Organic Synthesis',
     },
 
-    // --- 26. Ozonolysis ---
+    // --- 14. Ozonolysis ---
     {
       'templateId': 'ozonolysis',
       'keywords': 'ozonolysis ozone oxidative cleavage alkene criegee formaldehyde molozonide',
-      'videoId': 'L3m7k8W2q1Y',
-      'title': 'Ozonolysis of Alkenes: Mechanism & Carbonyl Cleavage',
-      'channel': 'The Organic Chemistry Tutor',
+      'videoId': 'OC5bY9J8T08',
+      'title': 'Ozonolysis Mechanism of Alkenes',
+      'channel': 'Najam Academy',
       'badge': 'Alkene Cleavage',
     },
     {
       'templateId': 'ozonolysis',
       'keywords': 'ozonolysis criegee intermediate reductive workup dms zn',
-      'videoId': '9P2xL3m7K8Y',
-      'title': 'Ozonolysis Mechanism (Criegee Intermediate & Workup)',
-      'channel': 'Leah4sci',
+      'videoId': 'At3jQNcl5Ho',
+      'title': 'Ozonolysis Reaction Mechanism',
+      'channel': 'Vineet Khatri',
       'badge': 'Oxidation Mechanism',
     },
 
-    // --- 27. Baeyer-Villiger Oxidation ---
-    {
-      'templateId': 'baeyer_villiger',
-      'keywords': 'baeyer villiger oxidation cyclohexanone caprolactone peroxyacid migratory aptitude',
-      'videoId': '4wK9L2xM7P0',
-      'title': 'Baeyer-Villiger Oxidation Mechanism & Migratory Aptitude',
-      'channel': 'The Organic Chemistry Tutor',
-      'badge': 'Ester Oxidation',
-    },
-    {
-      'templateId': 'baeyer_villiger_intermolecular',
-      'keywords': 'baeyer villiger intermolecular peracetic acid acetone methyl acetate',
-      'videoId': '4wK9L2xM7P0',
-      'title': 'Baeyer-Villiger Oxidation of Ketones to Esters',
-      'channel': 'The Organic Chemistry Tutor',
-      'badge': 'Oxidation Mechanism',
-    },
-
-    // --- 28. Mitsunobu Reaction ---
-    {
-      'templateId': 'mitsunobu',
-      'keywords': 'mitsunobu benzyl alcohol benzyl acetate dead pph3 inversion stereochemistry',
-      'videoId': '5xL9k8M2P1Q',
-      'title': 'The Mitsunobu Reaction Mechanism with DEAD and PPh3',
-      'channel': 'Professor Dave Explains',
-      'badge': 'Stereochemical Inversion',
-    },
-
-    // --- 29. Gabriel Synthesis ---
-    {
-      'templateId': 'gabriel_synthesis',
-      'keywords': 'gabriel synthesis phthalimide ethylamine primary amine alkyl halide',
-      'videoId': 'T8b4y_2K1m8',
-      'title': 'Gabriel Phthalimide Synthesis of Primary Amines',
-      'channel': 'The Organic Chemistry Tutor',
-      'badge': 'Amine Synthesis',
-    },
-
-    // --- 30. Acid Chloride Synthesis (SOCl2) ---
-    {
-      'templateId': 'benzoyl_chloride_syn',
-      'keywords': 'benzoyl chloride benzoic acid thionyl chloride socl2 acyl chloride substitution',
-      'videoId': '3zK9L8M2P1Q',
-      'title': 'Preparation of Acyl Chlorides with Thionyl Chloride (SOCl2)',
-      'channel': 'The Organic Chemistry Tutor',
-      'badge': 'Acyl Substitution',
-    },
-
-    // --- 31. Cope & Claisen Rearrangements ---
-    {
-      'templateId': 'claisen',
-      'keywords': 'claisen rearrangement allyl vinyl ether 3 3 sigmatropic suprafacial',
-      'videoId': '6zK8M2xL9P0',
-      'title': 'Claisen Rearrangement Mechanism & Chair Transition State',
-      'channel': 'The Organic Chemistry Tutor',
-      'badge': '[3,3] Sigmatropic',
-    },
-    {
-      'templateId': 'cope',
-      'keywords': 'cope rearrangement 1 5 hexadiene 3 3 sigmatropic chair boat transition state',
-      'videoId': '7yL9k8M3P2Q',
-      'title': 'Cope Rearrangement: Stereochemistry & Mechanism',
-      'channel': 'AK Lectures',
-      'badge': '[3,3] Sigmatropic',
-    },
-
-    // --- 32. SN1 and SN2 Substitutions ---
+    // --- 15. SN1 and SN2 Substitutions ---
     {
       'templateId': 'sn1_tbutyl',
       'keywords': 'sn1 tert butyl carbocation unimolecular nucleophilic substitution rate',
-      'videoId': 'B5M6K9xL2P0',
-      'title': 'SN1 Reaction Mechanism & Carbocation Stability',
-      'channel': 'The Organic Chemistry Tutor',
+      'videoId': 'VpFGcpYgwy8',
+      'title': 'SN1 and SN2 Substitution Mechanism Comparison',
+      'channel': 'Najam Academy',
       'badge': 'Nucleophilic Substitution',
     },
     {
       'templateId': 'sn2',
       'keywords': 'sn2 nucleophilic substitution walden inversion bimolecular rate',
-      'videoId': '9sH3k1v7l8Y',
-      'title': 'SN2 Reaction Mechanism & Stereochemical Inversion',
+      'videoId': 'mYkEO0coOjU',
+      'title': 'SN1 vs SN2 Reaction Mechanisms',
       'channel': 'The Organic Chemistry Tutor',
       'badge': 'Nucleophilic Substitution',
     },
 
-    // --- 33. Cisplatin Aquation ---
+    // --- 16. E1 and E2 Elimination ---
     {
-      'templateId': 'cisplatin_aquation',
-      'keywords': 'cisplatin aquation platinum anti cancer dna crosslinking ligand exchange',
-      'videoId': '8wL9K2xM7P0',
-      'title': 'Cisplatin Mechanism of Action & Pharmacology',
+      'templateId': 'elimination',
+      'keywords': 'e1 e2 elimination zaitsev hoffmann base alkene',
+      'videoId': 'L9VtDeIkPCg',
+      'title': 'E1 and E2 Elimination Reaction Mechanism',
+      'channel': 'Najam Academy',
+      'badge': 'Elimination Mechanism',
+    },
+    {
+      'templateId': 'elimination',
+      'keywords': 'elimination bimolecular unimolecular carbocation',
+      'videoId': 'ZOUS0Q_B4fQ',
+      'title': 'Elimination Reactions Mechanism',
+      'channel': 'CrashCourse',
+      'badge': 'Reaction Kinetics',
+    },
+
+    // --- 17. Click Chemistry (CuAAC) ---
+    {
+      'templateId': 'click',
+      'keywords': 'click chemistry copper azide alkyne triazole cuaac cycloaddition',
+      'videoId': 'wnHw92hFUas',
+      'title': 'Copper-Catalyzed Azide-Alkyne Cycloaddition (CuAAC)',
+      'channel': 'YOU Knowledge',
+      'badge': 'Click Chemistry',
+    },
+    {
+      'templateId': 'click',
+      'keywords': 'sharpless click chemistry bioorthogonal',
+      'videoId': 'IdZxOjCT8sg',
+      'title': 'Click Chemistry - CuAAC Mechanism',
+      'channel': 'Chem Help ASAP',
+      'badge': 'Bioorthogonal Chemistry',
+    },
+
+    // --- 18. Transition State Theory, NEB & DFT ---
+    {
+      'templateId': 'neb',
+      'keywords': 'neb nudged elastic band dft transition state barrier minimum energy path',
+      'videoId': 'smQS4U5Roco',
+      'title': 'Nudged Elastic Band (NEB) Method in DFT',
+      'channel': 'Materials Square',
+      'badge': 'DFT Simulation',
+    },
+    {
+      'templateId': 'transition_state',
+      'keywords': 'transition state theory eyring arrhenius activation energy kinetics',
+      'videoId': 'zZ7yN4mvvsc',
+      'title': 'Transition State Theory & Eyring Equation',
+      'channel': 'LearnChemE',
+      'badge': 'Reaction Kinetics',
+    },
+    {
+      'templateId': 'transition_state',
+      'keywords': 'activated complex potential energy surface kinetics',
+      'videoId': '7e0DdbTHQ1s',
+      'title': 'Activated Complex & Transition State Theory',
+      'channel': 'Yk Star',
+      'badge': 'PES Kinetics',
+    },
+    {
+      'templateId': 'neb',
+      'keywords': 'quantum espresso transition state dft neb',
+      'videoId': '2PotR4_sV_0',
+      'title': 'NEB and Reaction Pathways in Quantum ESPRESSO',
+      'channel': 'Quantum Mobile',
+      'badge': 'Quantum Chemical',
+    },
+
+    // --- 19. Enzyme Catalysis ---
+    {
+      'templateId': 'enzyme',
+      'keywords': 'enzyme kinetics michaelis menten catalytic site active site',
+      'videoId': '-slPtkO2d9g',
+      'title': 'Enzyme Catalysis and Kinetics',
+      'channel': 'Lecturio Medical',
+      'badge': 'Biocatalysis',
+    },
+    {
+      'templateId': 'enzyme',
+      'keywords': 'enzyme inhibition km vmax turnover',
+      'videoId': 'Bdogz6Xw4Zc',
+      'title': 'Enzyme Kinetics & Michaelis-Menten Equation',
       'channel': 'Medicosis Perfectionalis',
-      'badge': 'Inorganic Oncology',
+      'badge': 'Enzyme Kinetics',
     },
   ];
 
@@ -497,66 +445,66 @@ class YouTubeService {
   static const Map<String, List<Map<String, String>>> _categoryFallbacks = {
     'pericyclic': [
       {
-        'videoId': 'H4q9Bw_T4kY',
-        'title': 'Diels-Alder & Pericyclic Reaction Mechanisms',
+        'videoId': 'sBmoP6KwK-8',
+        'title': 'Diels-Alder Reaction Mechanism & Stereochemistry',
         'channel': 'The Organic Chemistry Tutor',
         'badge': 'Pericyclic Masterclass',
       },
       {
-        'videoId': 'x_kL0XJm5-k',
-        'title': 'Frontier Molecular Orbitals in Pericyclic Cycloadditions',
+        'videoId': '3IJ_rhqlcHE',
+        'title': 'Diels-Alder Cycloaddition Complete Guide',
         'channel': 'Professor Dave Explains',
-        'badge': 'FMO Orbitals',
+        'badge': 'Pericyclic Orbitals',
       },
     ],
     'nucleophilic': [
       {
-        'videoId': '9sH3k1v7l8Y',
-        'title': 'Nucleophilic Substitution & Addition Mechanisms',
-        'channel': 'The Organic Chemistry Tutor',
+        'videoId': 'VpFGcpYgwy8',
+        'title': 'SN1 and SN2 Substitution Mechanism Comparison',
+        'channel': 'Najam Academy',
         'badge': 'Nucleophilic Masterclass',
       },
       {
-        'videoId': 'wz7Y4M2P9yI',
-        'title': 'Carbonyl Nucleophilic Addition Mechanisms',
+        'videoId': 'mYkEO0coOjU',
+        'title': 'SN1 vs SN2 Reaction Mechanisms',
         'channel': 'The Organic Chemistry Tutor',
         'badge': 'Carbonyl Addition',
       },
     ],
     'ionic': [
       {
-        'videoId': '5pQd7Zl29mE',
-        'title': 'Polar Organic Reactions & Enolate Chemistry',
-        'channel': 'The Organic Chemistry Tutor',
+        'videoId': 'vGSVpd-VP0Y',
+        'title': 'Aldol Condensation Mechanism Step by Step',
+        'channel': 'Najam Academy',
         'badge': 'Ionic Mechanisms',
       },
       {
-        'videoId': '1wJ6hJb_7-Q',
-        'title': 'Electrophilic Aromatic & Ionic Substitutions',
+        'videoId': 'gz6HnUfS2ow',
+        'title': 'Friedel Crafts Alkylation & Acylation Mechanism',
         'channel': 'The Organic Chemistry Tutor',
         'badge': 'Electrophilic Chemistry',
       },
     ],
     'organometallic': [
       {
-        'videoId': '8vJ6M5qZ3fE',
-        'title': 'Cross-Coupling Reactions & Organometallic Mechanisms',
-        'channel': 'Professor Dave Explains',
+        'videoId': 'efUk0vVIZow',
+        'title': 'Suzuki-Miyaura Cross-Coupling Mechanism',
+        'channel': 'Organic Mechanisms',
         'badge': 'Organometallics',
       },
       {
-        'videoId': '9jL_17c8yQw',
-        'title': 'Catalytic Cycles in Palladium Cross-Coupling',
-        'channel': 'The Organic Chemistry Tutor',
+        'videoId': 'dy09r1Gt9jU',
+        'title': 'Heck Reaction Catalytic Cycle',
+        'channel': 'Total Organic Chemistry',
         'badge': 'Catalytic Cycles',
       },
     ],
     'electrochemistry': [
       {
-        'videoId': 'Z7xkxE-7m5A',
-        'title': 'Electrochemical Energy, Free Energy & Charge Transfer',
-        'channel': 'AK Lectures',
-        'badge': 'Electrochemistry',
+        'videoId': '-KE7jTXwNYs',
+        'title': 'ATP Hydrolysis Mechanism & Free Energy',
+        'channel': 'Khan Academy',
+        'badge': 'Bioenergetics',
       },
     ],
   };
@@ -620,38 +568,38 @@ class YouTubeService {
     // 4. Foundational Masterclasses Fallback
     return [
       {
-        'videoId': 'H4q9Bw_T4kY',
-        'title': 'Diels-Alder & Pericyclic Reaction Mechanisms',
-        'thumbnail': 'https://img.youtube.com/vi/H4q9Bw_T4kY/hqdefault.jpg',
+        'videoId': 'sBmoP6KwK-8',
+        'title': 'Diels-Alder Reaction Mechanism & Stereochemistry',
+        'thumbnail': 'https://i.ytimg.com/vi/sBmoP6KwK-8/hqdefault.jpg',
         'channel': 'The Organic Chemistry Tutor',
         'badge': 'Pericyclic Masterclass',
       },
       {
-        'videoId': '5pQd7Zl29mE',
-        'title': 'Aldol Addition & Condensation Mechanism Step by Step',
-        'thumbnail': 'https://img.youtube.com/vi/5pQd7Zl29mE/hqdefault.jpg',
-        'channel': 'The Organic Chemistry Tutor',
+        'videoId': 'vGSVpd-VP0Y',
+        'title': 'Aldol Condensation Mechanism Step by Step',
+        'thumbnail': 'https://i.ytimg.com/vi/vGSVpd-VP0Y/hqdefault.jpg',
+        'channel': 'Najam Academy',
         'badge': 'Carbonyl Chemistry',
       },
       {
-        'videoId': 'Y4NMpO1xI8U',
+        'videoId': 'jr64OxTpknM',
         'title': 'Synthesis of Aspirin & Esterification Mechanism',
-        'thumbnail': 'https://img.youtube.com/vi/Y4NMpO1xI8U/hqdefault.jpg',
-        'channel': 'Professor Dave Explains',
+        'thumbnail': 'https://i.ytimg.com/vi/jr64OxTpknM/hqdefault.jpg',
+        'channel': 'Organic Mechanisms',
         'badge': 'Medicinal Chemistry',
       },
       {
-        'videoId': 'b2nZ31aF1y8',
-        'title': 'Acetaminophen (Paracetamol) Toxicity & NAPQI Metabolism',
-        'thumbnail': 'https://img.youtube.com/vi/b2nZ31aF1y8/hqdefault.jpg',
-        'channel': 'Ninja Nerd',
+        'videoId': 'oJhlRYoniyo',
+        'title': 'Synthesis of Paracetamol (Acetaminophen) Mechanism',
+        'thumbnail': 'https://i.ytimg.com/vi/oJhlRYoniyo/hqdefault.jpg',
+        'channel': 'sqadia.com',
         'badge': 'MBBS Toxicology',
       },
       {
-        'videoId': 'Z7xkxE-7m5A',
+        'videoId': '-KE7jTXwNYs',
         'title': 'ATP Hydrolysis: Mechanism & Free Energy of Cleavage',
-        'thumbnail': 'https://img.youtube.com/vi/Z7xkxE-7m5A/hqdefault.jpg',
-        'channel': 'AK Lectures',
+        'thumbnail': 'https://i.ytimg.com/vi/-KE7jTXwNYs/hqdefault.jpg',
+        'channel': 'Khan Academy',
         'badge': 'Biochemistry',
       },
     ];
@@ -710,7 +658,7 @@ class YouTubeService {
         out.add({
           'videoId': videoId,
           'title': _unescapeHtml(title),
-          'thumbnail': 'https://img.youtube.com/vi/$videoId/hqdefault.jpg',
+          'thumbnail': 'https://i.ytimg.com/vi/$videoId/hqdefault.jpg',
           'channel': channel,
           'badge': 'YouTube',
         });
@@ -776,7 +724,7 @@ class YouTubeService {
     return {
       'videoId': videoId,
       'title': raw['title'] ?? 'Reaction Mechanism Video',
-      'thumbnail': 'https://img.youtube.com/vi/$videoId/hqdefault.jpg',
+      'thumbnail': 'https://i.ytimg.com/vi/$videoId/hqdefault.jpg',
       'channel': raw['channel'] ?? 'Educational',
       'badge': raw['badge'] ?? 'Mechanism',
     };

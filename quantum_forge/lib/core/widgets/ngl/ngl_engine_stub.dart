@@ -41,7 +41,11 @@ class NglEngine {
   }) async {}
 
   /// Loads a single-model SDF, replacing the previous structure. No-op.
-  Future<void> loadFrame(String sdf, NglStyle style) async {}
+  Future<void> loadFrame(
+    String sdf,
+    NglStyle style, {
+    bool resetView = false,
+  }) async {}
 
   /// Loads a remote PDB/DCD MD trajectory. No-op on non-web targets.
   Future<void> loadRemoteMd(

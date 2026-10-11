@@ -183,18 +183,22 @@ class NglViewerState extends State<NglViewer> {
   ///
   /// This is the dynamic-bonding path: the bond block changes per frame, so the
   /// whole structure is re-sent rather than a frame being selected.
-  Future<void> loadFrame(String sdf, NglStyle style) async {
+  Future<void> loadFrame(
+    String sdf,
+    NglStyle style, {
+    bool resetView = false,
+  }) async {
     final engine = _engine;
     if (engine == null) {
       _queued = _QueuedStructure(
         sdf,
         style,
         asTrajectory: false,
-        resetView: false,
+        resetView: resetView,
       );
       return;
     }
-    await engine.loadFrame(sdf, style);
+    await engine.loadFrame(sdf, style, resetView: resetView);
   }
 
   /// Moves a loaded trajectory to an absolute 0-based frame.
@@ -265,7 +269,11 @@ class NglViewerState extends State<NglViewer> {
             resetView: queued.resetView,
           );
         } else {
-          engine.loadFrame(queued.sdf!, queued.style);
+          engine.loadFrame(
+            queued.sdf!,
+            queued.style,
+            resetView: queued.resetView,
+          );
         }
       } else if (queued.pdbUrl != null && queued.dcdUrl != null) {
         engine.loadRemoteMd(

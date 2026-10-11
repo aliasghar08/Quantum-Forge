@@ -131,6 +131,8 @@ class NglEngine {
   bool _disposed = false;
   int _sizeSyncAttempts = 0;
   bool _canvasSized = false;
+  int _lastObservedWidth = 0;
+  int _lastObservedHeight = 0;
 
   // ── [FIX 2] Last-load memory for context-loss recovery ────────────────────
   //
@@ -266,7 +268,7 @@ class NglEngine {
             resetView: queued.resetView,
           );
         } else {
-          loadFrame(queued.sdf!, queued.style);
+          loadFrame(queued.sdf!, queued.style, resetView: queued.resetView);
         }
       } else if (queued.pdbUrl != null && queued.dcdUrl != null) {
         loadRemoteMd(
@@ -343,6 +345,18 @@ class NglEngine {
           if (_disposed) return;
           try {
             _stage?.callMethod('handleResize'.toJS);
+            final w = _element.clientWidth;
+            final h = _element.clientHeight;
+            if (w > 0 && h > 0) {
+              if ((w - _lastObservedWidth).abs() > 20 ||
+                  (h - _lastObservedHeight).abs() > 20) {
+                _lastObservedWidth = w;
+                _lastObservedHeight = h;
+                if (_component != null) {
+                  resetView();
+                }
+              }
+            }
           } catch (_) {
             // Context-loss recovery handles this; do not re-enter.
           }
@@ -562,7 +576,11 @@ class NglEngine {
     );
   }
 
-  Future<void> loadFrame(String sdf, NglStyle style) {
+  Future<void> loadFrame(
+    String sdf,
+    NglStyle style, {
+    bool resetView = false,
+  }) {
     _lastLoadedSdf = sdf;
     _lastLoadedPdbUrl = null;
     _lastLoadedDcdUrl = null;
@@ -570,7 +588,7 @@ class NglEngine {
     _lastLoadedAsTrajectory = false;
 
     return _enqueueLoad(
-      _PendingLoad(sdf, style, asTrajectory: false, resetView: false),
+      _PendingLoad(sdf, style, asTrajectory: false, resetView: resetView),
     );
   }
 
@@ -619,6 +637,10 @@ class NglEngine {
         // ignore: avoid_print
         print('[QA] removeComponent caught (likely post-context-loss): $error');
       }
+    }
+
+    if (request.resetView) {
+      resetView();
     }
   }
 
@@ -891,7 +913,11 @@ class NglEngine {
 
     // [FIX 3d] Same reasoning as setFrame.
     try {
-      glue.callMethod('autoView'.toJS, stage);
+      if (_component != null) {
+        glue.callMethod('autoView'.toJS, stage, _component);
+      } else {
+        glue.callMethod('autoView'.toJS, stage);
+      }
     } catch (error) {
       // ignore: avoid_print
       print('[QA] resetView caught (likely post-context-loss): $error');

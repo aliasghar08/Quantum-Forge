@@ -46,7 +46,7 @@ void main() {
       expect(video.id, equals('xyz987'));
       expect(video.title, equals('Untitled Demonstration'));
       expect(video.channel, equals('Unknown Channel'));
-      expect(video.thumbnailUrl, equals('https://img.youtube.com/vi/xyz987/hqdefault.jpg'));
+      expect(video.thumbnailUrl, equals('https://i.ytimg.com/vi/xyz987/hqdefault.jpg'));
       expect(video.views, equals(0));
       expect(video.formattedViews, equals('0'));
       expect(video.formattedLikes, equals('0'));

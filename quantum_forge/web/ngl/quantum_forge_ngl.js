@@ -88,10 +88,19 @@
    * platform view out fits the camera to nothing and — with an orthographic
    * camera — renders a completely black pane.
    */
-  function safeAutoView(stage) {
+  function safeAutoView(stage, component) {
     try {
-      if (stage.viewer && stage.viewer.width > 0 && stage.viewer.height > 0) {
-        stage.autoView();
+      if (stage && stage.viewer) {
+        if (typeof stage.handleResize === 'function') {
+          stage.handleResize();
+        }
+        if (stage.viewer.width > 0 && stage.viewer.height > 0) {
+          if (component && typeof component.autoView === 'function') {
+            component.autoView(0);
+          } else if (typeof stage.autoView === 'function') {
+            stage.autoView(0);
+          }
+        }
       }
     } catch (error) {
       lastError = describe(error);
@@ -134,7 +143,7 @@
         addRepresentation(component, settings);
       }
       if (settings.autoView !== false) {
-        safeAutoView(stage);
+        safeAutoView(stage, component);
       }
 
       var player = component.trajList && component.trajList[0]
@@ -183,7 +192,7 @@
         addRepresentation(component, settings);
       }
       if (settings.autoView !== false) {
-        safeAutoView(stage);
+        safeAutoView(stage, component);
       }
 
       var player = component.trajList && component.trajList[0] ? component.trajList[0] : null;
@@ -411,7 +420,7 @@
       }
     },
     replaceRepresentation: replaceRepresentation,
-    autoView: function (stage) { safeAutoView(stage); },
+    autoView: function (stage, component) { safeAutoView(stage, component); },
 
     /** Summary of the last structure handed to NGL. */
     lastLoadInfo: function () { return lastLoad; },

@@ -128,14 +128,6 @@ extension _ReactionAnimationPlaybackExt on _ReactionAnimationWidgetState {
     _restartTicker();
   }
 
-  void _setDynamicBonding(bool enabled) {
-    setState(() => _dynamicBonding = enabled);
-    // The bond set itself changes, so this is not a representation swap: NGL's
-    // trajectory mode takes connectivity from its first model and cannot be
-    // re-perceived, which is why this switches between two loading paths.
-    _pushStructure();
-  }
-
   void _setDisplayType(AvogadroDisplayType type) {
     if (type == _displayType) return;
     setState(() => _displayType = type);

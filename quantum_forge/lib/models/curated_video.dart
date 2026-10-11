@@ -29,9 +29,12 @@ class CuratedVideo {
 
   factory CuratedVideo.fromJson(Map<String, dynamic> json) {
     final videoId = (json['id'] ?? json['videoId'] ?? '').toString();
-    final thumb = (json['thumbnail'] ?? json['thumbnail_url'] ?? '').toString();
+    var thumb = (json['thumbnail'] ?? json['thumbnail_url'] ?? '').toString();
+    if (thumb.contains('img.youtube.com')) {
+      thumb = thumb.replaceFirst('img.youtube.com', 'i.ytimg.com');
+    }
     final fallbackThumb = videoId.isNotEmpty
-        ? 'https://img.youtube.com/vi/$videoId/hqdefault.jpg'
+        ? 'https://i.ytimg.com/vi/$videoId/hqdefault.jpg'
         : '';
 
     return CuratedVideo(

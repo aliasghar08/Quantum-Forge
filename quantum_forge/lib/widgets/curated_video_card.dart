@@ -132,16 +132,7 @@ class CuratedVideoCard extends StatelessWidget {
                 children: [
                   AspectRatio(
                     aspectRatio: 16 / 9,
-                    child: video.thumbnailUrl.isNotEmpty
-                        ? Image.network(
-                            video.thumbnailUrl,
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, _, _) => Container(
-                              color: const Color(0xFF1E2230),
-                              child: const Icon(Icons.movie_outlined, color: Colors.grey),
-                            ),
-                          )
-                        : Container(color: const Color(0xFF1E2230)),
+                    child: _buildThumbnailImage(video),
                   ),
                   Positioned.fill(
                     child: Center(
@@ -252,6 +243,84 @@ class CuratedVideoCard extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildThumbnailImage(CuratedVideo video) {
+    final primaryUrl = video.thumbnailUrl.isNotEmpty
+        ? video.thumbnailUrl
+        : 'https://i.ytimg.com/vi/${video.id}/hqdefault.jpg';
+
+    return Image.network(
+      primaryUrl,
+      fit: BoxFit.cover,
+      errorBuilder: (context, error, stackTrace) {
+        // Tier 2: Try mqdefault CDN resolution
+        final mqUrl = 'https://i.ytimg.com/vi/${video.id}/mqdefault.jpg';
+        return Image.network(
+          mqUrl,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error2, stackTrace2) {
+            // Tier 3: Styled science gradient banner
+            return _buildStyledFallbackCover(video);
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildStyledFallbackCover(CuratedVideo video) {
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Color(0xFF0F172A), Color(0xFF1E293B), Color(0xFF0E7490)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  color: Colors.cyanAccent.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: const Icon(Icons.science_outlined, color: Colors.cyanAccent, size: 16),
+              ),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  video.channel,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: Colors.cyanAccent,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          Text(
+            video.title,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              height: 1.2,
+            ),
+          ),
+        ],
       ),
     );
   }

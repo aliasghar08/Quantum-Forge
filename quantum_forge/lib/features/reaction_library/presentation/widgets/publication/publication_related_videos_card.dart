@@ -234,7 +234,9 @@ class _PublicationRelatedVideosCardState extends State<PublicationRelatedVideosC
     final title = video['title'] ?? 'Reaction Mechanism Lecture';
     final channel = video['channel'] ?? 'Educational';
     final badge = video['badge'];
-    final thumbUrl = video['thumbnail'] ?? 'https://img.youtube.com/vi/$videoId/hqdefault.jpg';
+    final rawThumb = video['thumbnail'] ?? '';
+    final thumbUrl = (rawThumb.isNotEmpty ? rawThumb : 'https://i.ytimg.com/vi/$videoId/hqdefault.jpg')
+        .replaceFirst('img.youtube.com', 'i.ytimg.com');
 
     return Container(
       width: 200,
@@ -278,12 +280,40 @@ class _PublicationRelatedVideosCardState extends State<PublicationRelatedVideosC
                     height: 95,
                     width: 200,
                     fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) => Container(
+                    errorBuilder: (context, error, stackTrace) => Image.network(
+                      'https://i.ytimg.com/vi/$videoId/mqdefault.jpg',
                       height: 95,
                       width: 200,
-                      color: const Color(0xFF1E2638),
-                      child: const Center(
-                        child: Icon(Icons.video_library_outlined, color: Colors.white38, size: 28),
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error2, stackTrace2) => Container(
+                        height: 95,
+                        width: 200,
+                        decoration: const BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [Color(0xFF0F172A), Color(0xFF1E293B), Color(0xFF0284C7)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(Icons.science_outlined, color: Color(0xFF38BDF8), size: 16),
+                            const SizedBox(height: 4),
+                            Text(
+                              title,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 10,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),

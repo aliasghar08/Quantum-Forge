@@ -166,6 +166,7 @@ extension _ReactionAnimationCoreExt on _ReactionAnimationWidgetState {
             AvogadroBondPerception.perceive(atoms),
           ),
           _style,
+          resetView: shouldFrame,
         );
         return;
       }

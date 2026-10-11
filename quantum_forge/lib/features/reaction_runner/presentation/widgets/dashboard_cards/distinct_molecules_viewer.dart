@@ -69,11 +69,22 @@ class _DistinctMoleculesViewerState extends State<DistinctMoleculesViewer> {
   }
 
   String _toXyz(List<Atom> atoms) {
+    if (atoms.isEmpty) return '0\n\n';
+    double sumX = 0, sumY = 0, sumZ = 0;
+    for (final a in atoms) {
+      sumX += a.x;
+      sumY += a.y;
+      sumZ += a.z;
+    }
+    final cx = sumX / atoms.length;
+    final cy = sumY / atoms.length;
+    final cz = sumZ / atoms.length;
+
     final sb = StringBuffer();
     sb.writeln(atoms.length);
     sb.writeln('Generated');
     for (final a in atoms) {
-      sb.writeln('${a.symbol} ${a.x} ${a.y} ${a.z}');
+      sb.writeln('${a.symbol} ${a.x - cx} ${a.y - cy} ${a.z - cz}');
     }
     return sb.toString();
   }
