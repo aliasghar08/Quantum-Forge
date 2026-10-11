@@ -57,6 +57,7 @@ import 'package:quantum_forge/core/services/feedback_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:quantum_forge/features/auth/presentation/screens/auth_screen.dart';
 import 'package:quantum_forge/core/services/chemical_resolver_service.dart';
+import 'package:quantum_forge/views/reaction_workspace/reaction_workspace_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -535,6 +536,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return ListenableBuilder(
       listenable: _viewModel,
       builder: (context, _) {
+        final isMobile = MediaQuery.of(context).size.width < 650;
+        if (isMobile && _viewModel.navDest == NavDestination.newReaction) {
+          return ChangeNotifierProvider<DashboardViewModel?>.value(
+            value: _viewModel,
+            child: const ReactionWorkspaceScreen(),
+          );
+        }
+
         return Scaffold(
           backgroundColor: palette.scaffold,
           drawer: ProfessionalDrawer(
