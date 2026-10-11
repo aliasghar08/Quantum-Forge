@@ -35,8 +35,8 @@ class MobileWorkspaceHeader extends StatelessWidget implements PreferredSizeWidg
           }
         },
       ),
+      titleSpacing: 0,
       title: Row(
-        mainAxisSize: MainAxisSize.min,
         children: [
           Container(
             padding: const EdgeInsets.all(6),
@@ -47,7 +47,7 @@ class MobileWorkspaceHeader extends StatelessWidget implements PreferredSizeWidg
             child: const Icon(Icons.blur_on, color: Colors.cyanAccent, size: 20),
           ),
           const SizedBox(width: 8),
-          Flexible(
+          Expanded(
             child: Text(
               vm.reactionTitle,
               overflow: TextOverflow.ellipsis,

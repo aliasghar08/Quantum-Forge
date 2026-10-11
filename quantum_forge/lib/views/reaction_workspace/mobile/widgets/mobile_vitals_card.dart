@@ -19,36 +19,46 @@ class MobileVitalsCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Expanded(
-                child: Text(
-                  'Parameters & Vitals',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
+        // --- Responsive Header (Never Overlaps) ---
+        Row(
+          children: [
+            const Icon(Icons.tune_rounded, color: Colors.cyanAccent, size: 18),
+            const SizedBox(width: 8),
+            const Expanded(
+              child: Text(
+                'Quantum Parameters',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
                 ),
+                overflow: TextOverflow.ellipsis,
               ),
-              InkWell(
-                onTap: () {},
-                borderRadius: BorderRadius.circular(4),
-                child: const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                  child: Text(
-                    'Configure',
-                    style: TextStyle(
-                      color: Colors.cyanAccent,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
+            ),
+            InkWell(
+              borderRadius: BorderRadius.circular(6),
+              onTap: () {},
+              child: const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'Configure',
+                      style: TextStyle(
+                        color: Colors.cyanAccent,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
-                  ),
+                    SizedBox(width: 2),
+                    Icon(Icons.chevron_right, size: 14, color: Colors.cyanAccent),
+                  ],
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
+        ),
           const SizedBox(height: 12),
           GridView.count(
             crossAxisCount: 2,

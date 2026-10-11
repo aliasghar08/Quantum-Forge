@@ -559,17 +559,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
           appBar: AppBar(
             backgroundColor: palette.scaffold,
+            titleSpacing: isMobile ? 0 : null,
             title: Row(
-              mainAxisSize: MainAxisSize.min,
               children: [
                 const QuantumForgeLogo(size: 26, borderRadius: 7),
                 const SizedBox(width: 10),
-                Text(
-                  _navTitle(_viewModel.navDest),
-                  style: TextStyle(
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: -0.5,
-                    color: palette.textPrimary,
+                Expanded(
+                  child: Text(
+                    _navTitle(_viewModel.navDest),
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: -0.5,
+                      color: palette.textPrimary,
+                    ),
                   ),
                 ),
               ],
@@ -577,22 +580,31 @@ class _DashboardScreenState extends State<DashboardScreen> {
             iconTheme: IconThemeData(color: palette.textPrimary),
             elevation: 0,
             actions: [
-              Tooltip(
-                message: 'Share Public URL for this reaction',
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 4),
-                  child: IconButton(
-                    icon: const Icon(Icons.share_rounded, size: 20),
-                    color: const Color(0xFF00B0FF),
-                    onPressed: () => _shareCurrentReaction(),
+              if (!isMobile)
+                Tooltip(
+                  message: 'Share Public URL for this reaction',
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    child: IconButton(
+                      icon: const Icon(Icons.share_rounded, size: 20),
+                      color: const Color(0xFF00B0FF),
+                      onPressed: () => _shareCurrentReaction(),
+                    ),
                   ),
                 ),
-              ),
               StreamBuilder<User?>(
                 stream: _authStateStream(),
                 builder: (context, snapshot) {
                   final user = snapshot.data;
                   if (user == null) {
+                    if (isMobile) {
+                      return IconButton(
+                        icon: const Icon(Icons.login_rounded, size: 20),
+                        color: palette.accent,
+                        tooltip: 'Sign In',
+                        onPressed: () => _redirectToAuth(),
+                      );
+                    }
                     return Padding(
                       padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 6),
                       child: OutlinedButton.icon(
@@ -609,6 +621,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     );
                   }
                   final displayName = user.displayName ?? user.email?.split('@').first ?? 'Researcher';
+                  if (isMobile) {
+                    return IconButton(
+                      icon: CircleAvatar(
+                        radius: 12,
+                        backgroundColor: palette.accent.withValues(alpha: 0.2),
+                        child: Text(
+                          (displayName.isNotEmpty ? displayName[0] : 'R').toUpperCase(),
+                          style: TextStyle(color: palette.accent, fontSize: 10, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                      tooltip: displayName,
+                      onPressed: () => _showUserMenu(context, user, palette),
+                    );
+                  }
                   return Padding(
                     padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 6),
                     child: InkWell(
@@ -856,6 +882,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   const SizedBox(height: 16),
                   QuantumControlsPanel(activeTemplate: _viewModel.activeTemplate),
                 ],
+                const SizedBox(height: 24),
+                SafeArea(
+                  top: false,
+                  child: Padding(
+                    padding: const EdgeInsets.only(bottom: 24),
+                    child: Text(
+                      'Quantum Forge © Ali Asghar · aliasgharinnocent@yahoo.com',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Colors.grey.shade600,
+                      ),
+                    ),
+                  ),
+                ),
               ],
             );
 
@@ -1303,6 +1344,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildVitalsSummary(BuildContext context) {
+    final isMobile = MediaQuery.of(context).size.width < 600;
     return ValueListenableBuilder<QuantumSettings>(
       valueListenable: context.read<QuantumSettingsNotifier>(),
       builder: (context, settings, _) {
@@ -1320,36 +1362,43 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 children: [
                   const Icon(Icons.tune_rounded, size: 15, color: Color(0xFF38BDF8)),
                   const SizedBox(width: 8),
-                  Text(
-                    'Workspace Quantum Parameters & Vitals',
-                    style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.9),
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 0.2,
+                  Expanded(
+                    child: Text(
+                      isMobile ? 'Quantum Parameters' : 'Workspace Quantum Parameters & Vitals',
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.9),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.2,
+                      ),
                     ),
                   ),
-                  const Spacer(),
+                  const SizedBox(width: 8),
                   InkWell(
+                    borderRadius: BorderRadius.circular(6),
                     onTap: () {
                       if (!_viewModel.controlsPanelOpen) {
                         _viewModel.toggleControlsPanel();
                       }
                     },
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          'Configure in Side Panel',
-                          style: TextStyle(
-                            color: Colors.cyanAccent.shade200,
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            isMobile ? 'Configure' : 'Configure in Side Panel',
+                            style: TextStyle(
+                              color: Colors.cyanAccent.shade200,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: 4),
-                        Icon(Icons.arrow_forward_ios, size: 10, color: Colors.cyanAccent.shade200),
-                      ],
+                          const SizedBox(width: 4),
+                          Icon(Icons.arrow_forward_ios, size: 10, color: Colors.cyanAccent.shade200),
+                        ],
+                      ),
                     ),
                   ),
                 ],

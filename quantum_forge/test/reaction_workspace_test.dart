@@ -88,7 +88,7 @@ void main() {
       expect(find.byType(ReactionWorkspaceDesktopView), findsNothing);
       expect(find.text('Ozonolysis'), findsNWidgets(2));
       expect(find.text('Execute TS Search (Sign In)'), findsOneWidget);
-      expect(find.text('Parameters & Vitals'), findsOneWidget);
+      expect(find.text('Quantum Parameters'), findsOneWidget);
       expect(find.text('Export .xyz'), findsOneWidget);
       expect(find.text('Bundle .zip'), findsOneWidget);
       expect(find.text('Trajectory'), findsOneWidget);

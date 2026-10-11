@@ -129,7 +129,6 @@ class _QuantumForgeAppState extends State<QuantumForgeApp> {
     // the app settings supply workspace density.
     return Consumer2<ThemeNotifier, AppSettingsNotifier>(
       builder: (context, themeNotifier, appSettings, _) {
-        final palette = themeNotifier.palette;
         final settings = appSettings.settings;
         final themeData = settings.isCompactMode
             ? themeNotifier.themeData.copyWith(
@@ -175,41 +174,7 @@ class _QuantumForgeAppState extends State<QuantumForgeApp> {
                           ),
                         )
                       : media,
-                  child: Stack(
-                    children: [
-                      ?child,
-                      Positioned(
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        child: IgnorePointer(
-                          child: Container(
-                            padding: const EdgeInsets.only(bottom: 6, top: 14),
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                begin: Alignment.topCenter,
-                                end: Alignment.bottomCenter,
-                                colors: [
-                                  palette.scaffold.withValues(alpha: 0),
-                                  palette.scaffold.withValues(alpha: 0.85),
-                                ],
-                              ),
-                            ),
-                            child: Text(
-                              'Quantum Forge © Ali Asghar · aliasgharinnocent@yahoo.com',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                color: palette.textMuted,
-                                fontSize: 10.5,
-                                fontWeight: FontWeight.w600,
-                                decoration: TextDecoration.none,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+                  child: child ?? const SizedBox.shrink(),
                 );
               },
               home: const AuthGate(),
