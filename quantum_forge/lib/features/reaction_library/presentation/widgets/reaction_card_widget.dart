@@ -62,6 +62,8 @@ class _ReactionCardWidgetState extends State<ReactionCardWidget> {
     final template = widget.template;
     final color = ReactionCardWidget.categoryColor(template.category);
 
+    final isMobile = MediaQuery.sizeOf(context).width < 600;
+
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovered = true),
       onExit: (_) => setState(() => _isHovered = false),
@@ -128,29 +130,34 @@ class _ReactionCardWidgetState extends State<ReactionCardWidget> {
               splashColor: color.withValues(alpha: 0.1),
               highlightColor: Colors.transparent,
               child: Padding(
-                padding: const EdgeInsets.all(16),
+                padding: EdgeInsets.all(isMobile ? 12 : 16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.max,
                   children: [
                     // ── Top row: category chip + Ea badge ──────────────────────────
                     Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         // Category chip
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                          decoration: BoxDecoration(
-                            color: color.withValues(alpha: 0.2),
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(color: color.withValues(alpha: 0.5)),
-                          ),
-                          child: Text(
-                            ReactionCardWidget.categoryLabel(template.category),
-                            style: TextStyle(
-                                color: color, fontSize: 10, fontWeight: FontWeight.w600),
+                        Flexible(
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: color.withValues(alpha: 0.2),
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(color: color.withValues(alpha: 0.5)),
+                            ),
+                            child: Text(
+                              ReactionCardWidget.categoryLabel(template.category),
+                              style: TextStyle(
+                                  color: color, fontSize: 10, fontWeight: FontWeight.w600),
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
+                            ),
                           ),
                         ),
-                        const Spacer(),
+                        const SizedBox(width: 8),
                         // Ea badge
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
@@ -172,14 +179,14 @@ class _ReactionCardWidgetState extends State<ReactionCardWidget> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 12),
+                    SizedBox(height: isMobile ? 8 : 12),
 
                     // ── Reaction name ───────────────────────────────────────────────
                     Text(
                       template.name,
-                      style: const TextStyle(
+                      style: TextStyle(
                           color: Colors.white,
-                          fontSize: 15,
+                          fontSize: isMobile ? 14 : 15,
                           fontWeight: FontWeight.bold),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
@@ -196,7 +203,7 @@ class _ReactionCardWidgetState extends State<ReactionCardWidget> {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 10),
+                    SizedBox(height: isMobile ? 6 : 10),
 
                     // ── Description (Expanded to push footer down) ───────────────────
                     Expanded(
@@ -204,13 +211,13 @@ class _ReactionCardWidgetState extends State<ReactionCardWidget> {
                         template.description,
                         style: TextStyle(
                             color: Colors.white.withValues(alpha: 0.68),
-                            fontSize: 12,
-                            height: 1.45),
-                        maxLines: 4,
+                            fontSize: isMobile ? 11 : 12,
+                            height: 1.4),
+                        maxLines: isMobile ? 2 : 4,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    const SizedBox(height: 10),
+                    SizedBox(height: isMobile ? 6 : 10),
 
                     // ── Tags ────────────────────────────────────────────────────────
                     Wrap(
@@ -232,7 +239,7 @@ class _ReactionCardWidgetState extends State<ReactionCardWidget> {
                         );
                       }).toList(),
                     ),
-                    const SizedBox(height: 12),
+                    SizedBox(height: isMobile ? 8 : 12),
 
                     // ── Footer: DOI + Load button ───────────────────────────────────
                     Row(

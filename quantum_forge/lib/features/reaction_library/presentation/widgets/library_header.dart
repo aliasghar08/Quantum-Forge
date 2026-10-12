@@ -21,6 +21,8 @@ class _AnimatedCount extends StatefulWidget {
     required this.style,
   });
 
+  static String formatCount(int n) => _AnimatedCountState._formatCount(n);
+
   @override
   State<_AnimatedCount> createState() => _AnimatedCountState();
 }
@@ -103,6 +105,159 @@ class LibraryHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isMobile = MediaQuery.sizeOf(context).width < 600;
+    if (isMobile) {
+      return _buildMobileHeader(context);
+    }
+    return _buildDesktopHeader(context);
+  }
+
+  Widget _buildMobileHeader(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(14, 10, 14, 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Compact Header Strip: Count + Add Reaction + Overflow Actions Menu
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Flexible(
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.cloud_done_outlined, size: 14, color: Colors.cyanAccent),
+                    const SizedBox(width: 6),
+                    Flexible(child: _buildMobileCountText(context)),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (onAddReaction != null)
+                    ElevatedButton.icon(
+                      onPressed: onAddReaction,
+                      icon: const Icon(Icons.add, size: 15),
+                      label: const Text(
+                        'Add Reaction',
+                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF00B0FF),
+                        foregroundColor: Colors.black,
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      ),
+                    ),
+                  if (onAutoGenerate != null || onSyncMedical != null) ...[
+                    const SizedBox(width: 2),
+                    PopupMenuButton<String>(
+                      icon: const Icon(Icons.more_vert, color: Colors.white70, size: 20),
+                      color: const Color(0xFF1E2230),
+                      padding: EdgeInsets.zero,
+                      tooltip: 'More actions',
+                      onSelected: (val) {
+                        if (val == 'generate') onAutoGenerate?.call();
+                        if (val == 'sync') onSyncMedical?.call();
+                      },
+                      itemBuilder: (context) => [
+                        if (onAutoGenerate != null)
+                          const PopupMenuItem(
+                            value: 'generate',
+                            child: Row(
+                              children: [
+                                Icon(Icons.auto_awesome_rounded, color: Color(0xFF7C4DFF), size: 18),
+                                SizedBox(width: 10),
+                                Text('Auto-Generate Reactions', style: TextStyle(color: Colors.white, fontSize: 13)),
+                              ],
+                            ),
+                          ),
+                        if (onSyncMedical != null)
+                          const PopupMenuItem(
+                            value: 'sync',
+                            child: Row(
+                              children: [
+                                Icon(Icons.sync_rounded, color: Color(0xFF00E676), size: 18),
+                                SizedBox(width: 10),
+                                Text('Sync Medical (Firebase)', style: TextStyle(color: Colors.white, fontSize: 13)),
+                              ],
+                            ),
+                          ),
+                      ],
+                    ),
+                  ],
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+
+          // Search Field
+          Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(10),
+              color: const Color(0xFF161B22),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+            ),
+            child: TextField(
+              style: const TextStyle(color: Colors.white, fontSize: 13),
+              onChanged: onSearchChanged,
+              decoration: InputDecoration(
+                hintText: 'Search reactions, mechanisms, tags...',
+                hintStyle: TextStyle(color: Colors.grey.shade500, fontSize: 13),
+                prefixIcon: const Icon(Icons.search, size: 18, color: Colors.grey),
+                border: InputBorder.none,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                isDense: true,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMobileCountText(BuildContext context) {
+    if (cloudCount != null && cloudCount! > 0) {
+      return Text(
+        '$localCount of ${_AnimatedCount.formatCount(cloudCount!)} Reactions',
+        overflow: TextOverflow.ellipsis,
+        maxLines: 1,
+        style: TextStyle(
+          fontSize: 12,
+          color: Colors.grey.shade400,
+          fontWeight: FontWeight.w500,
+        ),
+      );
+    } else if (cloudCount == null) {
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Flexible(
+            child: Text(
+              '$localCount of ',
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
+              style: TextStyle(fontSize: 12, color: Colors.grey.shade400, fontWeight: FontWeight.w500),
+            ),
+          ),
+          const _ShimmerPill(),
+        ],
+      );
+    }
+    return Text(
+      '$localCount Reactions',
+      overflow: TextOverflow.ellipsis,
+      maxLines: 1,
+      style: TextStyle(fontSize: 12, color: Colors.grey.shade400, fontWeight: FontWeight.w500),
+    );
+  }
+
+  Widget _buildDesktopHeader(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(32, 32, 32, 0),
       child: Wrap(

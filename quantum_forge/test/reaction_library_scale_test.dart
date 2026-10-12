@@ -12,6 +12,8 @@ import 'package:quantum_forge/features/reaction_library/data/reaction_templates.
 import 'package:quantum_forge/features/reaction_library/data/reaction_template_generator.dart';
 import 'package:quantum_forge/features/reaction_library/presentation/widgets/library_grid.dart';
 import 'package:quantum_forge/features/reaction_library/presentation/widgets/reaction_card_widget.dart';
+import 'package:quantum_forge/features/reaction_library/presentation/widgets/library_header.dart';
+import 'package:quantum_forge/features/reaction_library/presentation/widgets/library_filter_bar.dart';
 
 /// Element symbols in the order they appear, as declared by the XYZ header.
 List<String> _xyzElements(String xyz) {
@@ -163,6 +165,105 @@ void main() {
       final afterScroll = find.byType(ReactionCardWidget).evaluate().length;
       debugPrint('cards built after scrolling: $afterScroll');
       expect(afterScroll, lessThan(60));
+    });
+  });
+
+  group('Reaction Library Mobile Viewport (<600px)', () {
+    testWidgets('LibraryHeader adapts to mobile viewport without redundant title banner',
+        (tester) async {
+      tester.view.physicalSize = const Size(390, 844);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: LibraryHeader(
+              localCount: 39,
+              cloudCount: 22000,
+              onSearchChanged: (_) {},
+              onAddReaction: () {},
+              onAutoGenerate: () {},
+              onSyncMedical: () {},
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+
+      // Mobile count text is present in compact strip
+      expect(find.text('39 of 22K Reactions'), findsOneWidget);
+      // Compact Add Reaction button is present
+      expect(find.text('Add Reaction'), findsOneWidget);
+      // Overflow PopupMenuButton exists for Auto-Generate & Sync
+      expect(find.byType(PopupMenuButton<String>), findsOneWidget);
+      // Large redundant banner text is NOT rendered in mobile header
+      expect(find.text('Reaction Library'), findsNothing);
+      expect(find.text('MBBS & Pharm-D Focus'), findsNothing);
+    });
+
+    testWidgets('LibraryFilterBar scrolls horizontally on mobile',
+        (tester) async {
+      tester.view.physicalSize = const Size(360, 640);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      ReactionCategory? selected;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: LibraryFilterBar(
+              selectedCategory: selected,
+              onCategoryChanged: (cat) => selected = cat,
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+
+      expect(find.text('All Reactions'), findsOneWidget);
+      expect(find.byType(SingleChildScrollView), findsOneWidget);
+
+      // Horizontal scrolling works smoothly without layout errors
+      await tester.drag(find.byType(SingleChildScrollView), const Offset(-300, 0));
+      await tester.pump();
+    });
+
+    testWidgets('ReactionCardWidget renders cleanly on narrow mobile screen',
+        (tester) async {
+      tester.view.physicalSize = const Size(360, 640);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      final sample = kReactionTemplates.first;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SizedBox(
+              width: 330,
+              height: 245,
+              child: ReactionCardWidget(
+                template: sample,
+                onLoad: () {},
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+
+      expect(find.text(sample.name), findsOneWidget);
+      expect(find.text('Load'), findsOneWidget);
+      expect(tester.takeException(), isNull);
     });
   });
 }

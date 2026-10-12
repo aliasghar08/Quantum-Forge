@@ -41,10 +41,18 @@ class LibraryFilterBar extends StatelessWidget {
       ReactionCategory.inorganic: 'Inorganic',
     };
 
+    final isMobile = MediaQuery.sizeOf(context).width < 600;
+
     return Padding(
-      padding: const EdgeInsets.fromLTRB(32, 20, 32, 0),
+      padding: EdgeInsets.fromLTRB(
+        isMobile ? 14 : 32,
+        isMobile ? 8 : 20,
+        isMobile ? 14 : 32,
+        0,
+      ),
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(),
         child: Row(
           children: categories.map((cat) {
             final isSelected = selectedCategory == cat;
@@ -52,18 +60,21 @@ class LibraryFilterBar extends StatelessWidget {
                 ? Colors.white
                 : ReactionCardWidget.categoryColor(cat);
             return Padding(
-              padding: const EdgeInsets.only(right: 10),
+              padding: EdgeInsets.only(right: isMobile ? 8 : 10),
               child: InkWell(
                 onTap: () => onCategoryChanged(cat),
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(isMobile ? 10 : 20),
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 180),
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: isMobile ? 12 : 16,
+                    vertical: isMobile ? 6 : 8,
+                  ),
                   decoration: BoxDecoration(
                     color: isSelected
                         ? color.withValues(alpha: 0.25)
                         : Colors.white.withValues(alpha: 0.07),
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: BorderRadius.circular(isMobile ? 10 : 20),
                     border: Border.all(
                       color: isSelected
                           ? color
@@ -75,7 +86,7 @@ class LibraryFilterBar extends StatelessWidget {
                     style: TextStyle(
                       color: isSelected ? color : Colors.white.withValues(alpha: 0.6),
                       fontWeight: isSelected ? FontWeight.w700 : FontWeight.normal,
-                      fontSize: 13,
+                      fontSize: isMobile ? 12 : 13,
                     ),
                   ),
                 ),

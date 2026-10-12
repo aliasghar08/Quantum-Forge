@@ -84,6 +84,7 @@ class _LibraryGridState extends State<LibraryGrid>
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.sizeOf(context).width;
+    final isMobile = width < 600;
     final columns = width >= 1200
         ? 3
         : width >= 820
@@ -95,15 +96,20 @@ class _LibraryGridState extends State<LibraryGrid>
         widget.items.length + (widget.isLoadingMore ? 1 : 0);
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(32, 24, 32, 24),
+      padding: EdgeInsets.fromLTRB(
+        isMobile ? 14 : 32,
+        isMobile ? 8 : 24,
+        isMobile ? 14 : 32,
+        24,
+      ),
       child: GridView.builder(
         controller: widget.scrollController,
         padding: EdgeInsets.zero,
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: columns,
-          mainAxisSpacing: LibraryGrid._spacing,
-          crossAxisSpacing: LibraryGrid._spacing,
-          mainAxisExtent: LibraryGrid._cardHeight,
+          mainAxisSpacing: isMobile ? 12 : LibraryGrid._spacing,
+          crossAxisSpacing: isMobile ? 12 : LibraryGrid._spacing,
+          mainAxisExtent: isMobile ? 245 : LibraryGrid._cardHeight,
         ),
         itemCount: itemCount,
         itemBuilder: (context, index) {
