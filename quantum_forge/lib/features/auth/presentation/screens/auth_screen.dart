@@ -153,6 +153,29 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
     }
   }
 
+  Future<void> _submitGhostAccount() async {
+    setState(() {
+      _errorMessage = null;
+      _isLoading = true;
+    });
+
+    try {
+      final authService = context.read<AuthService>();
+      await authService.signInWithGhostAccount();
+      if (mounted) {
+        widget.onLoginSuccess();
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _errorMessage = _cleanAuthError(e));
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
   Future<void> _showResetPasswordDialog() async {
     final controller = TextEditingController(text: _emailController.text.trim());
     final confirmed = await showDialog<bool>(
@@ -864,6 +887,39 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
                 color: palette.textPrimary,
                 fontSize: 13.5,
                 fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 12),
+
+          // One-Click Ghost Account Button for Testing
+          FilledButton.icon(
+            onPressed: _isLoading ? null : _submitGhostAccount,
+            style: FilledButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              backgroundColor: const Color(0xFF00E676).withValues(alpha: 0.14),
+              foregroundColor: const Color(0xFF00E676),
+              side: BorderSide(color: const Color(0xFF00E676).withValues(alpha: 0.4)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            icon: const Icon(Icons.science_rounded, size: 20, color: Color(0xFF00E676)),
+            label: const Text(
+              '🧪 One-Click Demo Researcher (Ghost Account)',
+              style: TextStyle(
+                color: Color(0xFF00E676),
+                fontSize: 13.5,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Center(
+            child: Text(
+              'Quick testing credentials: ghost.researcher@quantumforge.io',
+              style: TextStyle(
+                color: palette.textMuted,
+                fontSize: 11,
               ),
             ),
           ),

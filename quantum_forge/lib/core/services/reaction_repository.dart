@@ -30,4 +30,7 @@ abstract class ReactionRepository {
 
   /// Permanently delete a reaction record.
   Future<void> deleteReaction(String reactionId);
+
+  /// Save a completed reaction record directly to the user's history in the repository.
+  Future<void> saveCompletedReaction(ReactionStatusResponse response, [String? userId]);
 }

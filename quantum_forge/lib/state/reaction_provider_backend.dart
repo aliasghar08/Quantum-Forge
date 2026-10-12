@@ -100,7 +100,12 @@ extension ReactionProviderBackendExt on ReactionNotifier {
                 )
               : result;
           value = completed;
-          LocalHistoryService.saveReaction(completed);
+          if (await _auth.isAuthenticated()) {
+            final uid = await _auth.getUserId();
+            if (uid.isNotEmpty) {
+              await _repo.saveCompletedReaction(completed, uid);
+            }
+          }
         } else {
           playbackProgressNotifier.value = result.progress;
           // Only update value if message or state changes

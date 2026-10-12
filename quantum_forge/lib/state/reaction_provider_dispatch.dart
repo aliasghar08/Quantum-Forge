@@ -17,16 +17,16 @@ extension ReactionProviderDispatchExt on ReactionNotifier {
           ? utf8.decode(productFile.bytes!, allowMalformed: true)
           : '';
 
+      // Running a reaction requires the user to be signed in so history and results are tracked.
+      if (!await _auth.isAuthenticated()) {
+        _setLoading(false);
+        _setError('Sign in required: please log in to run transition-state calculations and save reaction history.');
+        return;
+      }
+
       // 1. A configured ColabReaction (DMF) backend takes precedence — it
       //    runs the real Direct MaxFlux + MLIP optimisation.
       if (await _dispatchToBackend(reactantXyz, productXyz, settings)) return;
-
-      // Guests run in a local, in-memory session — no Firestore, no history.
-      // Signing in turns history on (cross-device sync).
-      if (!await _auth.isAuthenticated()) {
-        await _simulateGuestReaction(reactantXyz, productXyz);
-        return;
-      }
 
       final userId = await _auth.getUserId();
       
@@ -87,16 +87,16 @@ extension ReactionProviderDispatchExt on ReactionNotifier {
   ) async {
     _setLoading(true);
     try {
-      // A configured compute backend takes precedence (real DMF run).
-      if (await _dispatchToBackend(
-          template.reactantXyz, template.productXyz, settings)) {
+      // Running a template reaction requires authentication
+      if (!await _auth.isAuthenticated()) {
+        _setLoading(false);
+        _setError('Sign in required: please log in to run transition-state calculations and save reaction history.');
         return;
       }
 
-      // Guests run locally; the template cache and Firestore persistence only
-      // apply to signed-in users.
-      if (!await _auth.isAuthenticated()) {
-        await _simulateGuestReaction(template.reactantXyz, template.productXyz, template.referenceEa);
+      // A configured compute backend takes precedence (real DMF run).
+      if (await _dispatchToBackend(
+          template.reactantXyz, template.productXyz, settings)) {
         return;
       }
 
@@ -129,7 +129,12 @@ extension ReactionProviderDispatchExt on ReactionNotifier {
         }
 
         value = cachedReaction;
-        LocalHistoryService.saveReaction(cachedReaction);
+        if (await _auth.isAuthenticated()) {
+          final uid = await _auth.getUserId();
+          if (uid.isNotEmpty) {
+            await _repo.saveCompletedReaction(cachedReaction, uid);
+          }
+        }
         _listenToReactionUpdates(cachedReaction.reactionId);
         return;
       }

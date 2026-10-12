@@ -46,4 +46,9 @@ class LocalAuthService implements AuthService {
       'Password reset is not available in offline mode.',
     );
   }
+
+  @override
+  Future<void> signInWithGhostAccount() async {
+    AppStorage.setString(_keyUserId, 'ghost-demo-user-id');
+  }
 }

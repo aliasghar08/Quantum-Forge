@@ -164,6 +164,36 @@ class FirestoreReactionRepository implements ReactionRepository {
         .delete();
   }
 
+  @override
+  Future<void> saveCompletedReaction(ReactionStatusResponse response, [String? userId]) async {
+    final uid = userId ?? _uid;
+    if (uid == null || uid.isEmpty) return;
+
+    final targetId = response.reactionId.isNotEmpty
+        ? response.reactionId
+        : _firestore.collection('users').doc(uid).collection('reactions').doc().id;
+
+    final docRef = _firestore
+        .collection('users')
+        .doc(uid)
+        .collection('reactions')
+        .doc(targetId);
+
+    final data = <String, dynamic>{
+      ...response.toJson(),
+      'reaction_id': targetId,
+      'user_id': uid,
+      'state': ReactionState.completed.name,
+      'progress': 1.0,
+      'created_at': response.createdAt != null
+          ? Timestamp.fromDate(response.createdAt!)
+          : FieldValue.serverTimestamp(),
+      'updated_at': FieldValue.serverTimestamp(),
+    };
+
+    await docRef.set(data, SetOptions(merge: true));
+  }
+
   static ReactionStatusResponse _fromMap(Map<String, dynamic> data, String docId) {
     final reactionStateStr = data['state'] as String? ?? ReactionState.pending.name;
     final stateEnum = ReactionState.values.firstWhere(
@@ -171,7 +201,10 @@ class FirestoreReactionRepository implements ReactionRepository {
       orElse: () => ReactionState.error,
     );
     final energyRaw = data['energy_profile'] as List<dynamic>?;
+    final energyEvRaw = data['energy_profile_ev'] as List<dynamic>?;
     final framesRaw = data['trajectory_frames'] as List<dynamic>?;
+    final vibRaw = data['vibrational_modes'] as List<dynamic>?;
+    final dftRaw = data['dft_attachments'] as List<dynamic>?;
 
     DateTime? createdAt;
     if (data['created_at'] is Timestamp) {
@@ -185,8 +218,21 @@ class FirestoreReactionRepository implements ReactionRepository {
       state: stateEnum,
       progress: (data['progress'] as num?)?.toDouble() ?? 0.0,
       message: data['message'] as String?,
+      error: data['error'] as String?,
       energyProfile: energyRaw?.map((e) => (e as num).toDouble()).toList(),
+      energyProfileEv: energyEvRaw?.map((e) => (e as num).toDouble()).toList(),
+      maxEnergyIndex: (data['max_energy_index'] as num?)?.toInt(),
       trajectoryFrames: framesRaw?.map((e) => e.toString()).toList(),
+      vibrationalModes: vibRaw
+          ?.map((e) => VibrationalMode.fromJson(Map<String, dynamic>.from(e as Map)))
+          .toList(),
+      dftAttachments: dftRaw != null
+          ? dftRaw
+              .map((e) => DftAttachment.fromJson(Map<String, dynamic>.from(e as Map)))
+              .toList()
+          : const [],
+      fromBackend: data['from_backend'] as bool? ?? false,
+      modelUsed: data['model_used'] as String?,
       createdAt: createdAt,
     );
   }

@@ -32,4 +32,7 @@ abstract class AuthService {
   /// surface the "Forgot password?" affordance when the active service can
   /// actually send mail.
   Future<void> sendPasswordResetEmail(String email);
+
+  /// Signs in using a pre-configured ghost / demo researcher testing account.
+  Future<void> signInWithGhostAccount();
 }

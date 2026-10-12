@@ -46,5 +46,25 @@ extension ReactionProviderSimulationExt on ReactionNotifier {
       'max_energy_index': result.maxEnergyIndex,
       'model_used': 'Transformer-MP-TS',
     });
+
+    final completed = ReactionStatusResponse(
+      reactionId: reactionId,
+      state: ReactionState.completed,
+      message: 'TS Search Converged Successfully (Transformer-MP Engine).',
+      progress: 1.0,
+      energyProfile: result.energyProfile,
+      energyProfileEv: result.energyProfileEv,
+      trajectoryFrames: result.trajectoryFrames,
+      maxEnergyIndex: result.maxEnergyIndex,
+      modelUsed: 'Transformer-MP-TS',
+      createdAt: DateTime.now(),
+    );
+
+    if (await _auth.isAuthenticated()) {
+      final uid = await _auth.getUserId();
+      if (uid.isNotEmpty) {
+        await _repo.saveCompletedReaction(completed, uid);
+      }
+    }
   }
 }

@@ -100,6 +100,18 @@ class LocalReactionRepository implements ReactionRepository {
     );
   }
 
+  @override
+  Future<void> saveCompletedReaction(ReactionStatusResponse response, [String? userId]) async {
+    final doc = {
+      ...response.toJson(),
+      'reaction_id': response.reactionId,
+      'user_id': userId,
+      'created_at': (response.createdAt ?? DateTime.now()).toIso8601String(),
+    };
+    _mockReactions[response.reactionId] = doc;
+    _notifyController(response.reactionId, doc);
+  }
+
   Future<void> dispose() async {
     for (final ctrl in _controllers.values) {
       await ctrl.close();
