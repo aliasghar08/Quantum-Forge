@@ -129,6 +129,7 @@ extension ReactionProviderDispatchExt on ReactionNotifier {
         }
 
         value = cachedReaction;
+        LocalHistoryService.saveReaction(cachedReaction);
         _listenToReactionUpdates(cachedReaction.reactionId);
         return;
       }

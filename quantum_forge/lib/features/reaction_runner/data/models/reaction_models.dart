@@ -187,6 +187,7 @@ class ReactionStatusResponse {
               ?.map((e) => DftAttachment.fromJson(e as Map<String, dynamic>))
               .toList() ??
           const [],
+      fromBackend: json['from_backend'] as bool? ?? false,
       createdAt: json['created_at'] != null ? DateTime.tryParse(json['created_at'] as String) : null,
       modelUsed: json['model_used'] as String?,
     );
@@ -205,6 +206,22 @@ class ReactionStatusResponse {
       if (trajectoryFrames != null) 'trajectory_frames': trajectoryFrames,
       if (createdAt != null) 'created_at': createdAt!.toIso8601String(),
       if (modelUsed != null) 'model_used': modelUsed,
+      if (fromBackend) 'from_backend': true,
+      if (dftAttachments.isNotEmpty)
+        'dft_attachments': dftAttachments
+            .map((a) => {
+                  'attachment_id': a.attachmentId,
+                  'level_of_theory': a.levelOfTheory,
+                  'ts_energy_hartree': a.tsEnergyHartree,
+                  'reactant_energy_hartree': a.reactantEnergyHartree,
+                  'imaginary_frequency_cm1': a.imaginaryFrequencyCm1,
+                  'notes': a.notes,
+                  'log_file_name': a.logFileName,
+                  'single_point_method': a.singlePointMethod,
+                  'attached_at': a.attachedAt,
+                  'barrier_kcal_mol': a.barrierKcalMol,
+                })
+            .toList(),
     };
   }
 

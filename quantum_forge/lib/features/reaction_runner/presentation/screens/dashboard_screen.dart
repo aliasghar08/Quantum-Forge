@@ -799,7 +799,28 @@ class _DashboardScreenState extends State<DashboardScreen> {
       child: switch (_viewModel.navDest) {
         NavDestination.library  =>
             LibraryScreen(onTemplateSelected: _viewModel.loadTemplate),
-        NavDestination.history  => const HistoryScreen(),
+        NavDestination.history  => HistoryScreen(
+              onReactionSelected: (reaction) {
+                context.read<ReactionNotifier>().value = reaction;
+                setState(() => _selectedFrameIndex = null);
+                _viewModel.setNavDestination(NavDestination.newReaction);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      'Loaded reaction ${reaction.reactionId.length > 8 ? reaction.reactionId.substring(0, 8) : reaction.reactionId} into workspace.',
+                    ),
+                    backgroundColor: const Color(0xFF00B0FF),
+                    duration: const Duration(seconds: 3),
+                  ),
+                );
+              },
+              onNavigateToRun: () {
+                _viewModel.setNavDestination(NavDestination.newReaction);
+              },
+              onNavigateToLibrary: () {
+                _viewModel.setNavDestination(NavDestination.library);
+              },
+            ),
         NavDestination.methodValidation => MethodValidationScreen(
               backendUrl:
                   context.watch<QuantumSettingsNotifier>().value.effectiveBackendUrl,

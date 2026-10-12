@@ -30,6 +30,7 @@ class FirestoreReactionRepository implements ReactionRepository {
 
     final docData = {
       ...reactionData,
+      'reaction_id': docRef.id,
       'created_at': FieldValue.serverTimestamp(),
       'state': ReactionState.pending.name,
     };
@@ -121,14 +122,35 @@ class FirestoreReactionRepository implements ReactionRepository {
 
   @override
   Future<List<ReactionStatusResponse>> listReactions(String userId) async {
-    final query = await _firestore
-        .collection('users')
-        .doc(userId)
-        .collection('reactions')
-        .orderBy('created_at', descending: true)
-        .get();
+    try {
+      final query = await _firestore
+          .collection('users')
+          .doc(userId)
+          .collection('reactions')
+          .orderBy('created_at', descending: true)
+          .get();
 
-    return query.docs.map((doc) => _fromMap(doc.data(), doc.id)).toList();
+      return query.docs.map((doc) => _fromMap(doc.data(), doc.id)).toList();
+    } catch (e) {
+      // Fallback: If compound index or created_at index is missing or throws, fetch and sort locally
+      try {
+        final query = await _firestore
+            .collection('users')
+            .doc(userId)
+            .collection('reactions')
+            .get();
+
+        final list = query.docs.map((doc) => _fromMap(doc.data(), doc.id)).toList();
+        list.sort((a, b) {
+          final aDate = a.createdAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+          final bDate = b.createdAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+          return bDate.compareTo(aDate);
+        });
+        return list;
+      } catch (innerError) {
+        return [];
+      }
+    }
   }
 
   @override

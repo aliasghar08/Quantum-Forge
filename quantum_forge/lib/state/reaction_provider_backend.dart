@@ -80,9 +80,27 @@ extension ReactionProviderBackendExt on ReactionNotifier {
           // The backend's own reason is the useful one; `message` is the generic
           // "DMF optimisation failed." line.
           errorNotifier.value = result.error ?? result.message ?? 'Backend optimisation failed.';
-          value = result;
         } else if (result.state == ReactionState.completed) {
-          value = result;
+          final completed = result.createdAt == null
+              ? ReactionStatusResponse(
+                  reactionId: result.reactionId,
+                  state: result.state,
+                  progress: result.progress,
+                  message: result.message,
+                  error: result.error,
+                  energyProfile: result.energyProfile,
+                  energyProfileEv: result.energyProfileEv,
+                  trajectoryFrames: result.trajectoryFrames,
+                  vibrationalModes: result.vibrationalModes,
+                  maxEnergyIndex: result.maxEnergyIndex,
+                  createdAt: DateTime.now(),
+                  dftAttachments: result.dftAttachments,
+                  fromBackend: result.fromBackend,
+                  modelUsed: result.modelUsed,
+                )
+              : result;
+          value = completed;
+          LocalHistoryService.saveReaction(completed);
         } else {
           playbackProgressNotifier.value = result.progress;
           // Only update value if message or state changes

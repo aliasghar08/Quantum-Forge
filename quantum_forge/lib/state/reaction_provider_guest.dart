@@ -52,7 +52,7 @@ extension ReactionProviderGuestExt on ReactionNotifier {
       referenceEa: referenceEa ?? 21.5,
     );
 
-    value = ReactionStatusResponse(
+    final completedResponse = ReactionStatusResponse(
       reactionId: reactionId,
       state: ReactionState.completed,
       progress: 1.0,
@@ -64,7 +64,10 @@ extension ReactionProviderGuestExt on ReactionNotifier {
       maxEnergyIndex: result.maxEnergyIndex,
       fromBackend: false,
       modelUsed: 'Transformer-MP-TS',
+      createdAt: DateTime.now(),
     );
+    value = completedResponse;
+    LocalHistoryService.saveReaction(completedResponse);
     playbackProgressNotifier.value = 1.0;
     isLoadingNotifier.value = false;
   }

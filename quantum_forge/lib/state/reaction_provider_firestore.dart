@@ -8,6 +8,9 @@ extension ReactionProviderFirestoreExt on ReactionNotifier {
       (reactionStatus) {
         value = reactionStatus;
         isLoadingNotifier.value = false;
+        if (reactionStatus.state == ReactionState.completed) {
+          LocalHistoryService.saveReaction(reactionStatus);
+        }
       },
       onError: (e) {
         _setError('Error listening to reaction: $e');
