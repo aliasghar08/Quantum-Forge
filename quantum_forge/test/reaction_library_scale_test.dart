@@ -14,6 +14,7 @@ import 'package:quantum_forge/features/reaction_library/presentation/widgets/lib
 import 'package:quantum_forge/features/reaction_library/presentation/widgets/reaction_card_widget.dart';
 import 'package:quantum_forge/features/reaction_library/presentation/widgets/library_header.dart';
 import 'package:quantum_forge/features/reaction_library/presentation/widgets/library_filter_bar.dart';
+import 'package:quantum_forge/features/reaction_library/presentation/widgets/reaction_library_mobile_view.dart';
 
 /// Element symbols in the order they appear, as declared by the XYZ header.
 List<String> _xyzElements(String xyz) {
@@ -263,6 +264,42 @@ void main() {
 
       expect(find.text(sample.name), findsOneWidget);
       expect(find.text('Load'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('ReactionLibraryMobileView renders dedicated scaffold and actions without errors',
+        (tester) async {
+      tester.view.physicalSize = const Size(390, 844);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      final searchCtrl = TextEditingController();
+      addTearDown(searchCtrl.dispose);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: ReactionLibraryMobileView(
+            searchController: searchCtrl,
+            selectedCategory: null,
+            onCategorySelected: (_) {},
+            onAddReaction: () {},
+            onAutoGenerate: () {},
+            onSyncFirebase: () {},
+            reactions: kReactionTemplates.take(5).toList(),
+            cloudCount: 22000,
+          ),
+        ),
+      );
+      await tester.pump();
+
+      expect(find.text('Reaction Library'), findsOneWidget);
+      expect(find.text('Add Reaction'), findsOneWidget);
+      expect(find.text('5 of 22K Reactions'), findsOneWidget);
+      expect(find.byType(PopupMenuButton<String>), findsOneWidget);
+      expect(find.byType(ListView), findsWidgets);
       expect(tester.takeException(), isNull);
     });
   });
