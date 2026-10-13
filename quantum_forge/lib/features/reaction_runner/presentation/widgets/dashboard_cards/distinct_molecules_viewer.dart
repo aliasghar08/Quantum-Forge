@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:quantum_forge/core/utils/unicode_math.dart';
 import 'package:quantum_forge/core/utils/xyz_parser.dart';
 import 'package:quantum_forge/core/widgets/reaction_animation_widget.dart';
+import 'package:quantum_forge/core/widgets/locked_animation_placeholder.dart';
 
 // ============================================================================
 // DistinctMoleculesViewer — tabbed viewer for distinct molecules
@@ -11,11 +12,17 @@ import 'package:quantum_forge/core/widgets/reaction_animation_widget.dart';
 class DistinctMoleculesViewer extends StatefulWidget {
   final String title;
   final List<Atom> atoms;
+  final bool isUserSignedIn;
+  final VoidCallback? onSignInRequested;
+  final VoidCallback? onSignInSuccess;
 
   const DistinctMoleculesViewer({
     super.key,
     required this.title,
     required this.atoms,
+    this.isUserSignedIn = true,
+    this.onSignInRequested,
+    this.onSignInSuccess,
   });
 
   @override
@@ -318,36 +325,46 @@ class _DistinctMoleculesViewerState extends State<DistinctMoleculesViewer> {
                 ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(14),
-                  child: LayoutBuilder(
-                    builder: (context, constraints) {
-                      // Use a shared key so the ReactionAnimationWidget
-                      // survives the SizedBox↔ConstrainedBox layout branch
-                      // toggle on resize — otherwise the HtmlElementView
-                      // (WebGL context) is destroyed and recreated at 600 px.
-                      const viewerKey =
-                          ValueKey<String>('distinct-mol-viewer');
-                      if (MediaQuery.of(context).size.width < 600) {
-                        return SizedBox(
-                          height: 250,
-                          width: double.infinity,
-                          child: ReactionAnimationWidget(
-                            key: viewerKey,
-                            trajectoryFrames: [_toXyz(selectedMol)],
-                            compactMode: true,
-                          ),
-                        );
-                      } else {
-                        return ConstrainedBox(
-                          constraints: const BoxConstraints(maxHeight: 400),
-                          child: ReactionAnimationWidget(
-                            key: viewerKey,
-                            trajectoryFrames: [_toXyz(selectedMol)],
-                            compactMode: true,
-                          ),
-                        );
-                      }
-                    },
-                  ),
+                  child: widget.isUserSignedIn
+                      ? LayoutBuilder(
+                          builder: (context, constraints) {
+                            // Use a shared key so the ReactionAnimationWidget
+                            // survives the SizedBox↔ConstrainedBox layout branch
+                            // toggle on resize — otherwise the HtmlElementView
+                            // (WebGL context) is destroyed and recreated at 600 px.
+                            const viewerKey =
+                                ValueKey<String>('distinct-mol-viewer');
+                            if (MediaQuery.of(context).size.width < 600) {
+                              return SizedBox(
+                                height: 250,
+                                width: double.infinity,
+                                child: ReactionAnimationWidget(
+                                  key: viewerKey,
+                                  trajectoryFrames: [_toXyz(selectedMol)],
+                                  compactMode: true,
+                                ),
+                              );
+                            } else {
+                              return ConstrainedBox(
+                                constraints:
+                                    const BoxConstraints(maxHeight: 400),
+                                child: ReactionAnimationWidget(
+                                  key: viewerKey,
+                                  trajectoryFrames: [_toXyz(selectedMol)],
+                                  compactMode: true,
+                                ),
+                              );
+                            }
+                          },
+                        )
+                      : LockedAnimationPlaceholder(
+                          compact: true,
+                          title: '3D Structure Viewer Locked',
+                          subtitle:
+                              'Sign in to rotate and inspect distinct 3D molecular fragments.',
+                          onSignInRequested: widget.onSignInRequested,
+                          onSignInSuccess: widget.onSignInSuccess,
+                        ),
                 ),
               ),
             ),

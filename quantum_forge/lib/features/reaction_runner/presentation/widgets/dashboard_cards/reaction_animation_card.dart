@@ -15,11 +15,22 @@
 import 'package:flutter/material.dart';
 import 'package:quantum_forge/features/reaction_runner/data/models/reaction_models.dart';
 import 'package:quantum_forge/core/widgets/reaction_animation_widget.dart';
+import 'package:quantum_forge/core/widgets/locked_animation_placeholder.dart';
 import 'glass_card.dart';
 
 class ReactionAnimationCard extends StatelessWidget {
   final ReactionStatusResponse status;
-  const ReactionAnimationCard({super.key, required this.status});
+  final bool isUserSignedIn;
+  final VoidCallback? onSignInRequested;
+  final VoidCallback? onSignInSuccess;
+
+  const ReactionAnimationCard({
+    super.key,
+    required this.status,
+    this.isUserSignedIn = true,
+    this.onSignInRequested,
+    this.onSignInSuccess,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -46,8 +57,11 @@ class ReactionAnimationCard extends StatelessWidget {
                 crossAxisAlignment: WrapCrossAlignment.center,
                 children: [
                   Row(mainAxisSize: MainAxisSize.min, children: [
-                    const Icon(Icons.animation,
-                        color: Color(0xFF4FC3F7), size: 18),
+                    Icon(
+                      isUserSignedIn ? Icons.animation : Icons.lock_outline_rounded,
+                      color: isUserSignedIn ? const Color(0xFF4FC3F7) : const Color(0xFFFFB74D),
+                      size: 18,
+                    ),
                     const SizedBox(width: 8),
                     const Flexible(
                       child: Text(
@@ -63,38 +77,53 @@ class ReactionAnimationCard extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(
                         horizontal: 10, vertical: 3),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF4FC3F7).withValues(alpha: 0.12),
+                      color: (isUserSignedIn
+                              ? const Color(0xFF4FC3F7)
+                              : const Color(0xFFFFB74D))
+                          .withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
-                          color:
-                              const Color(0xFF4FC3F7).withValues(alpha: 0.3)),
+                        color: (isUserSignedIn
+                                ? const Color(0xFF4FC3F7)
+                                : const Color(0xFFFFB74D))
+                            .withValues(alpha: 0.3),
+                      ),
                     ),
-                    child: const Text(
-                      '3D Trajectory',
+                    child: Text(
+                      isUserSignedIn ? '3D Trajectory' : 'Sign-In Required',
                       style: TextStyle(
-                          color: Color(0xFF4FC3F7),
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600),
+                        color: isUserSignedIn
+                            ? const Color(0xFF4FC3F7)
+                            : const Color(0xFFFFB74D),
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 ],
               ),
             ),
 
-            // ── Animation ──────────────────────────────────────────
-            // Always mount ReactionAnimationWidget so the WebGL context
-            // (HtmlElementView) is never destroyed and recreated across
-            // reaction state transitions. The widget's own empty-state guard
-            // (AspectRatio + spinner) is shown while frames are absent; when
-            // frames arrive they are loaded via didUpdateWidget without any
-            // HTML element re-parenting — eliminating the grey-flash flicker.
-            ReactionAnimationWidget(
-              trajectoryFrames: trajectoryFrames,
-              energyProfile:
-                  energyProfile.isEmpty ? null : energyProfile,
-              energyProfileEv: status.energyProfileEv,
-              maxEnergyIndex: status.maxEnergyIndex,
-            ),
+            // ── Animation or Locked Placeholder ───────────────────
+            if (isUserSignedIn)
+              ReactionAnimationWidget(
+                trajectoryFrames: trajectoryFrames,
+                energyProfile:
+                    energyProfile.isEmpty ? null : energyProfile,
+                energyProfileEv: status.energyProfileEv,
+                maxEnergyIndex: status.maxEnergyIndex,
+              )
+            else
+              Padding(
+                padding: const EdgeInsets.fromLTRB(14, 8, 14, 14),
+                child: LockedAnimationPlaceholder(
+                  title: '3D Trajectory Animation Locked',
+                  subtitle:
+                      'This reaction was opened via a shared link. Full kinetic, thermodynamic, and vibrational metrics are accessible below.\nSign in to unlock interactive 3D trajectory playback, transition-state stepping, and camera rotation.',
+                  onSignInRequested: onSignInRequested,
+                  onSignInSuccess: onSignInSuccess,
+                ),
+              ),
           ],
         ),
       ),

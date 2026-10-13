@@ -7,6 +7,7 @@ import 'package:quantum_forge/features/auth/presentation/screens/auth_screen.dar
 import 'package:quantum_forge/features/reaction_library/data/reaction_templates.dart';
 import 'package:quantum_forge/features/reaction_library/presentation/widgets/pubmed_panel.dart';
 import 'package:quantum_forge/features/reaction_runner/presentation/widgets/dashboard_cards/distinct_molecules_viewer.dart';
+import 'package:quantum_forge/core/widgets/locked_animation_placeholder.dart';
 
 class TemplateDetailScreen extends StatelessWidget {
   final ReactionTemplate template;
@@ -83,32 +84,39 @@ class TemplateDetailScreen extends StatelessWidget {
               ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(14),
-                child: ReactionAnimationWidget(
-                  // ── Preview trajectory ─────────────────────────────────
-                  //
-                  // _previewFrames frames long (see the constant below), with
-                  // cosine easing so the system accelerates through the TS
-                  // rather than sliding mechanically. Atom-count mismatches —
-                  // water leaving, HCl leaving, a fragment dissociating — are
-                  // handled by phantom atoms that drift in from or out to a
-                  // far radial position, so the leaving group is visible.
-                  //
-                  // This is a *preview*, not a computed reaction path. The
-                  // real path comes from DMF/MLIP through the backend, and for
-                  // publication-grade TS work that is what should be used.
-                  // The preview exists so a researcher can see the mechanism
-                  // before committing cluster time.
-                  trajectoryFrames: _previewTrajectory(template),
-                  energyProfile: _generateSyntheticProfile(
-                    template.referenceEa,
-                  ),
-                  // Marks the exact TS frame so the readout and the phase
-                  // timeline agree on where the barrier is.
-                  maxEnergyIndex: _tsFrame,
-                  // Deliberately slower than Avogadro's 5 FPS default: this
-                  // path is meant to be read frame by frame, not skimmed.
-                  frameRateOverride: _previewFps,
-                ),
+                child: FirebaseAuth.instance.currentUser != null
+                    ? ReactionAnimationWidget(
+                        // ── Preview trajectory ─────────────────────────────────
+                        //
+                        // _previewFrames frames long (see the constant below), with
+                        // cosine easing so the system accelerates through the TS
+                        // rather than sliding mechanically. Atom-count mismatches —
+                        // water leaving, HCl leaving, a fragment dissociating — are
+                        // handled by phantom atoms that drift in from or out to a
+                        // far radial position, so the leaving group is visible.
+                        //
+                        // This is a *preview*, not a computed reaction path. The
+                        // real path comes from DMF/MLIP through the backend, and for
+                        // publication-grade TS work that is what should be used.
+                        // The preview exists so a researcher can see the mechanism
+                        // before committing cluster time.
+                        trajectoryFrames: _previewTrajectory(template),
+                        energyProfile: _generateSyntheticProfile(
+                          template.referenceEa,
+                        ),
+                        // Marks the exact TS frame so the readout and the phase
+                        // timeline agree on where the barrier is.
+                        maxEnergyIndex: _tsFrame,
+                        // Deliberately slower than Avogadro's 5 FPS default: this
+                        // path is meant to be read frame by frame, not skimmed.
+                        frameRateOverride: _previewFps,
+                      )
+                    : LockedAnimationPlaceholder(
+                        title: '3D Trajectory Preview Locked',
+                        subtitle:
+                            'Sign in with your researcher credentials or activate the 1-Click Demo account to preview 3D reaction mechanisms.',
+                        onSignInRequested: () => _onSimulatePressed(context),
+                      ),
               ),
             ),
             const SizedBox(height: 10),

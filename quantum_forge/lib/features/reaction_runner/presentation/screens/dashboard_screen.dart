@@ -51,6 +51,7 @@ import 'coordinate_editor_screen.dart';
 import 'package:quantum_forge/features/settings/presentation/screens/settings_screen.dart';
 import 'package:quantum_forge/state/dashboard_viewmodel.dart';
 import 'dart:convert';
+import 'dart:async';
 import 'package:quantum_forge/core/widgets/reaction_animation_widget.dart';
 import 'package:quantum_forge/core/services/feedback_service.dart';
 
@@ -58,6 +59,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:quantum_forge/features/auth/presentation/screens/auth_screen.dart';
 import 'package:quantum_forge/core/services/chemical_resolver_service.dart';
 import 'package:quantum_forge/views/reaction_workspace/reaction_workspace_screen.dart';
+import 'package:quantum_forge/core/widgets/locked_animation_placeholder.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -69,6 +71,7 @@ class DashboardScreen extends StatefulWidget {
 class _DashboardScreenState extends State<DashboardScreen> {
   late DashboardViewModel _viewModel;
   int? _selectedFrameIndex;
+  StreamSubscription<User?>? _authSub;
 
   /// Reaction whose fallback-data warning has already been shown, so the SnackBar
   /// fires once per result instead of on every rebuild.
@@ -85,6 +88,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
     _viewModel = DashboardViewModel(sessionService: sessionService);
     _viewModel.loadState();
     _viewModel.addListener(_onViewModelChanged);
+    try {
+      _authSub = FirebaseAuth.instance.authStateChanges().listen((_) {
+        if (mounted) setState(() {});
+      });
+    } catch (_) {}
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _handleIncomingStructure();
       _handleIncomingSharedReaction();
@@ -343,7 +351,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Anyone with this link can view the complete reaction, 3D trajectory animation, and quantum properties freely without logging in.',
+              'Anyone with this link can view the complete reaction metrics, energy profile, and quantum properties. 3D animations require signing in.',
               style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 13, height: 1.4),
             ),
             const SizedBox(height: 16),
@@ -408,6 +416,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   void dispose() {
+    _authSub?.cancel();
     _viewModel.dispose();
     super.dispose();
   }
@@ -1983,10 +1992,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 borderRadius: BorderRadius.circular(8),
                 child: AspectRatio(
                   aspectRatio: 1.2,
-                  child: ReactionAnimationWidget(
-                    trajectoryFrames: [utf8.decode(entry.file!.bytes!)],
-                    showBondNumbers: false,
-                  ),
+                  child: _isUserSignedIn
+                      ? ReactionAnimationWidget(
+                          trajectoryFrames: [utf8.decode(entry.file!.bytes!)],
+                          showBondNumbers: false,
+                        )
+                      : LockedAnimationPlaceholder(
+                          compact: true,
+                          title: '3D Preview Locked',
+                          subtitle: 'Sign in to preview molecule structure.',
+                          onSignInRequested: () => _redirectToAuth(
+                            message: 'Sign in to view 3D molecular structures.',
+                          ),
+                          onSignInSuccess: () {
+                            if (mounted) setState(() {});
+                          },
+                        ),
                 ),
               ),
             ),
@@ -2644,6 +2665,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
               DistinctMoleculesViewer(
                 title: 'Distinct Reactants',
                 atoms: XyzParser.parse(status.trajectoryFrames!.first),
+                isUserSignedIn: _isUserSignedIn,
+                onSignInRequested: () => _redirectToAuth(
+                  message: 'Sign in to interact with 3D molecular structures.',
+                ),
+                onSignInSuccess: () {
+                  if (mounted) setState(() {});
+                },
               ),
               const SizedBox(height: 16),
             ],
@@ -2654,12 +2682,28 @@ class _DashboardScreenState extends State<DashboardScreen> {
               DistinctMoleculesViewer(
                 title: 'Distinct Products',
                 atoms: XyzParser.parse(status.trajectoryFrames!.last),
+                isUserSignedIn: _isUserSignedIn,
+                onSignInRequested: () => _redirectToAuth(
+                  message: 'Sign in to interact with 3D molecular structures.',
+                ),
+                onSignInSuccess: () {
+                  if (mounted) setState(() {});
+                },
               ),
               const SizedBox(height: 16),
             ],
 
             // Reaction animation card (extracted widget)
-            ReactionAnimationCard(status: status),
+            ReactionAnimationCard(
+              status: status,
+              isUserSignedIn: _isUserSignedIn,
+              onSignInRequested: () => _redirectToAuth(
+                message: 'Sign in to unlock interactive 3D trajectory animations.',
+              ),
+              onSignInSuccess: () {
+                if (mounted) setState(() {});
+              },
+            ),
             const SizedBox(height: 16),
 
             // Hybrid workflow: hand the TS to DFT and take the refinement back.
