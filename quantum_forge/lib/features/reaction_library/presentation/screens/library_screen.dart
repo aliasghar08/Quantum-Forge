@@ -559,6 +559,10 @@ class _LibraryScreenState extends State<LibraryScreen> {
                     ),
                     items: const [
                       DropdownMenuItem(
+                        value: ReactionCategory.polymer,
+                        child: Text('🧶 Polymer Chemistry'),
+                      ),
+                      DropdownMenuItem(
                         value: ReactionCategory.pharmaceutical,
                         child: Text('💊 Pharmaceutical (Pharm-D)'),
                       ),

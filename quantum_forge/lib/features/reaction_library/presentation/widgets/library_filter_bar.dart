@@ -16,6 +16,7 @@ class LibraryFilterBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final categories = [
       null,
+      ReactionCategory.polymer,
       ReactionCategory.pharmaceutical,
       ReactionCategory.biochemical,
       ReactionCategory.ionic,
@@ -29,6 +30,7 @@ class LibraryFilterBar extends StatelessWidget {
     ];
     final labels = {
       null: 'All Reactions',
+      ReactionCategory.polymer: '🧶 Polymer Chemistry',
       ReactionCategory.pharmaceutical: '💊 Pharm-D / Drugs',
       ReactionCategory.biochemical: '🩺 MBBS / Clinical',
       ReactionCategory.pericyclic: 'Pericyclic',

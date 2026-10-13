@@ -177,6 +177,7 @@ class ReactionLibraryMobileView extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
               children: [
                 _buildCategoryChip(null, 'All Reactions', null),
+                _buildCategoryChip(ReactionCategory.polymer, 'Polymer Chemistry', '🧶'),
                 _buildCategoryChip(ReactionCategory.pharmaceutical, 'Pharm-D / Drugs', '💊'),
                 _buildCategoryChip(ReactionCategory.biochemical, 'MBBS / Clinical', '🩺'),
                 _buildCategoryChip(ReactionCategory.ionic, 'Organic Synthesis', '🧪'),

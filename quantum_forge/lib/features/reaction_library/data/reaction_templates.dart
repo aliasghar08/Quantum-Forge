@@ -5,8 +5,10 @@
 // ============================================================================
 
 import 'package:quantum_forge/features/reaction_library/data/medical_reaction_templates.dart';
+import 'package:quantum_forge/features/reaction_library/data/polymer_reaction_templates.dart';
 
 enum ReactionCategory {
+  polymer,
   pericyclic,
   radical,
   organometallic,
@@ -1301,6 +1303,7 @@ H    14.163    0.000    0.000
 ''';
 
 final List<ReactionTemplate> kReactionTemplates = [
+  ...kPolymerReactionTemplates,
   ...kMedicalReactionTemplates,
   ReactionTemplate(
     id: 'eas-01',

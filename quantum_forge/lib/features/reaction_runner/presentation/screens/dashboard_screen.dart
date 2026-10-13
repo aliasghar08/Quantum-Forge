@@ -2408,6 +2408,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     ),
                     items: const [
                       DropdownMenuItem(
+                        value: ReactionCategory.polymer,
+                        child: Text('🧶 Polymer Chemistry'),
+                      ),
+                      DropdownMenuItem(
                         value: ReactionCategory.pharmaceutical,
                         child: Text('💊 Pharmaceutical (Pharm-D)'),
                       ),

@@ -500,6 +500,7 @@ class TemplateDetailScreen extends StatelessWidget {
 
   Color _categoryColor(ReactionCategory c) {
     return switch (c) {
+      ReactionCategory.polymer => const Color(0xFFEC4899),
       ReactionCategory.pericyclic => const Color(0xFF4FC3F7),
       ReactionCategory.radical => const Color(0xFFFF7043),
       ReactionCategory.organometallic => const Color(0xFFAB47BC),
@@ -515,6 +516,7 @@ class TemplateDetailScreen extends StatelessWidget {
 
   String _categoryLabel(ReactionCategory c) {
     return switch (c) {
+      ReactionCategory.polymer => 'Polymer Chemistry',
       ReactionCategory.pericyclic => 'Pericyclic',
       ReactionCategory.radical => 'Radical',
       ReactionCategory.organometallic => 'Organometallic',
