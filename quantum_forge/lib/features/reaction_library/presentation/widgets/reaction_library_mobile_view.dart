@@ -171,17 +171,23 @@ class ReactionLibraryMobileView extends StatelessWidget {
 
           // Horizontally Scrollable Categories (No Cutoff)
           SizedBox(
-            height: 42,
+            height: 44,
             child: ListView(
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
               children: [
-                _buildCategoryChip(null, 'All Reactions', null),
-                _buildCategoryChip(ReactionCategory.polymer, 'Polymer Chemistry', '🧶'),
-                _buildCategoryChip(ReactionCategory.pharmaceutical, 'Pharm-D / Drugs', '💊'),
-                _buildCategoryChip(ReactionCategory.biochemical, 'MBBS / Clinical', '🩺'),
-                _buildCategoryChip(ReactionCategory.ionic, 'Organic Synthesis', '🧪'),
-                _buildCategoryChip(ReactionCategory.pericyclic, 'Pericyclic', '🔄'),
+                _buildCategoryChip(null, 'All Reactions', null, reactions.length),
+                _buildCategoryChip(ReactionCategory.polymer, 'Polymer Chemistry', '🧶', _countFor(ReactionCategory.polymer)),
+                _buildCategoryChip(ReactionCategory.pharmaceutical, 'Pharm-D / Drugs', '💊', _countFor(ReactionCategory.pharmaceutical)),
+                _buildCategoryChip(ReactionCategory.biochemical, 'MBBS / Clinical', '🩺', _countFor(ReactionCategory.biochemical)),
+                _buildCategoryChip(ReactionCategory.ionic, 'Organic Synthesis', '🧪', _countFor(ReactionCategory.ionic)),
+                _buildCategoryChip(ReactionCategory.pericyclic, 'Pericyclic', '🔄', _countFor(ReactionCategory.pericyclic)),
+                _buildCategoryChip(ReactionCategory.radical, 'Radical', '⚡', _countFor(ReactionCategory.radical)),
+                _buildCategoryChip(ReactionCategory.organometallic, 'Organometallic', '⚙️', _countFor(ReactionCategory.organometallic)),
+                _buildCategoryChip(ReactionCategory.thermal, 'Thermal', '🔥', _countFor(ReactionCategory.thermal)),
+                _buildCategoryChip(ReactionCategory.nucleophilic, 'Nucleophilic', '🎯', _countFor(ReactionCategory.nucleophilic)),
+                _buildCategoryChip(ReactionCategory.electrochemistry, 'Electrochem', '🔋', _countFor(ReactionCategory.electrochemistry)),
+                _buildCategoryChip(ReactionCategory.inorganic, 'Inorganic', '🧱', _countFor(ReactionCategory.inorganic)),
               ],
             ),
           ),
@@ -212,19 +218,47 @@ class ReactionLibraryMobileView extends StatelessWidget {
     );
   }
 
-  Widget _buildCategoryChip(ReactionCategory? category, String label, String? emoji) {
+  int _countFor(ReactionCategory cat) =>
+      reactions.where((r) => r.category == cat).length;
+
+  Widget _buildCategoryChip(ReactionCategory? category, String label, String? emoji, [int? count]) {
     final isSelected = selectedCategory == category;
     return Padding(
       padding: const EdgeInsets.only(right: 8),
       child: FilterChip(
         selected: isSelected,
-        label: Text(
-          emoji != null ? '$emoji $label' : label,
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-            color: isSelected ? Colors.cyanAccent : Colors.grey.shade300,
-          ),
+        label: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              emoji != null ? '$emoji $label' : label,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                color: isSelected ? Colors.cyanAccent : Colors.grey.shade300,
+              ),
+            ),
+            if (count != null) ...[
+              const SizedBox(width: 5),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? Colors.cyanAccent.withValues(alpha: 0.25)
+                      : Colors.white.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  '$count',
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    color: isSelected ? Colors.cyanAccent : Colors.grey.shade400,
+                  ),
+                ),
+              ),
+            ],
+          ],
         ),
         backgroundColor: const Color(0xFF161B22),
         selectedColor: Colors.cyanAccent.withValues(alpha: 0.18),

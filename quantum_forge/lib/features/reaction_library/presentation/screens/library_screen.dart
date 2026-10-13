@@ -40,6 +40,9 @@ class _LibraryScreenState extends State<LibraryScreen> {
   // ── State ──────────────────────────────────────────────────────────────────
   String _query = '';
   ReactionCategory? _filterCategory;
+  ReactionSortOrder _sortOrder = ReactionSortOrder.defaultOrder;
+  CatalystFilter _catalystFilter = CatalystFilter.all;
+  ProvenanceFilter _provenanceFilter = ProvenanceFilter.all;
 
   List<ReactionTemplate> _items = [];
   DocumentSnapshot? _nextCursor;
@@ -737,6 +740,76 @@ class _LibraryScreenState extends State<LibraryScreen> {
     _loadFirstPage();
   }
 
+  Map<ReactionCategory?, int> get _categoryCounts {
+    final allKnown = <ReactionTemplate>{
+      ...kReactionTemplates,
+      ..._items,
+    };
+    return LibraryFilterBar.computeCategoryCounts(allKnown);
+  }
+
+  List<ReactionTemplate> get _filteredAndSortedItems {
+    var list = List<ReactionTemplate>.from(_items);
+
+    if (_filterCategory != null) {
+      list = list.where((t) => t.category == _filterCategory).toList();
+    }
+
+    if (_catalystFilter == CatalystFilter.catalyzed) {
+      list = list.where((t) => t.hasLiteratureCatalyst || t.defaultCatalystName != null).toList();
+    } else if (_catalystFilter == CatalystFilter.uncatalyzed) {
+      list = list.where((t) => !t.hasLiteratureCatalyst && t.defaultCatalystName == null).toList();
+    }
+
+    if (_provenanceFilter == ProvenanceFilter.curatedOnly) {
+      list = list.where((t) => !t.isDerived).toList();
+    } else if (_provenanceFilter == ProvenanceFilter.derivedOnly) {
+      list = list.where((t) => t.isDerived).toList();
+    }
+
+    switch (_sortOrder) {
+      case ReactionSortOrder.defaultOrder:
+        break;
+      case ReactionSortOrder.eaAsc:
+        list.sort((a, b) => a.referenceEa.compareTo(b.referenceEa));
+        break;
+      case ReactionSortOrder.eaDesc:
+        list.sort((a, b) => b.referenceEa.compareTo(a.referenceEa));
+        break;
+      case ReactionSortOrder.nameAsc:
+        list.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+        break;
+      case ReactionSortOrder.nameDesc:
+        list.sort((a, b) => b.name.toLowerCase().compareTo(a.name.toLowerCase()));
+        break;
+      case ReactionSortOrder.atomCount:
+        int atomCount(ReactionTemplate t) {
+          final lines = t.reactantXyz.trim().split('\n');
+          return int.tryParse(lines.first.trim()) ?? 0;
+        }
+        list.sort((a, b) => atomCount(a).compareTo(atomCount(b)));
+        break;
+    }
+
+    return list;
+  }
+
+  bool get _hasActiveFilters =>
+      _filterCategory != null ||
+      _sortOrder != ReactionSortOrder.defaultOrder ||
+      _catalystFilter != CatalystFilter.all ||
+      _provenanceFilter != ProvenanceFilter.all;
+
+  void _resetFilters() {
+    setState(() {
+      _filterCategory = null;
+      _sortOrder = ReactionSortOrder.defaultOrder;
+      _catalystFilter = CatalystFilter.all;
+      _provenanceFilter = ProvenanceFilter.all;
+    });
+    _loadFirstPage();
+  }
+
   // ── Build ──────────────────────────────────────────────────────────────────
 
   @override
@@ -769,6 +842,17 @@ class _LibraryScreenState extends State<LibraryScreen> {
           LibraryFilterBar(
             selectedCategory: _filterCategory,
             onCategoryChanged: _onCategoryChanged,
+            categoryCounts: _categoryCounts,
+            sortOrder: _sortOrder,
+            onSortChanged: (s) => setState(() => _sortOrder = s),
+            catalystFilter: _catalystFilter,
+            onCatalystFilterChanged: (c) => setState(() => _catalystFilter = c),
+            provenanceFilter: _provenanceFilter,
+            onProvenanceFilterChanged: (p) => setState(() => _provenanceFilter = p),
+            onResetFilters: _resetFilters,
+            hasActiveFilters: _hasActiveFilters,
+            filteredCount: _filteredAndSortedItems.length,
+            totalCount: _items.length,
           ),
           const SizedBox(height: 8),
           Expanded(child: _buildBody()),
@@ -836,8 +920,36 @@ class _LibraryScreenState extends State<LibraryScreen> {
       );
     }
 
+    final filtered = _filteredAndSortedItems;
+    if (filtered.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.filter_alt_off_rounded,
+                size: 56, color: Colors.white.withValues(alpha: 0.3)),
+            const SizedBox(height: 16),
+            const Text(
+              'No reactions match the selected filter criteria',
+              style: TextStyle(color: Colors.white60, fontSize: 16),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton.icon(
+              onPressed: _resetFilters,
+              icon: const Icon(Icons.restart_alt_rounded, size: 16),
+              label: const Text('Reset All Filters'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF00B0FF),
+                foregroundColor: Colors.black,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
     return LibraryGrid(
-      items: _items,
+      items: filtered,
       onTemplateSelected: widget.onTemplateSelected,
       isLoadingMore: _isLoadingMore,
       scrollController: _scrollController,
