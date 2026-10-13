@@ -4,17 +4,24 @@ import 'package:quantum_forge/features/reaction_runner/presentation/widgets/dash
 import 'package:quantum_forge/core/services/youtube_service.dart';
 import 'package:quantum_forge/core/services/url_service.dart';
 import 'package:quantum_forge/core/widgets/youtube/embedded_youtube_player.dart';
+import 'package:quantum_forge/core/widgets/locked_animation_placeholder.dart';
 
 /// Interactive card featuring an embedded 16:9 YouTube video player and
 /// curated lecture playlist for chemical mechanisms, kinetics, and pharmacology.
 class PublicationRelatedVideosCard extends StatefulWidget {
   final String query;
   final ReactionTemplate? template;
+  final bool isUserSignedIn;
+  final VoidCallback? onSignInRequested;
+  final VoidCallback? onSignInSuccess;
 
   const PublicationRelatedVideosCard({
     super.key,
     required this.query,
     this.template,
+    this.isUserSignedIn = true,
+    this.onSignInRequested,
+    this.onSignInSuccess,
   });
 
   @override
@@ -149,13 +156,23 @@ class _PublicationRelatedVideosCardState extends State<PublicationRelatedVideosC
 
             // Embedded Video Player Section
             if (_activeVideo != null && (_activeVideo!['videoId'] ?? '').isNotEmpty) ...[
-              EmbeddedYoutubePlayer(
-                key: ValueKey(_activeVideo!['videoId']),
-                videoId: _activeVideo!['videoId']!,
-                title: _activeVideo!['title'] ?? 'Mechanism Lecture',
-                channel: _activeVideo!['channel'] ?? 'Educational',
-                badge: _activeVideo!['badge'] ?? 'Now Playing',
-              ),
+              if (!widget.isUserSignedIn)
+                LockedAnimationPlaceholder(
+                  title: 'Mechanism Video Player Locked',
+                  subtitle:
+                      'Sign in with your researcher credentials or activate the 1-Click Demo account to stream embedded video lectures and chemical mechanism demonstrations.',
+                  compact: true,
+                  onSignInRequested: widget.onSignInRequested,
+                  onSignInSuccess: widget.onSignInSuccess,
+                )
+              else
+                EmbeddedYoutubePlayer(
+                  key: ValueKey(_activeVideo!['videoId']),
+                  videoId: _activeVideo!['videoId']!,
+                  title: _activeVideo!['title'] ?? 'Mechanism Lecture',
+                  channel: _activeVideo!['channel'] ?? 'Educational',
+                  badge: _activeVideo!['badge'] ?? 'Now Playing',
+                ),
               const SizedBox(height: 20),
             ],
 

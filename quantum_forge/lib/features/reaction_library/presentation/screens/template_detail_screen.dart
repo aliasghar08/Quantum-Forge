@@ -6,6 +6,7 @@ import 'package:quantum_forge/core/widgets/reaction_animation_widget.dart';
 import 'package:quantum_forge/features/auth/presentation/screens/auth_screen.dart';
 import 'package:quantum_forge/features/reaction_library/data/reaction_templates.dart';
 import 'package:quantum_forge/features/reaction_library/presentation/widgets/pubmed_panel.dart';
+import 'package:quantum_forge/features/reaction_library/presentation/screens/publication_details_screen.dart';
 import 'package:quantum_forge/features/reaction_runner/presentation/widgets/dashboard_cards/distinct_molecules_viewer.dart';
 import 'package:quantum_forge/core/widgets/locked_animation_placeholder.dart';
 
@@ -440,26 +441,56 @@ class TemplateDetailScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 12),
-            OutlinedButton.icon(
-              onPressed: () {
-                final query = '${template.name} ${template.doi}'.trim();
-                showPubmedPanel(context, query: query);
-              },
-              icon: const Icon(Icons.search, size: 16),
-              label: const Text('Find related papers'),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: const Color(0xFF4FC3F7),
-                side: BorderSide(
-                  color: const Color(0xFF4FC3F7).withValues(alpha: 0.4),
+            Wrap(
+              spacing: 12,
+              runSpacing: 12,
+              children: [
+                OutlinedButton.icon(
+                  onPressed: () {
+                    final query = '${template.name} ${template.doi}'.trim();
+                    showPubmedPanel(context, query: query);
+                  },
+                  icon: const Icon(Icons.search, size: 16),
+                  label: const Text('Find related papers'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: const Color(0xFF4FC3F7),
+                    side: BorderSide(
+                      color: const Color(0xFF4FC3F7).withValues(alpha: 0.4),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
                 ),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
+                OutlinedButton.icon(
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (ctx) => PublicationDetailsScreen(template: template),
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.article_outlined, size: 16),
+                  label: const Text('View Publication & Peer-Reviewed Data'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: const Color(0xFF10B981),
+                    side: BorderSide(
+                      color: const Color(0xFF10B981).withValues(alpha: 0.4),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
                 ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
+              ],
             ),
           ],
         ),

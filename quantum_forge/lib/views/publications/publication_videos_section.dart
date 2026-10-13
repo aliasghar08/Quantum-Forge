@@ -6,11 +6,21 @@ import 'package:flutter/material.dart';
 import '../../models/curated_video.dart';
 import '../../services/youtube_curation_service.dart';
 import '../../widgets/curated_video_card.dart';
+import 'package:quantum_forge/core/widgets/locked_animation_placeholder.dart';
 
 class PublicationVideosSection extends StatefulWidget {
   final String? query;
+  final bool isUserSignedIn;
+  final VoidCallback? onSignInRequested;
+  final VoidCallback? onSignInSuccess;
 
-  const PublicationVideosSection({super.key, this.query});
+  const PublicationVideosSection({
+    super.key,
+    this.query,
+    this.isUserSignedIn = true,
+    this.onSignInRequested,
+    this.onSignInSuccess,
+  });
 
   @override
   State<PublicationVideosSection> createState() => _PublicationVideosSectionState();
@@ -125,6 +135,17 @@ class _PublicationVideosSectionState extends State<PublicationVideosSection> {
                   'No demonstrations currently match the engagement criteria.',
                   style: TextStyle(color: Colors.grey.shade500),
                 ),
+              );
+            }
+
+            if (!widget.isUserSignedIn) {
+              return LockedAnimationPlaceholder(
+                title: 'Literature Video Demonstrations Locked',
+                subtitle:
+                    'Sign in with your researcher credentials or activate the 1-Click Demo account to stream curated literature simulations and video demonstrations.',
+                compact: true,
+                onSignInRequested: widget.onSignInRequested,
+                onSignInSuccess: widget.onSignInSuccess,
               );
             }
 

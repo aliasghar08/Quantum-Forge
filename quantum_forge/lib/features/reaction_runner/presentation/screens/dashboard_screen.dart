@@ -28,6 +28,7 @@ import 'package:quantum_forge/features/reaction_runner/presentation/widgets/quan
 import 'package:quantum_forge/features/reaction_library/data/reaction_templates.dart';
 import 'package:quantum_forge/features/reaction_library/data/firestore_library_repository.dart';
 import 'package:quantum_forge/features/reaction_library/presentation/screens/library_screen.dart';
+import 'package:quantum_forge/features/reaction_library/presentation/screens/publication_details_screen.dart';
 import 'package:quantum_forge/features/reaction_library/presentation/widgets/pubmed_panel.dart';
 import 'package:quantum_forge/core/widgets/quantum_forge_logo.dart';
 // Dashboard card widgets
@@ -162,6 +163,25 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final uri = Uri.base;
     final shareId = uri.queryParameters['share'];
     final templateId = uri.queryParameters['reaction'];
+    final pubId = uri.queryParameters['publication'] ?? uri.queryParameters['pub'];
+
+    if (pubId != null && pubId.isNotEmpty) {
+      final template = _findTemplateById(pubId);
+      if (template != null && mounted) {
+        Navigator.of(context).push(
+          MaterialPageRoute<void>(
+            builder: (ctx) => PublicationDetailsScreen(template: template),
+          ),
+        );
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Viewing publication: ${template.name} (Public View)'),
+            duration: const Duration(seconds: 4),
+          ),
+        );
+        return;
+      }
+    }
 
     if (shareId != null && shareId.isNotEmpty) {
       try {
@@ -202,7 +222,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   ReactionTemplate? _findTemplateById(String id) {
     for (final t in kReactionTemplates) {
-      if (t.id == id) return t;
+      if (t.id.toLowerCase() == id.toLowerCase() || t.doi.toLowerCase() == id.toLowerCase()) {
+        return t;
+      }
     }
     return null;
   }

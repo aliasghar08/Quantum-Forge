@@ -9,6 +9,7 @@ class PublicationHeaderCard extends StatelessWidget {
   final String year;
   final String doi;
   final bool isLoading;
+  final VoidCallback? onShare;
 
   const PublicationHeaderCard({
     super.key,
@@ -19,6 +20,7 @@ class PublicationHeaderCard extends StatelessWidget {
     required this.year,
     required this.doi,
     this.isLoading = false,
+    this.onShare,
   });
 
   @override
@@ -47,6 +49,27 @@ class PublicationHeaderCard extends StatelessWidget {
                   const SizedBox(width: 12, height: 12, child: CircularProgressIndicator(color: Colors.white54, strokeWidth: 2)),
                 if (!isLoading)
                   Text(year, style: const TextStyle(color: Colors.white54, fontSize: 13)),
+                if (onShare != null)
+                  InkWell(
+                    onTap: onShare,
+                    borderRadius: BorderRadius.circular(4),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(4),
+                        border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: const [
+                          Icon(Icons.share_rounded, size: 12, color: Color(0xFF4FC3F7)),
+                          SizedBox(width: 4),
+                          Text('Share Publication', style: TextStyle(color: Color(0xFF4FC3F7), fontSize: 11, fontWeight: FontWeight.bold)),
+                        ],
+                      ),
+                    ),
+                  ),
               ],
             ),
             const SizedBox(height: 14),

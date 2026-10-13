@@ -31,6 +31,11 @@ class SharedReactionService {
     return '$baseUrl/?share=$shareId';
   }
 
+  /// Generates a public shareable URL for a publication details view.
+  static String getPublicationShareUrl(String templateId) {
+    return '$baseUrl/?publication=$templateId';
+  }
+
   /// Creates a public snapshot of the reaction currently loaded or performed.
   /// Anyone with the returned public URL can view the reaction and its trajectory
   /// completely free of authentication.
