@@ -303,9 +303,15 @@ class _DerivableParent {
 /// Extra substituents are still spectators, so the reaction itself is unchanged -
 /// this is what lifts the library from hundreds into thousands without inventing
 /// a single new number.
+///
+/// [perParentOverride] raises the per-parent budget above the even split. A
+/// parent's variants are produced in a fixed order, so a larger budget returns a
+/// strict superset of a smaller one - bulk tools use this to top up the total when
+/// some parents run out of distinct variants before others.
 List<ReactionTemplate> deriveTemplateVariants(
   List<ReactionTemplate> curated, {
   int maxTotal = kMaxGeneratedTemplates,
+  int? perParentOverride,
 }) {
   final derivable = <_DerivableParent>[];
   for (final parent in curated) {
@@ -315,8 +321,9 @@ List<ReactionTemplate> deriveTemplateVariants(
   if (derivable.isEmpty) return const [];
 
   // Spread the budget across parents instead of letting the first one fill it.
-  final perParent =
-      (maxTotal / derivable.length).ceil().clamp(1, kMaxVariantsPerParent);
+  final perParent = (perParentOverride ??
+          (maxTotal / derivable.length).ceil())
+      .clamp(1, kMaxVariantsPerParent);
 
   final out = <ReactionTemplate>[];
   for (final d in derivable) {
@@ -363,7 +370,10 @@ void _emitVariants(
 
   void emit(List<int> sites, List<_Substituent> subs) {
     if (made >= perParent || out.length >= maxTotal) return;
-    out.add(_buildVariant(d, sites, subs));
+    final variant = _buildVariant(d, sites, subs);
+    // Rejected for gross atomic overlap - does not consume budget.
+    if (variant == null) return;
+    out.add(variant);
     made++;
   }
 
@@ -454,7 +464,28 @@ bool _sameElements(_Frame a, _Frame b) {
   return true;
 }
 
-ReactionTemplate _buildVariant(
+/// Rejects a frame in which any substituent atom sits closer to another atom
+/// than 70% of the sum of their covalent radii. Real bonds (including C≡N) sit at
+/// 77-110% of that sum, so this only removes substituents that have been stacked
+/// on top of a neighbour. It is a gross-overlap screen, NOT a steric or energy
+/// validation - variants are still un-optimised.
+bool _hasGrossOverlap(_Frame frame, Set<int> fresh) {
+  for (final i in fresh) {
+    final ri = _covalentRadii[frame.elements[i]] ?? 0.9;
+    for (var j = 0; j < frame.length; j++) {
+      if (j == i || (fresh.contains(j) && j < i)) continue;
+      final rj = _covalentRadii[frame.elements[j]] ?? 0.9;
+      final dx = frame.positions[i][0] - frame.positions[j][0];
+      final dy = frame.positions[i][1] - frame.positions[j][1];
+      final dz = frame.positions[i][2] - frame.positions[j][2];
+      final dist = math.sqrt(dx * dx + dy * dy + dz * dz);
+      if (dist < 0.70 * (ri + rj)) return true;
+    }
+  }
+  return false;
+}
+
+ReactionTemplate? _buildVariant(
   _DerivableParent d,
   List<int> sites,
   List<_Substituent> subs,
@@ -465,6 +496,16 @@ ReactionTemplate _buildVariant(
     final heavy = d.sites[sites[k]]!;
     reactant = _applySubstitution(reactant, sites[k], heavy, subs[k]);
     product = _applySubstitution(product, sites[k], heavy, subs[k]);
+  }
+
+  // Atoms that are new or moved: the substituted H slots plus every appended atom.
+  final originalLength = d.reactant.length;
+  final fresh = <int>{
+    ...sites,
+    for (var i = originalLength; i < reactant.length; i++) i,
+  };
+  if (_hasGrossOverlap(reactant, fresh) || _hasGrossOverlap(product, fresh)) {
+    return null;
   }
 
   final parent = d.parent;

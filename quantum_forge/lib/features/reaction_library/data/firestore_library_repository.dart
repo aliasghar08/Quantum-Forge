@@ -1,4 +1,5 @@
 import 'dart:convert';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart' show rootBundle;
@@ -148,6 +149,47 @@ class FirestoreLibraryRepository {
       debugPrint('FirestoreLibraryRepository.getTotalCount error: $e');
       return -1;
     }
+  }
+
+  /// Real per-category document counts from Firestore aggregation queries.
+  ///
+  /// Firestore `.count()` is a metadata-only aggregation — billed as **one
+  /// document read per 1,000 matched index entries**, not one read per
+  /// document. The 13 concurrent queries below therefore cost roughly the
+  /// same as a single page fetch, and return exact totals that match
+  /// [getTotalCount] — keeping the category badges in sync with the header.
+  ///
+  /// Requires `cloud_firestore: ^4.9.0+` (same version that enables
+  /// [getTotalCount]).
+  ///
+  /// The returned map uses `null` as the key for the "All Reactions" total.
+  ///
+  /// Throws on failure so the caller ([LibraryScreen._fetchCategoryCounts])
+  /// can fall back to a local estimate. Returning `{}` here would show all
+  /// badges as `0`, which is worse than an explicit stale fallback.
+  Future<Map<ReactionCategory?, int>> getCategoryCounts() async {
+    // [0] — "All Reactions" total across the whole `library` collection.
+    final AggregateQuery totalQuery = _col.count();
+    final AggregateQuerySnapshot totalSnap = await totalQuery.get();
+    final int total = totalSnap.count ?? 0;
+
+    // [1..N] — one aggregation per enum value, all in parallel.
+    final Map<ReactionCategory, int> perCategory = <ReactionCategory, int>{};
+    await Future.wait<void>(
+      ReactionCategory.values.map((ReactionCategory cat) async {
+        final Query<Object?> q =
+            _col.where('category', isEqualTo: cat.name);
+        final AggregateQuery agg = q.count();
+        final AggregateQuerySnapshot snap = await agg.get();
+        perCategory[cat] = snap.count ?? 0;
+      }),
+    );
+
+    return <ReactionCategory?, int>{
+      null: total,
+      for (final MapEntry<ReactionCategory, int> e in perCategory.entries)
+        e.key: e.value,
+    };
   }
 
   // ── Seeding (admin / first-run only) ──────────────────────────────────────

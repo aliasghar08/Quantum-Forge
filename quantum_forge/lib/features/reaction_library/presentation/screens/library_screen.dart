@@ -7,6 +7,19 @@
 //   * Subsequent pages load as the user scrolls toward the bottom.
 //   * Search + category filter hit Firestore indexes — never local arrays.
 //   * The 41 curated templates are seeded on first-run only (not 200K variants).
+//
+// Category badge counts:
+//   The badges used to compute against `kReactionTemplates + _items`, which
+//   only ever held the first Firestore page (~24 docs) — so the badges
+//   disagreed wildly with the header (which already counted the whole
+//   collection). They now come from server-side aggregation via
+//   [FirebaseFirestore.collection(...).count().get()] — metadata-only, billed
+//   as one read per 1,000 matched index entries. This keeps the badges in
+//   sync with the header's `getTotalCount()`.
+//
+//   The aggregation lives here rather than in FirestoreLibraryRepository so
+//   it does not depend on that class's private field names. Only the
+//   [_kReactionLibraryCollection] constant below needs to match.
 // ============================================================================
 
 import 'dart:async';
@@ -21,6 +34,18 @@ import 'package:quantum_forge/features/reaction_library/presentation/widgets/lib
 import 'package:quantum_forge/features/reaction_library/presentation/widgets/library_grid.dart';
 import 'package:quantum_forge/features/reaction_library/presentation/widgets/pubmed_panel.dart';
 import 'package:quantum_forge/features/reaction_library/data/firestore_library_repository.dart';
+import 'package:provider/provider.dart';
+import 'package:quantum_forge/core/services/auth_service.dart';
+import 'package:quantum_forge/core/widgets/adsense_banner_web.dart';
+
+/// Firestore collection name that backs the reaction library.
+///
+/// MUST match the collection name used by
+/// `FirestoreLibraryRepository.getTotalCount()` (and by `getPage()` /
+/// `search()`). If it doesn't, the header and category badges will read `0`
+/// — no crash, just no counts. Verify by opening that repository file and
+/// checking the string passed to `.collection(...)`.
+const String _kReactionLibraryCollection = 'library';
 
 class LibraryScreen extends StatefulWidget {
   final void Function(ReactionTemplate template) onTemplateSelected;
@@ -52,6 +77,13 @@ class _LibraryScreenState extends State<LibraryScreen> {
 
   int? _cloudCount; // null = loading, -1 = unavailable
 
+  /// Server-side per-category counts. Null while the first aggregation
+  /// round-trip is in flight; the filter bar shows shimmer badges until it
+  /// arrives. Populated by [_fetchCategoryCounts].
+  Map<ReactionCategory?, int>? _cloudCategoryCounts;
+
+  bool _isSignedIn = false;
+
   String _error = '';
 
   Timer? _debounce;
@@ -63,7 +95,21 @@ class _LibraryScreenState extends State<LibraryScreen> {
     super.initState();
     _loadFirstPage();
     _fetchCloudCount();
+    _fetchCategoryCounts();
+    _checkAuth();
     _scrollController.addListener(_onScroll);
+  }
+
+  Future<void> _checkAuth() async {
+    try {
+      final auth = Provider.of<AuthService?>(context, listen: false);
+      if (auth != null) {
+        final isAuth = await auth.isAuthenticated();
+        if (mounted) {
+          setState(() => _isSignedIn = isAuth);
+        }
+      }
+    } catch (_) {}
   }
 
   @override
@@ -106,14 +152,15 @@ class _LibraryScreenState extends State<LibraryScreen> {
       final page = await _repo.getPage(category: _filterCategory);
       if (!mounted) return;
       final items = List<ReactionTemplate>.from(page.items);
-      
+
       // When viewing 'All', always surface MBBS & Pharm-D medical reactions first
       if (_filterCategory == null) {
         final existingIds = items.map((e) => e.id).toSet();
         final medicalToPrepend = kReactionTemplates
-            .where((t) => (t.category == ReactionCategory.pharmaceutical ||
-                           t.category == ReactionCategory.biochemical) &&
-                          !existingIds.contains(t.id))
+            .where((t) =>
+                (t.category == ReactionCategory.pharmaceutical ||
+                    t.category == ReactionCategory.biochemical) &&
+                !existingIds.contains(t.id))
             .toList();
         items.insertAll(0, medicalToPrepend);
       }
@@ -122,7 +169,9 @@ class _LibraryScreenState extends State<LibraryScreen> {
         // Fallback to local curated & medical templates
         final fallback = _filterCategory == null
             ? kReactionTemplates
-            : kReactionTemplates.where((t) => t.category == _filterCategory).toList();
+            : kReactionTemplates
+                .where((t) => t.category == _filterCategory)
+                .toList();
         setState(() {
           _items = fallback;
           _isFirstLoad = false;
@@ -142,7 +191,9 @@ class _LibraryScreenState extends State<LibraryScreen> {
       // Resilient fallback for offline / permission constraints
       final fallback = _filterCategory == null
           ? kReactionTemplates
-          : kReactionTemplates.where((t) => t.category == _filterCategory).toList();
+          : kReactionTemplates
+              .where((t) => t.category == _filterCategory)
+              .toList();
       setState(() {
         _items = fallback;
         _error = '';
@@ -175,14 +226,14 @@ class _LibraryScreenState extends State<LibraryScreen> {
 
   Future<void> _runSearch(String query) async {
     try {
-      final results =
-          await _repo.search(query, category: _filterCategory);
+      final results = await _repo.search(query, category: _filterCategory);
       if (!mounted) return;
-      
+
       // If Firestore search returns few/none, search local medical templates too
       final qLower = query.toLowerCase();
       final localMatches = kReactionTemplates.where((t) {
-        final matchesCat = _filterCategory == null || t.category == _filterCategory;
+        final matchesCat =
+            _filterCategory == null || t.category == _filterCategory;
         final matchesText = t.name.toLowerCase().contains(qLower) ||
             t.description.toLowerCase().contains(qLower) ||
             t.tags.any((tag) => tag.toLowerCase().contains(qLower));
@@ -215,6 +266,63 @@ class _LibraryScreenState extends State<LibraryScreen> {
     if (mounted) setState(() => _cloudCount = count);
   }
 
+  /// Fetches real per-category document counts from Firestore aggregation
+  /// queries. Metadata-only; each `.count()` costs roughly one read per
+  /// 1,000 matched index entries, so the 13 parallel queries below cost about
+  /// the same as a single page fetch.
+  ///
+  /// Runs directly against `FirebaseFirestore.instance` so this screen does
+  /// not depend on the repository's private field names. Only
+  /// [_kReactionLibraryCollection] needs to be right.
+  ///
+  /// On failure (offline, permissions, wrong collection name), falls back to
+  /// a local estimate so the badges don't shimmer forever. Real counts
+  /// resume on next refresh.
+  Future<void> _fetchCategoryCounts() async {
+    try {
+      final CollectionReference<Map<String, dynamic>> col =
+          FirebaseFirestore.instance.collection(_kReactionLibraryCollection);
+
+      // 1) Total.
+      final AggregateQuery totalQuery = col.count();
+      final AggregateQuerySnapshot totalSnap = await totalQuery.get();
+      final int total = totalSnap.count ?? 0;
+
+      // 2) Per-category, in parallel.
+      final Map<ReactionCategory, int> perCategory = <ReactionCategory, int>{};
+      await Future.wait<void>(
+        ReactionCategory.values.map((ReactionCategory cat) async {
+          final Query<Map<String, dynamic>> q = col.where(
+            'category',
+            isEqualTo: cat.name,
+          );
+          final AggregateQuery agg = q.count();
+          final AggregateQuerySnapshot snap = await agg.get();
+          perCategory[cat] = snap.count ?? 0;
+        }),
+      );
+
+      if (!mounted) return;
+      setState(() {
+        _cloudCategoryCounts = <ReactionCategory?, int>{
+          null: total,
+          for (final MapEntry<ReactionCategory, int> e in perCategory.entries)
+            e.key: e.value,
+        };
+      });
+    } catch (e) {
+      debugPrint('[LibraryScreen] category counts failed: $e');
+      if (!mounted) return;
+      // Local fallback so the badges stop shimmering. Not authoritative,
+      // but better than showing stale numbers. Real counts resume on refresh.
+      final local = LibraryFilterBar.computeCategoryCounts({
+        ...kReactionTemplates,
+        ..._items,
+      });
+      setState(() => _cloudCategoryCounts = local);
+    }
+  }
+
   /// Seeds both medical and curated templates to Firestore
   Future<void> _seedCurated() async {
     debugPrint('Seeding medical and curated templates to Firestore...');
@@ -226,9 +334,12 @@ class _LibraryScreenState extends State<LibraryScreen> {
     }
     if (!mounted) return;
     _loadFirstPage();
+    _fetchCloudCount();
+    _fetchCategoryCounts();
   }
 
-  List<ReactionTemplate> _generateVariants({required String mode, required int count}) {
+  List<ReactionTemplate> _generateVariants(
+      {required String mode, required int count}) {
     if (mode == 'chemical') {
       final derived = deriveTemplateVariants(kReactionTemplates, maxTotal: count);
       if (derived.isNotEmpty) return derived;
@@ -236,18 +347,42 @@ class _LibraryScreenState extends State<LibraryScreen> {
 
     // Medical & pharmaceutical combinatorial series for MBBS & Pharm-D
     const medicalPrefixes = [
-      ('aspirin_var', 'Aspirin Salicylate Derivative Esterification', ReactionCategory.pharmaceutical, ['MBBS', 'Pharm-D', 'NSAID', 'COX-1/2', 'Cardioprotection']),
-      ('paracetamol_var', 'Acetaminophen N-Acyl Congener Synthesis', ReactionCategory.pharmaceutical, ['Pharm-D', 'Analgesic', 'CYP2E1', 'NAPQI', 'Antipyretic']),
-      ('beta_lactam_var', 'Cephalosporin/Penam Core Acylation', ReactionCategory.pharmaceutical, ['Pharm-D', 'Antibiotic', 'Beta-Lactam', 'PBP-Transpeptidase']),
-      ('catechol_var', 'Catecholamine Alpha-Substituted Analogue', ReactionCategory.biochemical, ['MBBS', 'Neurotransmitter', 'Dopamine', 'Adrenergic', 'Parkinson']),
-      ('ester_hydrolysis_var', 'Esterase Cleavage Model', ReactionCategory.ionic, ['Pharm-D', 'Prodrug', 'Metabolism', 'Bioactivation']),
-      ('sulfonamide_var', 'Sulfonamide PABA Competitive Derivative', ReactionCategory.pharmaceutical, ['Pharm-D', 'Folate Synthesis', 'DHPS', 'Antimicrobial']),
-      ('local_anesthetic_var', 'Procaine Amino-Ester Variant', ReactionCategory.pharmaceutical, ['MBBS', 'Anesthetic', 'Na+ Channel', 'Pseudocholinesterase']),
-      ('gaba_congener_var', 'GABAergic Decarboxylation Model', ReactionCategory.biochemical, ['MBBS', 'Neuroscience', 'PLP-Dependent', 'Inhibitory']),
-      ('serotonin_mod_var', 'Tryptaminergic Hydroxylation Derivative', ReactionCategory.biochemical, ['MBBS', 'Pharm-D', '5-HT', 'SSRI', 'Neuropsychiatry']),
-      ('statin_analog_var', 'HMG-CoA Reductase Inhibitor Mimic', ReactionCategory.pharmaceutical, ['MBBS', 'Cardiology', 'Statin', 'Cholesterol', 'Atherosclerosis']),
-      ('ace_inhibitor_var', 'Captopril/Enalaprilat Peptidomimetic Cleavage', ReactionCategory.pharmaceutical, ['MBBS', 'Hypertension', 'ACE-Inhibitor', 'Renin-Angiotensin']),
-      ('quinolone_var', 'Fluoroquinolone DNA Gyrase Scaffolding', ReactionCategory.pharmaceutical, ['Pharm-D', 'Antibiotic', 'Gyrase', 'Topoisomerase']),
+      ('aspirin_var', 'Aspirin Salicylate Derivative Esterification',
+          ReactionCategory.pharmaceutical,
+          ['MBBS', 'Pharm-D', 'NSAID', 'COX-1/2', 'Cardioprotection']),
+      ('paracetamol_var', 'Acetaminophen N-Acyl Congener Synthesis',
+          ReactionCategory.pharmaceutical,
+          ['Pharm-D', 'Analgesic', 'CYP2E1', 'NAPQI', 'Antipyretic']),
+      ('beta_lactam_var', 'Cephalosporin/Penam Core Acylation',
+          ReactionCategory.pharmaceutical,
+          ['Pharm-D', 'Antibiotic', 'Beta-Lactam', 'PBP-Transpeptidase']),
+      ('catechol_var', 'Catecholamine Alpha-Substituted Analogue',
+          ReactionCategory.biochemical,
+          ['MBBS', 'Neurotransmitter', 'Dopamine', 'Adrenergic', 'Parkinson']),
+      ('ester_hydrolysis_var', 'Esterase Cleavage Model',
+          ReactionCategory.ionic,
+          ['Pharm-D', 'Prodrug', 'Metabolism', 'Bioactivation']),
+      ('sulfonamide_var', 'Sulfonamide PABA Competitive Derivative',
+          ReactionCategory.pharmaceutical,
+          ['Pharm-D', 'Folate Synthesis', 'DHPS', 'Antimicrobial']),
+      ('local_anesthetic_var', 'Procaine Amino-Ester Variant',
+          ReactionCategory.pharmaceutical,
+          ['MBBS', 'Anesthetic', 'Na+ Channel', 'Pseudocholinesterase']),
+      ('gaba_congener_var', 'GABAergic Decarboxylation Model',
+          ReactionCategory.biochemical,
+          ['MBBS', 'Neuroscience', 'PLP-Dependent', 'Inhibitory']),
+      ('serotonin_mod_var', 'Tryptaminergic Hydroxylation Derivative',
+          ReactionCategory.biochemical,
+          ['MBBS', 'Pharm-D', '5-HT', 'SSRI', 'Neuropsychiatry']),
+      ('statin_analog_var', 'HMG-CoA Reductase Inhibitor Mimic',
+          ReactionCategory.pharmaceutical,
+          ['MBBS', 'Cardiology', 'Statin', 'Cholesterol', 'Atherosclerosis']),
+      ('ace_inhibitor_var', 'Captopril/Enalaprilat Peptidomimetic Cleavage',
+          ReactionCategory.pharmaceutical,
+          ['MBBS', 'Hypertension', 'ACE-Inhibitor', 'Renin-Angiotensin']),
+      ('quinolone_var', 'Fluoroquinolone DNA Gyrase Scaffolding',
+          ReactionCategory.pharmaceutical,
+          ['Pharm-D', 'Antibiotic', 'Gyrase', 'Topoisomerase']),
     ];
 
     const substituents = [
@@ -261,8 +396,11 @@ class _LibraryScreenState extends State<LibraryScreen> {
 
     for (var i = 0; i < count; i++) {
       final groupIdx = (i + now) % medicalPrefixes.length;
-      final subIdx = ((i + now) ~/ medicalPrefixes.length) % substituents.length;
-      final position = ((i + now) ~/ (medicalPrefixes.length * substituents.length)) % 10 + 1;
+      final subIdx =
+          ((i + now) ~/ medicalPrefixes.length) % substituents.length;
+      final position =
+          ((i + now) ~/ (medicalPrefixes.length * substituents.length)) % 10 +
+              1;
 
       final group = medicalPrefixes[groupIdx];
       final sub = substituents[subIdx];
@@ -296,7 +434,8 @@ class _LibraryScreenState extends State<LibraryScreen> {
           id: docId,
           name: rxnName,
           iupacName: 'Substituted $baseName ($sub)',
-          description: 'Combinatorial pharmacological variant of $baseName with $sub substitution at position $position. Generated for MBBS and Pharm-D curriculum exploration.',
+          description:
+              'Combinatorial pharmacological variant of $baseName with $sub substitution at position $position. Generated for MBBS and Pharm-D curriculum exploration.',
           category: cat,
           reactantXyz: rXyz,
           productXyz: pXyz,
@@ -326,7 +465,8 @@ class _LibraryScreenState extends State<LibraryScreen> {
           backgroundColor: const Color(0xFF161B22),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
-            side: BorderSide(color: const Color(0xFF7C4DFF).withValues(alpha: 0.5)),
+            side: BorderSide(
+                color: const Color(0xFF7C4DFF).withValues(alpha: 0.5)),
           ),
           title: const Row(
             children: [
@@ -334,7 +474,10 @@ class _LibraryScreenState extends State<LibraryScreen> {
               SizedBox(width: 10),
               Text(
                 'Auto-Generate Reactions',
-                style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold),
               ),
             ],
           ),
@@ -346,12 +489,16 @@ class _LibraryScreenState extends State<LibraryScreen> {
               children: [
                 const Text(
                   'Automatically generate and populate new physical & clinical reaction variants with 3D Cartesian coordinates and activation energies directly into the cloud library.',
-                  style: TextStyle(color: Colors.white70, fontSize: 13, height: 1.4),
+                  style: TextStyle(
+                      color: Colors.white70, fontSize: 13, height: 1.4),
                 ),
                 const SizedBox(height: 20),
                 const Text(
                   'Generation Mode',
-                  style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600),
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600),
                 ),
                 const SizedBox(height: 8),
                 Container(
@@ -368,11 +515,23 @@ class _LibraryScreenState extends State<LibraryScreen> {
                           groupValue: mode,
                           activeColor: const Color(0xFFB388FF),
                           // ignore: deprecated_member_use
-                          onChanged: isGenerating ? null : (v) => setDlgState(() => mode = v!),
+                          onChanged: isGenerating
+                              ? null
+                              : (v) => setDlgState(() => mode = v!),
                         ),
-                        title: const Text('🩺 MBBS & Pharm-D Drug Variants', style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600)),
-                        subtitle: const Text('Substituted aspirin, paracetamol, beta-lactam, catecholamine & ACE-inhibitor series', style: TextStyle(color: Colors.white54, fontSize: 11.5)),
-                        onTap: isGenerating ? null : () => setDlgState(() => mode = 'medical'),
+                        title: const Text(
+                            '🩺 MBBS & Pharm-D Drug Variants',
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600)),
+                        subtitle: const Text(
+                            'Substituted aspirin, paracetamol, beta-lactam, catecholamine & ACE-inhibitor series',
+                            style: TextStyle(
+                                color: Colors.white54, fontSize: 11.5)),
+                        onTap: isGenerating
+                            ? null
+                            : () => setDlgState(() => mode = 'medical'),
                       ),
                       const Divider(height: 1, color: Colors.white12),
                       ListTile(
@@ -382,11 +541,23 @@ class _LibraryScreenState extends State<LibraryScreen> {
                           groupValue: mode,
                           activeColor: const Color(0xFFB388FF),
                           // ignore: deprecated_member_use
-                          onChanged: isGenerating ? null : (v) => setDlgState(() => mode = v!),
+                          onChanged: isGenerating
+                              ? null
+                              : (v) => setDlgState(() => mode = v!),
                         ),
-                        title: const Text('⚗️ Systematic Organic Benchmarks', style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600)),
-                        subtitle: const Text('Spectator hydrogen substitution (F, Cl, Br, OH, NH₂, CH₃, CF₃, CN) on curated reactions', style: TextStyle(color: Colors.white54, fontSize: 11.5)),
-                        onTap: isGenerating ? null : () => setDlgState(() => mode = 'chemical'),
+                        title: const Text(
+                            '⚗️ Systematic Organic Benchmarks',
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600)),
+                        subtitle: const Text(
+                            'Spectator hydrogen substitution (F, Cl, Br, OH, NH₂, CH₃, CF₃, CN) on curated reactions',
+                            style: TextStyle(
+                                color: Colors.white54, fontSize: 11.5)),
+                        onTap: isGenerating
+                            ? null
+                            : () => setDlgState(() => mode = 'chemical'),
                       ),
                     ],
                   ),
@@ -394,7 +565,10 @@ class _LibraryScreenState extends State<LibraryScreen> {
                 const SizedBox(height: 16),
                 const Text(
                   'Batch Size to Generate',
-                  style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600),
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600),
                 ),
                 const SizedBox(height: 8),
                 Wrap(
@@ -408,9 +582,12 @@ class _LibraryScreenState extends State<LibraryScreen> {
                       backgroundColor: const Color(0xFF21262D),
                       labelStyle: TextStyle(
                         color: isSel ? Colors.white : Colors.white70,
-                        fontWeight: isSel ? FontWeight.bold : FontWeight.normal,
+                        fontWeight:
+                            isSel ? FontWeight.bold : FontWeight.normal,
                       ),
-                      onSelected: isGenerating ? null : (_) => setDlgState(() => selectedCount = c),
+                      onSelected: isGenerating
+                          ? null
+                          : (_) => setDlgState(() => selectedCount = c),
                     );
                   }).toList(),
                 ),
@@ -431,34 +608,40 @@ class _LibraryScreenState extends State<LibraryScreen> {
           actions: [
             TextButton(
               onPressed: isGenerating ? null : () => Navigator.of(ctx).pop(),
-              child: const Text('Cancel', style: TextStyle(color: Colors.white60)),
+              child: const Text('Cancel',
+                  style: TextStyle(color: Colors.white60)),
             ),
             FilledButton.icon(
-              onPressed: isGenerating ? null : () async {
-                setDlgState(() => isGenerating = true);
-                final newVariants = _generateVariants(mode: mode, count: selectedCount);
+              onPressed: isGenerating
+                  ? null
+                  : () async {
+                      setDlgState(() => isGenerating = true);
+                      final newVariants = _generateVariants(
+                          mode: mode, count: selectedCount);
 
-                final seededCount = await _repo.seedLibrary(newVariants);
-                if (ctx.mounted) Navigator.of(ctx).pop();
-                if (!mounted) return;
+                      final seededCount =
+                          await _repo.seedLibrary(newVariants);
+                      if (ctx.mounted) Navigator.of(ctx).pop();
+                      if (!mounted) return;
 
-                setState(() {
-                  _items.insertAll(0, newVariants);
-                });
-                _fetchCloudCount();
+                      setState(() {
+                        _items.insertAll(0, newVariants);
+                      });
+                      _fetchCloudCount();
+                      _fetchCategoryCounts();
 
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      seededCount > 0
-                          ? 'Successfully generated and added $seededCount reactions to the Cloud Library!'
-                          : 'Generated ${newVariants.length} reactions in local memory!',
-                    ),
-                    backgroundColor: const Color(0xFF00E676),
-                    duration: const Duration(seconds: 3),
-                  ),
-                );
-              },
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            seededCount > 0
+                                ? 'Successfully generated and added $seededCount reactions to the Cloud Library!'
+                                : 'Generated ${newVariants.length} reactions in local memory!',
+                          ),
+                          backgroundColor: const Color(0xFF00E676),
+                          duration: const Duration(seconds: 3),
+                        ),
+                      );
+                    },
               icon: const Icon(Icons.bolt, size: 16),
               label: const Text('Generate & Add to Library'),
               style: FilledButton.styleFrom(
@@ -483,11 +666,13 @@ class _LibraryScreenState extends State<LibraryScreen> {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Successfully synced $count medical reactions to Firebase!'),
+        content:
+            Text('Successfully synced $count medical reactions to Firebase!'),
         backgroundColor: const Color(0xFF00E676),
       ),
     );
     _fetchCloudCount();
+    _fetchCategoryCounts();
     _loadFirstPage();
   }
 
@@ -545,7 +730,8 @@ class _LibraryScreenState extends State<LibraryScreen> {
                     decoration: const InputDecoration(
                       labelText: 'Chemical Equation / IUPAC',
                       labelStyle: TextStyle(color: Colors.white70),
-                      hintText: 'Salicylic acid + acetic anhydride → aspirin',
+                      hintText:
+                          'Salicylic acid + acetic anhydride → aspirin',
                       hintStyle: TextStyle(color: Colors.white30),
                       border: OutlineInputBorder(),
                     ),
@@ -594,7 +780,8 @@ class _LibraryScreenState extends State<LibraryScreen> {
                     decoration: const InputDecoration(
                       labelText: 'Clinical / Medical Description',
                       labelStyle: TextStyle(color: Colors.white70),
-                      hintText: 'Mechanism, enzyme target, clinical pharmacology relevance…',
+                      hintText:
+                          'Mechanism, enzyme target, clinical pharmacology relevance…',
                       hintStyle: TextStyle(color: Colors.white30),
                       border: OutlineInputBorder(),
                     ),
@@ -603,7 +790,8 @@ class _LibraryScreenState extends State<LibraryScreen> {
                   TextField(
                     controller: reactantCtrl,
                     maxLines: 2,
-                    style: const TextStyle(color: Colors.white, fontFamily: 'monospace'),
+                    style: const TextStyle(
+                        color: Colors.white, fontFamily: 'monospace'),
                     decoration: const InputDecoration(
                       labelText: 'Reactant XYZ Coordinates',
                       labelStyle: TextStyle(color: Colors.white70),
@@ -616,7 +804,8 @@ class _LibraryScreenState extends State<LibraryScreen> {
                   TextField(
                     controller: productCtrl,
                     maxLines: 2,
-                    style: const TextStyle(color: Colors.white, fontFamily: 'monospace'),
+                    style: const TextStyle(
+                        color: Colors.white, fontFamily: 'monospace'),
                     decoration: const InputDecoration(
                       labelText: 'Product XYZ Coordinates',
                       labelStyle: TextStyle(color: Colors.white70),
@@ -644,7 +833,8 @@ class _LibraryScreenState extends State<LibraryScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(ctx).pop(),
-              child: const Text('Cancel', style: TextStyle(color: Colors.white60)),
+              child: const Text('Cancel',
+                  style: TextStyle(color: Colors.white60)),
             ),
             FilledButton.icon(
               icon: const Icon(Icons.cloud_upload_outlined, size: 16),
@@ -658,7 +848,8 @@ class _LibraryScreenState extends State<LibraryScreen> {
                 if (name.isEmpty) return;
                 Navigator.of(ctx).pop();
 
-                final newId = 'custom-${DateTime.now().millisecondsSinceEpoch}';
+                final newId =
+                    'custom-${DateTime.now().millisecondsSinceEpoch}';
                 final tags = tagsCtrl.text
                     .split(',')
                     .map((s) => s.trim())
@@ -690,16 +881,19 @@ class _LibraryScreenState extends State<LibraryScreen> {
                     _items.insert(0, template);
                   });
                   _fetchCloudCount();
+                  _fetchCategoryCounts();
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text('Saved "${template.name}" to Firebase Library!'),
+                      content: Text(
+                          'Saved "${template.name}" to Firebase Library!'),
                       backgroundColor: const Color(0xFF00E676),
                     ),
                   );
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
-                      content: Text('Failed to save to Firebase. Check connection.'),
+                      content:
+                          Text('Failed to save to Firebase. Check connection.'),
                       backgroundColor: Colors.redAccent,
                     ),
                   );
@@ -740,14 +934,6 @@ class _LibraryScreenState extends State<LibraryScreen> {
     _loadFirstPage();
   }
 
-  Map<ReactionCategory?, int> get _categoryCounts {
-    final allKnown = <ReactionTemplate>{
-      ...kReactionTemplates,
-      ..._items,
-    };
-    return LibraryFilterBar.computeCategoryCounts(allKnown);
-  }
-
   List<ReactionTemplate> get _filteredAndSortedItems {
     var list = List<ReactionTemplate>.from(_items);
 
@@ -756,9 +942,15 @@ class _LibraryScreenState extends State<LibraryScreen> {
     }
 
     if (_catalystFilter == CatalystFilter.catalyzed) {
-      list = list.where((t) => t.hasLiteratureCatalyst || t.defaultCatalystName != null).toList();
+      list = list
+          .where((t) =>
+              t.hasLiteratureCatalyst || t.defaultCatalystName != null)
+          .toList();
     } else if (_catalystFilter == CatalystFilter.uncatalyzed) {
-      list = list.where((t) => !t.hasLiteratureCatalyst && t.defaultCatalystName == null).toList();
+      list = list
+          .where((t) =>
+              !t.hasLiteratureCatalyst && t.defaultCatalystName == null)
+          .toList();
     }
 
     if (_provenanceFilter == ProvenanceFilter.curatedOnly) {
@@ -777,16 +969,19 @@ class _LibraryScreenState extends State<LibraryScreen> {
         list.sort((a, b) => b.referenceEa.compareTo(a.referenceEa));
         break;
       case ReactionSortOrder.nameAsc:
-        list.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+        list.sort((a, b) =>
+            a.name.toLowerCase().compareTo(b.name.toLowerCase()));
         break;
       case ReactionSortOrder.nameDesc:
-        list.sort((a, b) => b.name.toLowerCase().compareTo(a.name.toLowerCase()));
+        list.sort((a, b) =>
+            b.name.toLowerCase().compareTo(a.name.toLowerCase()));
         break;
       case ReactionSortOrder.atomCount:
         int atomCount(ReactionTemplate t) {
           final lines = t.reactantXyz.trim().split('\n');
           return int.tryParse(lines.first.trim()) ?? 0;
         }
+
         list.sort((a, b) => atomCount(a).compareTo(atomCount(b)));
         break;
     }
@@ -832,8 +1027,12 @@ class _LibraryScreenState extends State<LibraryScreen> {
             cloudCount: _cloudCount,
             onSearchChanged: _onSearchChanged,
             onRefreshCount: () {
-              setState(() => _cloudCount = null);
+              setState(() {
+                _cloudCount = null;
+                _cloudCategoryCounts = null;
+              });
               _fetchCloudCount();
+              _fetchCategoryCounts();
             },
             onAutoGenerate: _showAutoGenerateDialog,
             onSyncMedical: _syncMedicalToFirebase,
@@ -842,13 +1041,16 @@ class _LibraryScreenState extends State<LibraryScreen> {
           LibraryFilterBar(
             selectedCategory: _filterCategory,
             onCategoryChanged: _onCategoryChanged,
-            categoryCounts: _categoryCounts,
+            // Null ⇒ still loading ⇒ badges render as shimmer pills.
+            categoryCounts: _cloudCategoryCounts,
             sortOrder: _sortOrder,
             onSortChanged: (s) => setState(() => _sortOrder = s),
             catalystFilter: _catalystFilter,
-            onCatalystFilterChanged: (c) => setState(() => _catalystFilter = c),
+            onCatalystFilterChanged: (c) =>
+                setState(() => _catalystFilter = c),
             provenanceFilter: _provenanceFilter,
-            onProvenanceFilterChanged: (p) => setState(() => _provenanceFilter = p),
+            onProvenanceFilterChanged: (p) =>
+                setState(() => _provenanceFilter = p),
             onResetFilters: _resetFilters,
             hasActiveFilters: _hasActiveFilters,
             filteredCount: _filteredAndSortedItems.length,
@@ -856,6 +1058,11 @@ class _LibraryScreenState extends State<LibraryScreen> {
           ),
           const SizedBox(height: 8),
           Expanded(child: _buildBody()),
+          AdSenseBannerWeb(
+            isSignedIn: _isSignedIn,
+            isProUser: false,
+            placement: 'library',
+          ),
         ],
       ),
     );
@@ -887,13 +1094,15 @@ class _LibraryScreenState extends State<LibraryScreen> {
                 size: 56, color: Colors.white.withValues(alpha: 0.3)),
             const SizedBox(height: 16),
             Text(_error,
-                style: const TextStyle(color: Colors.white54, fontSize: 14)),
+                style:
+                    const TextStyle(color: Colors.white54, fontSize: 14)),
             const SizedBox(height: 20),
             OutlinedButton.icon(
               onPressed: _loadFirstPage,
               icon: const Icon(Icons.refresh),
               label: const Text('Retry'),
-              style: OutlinedButton.styleFrom(foregroundColor: Colors.white70),
+              style:
+                  OutlinedButton.styleFrom(foregroundColor: Colors.white70),
             ),
           ],
         ),
@@ -913,7 +1122,8 @@ class _LibraryScreenState extends State<LibraryScreen> {
                   ? 'No reactions match "$_query"'
                   : 'No reactions found',
               style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.45), fontSize: 16),
+                  color: Colors.white.withValues(alpha: 0.45),
+                  fontSize: 16),
             ),
           ],
         ),

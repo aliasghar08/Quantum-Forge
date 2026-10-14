@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:quantum_forge/features/reaction_library/data/reaction_templates.dart';
 import 'package:quantum_forge/features/reaction_library/presentation/widgets/reaction_card_widget.dart';
+import 'package:quantum_forge/core/widgets/adsense_banner_web.dart';
 
 /// Standalone mobile presentation view for the Reaction Library (< 600px).
 class ReactionLibraryMobileView extends StatelessWidget {
@@ -13,6 +14,8 @@ class ReactionLibraryMobileView extends StatelessWidget {
   final List<ReactionTemplate> reactions;
   final ValueChanged<ReactionTemplate>? onTemplateSelected;
   final int? cloudCount;
+  final bool isProUser;
+  final bool isSignedIn;
 
   const ReactionLibraryMobileView({
     super.key,
@@ -25,6 +28,8 @@ class ReactionLibraryMobileView extends StatelessWidget {
     required this.reactions,
     this.onTemplateSelected,
     this.cloudCount,
+    this.isProUser = false,
+    this.isSignedIn = false,
   });
 
   @override
@@ -197,8 +202,18 @@ class ReactionLibraryMobileView extends StatelessWidget {
           Expanded(
             child: ListView.builder(
               padding: const EdgeInsets.fromLTRB(14, 6, 14, 24),
-              itemCount: reactions.length,
+              itemCount: reactions.length + 1,
               itemBuilder: (context, index) {
+                if (index == reactions.length) {
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 8, bottom: 12),
+                    child: AdSenseBannerWeb(
+                      isSignedIn: isSignedIn,
+                      isProUser: isProUser,
+                      placement: 'library_mobile',
+                    ),
+                  );
+                }
                 final item = reactions[index];
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 12),

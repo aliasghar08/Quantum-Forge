@@ -9,7 +9,7 @@
     it to work correctly.
 
     For more details:
-    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
+    - https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
 
     This is a placeholder for base href that will be replaced by the value of
     the `--base-href` argument provided to `flutter build`.
@@ -32,18 +32,21 @@
   <title>Quantum Forge — Reaction Dynamics Workstation</title>
   <link rel="manifest" href="manifest.json">
 
+  <!-- Google AdSense -->
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9402443776639153" crossorigin="anonymous"></script>
+
   <!--
     NGL is vendored rather than pulled from a CDN, for two reasons that matter
     to a research tool:
 
-      1. Reproducibility. `ngl.js` is pinned to an exact version whose SHA-256 is
-         recorded in `web/ngl/README.md`, so a figure regenerated in two years
-         renders identically. The previous CDN link pinned `2.0.0-dev.39` — a
-         2017 pre-release — which was never the version this code was tested
-         against.
-      2. Availability. A reaction animation that depends on a third-party CDN
-         being reachable is a liability in a seminar room or an offline lab
-         machine.
+    1. Reproducibility. `ngl.js` is pinned to an exact version whose SHA-256 is
+       recorded in `web/ngl/README.md`, so a figure regenerated in two years
+       renders identically. The previous CDN link pinned `2.0.0-dev.39` — a
+       2017 pre-release — which was never the version this code was tested
+       against.
+    2. Availability. A reaction animation that depends on a third-party CDN
+       being reachable is a liability in a seminar room or an offline lab
+       machine.
 
     Both scripts are classic (non-module) scripts and must run before Flutter
     boots, since `main.dart.js` reads `window.NGL` and `window.QuantumForgeNgl`
@@ -67,16 +70,16 @@
 
     Two details are load-bearing:
 
-      * The globals must be the module *namespace objects*, which is why this
-        uses `await import(...)`. A plain `<script src="firebase-app.js">` would
-        define nothing, because an ES module sets no global.
-      * These names are the contract `firebase_core_web` and friends read:
-        `firebase_core`, `firebase_auth`, `firebase_firestore`. When
-        `window.firebase_core` is already set, FlutterFire skips its own CDN
-        injection entirely — that check is documented in
-        `firebase_core_web.dart` ("or the user has added the scripts to their
-        html file"), which is what makes this a supported setup rather than a
-        fork.
+    - The globals must be the module *namespace objects*, which is why this
+      uses `await import(...)`. A plain `<script src="firebase-app.js">` would
+      define nothing, because an ES module sets no global.
+    - These names are the contract `firebase_core_web` and friends read:
+      `firebase_core`, `firebase_auth`, `firebase_firestore`. When
+      `window.firebase_core` is already set, FlutterFire skips its own CDN
+      injection entirely — that check is documented in
+      `firebase_core_web.dart` ("or the user has added the scripts to their
+      html file"), which is what makes this a supported setup rather than a
+      fork.
 
     See `web/firebasejs/README.md` for the version, hashes and update procedure.
   -->

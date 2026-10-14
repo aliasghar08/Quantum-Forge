@@ -36,6 +36,17 @@ enum ProvenanceFilter {
 class LibraryFilterBar extends StatelessWidget {
   final ReactionCategory? selectedCategory;
   final ValueChanged<ReactionCategory?> onCategoryChanged;
+
+  /// Per-category counts sourced from Firestore aggregation.
+  ///
+  /// * Non-null → real server counts; badges show the numbers.
+  /// * Null     → still loading; badges render as animated shimmer pills.
+  ///
+  /// Previously this fell back silently to `computeCategoryCounts(kReactionTemplates)`,
+  /// which produced counts that disagreed with the header because it only saw
+  /// the 40-odd curated constants — never the 22K Firestore documents.
+  /// That silent fallback has been removed; callers should now pass a real
+  /// server-side map (or null while loading).
   final Map<ReactionCategory?, int>? categoryCounts;
 
   final ReactionSortOrder sortOrder;
@@ -69,7 +80,12 @@ class LibraryFilterBar extends StatelessWidget {
     this.totalCount,
   });
 
-  static Map<ReactionCategory?, int> computeCategoryCounts(Iterable<ReactionTemplate> templates) {
+  /// Compute counts from an in-memory iterable. Retained for offline
+  /// fallback (see `LibraryScreen._fetchCategoryCounts` catch block) and
+  /// for unit tests that want to assert on the curated set without
+  /// spinning up Firestore.
+  static Map<ReactionCategory?, int> computeCategoryCounts(
+      Iterable<ReactionTemplate> templates) {
     final counts = <ReactionCategory?, int>{};
     counts[null] = templates.length;
     for (final cat in ReactionCategory.values) {
@@ -80,7 +96,7 @@ class LibraryFilterBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final counts = categoryCounts ?? computeCategoryCounts(kReactionTemplates);
+    final counts = categoryCounts; // null == loading
 
     final categories = [
       null,
@@ -134,7 +150,7 @@ class LibraryFilterBar extends StatelessWidget {
                 final color = cat == null
                     ? Colors.white
                     : ReactionCardWidget.categoryColor(cat);
-                final count = counts[cat] ?? 0;
+                final count = counts?[cat];
 
                 return Padding(
                   padding: EdgeInsets.only(right: isMobile ? 8 : 10),
@@ -151,7 +167,8 @@ class LibraryFilterBar extends StatelessWidget {
                         color: isSelected
                             ? color.withValues(alpha: 0.25)
                             : Colors.white.withValues(alpha: 0.07),
-                        borderRadius: BorderRadius.circular(isMobile ? 10 : 20),
+                        borderRadius:
+                            BorderRadius.circular(isMobile ? 10 : 20),
                         border: Border.all(
                           color: isSelected
                               ? color
@@ -167,8 +184,9 @@ class LibraryFilterBar extends StatelessWidget {
                               color: isSelected
                                   ? color
                                   : Colors.white.withValues(alpha: 0.75),
-                              fontWeight:
-                                  isSelected ? FontWeight.w700 : FontWeight.normal,
+                              fontWeight: isSelected
+                                  ? FontWeight.w700
+                                  : FontWeight.normal,
                               fontSize: isMobile ? 12 : 13,
                             ),
                           ),
@@ -184,16 +202,22 @@ class LibraryFilterBar extends StatelessWidget {
                                   : Colors.white.withValues(alpha: 0.12),
                               borderRadius: BorderRadius.circular(10),
                             ),
-                            child: Text(
-                              '$count',
-                              style: TextStyle(
-                                color: isSelected
-                                    ? Colors.white
-                                    : Colors.white.withValues(alpha: 0.8),
-                                fontSize: isMobile ? 10 : 11,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
+                            child: count == null
+                                ? _ShimmerBadge(
+                                    isSelected: isSelected,
+                                    color: color,
+                                  )
+                                : Text(
+                                    '$count',
+                                    style: TextStyle(
+                                      color: isSelected
+                                          ? Colors.white
+                                          : Colors.white
+                                              .withValues(alpha: 0.8),
+                                      fontSize: isMobile ? 10 : 11,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
                           ),
                         ],
                       ),
@@ -228,13 +252,21 @@ class LibraryFilterBar extends StatelessWidget {
                       value: s,
                       child: Row(
                         children: [
-                          Icon(s.icon, size: 16, color: s == sortOrder ? Colors.cyanAccent : Colors.white70),
+                          Icon(s.icon,
+                              size: 16,
+                              color: s == sortOrder
+                                  ? Colors.cyanAccent
+                                  : Colors.white70),
                           const SizedBox(width: 10),
                           Text(
                             s.label,
                             style: TextStyle(
-                              color: s == sortOrder ? Colors.cyanAccent : Colors.white,
-                              fontWeight: s == sortOrder ? FontWeight.bold : FontWeight.normal,
+                              color: s == sortOrder
+                                  ? Colors.cyanAccent
+                                  : Colors.white,
+                              fontWeight: s == sortOrder
+                                  ? FontWeight.bold
+                                  : FontWeight.normal,
                               fontSize: 13,
                             ),
                           ),
@@ -259,8 +291,12 @@ class LibraryFilterBar extends StatelessWidget {
                       child: Text(
                         c.label,
                         style: TextStyle(
-                          color: c == catalystFilter ? const Color(0xFF00E676) : Colors.white,
-                          fontWeight: c == catalystFilter ? FontWeight.bold : FontWeight.normal,
+                          color: c == catalystFilter
+                              ? const Color(0xFF00E676)
+                              : Colors.white,
+                          fontWeight: c == catalystFilter
+                              ? FontWeight.bold
+                              : FontWeight.normal,
                           fontSize: 13,
                         ),
                       ),
@@ -283,8 +319,12 @@ class LibraryFilterBar extends StatelessWidget {
                       child: Text(
                         p.label,
                         style: TextStyle(
-                          color: p == provenanceFilter ? const Color(0xFFAB47BC) : Colors.white,
-                          fontWeight: p == provenanceFilter ? FontWeight.bold : FontWeight.normal,
+                          color: p == provenanceFilter
+                              ? const Color(0xFFAB47BC)
+                              : Colors.white,
+                          fontWeight: p == provenanceFilter
+                              ? FontWeight.bold
+                              : FontWeight.normal,
                           fontSize: 13,
                         ),
                       ),
@@ -306,12 +346,15 @@ class LibraryFilterBar extends StatelessWidget {
                       decoration: BoxDecoration(
                         color: Colors.redAccent.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: Colors.redAccent.withValues(alpha: 0.4)),
+                        border: Border.all(
+                            color:
+                                Colors.redAccent.withValues(alpha: 0.4)),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.clear_rounded, size: 14, color: Colors.redAccent),
+                          const Icon(Icons.clear_rounded,
+                              size: 14, color: Colors.redAccent),
                           const SizedBox(width: 4),
                           Text(
                             'Reset Filters',
@@ -336,7 +379,8 @@ class LibraryFilterBar extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: Colors.white.withValues(alpha: 0.05),
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+                      border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.08)),
                     ),
                     child: Text(
                       'Showing $filteredCount of $totalCount',
@@ -367,7 +411,8 @@ class LibraryFilterBar extends StatelessWidget {
     return PopupMenuButton<T>(
       tooltip: label,
       color: const Color(0xFF1E2230),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      shape:
+          RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       onSelected: onSelected,
       itemBuilder: (context) => items,
       child: Container(
@@ -398,7 +443,8 @@ class LibraryFilterBar extends StatelessWidget {
             Text(
               label,
               style: TextStyle(
-                color: isActive ? activeColor : Colors.white.withValues(alpha: 0.8),
+                color:
+                    isActive ? activeColor : Colors.white.withValues(alpha: 0.8),
                 fontSize: isMobile ? 11 : 12,
                 fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
               ),
@@ -410,6 +456,55 @@ class LibraryFilterBar extends StatelessWidget {
               color: isActive ? activeColor : Colors.white54,
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Tiny animated pill shown in the category badge slot while the Firestore
+/// aggregation query is still in flight. Mirrors the `_ShimmerPill` in
+/// `LibraryHeader`, so the two loading states feel like one component.
+class _ShimmerBadge extends StatefulWidget {
+  final bool isSelected;
+  final Color color;
+  const _ShimmerBadge({required this.isSelected, required this.color});
+
+  @override
+  State<_ShimmerBadge> createState() => _ShimmerBadgeState();
+}
+
+class _ShimmerBadgeState extends State<_ShimmerBadge>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _ctrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 900),
+    )..repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _ctrl,
+      builder: (context, _) => Container(
+        width: 18,
+        height: 10,
+        decoration: BoxDecoration(
+          color: widget.isSelected
+              ? widget.color.withValues(alpha: 0.20 + 0.15 * _ctrl.value)
+              : Colors.white.withValues(alpha: 0.10 + 0.08 * _ctrl.value),
+          borderRadius: BorderRadius.circular(4),
         ),
       ),
     );

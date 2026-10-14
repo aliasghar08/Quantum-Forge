@@ -11,6 +11,7 @@ import 'package:quantum_forge/features/auth/presentation/screens/auth_screen.dar
 import 'package:quantum_forge/features/reaction_runner/data/models/reaction_models.dart';
 import 'package:quantum_forge/core/widgets/animations/staggered_animation_list_item.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
+import 'package:quantum_forge/core/widgets/adsense_banner_web.dart';
 
 class HistoryScreen extends StatefulWidget {
   final ValueChanged<ReactionStatusResponse>? onReactionSelected;
@@ -220,6 +221,13 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 _buildEmptyState(palette, isMobile)
               else
                 _buildReactionList(palette, isMobile),
+
+              const SizedBox(height: 16),
+              AdSenseBannerWeb(
+                isSignedIn: _isAuthenticated,
+                isProUser: false,
+                placement: 'history_list',
+              ),
             ],
           ),
         );
@@ -228,77 +236,96 @@ class _HistoryScreenState extends State<HistoryScreen> {
   }
 
   Widget _buildAuthPrompt(QuantumTheme palette, bool isMobile) {
-    return Center(
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 440),
-        child: Padding(
-          padding: const EdgeInsets.all(32),
+    return SafeArea(
+      child: Center(
+        child: SingleChildScrollView(
+          padding: EdgeInsets.symmetric(
+            horizontal: isMobile ? 16 : 24,
+            vertical: isMobile ? 16 : 24,
+          ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Container(
-                width: 70,
-                height: 70,
-                decoration: BoxDecoration(
-                  color: palette.accent.withValues(alpha: 0.14),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: palette.accent.withValues(alpha: 0.35)),
-                ),
-                child: Icon(Icons.history_rounded, size: 34, color: palette.accent),
-              ),
-              const SizedBox(height: 20),
-              Text(
-                'History Requires an Account',
-                style: TextStyle(
-                  color: palette.textPrimary,
-                  fontSize: 22,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: -0.4,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 12),
-              Text(
-                'Reaction histories, activation barriers, and 3D transition-state trajectories '
-                'are stored securely in Cloud Firestore. Sign in to view and compare your runs.',
-                style: TextStyle(
-                  color: palette.textSecondary,
-                  fontSize: 13.5,
-                  height: 1.5,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 26),
-              SizedBox(
-                width: double.infinity,
-                child: FilledButton.icon(
-                  onPressed: _openAuth,
-                  icon: const Icon(Icons.login_rounded, size: 18),
-                  label: const Text('Sign In or Register'),
-                  style: FilledButton.styleFrom(
-                    backgroundColor: palette.accent,
-                    foregroundColor: palette.onAccent,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 440),
+                child: Padding(
+                  padding: const EdgeInsets.all(32),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 70,
+                        height: 70,
+                        decoration: BoxDecoration(
+                          color: palette.accent.withValues(alpha: 0.14),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: palette.accent.withValues(alpha: 0.35)),
+                        ),
+                        child: Icon(Icons.history_rounded, size: 34, color: palette.accent),
+                      ),
+                      const SizedBox(height: 20),
+                      Text(
+                        'History Requires an Account',
+                        style: TextStyle(
+                          color: palette.textPrimary,
+                          fontSize: 22,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: -0.4,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        'Reaction histories, activation barriers, and 3D transition-state trajectories '
+                        'are stored securely in Cloud Firestore. Sign in to view and compare your runs.',
+                        style: TextStyle(
+                          color: palette.textSecondary,
+                          fontSize: 13.5,
+                          height: 1.5,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 26),
+                      SizedBox(
+                        width: double.infinity,
+                        child: FilledButton.icon(
+                          onPressed: _openAuth,
+                          icon: const Icon(Icons.login_rounded, size: 18),
+                          label: const Text('Sign In or Register'),
+                          style: FilledButton.styleFrom(
+                            backgroundColor: palette.accent,
+                            foregroundColor: palette.onAccent,
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton.icon(
+                          onPressed: _signInWithGhost,
+                          icon: const Icon(Icons.science_rounded, size: 18, color: Color(0xFF00E676)),
+                          label: const Text(
+                            '🧪 One-Click Demo Researcher (Ghost Account)',
+                            style: TextStyle(color: Color(0xFF00E676), fontWeight: FontWeight.bold),
+                          ),
+                          style: OutlinedButton.styleFrom(
+                            side: const BorderSide(color: Color(0xFF00E676)),
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
               const SizedBox(height: 12),
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton.icon(
-                  onPressed: _signInWithGhost,
-                  icon: const Icon(Icons.science_rounded, size: 18, color: Color(0xFF00E676)),
-                  label: const Text(
-                    '🧪 One-Click Demo Researcher (Ghost Account)',
-                    style: TextStyle(color: Color(0xFF00E676), fontWeight: FontWeight.bold),
-                  ),
-                  style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: Color(0xFF00E676)),
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  ),
-                ),
+              AdSenseBannerWeb(
+                isSignedIn: _isAuthenticated,
+                isProUser: false,
+                placement: 'history_auth',
               ),
             ],
           ),
