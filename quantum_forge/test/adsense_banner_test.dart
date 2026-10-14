@@ -35,6 +35,9 @@ class _FakeReactionRepository implements ReactionRepository {
 
   @override
   Future<void> saveCompletedReaction(ReactionStatusResponse response, [String? userId]) async {}
+
+  @override
+  Future<int> getCategoryTotalCount([String? categoryName]) async => 0;
 }
 
 class _UnauthenticatedAuthService extends LocalAuthService {

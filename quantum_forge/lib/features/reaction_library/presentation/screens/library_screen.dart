@@ -1,25 +1,5 @@
 // ============================================================================
 // Library Screen — Server-side paginated Firestore browser
-//
-// Architecture:
-//   * ALL data comes from Firestore. No local generation in this screen.
-//   * First page (24 items) loads on open.
-//   * Subsequent pages load as the user scrolls toward the bottom.
-//   * Search + category filter hit Firestore indexes — never local arrays.
-//   * The 41 curated templates are seeded on first-run only (not 200K variants).
-//
-// Category badge counts:
-//   The badges used to compute against `kReactionTemplates + _items`, which
-//   only ever held the first Firestore page (~24 docs) — so the badges
-//   disagreed wildly with the header (which already counted the whole
-//   collection). They now come from server-side aggregation via
-//   [FirebaseFirestore.collection(...).count().get()] — metadata-only, billed
-//   as one read per 1,000 matched index entries. This keeps the badges in
-//   sync with the header's `getTotalCount()`.
-//
-//   The aggregation lives here rather than in FirestoreLibraryRepository so
-//   it does not depend on that class's private field names. Only the
-//   [_kReactionLibraryCollection] constant below needs to match.
 // ============================================================================
 
 import 'dart:async';
@@ -38,13 +18,6 @@ import 'package:provider/provider.dart';
 import 'package:quantum_forge/core/services/auth_service.dart';
 import 'package:quantum_forge/core/widgets/adsense_banner_web.dart';
 
-/// Firestore collection name that backs the reaction library.
-///
-/// MUST match the collection name used by
-/// `FirestoreLibraryRepository.getTotalCount()` (and by `getPage()` /
-/// `search()`). If it doesn't, the header and category badges will read `0`
-/// — no crash, just no counts. Verify by opening that repository file and
-/// checking the string passed to `.collection(...)`.
 const String _kReactionLibraryCollection = 'library';
 
 class LibraryScreen extends StatefulWidget {
@@ -77,9 +50,6 @@ class _LibraryScreenState extends State<LibraryScreen> {
 
   int? _cloudCount; // null = loading, -1 = unavailable
 
-  /// Server-side per-category counts. Null while the first aggregation
-  /// round-trip is in flight; the filter bar shows shimmer badges until it
-  /// arrives. Populated by [_fetchCategoryCounts].
   Map<ReactionCategory?, int>? _cloudCategoryCounts;
 
   bool _isSignedIn = false;
@@ -123,7 +93,6 @@ class _LibraryScreenState extends State<LibraryScreen> {
 
   void _onScroll() {
     final pos = _scrollController.position;
-    // Trigger when within 300px of the bottom
     if (pos.pixels >= pos.maxScrollExtent - 300 &&
         !_isLoadingMore &&
         _hasMore &&
@@ -153,7 +122,6 @@ class _LibraryScreenState extends State<LibraryScreen> {
       if (!mounted) return;
       final items = List<ReactionTemplate>.from(page.items);
 
-      // When viewing 'All', always surface MBBS & Pharm-D medical reactions first
       if (_filterCategory == null) {
         final existingIds = items.map((e) => e.id).toSet();
         final medicalToPrepend = kReactionTemplates
@@ -166,7 +134,6 @@ class _LibraryScreenState extends State<LibraryScreen> {
       }
 
       if (items.isEmpty) {
-        // Fallback to local curated & medical templates
         final fallback = _filterCategory == null
             ? kReactionTemplates
             : kReactionTemplates
@@ -188,7 +155,6 @@ class _LibraryScreenState extends State<LibraryScreen> {
       });
     } catch (e) {
       if (!mounted) return;
-      // Resilient fallback for offline / permission constraints
       final fallback = _filterCategory == null
           ? kReactionTemplates
           : kReactionTemplates
@@ -229,7 +195,6 @@ class _LibraryScreenState extends State<LibraryScreen> {
       final results = await _repo.search(query, category: _filterCategory);
       if (!mounted) return;
 
-      // If Firestore search returns few/none, search local medical templates too
       final qLower = query.toLowerCase();
       final localMatches = kReactionTemplates.where((t) {
         final matchesCat =
@@ -263,67 +228,94 @@ class _LibraryScreenState extends State<LibraryScreen> {
 
   Future<void> _fetchCloudCount() async {
     final count = await _repo.getTotalCount();
-    if (mounted) setState(() => _cloudCount = count);
+    if (mounted) {
+      setState(() {
+        _cloudCount = count;
+        if (_cloudCategoryCounts != null && count >= 0) {
+          _cloudCategoryCounts![null] = count;
+        }
+      });
+    }
   }
 
-  /// Fetches real per-category document counts from Firestore aggregation
-  /// queries. Metadata-only; each `.count()` costs roughly one read per
-  /// 1,000 matched index entries, so the 13 parallel queries below cost about
-  /// the same as a single page fetch.
-  ///
-  /// Runs directly against `FirebaseFirestore.instance` so this screen does
-  /// not depend on the repository's private field names. Only
-  /// [_kReactionLibraryCollection] needs to be right.
-  ///
-  /// On failure (offline, permissions, wrong collection name), falls back to
-  /// a local estimate so the badges don't shimmer forever. Real counts
-  /// resume on next refresh.
   Future<void> _fetchCategoryCounts() async {
     try {
       final CollectionReference<Map<String, dynamic>> col =
           FirebaseFirestore.instance.collection(_kReactionLibraryCollection);
 
-      // 1) Total.
-      final AggregateQuery totalQuery = col.count();
-      final AggregateQuerySnapshot totalSnap = await totalQuery.get();
-      final int total = totalSnap.count ?? 0;
+      // 1) Total root collection count
+      int total = _cloudCount ?? -1;
+      if (total < 0) {
+        try {
+          total = await _repo.getTotalCount();
+        } catch (_) {
+          try {
+            final AggregateQuerySnapshot totalSnap = await col.count().get();
+            total = totalSnap.count ?? 0;
+          } catch (_) {
+            total = _items.length;
+          }
+        }
+      }
 
-      // 2) Per-category, in parallel.
-      final Map<ReactionCategory, int> perCategory = <ReactionCategory, int>{};
+      // 2) Per-category isolated aggregation queries
+      final Map<ReactionCategory?, int> perCategory = <ReactionCategory?, int>{
+        null: total,
+      };
+
       await Future.wait<void>(
         ReactionCategory.values.map((ReactionCategory cat) async {
-          final Query<Map<String, dynamic>> q = col.where(
-            'category',
-            isEqualTo: cat.name,
-          );
-          final AggregateQuery agg = q.count();
-          final AggregateQuerySnapshot snap = await agg.get();
-          perCategory[cat] = snap.count ?? 0;
+          int count = 0;
+          try {
+            // Check standard lowercase name
+            final AggregateQuerySnapshot snap =
+                await col.where('category', isEqualTo: cat.name).count().get();
+            count = snap.count ?? 0;
+
+            // If 0, check capitalized (e.g. "Pharmaceutical")
+            if (count == 0) {
+              final capName =
+                  '${cat.name[0].toUpperCase()}${cat.name.substring(1)}';
+              final AggregateQuerySnapshot capSnap =
+                  await col.where('category', isEqualTo: capName).count().get();
+              if ((capSnap.count ?? 0) > 0) {
+                count = capSnap.count ?? 0;
+              } else {
+                // Check fully-qualified enum string
+                final AggregateQuerySnapshot enumSnap =
+                    await col.where('category', isEqualTo: cat.toString()).count().get();
+                count = enumSnap.count ?? 0;
+              }
+            }
+          } catch (e) {
+            debugPrint('[LibraryScreen] Count query for ${cat.name} failed: $e');
+            count = _items.where((t) => t.category == cat).length;
+          }
+          perCategory[cat] = count;
         }),
       );
 
       if (!mounted) return;
       setState(() {
-        _cloudCategoryCounts = <ReactionCategory?, int>{
-          null: total,
-          for (final MapEntry<ReactionCategory, int> e in perCategory.entries)
-            e.key: e.value,
-        };
+        _cloudCategoryCounts = perCategory;
+        if (total >= 0 && (_cloudCount == null || _cloudCount! < 0)) {
+          _cloudCount = total;
+        }
       });
     } catch (e) {
       debugPrint('[LibraryScreen] category counts failed: $e');
       if (!mounted) return;
-      // Local fallback so the badges stop shimmering. Not authoritative,
-      // but better than showing stale numbers. Real counts resume on refresh.
       final local = LibraryFilterBar.computeCategoryCounts({
         ...kReactionTemplates,
         ..._items,
       });
+      if (_cloudCount != null && _cloudCount! >= 0) {
+        local[null] = _cloudCount!;
+      }
       setState(() => _cloudCategoryCounts = local);
     }
   }
 
-  /// Seeds both medical and curated templates to Firestore
   Future<void> _seedCurated() async {
     debugPrint('Seeding medical and curated templates to Firestore...');
     try {
@@ -338,14 +330,15 @@ class _LibraryScreenState extends State<LibraryScreen> {
     _fetchCategoryCounts();
   }
 
-  List<ReactionTemplate> _generateVariants(
-      {required String mode, required int count}) {
+  List<ReactionTemplate> _generateVariants({
+    required String mode,
+    required int count,
+  }) {
     if (mode == 'chemical') {
       final derived = deriveTemplateVariants(kReactionTemplates, maxTotal: count);
       if (derived.isNotEmpty) return derived;
     }
 
-    // Medical & pharmaceutical combinatorial series for MBBS & Pharm-D
     const medicalPrefixes = [
       ('aspirin_var', 'Aspirin Salicylate Derivative Esterification',
           ReactionCategory.pharmaceutical,
@@ -399,8 +392,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
       final subIdx =
           ((i + now) ~/ medicalPrefixes.length) % substituents.length;
       final position =
-          ((i + now) ~/ (medicalPrefixes.length * substituents.length)) % 10 +
-              1;
+          ((i + now) ~/ (medicalPrefixes.length * substituents.length)) % 10 + 1;
 
       final group = medicalPrefixes[groupIdx];
       final sub = substituents[subIdx];
@@ -413,7 +405,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
       final rxnName = '$position-$sub $baseName';
       final shift = (i % 20) * 0.05;
 
-      final rXyz = '6\n$rxnName - Reactant\n'
+      final rXyz = '6\n$rxnName Reactant\n'
           'C  0.0000 0.0000 0.0000\n'
           'C  1.4000 ${shift.toStringAsFixed(4)} 0.0000\n'
           'C  2.1000 1.2000 ${shift.toStringAsFixed(4)}\n'
@@ -421,7 +413,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
           'H -0.5000 0.9000 0.0000\n'
           'H  1.9000 -0.9000 0.0000\n';
 
-      final pXyz = '6\n$rxnName - Product\n'
+      final pXyz = '6\n$rxnName Product\n'
           'C  0.0000 0.0000 0.0000\n'
           'C  1.3500 0.1000 ${shift.toStringAsFixed(4)}\n'
           'C  2.3000 1.1000 0.1000\n'
@@ -511,10 +503,8 @@ class _LibraryScreenState extends State<LibraryScreen> {
                       ListTile(
                         leading: Radio<String>(
                           value: 'medical',
-                          // ignore: deprecated_member_use
                           groupValue: mode,
                           activeColor: const Color(0xFFB388FF),
-                          // ignore: deprecated_member_use
                           onChanged: isGenerating
                               ? null
                               : (v) => setDlgState(() => mode = v!),
@@ -537,10 +527,8 @@ class _LibraryScreenState extends State<LibraryScreen> {
                       ListTile(
                         leading: Radio<String>(
                           value: 'chemical',
-                          // ignore: deprecated_member_use
                           groupValue: mode,
                           activeColor: const Color(0xFFB388FF),
-                          // ignore: deprecated_member_use
                           onChanged: isGenerating
                               ? null
                               : (v) => setDlgState(() => mode = v!),
@@ -1011,6 +999,16 @@ class _LibraryScreenState extends State<LibraryScreen> {
   Widget build(BuildContext context) {
     final palette = ThemeNotifier.paletteOf(context);
 
+    // Get the authoritative total count from Firebase
+    final totalCloud = _cloudCount != null && _cloudCount! >= 0
+        ? _cloudCount!
+        : (_cloudCategoryCounts?[null] ?? _items.length);
+
+    // Get the authoritative filtered category count from Firebase
+    final filteredCountCloud = _filterCategory != null
+        ? (_cloudCategoryCounts?[_filterCategory] ?? _filteredAndSortedItems.length)
+        : totalCloud;
+
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -1041,7 +1039,6 @@ class _LibraryScreenState extends State<LibraryScreen> {
           LibraryFilterBar(
             selectedCategory: _filterCategory,
             onCategoryChanged: _onCategoryChanged,
-            // Null ⇒ still loading ⇒ badges render as shimmer pills.
             categoryCounts: _cloudCategoryCounts,
             sortOrder: _sortOrder,
             onSortChanged: (s) => setState(() => _sortOrder = s),
@@ -1053,8 +1050,8 @@ class _LibraryScreenState extends State<LibraryScreen> {
                 setState(() => _provenanceFilter = p),
             onResetFilters: _resetFilters,
             hasActiveFilters: _hasActiveFilters,
-            filteredCount: _filteredAndSortedItems.length,
-            totalCount: _items.length,
+            filteredCount: filteredCountCloud,
+            totalCount: totalCloud,
           ),
           const SizedBox(height: 8),
           Expanded(child: _buildBody()),

@@ -29,12 +29,20 @@ class LocalReactionRepository implements ReactionRepository {
   }
 
   @override
-  Future<ReactionStatusResponse?> findCachedTemplateReaction(String templateId, Map<String, dynamic> settingsMap) => throw UnimplementedError();
+  Future<ReactionStatusResponse?> findCachedTemplateReaction(
+    String templateId,
+    Map<String, dynamic> settingsMap,
+  ) =>
+      throw UnimplementedError();
 
   @override
   Future<void> updateReaction(String reactionId, Map<String, dynamic> fields) async {
     final existing = _mockReactions[reactionId] ?? {};
-    final merged = {...existing, ...fields, 'updated_at': DateTime.now().toIso8601String()};
+    final merged = {
+      ...existing,
+      ...fields,
+      'updated_at': DateTime.now().toIso8601String(),
+    };
     _mockReactions[reactionId] = merged;
     _notifyController(reactionId, merged);
   }
@@ -71,6 +79,17 @@ class LocalReactionRepository implements ReactionRepository {
     _mockReactions.remove(reactionId);
     final ctrl = _controllers.remove(reactionId);
     await ctrl?.close();
+  }
+
+  @override
+  Future<int> getCategoryTotalCount([String? categoryName]) async {
+    if (categoryName == null || categoryName.isEmpty) {
+      return _mockReactions.length;
+    }
+    return _mockReactions.values.where((doc) {
+      final cat = doc['category']?.toString();
+      return cat != null && cat.toLowerCase() == categoryName.toLowerCase();
+    }).length;
   }
 
   void _notifyController(String reactionId, Map<String, dynamic> doc) {

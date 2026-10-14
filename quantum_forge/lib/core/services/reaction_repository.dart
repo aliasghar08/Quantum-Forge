@@ -11,8 +11,6 @@ abstract class ReactionRepository {
   /// Create a new reaction document and return its ID.
   Future<String> createReaction(Map<String, dynamic> reactionData);
 
-
-
   /// Stream real-time updates for a specific reaction.
   Stream<ReactionStatusResponse> watchReaction(String reactionId);
 
@@ -20,7 +18,10 @@ abstract class ReactionRepository {
   Future<ReactionStatusResponse?> getReaction(String reactionId);
 
   /// Find a completed reaction with the exact template ID and settings.
-  Future<ReactionStatusResponse?> findCachedTemplateReaction(String templateId, Map<String, dynamic> settingsMap);
+  Future<ReactionStatusResponse?> findCachedTemplateReaction(
+    String templateId,
+    Map<String, dynamic> settingsMap,
+  );
 
   /// Update fields on an existing reaction document.
   Future<void> updateReaction(String reactionId, Map<String, dynamic> fields);
@@ -33,4 +34,7 @@ abstract class ReactionRepository {
 
   /// Save a completed reaction record directly to the user's history in the repository.
   Future<void> saveCompletedReaction(ReactionStatusResponse response, [String? userId]);
+
+  /// Get the total count of reactions in Firestore root library for a category (or all if omitted).
+  Future<int> getCategoryTotalCount([String? categoryName]);
 }

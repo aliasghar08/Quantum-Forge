@@ -1,6 +1,6 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:quantum_forge/features/reaction_runner/data/models/reaction_models.dart';
 import 'reaction_repository.dart';
 
@@ -8,7 +8,6 @@ class FirestoreReactionRepository implements ReactionRepository {
   // Getters rather than fields: this repository is constructed in `main()` before
   // the app boots, and touching `FirebaseFirestore.instance` at construction
   // throws `[core/no-app]` whenever `Firebase.initializeApp` has not finished.
-  // See `FirebaseAuthService` for the same reasoning.
   FirebaseFirestore get _firestore => FirebaseFirestore.instance;
   FirebaseAuth get _auth => FirebaseAuth.instance;
 
@@ -54,11 +53,10 @@ class FirestoreReactionRepository implements ReactionRepository {
   }
 
   @override
-  Future<ReactionStatusResponse?> findCachedTemplateReaction(String templateId, Map<String, dynamic> settingsMap) async {
-    // Look only inside the current user's own reactions. The previous
-    // implementation used a collection-group query across every user, which the
-    // per-user security rules correctly reject (cross-user reads are denied).
-    // A single-field equality filter also avoids needing a composite index.
+  Future<ReactionStatusResponse?> findCachedTemplateReaction(
+    String templateId,
+    Map<String, dynamic> settingsMap,
+  ) async {
     final uid = _uid;
     if (uid == null) return null;
 
@@ -105,7 +103,7 @@ class FirestoreReactionRepository implements ReactionRepository {
   @override
   Stream<ReactionStatusResponse> watchReaction(String reactionId) {
     if (_uid == null) return const Stream.empty();
-    
+
     final docRef = _firestore
         .collection('users')
         .doc(_uid)
@@ -132,7 +130,6 @@ class FirestoreReactionRepository implements ReactionRepository {
 
       return query.docs.map((doc) => _fromMap(doc.data(), doc.id)).toList();
     } catch (e) {
-      // Fallback: If compound index or created_at index is missing or throws, fetch and sort locally
       try {
         final query = await _firestore
             .collection('users')
@@ -192,6 +189,20 @@ class FirestoreReactionRepository implements ReactionRepository {
     };
 
     await docRef.set(data, SetOptions(merge: true));
+  }
+
+  @override
+  Future<int> getCategoryTotalCount([String? categoryName]) async {
+    try {
+      Query<Map<String, dynamic>> query = _firestore.collection('library');
+      if (categoryName != null && categoryName.isNotEmpty) {
+        query = query.where('category', isEqualTo: categoryName);
+      }
+      final AggregateQuerySnapshot snapshot = await query.count().get();
+      return snapshot.count ?? 0;
+    } catch (_) {
+      return 0;
+    }
   }
 
   static ReactionStatusResponse _fromMap(Map<String, dynamic> data, String docId) {
