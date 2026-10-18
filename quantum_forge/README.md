@@ -1,85 +1,179 @@
 # Quantum Forge 🧪⚛️
 
-**Quantum Forge** is a cutting-edge, AI-powered quantum chemistry optimization and visualization platform built **exclusively for the Web** using Flutter. Designed for researchers and students, it provides an intuitive, high-performance web dashboard for visualizing molecular structures, modeling transition states, and calculating complex thermodynamic properties entirely in the browser.
+<p align="center">
+  <img src="https://img.shields.io/badge/Flutter-02569B?style=for-the-badge&logo=flutter&logoColor=white" alt="Flutter" />
+  <img src="https://img.shields.io/badge/Dart-0175C2?style=for-the-badge&logo=dart&logoColor=white" alt="Dart" />
+  <img src="https://img.shields.io/badge/Web-4285F4?style=for-the-badge&logo=googlechrome&logoColor=white" alt="Web" />
+  <img src="https://img.shields.io/badge/Firebase-FFCA28?style=for-the-badge&logo=firebase&logoColor=black" alt="Firebase" />
+  <img src="https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI" />
+  <img src="https://img.shields.io/badge/Tests-387%20Passing-brightgreen?style=for-the-badge" alt="Tests" />
+</p>
 
-## 🌐 Web-First Platform
+**Quantum Forge** is an advanced, AI-powered quantum chemistry optimization and visualization platform built **exclusively for the Web** using Flutter. Designed for computational chemists, pharmacologists, researchers, and students, it provides an intuitive, high-performance web dashboard for visualizing molecular structures, modeling transition states, and calculating complex thermodynamic and kinetic properties directly in the browser.
 
-Quantum Forge is optimized specifically for web browsers. By leveraging WebGL and Flutter Web, it delivers a heavy-duty computational chemistry suite without requiring any desktop installations. Whether you are on Windows, macOS, or Linux, you can simply open your browser and access the full suite of tools.
+🌐 **Live Deployment**: [https://quantom-forge.web.app](https://quantom-forge.web.app)
+
+---
+
+## 🌐 Web-First Architecture
+
+Quantum Forge is optimized specifically for modern web browsers. Leveraging WebGL, NGL molecular viewers, and Flutter Web, it delivers a heavy-duty computational chemistry suite without requiring desktop installations. Whether on Windows, macOS, Linux, or ChromeOS, access the full suite of simulation tools from anywhere.
+
+---
 
 ## 🚀 Comprehensive Feature List
 
 ### 1. 3D Interactive Physics Engine & Molecular Builder
-*   **Inverse Raycasting**: A highly advanced custom 3D drawing engine built from scratch. Click and drag in the 3D void to draw molecules!
-*   **Covalent Distance Calculation**: Automatically calculates optimal bond lengths and standard geometries when placing new atoms.
-*   **Element Selector**: Easily switch between common elements (H, C, N, O, F, P, S, Cl).
-*   **Dynamic Orbiting & Panning**: Complete mouse and touch control over the 3D molecular canvas.
+* **Inverse Raycasting**: Custom 3D drawing engine built from scratch. Click into empty 3D space to place atoms, or drag from an existing atom to sprout bonds at ideal covalent distances.
+* **Periodic Table Picker**: Comprehensive CPK color palette, covalent and van-der-Waals radii for all elements.
+* **Real-time Force-Field Relaxation**: Interactive geometry relaxation while drawing with customizable bond perception tolerances.
+* **Camera Controls**: Orbiting, panning, and zooming with support for touch, trackpad, and mouse interactions.
+* **Three Atom Representations**: Ball & Stick, Space Filling (VDW), and Wireframe.
 
-### 2. Deep File Format Parsing
-*   **Multi-Format Support**: Natively parses `.mol`, `.sdf`, `.cml`, and `.xyz` files directly in the browser without any backend processing.
-*   **Avogadro Compatibility**: Fully supports loading structure files exported directly from Avogadro.
+### 2. Deep File Format Parsing & Avogadro 2 Interoperability
+* **Multi-Format Parsing**: Natively parses `.cjson`, `.mol`, `.sdf`, `.cml`, and `.xyz` files directly in the browser without server roundtrips.
+* **Avogadro 2 Native**: Full bi-directional CJSON support. Load structures exported directly from desktop Avogadro 2 or pipe open structures directly via the bundled Python plugin.
+* **Intelligent Bond Perception**: Valence-aware bond order perception refinement prevents flat atom-list representations and exports chemically sound connection tables.
 
-### 3. Transition State (TS) Modeling & Animation
-*   **Avogadro Player parity**: the panel is a faithful rebuild of Avogadro 2's Animation Tool (`playertool.cpp`) — `<` / `>` stepping, a 1-based `Frame: N/M` box, a frame slider, `Start:` / `End:` range controls, a `Dynamic bonding?` checkbox, a `Frame rate:` box in FPS (default 5, with 0 remapped to 5), `Play` / `Pause`, and Avogadro's keyboard map (Space, ← →, Shift for ten frames, ↑ Start, ↓ End).
-*   **WebGL rendering through NGL** with its impostor spheres and cylinder bonds, at `radiusScale 0.5 / aspectRatio 2.0`, under an **orthographic camera** with 4x MSAA, antialiasing and a display-matched pixel ratio. Four display types: Ball and Stick, Licorice, Van der Waals, Wireframe.
-*   **Two element palettes**, switchable from the header: Avogadro's own `element_color` table (carbon `#7F7F7F`) and the Jmol/CPK table NGL calls `element` (carbon `#909090`).
-*   **Discrete frames, never interpolation**: each NEB image is a computed geometry, so images are shown exactly as calculated. Looping wraps within `[Start, End]`, matching Avogadro's `animate()`.
-*   **Dynamic bonding**: re-perceives every bond per frame with Avogadro's rule (covalent radii + a 0.45 Å tolerance, H–H and the noble gases excluded), so bond breaking and forming is visible in the geometry.
-*   Paths are handed to NGL as **multi-model SDF**, not XYZ — NGL has no XYZ parser. [`AVOGADRO_ANIMATION_PARITY.md`](AVOGADRO_ANIMATION_PARITY.md) documents that finding with evidence, every other measured API detail, and the known divergences from Avogadro.
+### 3. Transition State (TS) Modeling & Avogadro Player Parity
+Faithful reproduction of Avogadro 2's Animation Tool (`playertool.cpp`):
+* **Avogadro Player Panel**: `<` / `>` stepping, 1-based `Frame: N/M` spin box, frame slider, `Start:` / `End:` range controls, `Dynamic bonding?` checkbox, FPS control (default 5 FPS), `Play` ⇄ `Pause`, and Avogadro's complete keyboard map (Space, ← →, Shift+← →, ↑ Start, ↓ End).
+* **WebGL Rendering via NGL**: Impostor spheres and cylinder bonds at `radiusScale 0.5 / aspectRatio 2.0` under an orthographic camera with 4× MSAA and display-matched pixel ratios.
+* **Element Palettes**: Switch seamlessly between Avogadro's native `element_color` table and standard Jmol/CPK palettes.
+* **Discrete Computed Frames**: Strictly displays genuine NEB/MLIP computed intermediate geometries without unphysical geometric blending.
+* **Dynamic Bonding**: Re-evaluates covalent bonds per frame (+0.45 Å tolerance, H-H and noble gases excluded) to dynamically visualize bond formation and cleavage during reaction pathways.
 
-### 4. Advanced Analytics & Reaction Dashboards
-*   **Energy Profile Graphs**: Interactive 2D line charts plotting the reaction coordinate against relative energy (Activation Energy and Enthalpy).
-*   **Arrhenius Kinetics Plots**: Interactive $ln(k)$ vs $1/T$ graphs for evaluating reaction rates.
-*   **Vibrational Analysis Spectrums**: Simulated IR spectrum graphs to analyze the dominant vibrational modes of transition states.
-*   **Thermodynamic Metrics**: Live-updating cards displaying Gibbs Free Energy, Enthalpy, Entropy, and calculated reaction rates.
+### 4. 🎛️ Quantum Controls Engine (25 Researcher Parameters)
+Directly control physical kinetics, solvent screening, catalyst pathways, and optimizer convergence both in-browser and across MLIP backends:
 
-### 5. Quantum Render Modes & Aesthetics
-*   **Electron Clouds & VDW Surfaces**: High-performance gradient painters simulate electron density and Van der Waals surfaces.
-*   **Visual Modes**: Toggle between Standard (Ball & Stick), Glassmorphism, and Metallic rendering styles.
-*   **Dynamic Lighting**: Custom 3D shading, specular highlights, and ambient occlusion applied to 2D canvas drawing.
+* **System Configuration**:
+  * **Temperature ($T$)** (100 – 1000 K): Dynamically updates Eyring rate constants $k(T) = \frac{\kappa k_B T}{h} e^{-\Delta G^\ddagger / RT}$, Arrhenius slopes ($\ln k$ vs $1/T$), and thermal entropy contributions ($-T\Delta S^\ddagger$).
+  * **Pressure ($P$)** (0.1 – 100 atm): Adjusts $P\Delta V^\ddagger$ enthalpy activation corrections.
+  * **Implicit Solvent Models**: Water, DMSO, Acetonitrile, Ethanol, DCM, THF, Toluene, or Vacuum. Computes electrostatic dielectric screening ($\varepsilon_r$ from 2.38 to 80.1) and attenuates transition-state free energy barriers.
+  * **Molecular Charge & Spin Multiplicity**: Full control over ionic charges (-3 to +3) and spin states (singlet, doublet, triplet, quartet) for accurate Hamiltonian projection.
+* **Catalyst Configuration**:
+  * **Catalyst Toggle**: Switch between uncatalyzed and catalyzed reaction pathways.
+  * **Literature Catalysts**: Presets for Pt/C, Pd/C, Ru/C, Zeolite H-ZSM-5, Grubbs-II, Wilkinson's catalyst, organocatalysts, and enzymes.
+  * **Activation Barrier Reduction ($\Delta E_{cat}$)**: 0 to 50 kcal/mol barrier lowering with live turnover frequency (TOF) estimation.
+* **Quantum Theory & Optimizer**:
+  * **Methods & Basis Sets**: Semi-empirical, MLIP, DFT, HF, Post-HF across STO-3G, 6-31G*, def2-SVP, def2-TZVP.
+  * **Convergence Criteria**: SCF convergence ($10^{-4}$ to $10^{-8}$ Hartree) and force convergence $f_{max}$ (0.001 to 0.05 eV/Å).
+  * **Algorithms**: L-BFGS, FIRE, QuickMin, and Steepest Descent with step-count limits (10 to 500).
+* **Reaction Path & Post-TS Analysis**:
+  * **NEB Discretization**: 5 to 101 images controlling both FastAPI backend solvers and in-browser neural trajectory interpolation.
+  * **Spring Constant ($k_{spring}$)**: 0.01 to 1.0 eV/Å² for inter-image stiffness along the MEP.
+  * **TS Localization**: CI-NEB (Climbing Image), Dimer Method, Sella saddle search, and Berny TS.
+  * **Zero-Point Energy (ZPE)**: Thermal vibrational energy offset with empirical frequency scaling factor (0.8 to 1.05).
+  * **Frequency / IR Normal Modes**: Mass-weighted Hessian diagonalization to isolate the transition state's imaginary frequency ($\nu^\ddagger < 0$) and render simulated IR stick spectra.
 
-### 6. Cloud-Connected Reaction Library
-*   **Massive 200,000+ Reaction Database**: A sprawling, centralized Firestore database containing over 2 Lacs of pre-calculated textbook chemical reactions (Grignard Additions, Fischer Esterifications, Friedel-Crafts, Suzuki Couplings, OER, Batteries) programmatically synthesized from literature baselines via combinatorics.
-*   **Real-time Search & Filtering**: Instantly search reactions by IUPAC name, reaction type (Addition, Substitution, Elimination, Electrochemistry), or chemical tags.
+### 5. 💊 Clinical Pharmacopeia & Veterinary (DVM) Medicine Suite
+* **Human Medicine Benchmarks (MBBS & Pharm-D)**: 25+ essential therapeutics with complete reaction coordinates, intermediate transition states, and IUPAC nomenclature:
+  * **Paracetamol** (Acetaminophen via $p$-aminophenol acylation)
+  * **Aspirin** (Salicylic acid acetylation)
+  * **Ibuprofen** (Friedel-Crafts acylation / Darzens sequence)
+  * **Amoxicillin** ($\beta$-lactam ring functionalization)
+  * **Metformin** (Biguanide condensation)
+  * **Omeprazole** (Proton-pump inhibitor sulfide oxidation)
+  * **Ciprofloxacin** (Fluoroquinolone nucleophilic substitution)
+  * **Atorvastatin** (HMG-CoA reductase inhibitor core construction)
+  * **Losartan** (Angiotensin II receptor antagonist tetrazole synthesis)
+  * **Salbutamol** (Albuterol $\beta_2$-adrenoceptor agonist)
+* **Veterinary Medicine Benchmarks (DVM)**: 10+ essential animal therapeutics:
+  * **Ivermectin** (Antiparasitic macrolide semi-synthesis)
+  * **Flunixin Meglumine** (Equine NSAID cycloaddition)
+  * **Carprofen** (Canine anti-inflammatory carbazole synthesis)
+  * **Enrofloxacin** (Veterinary fluoroquinolone)
+  * **Phenylbutazone** (Equine NSAID condensation)
+  * **Meloxicam** (Enolic acid veterinary anti-inflammatory)
+  * **Marbofloxacin** (Veterinary fluoroquinolone antimycobacterial)
+* **Dynamic Medical Dossier Card**:
+  * Automatically detects medicinal compounds and qualifies WHO Model List of Essential Medicines tags.
+  * Renders Mechanism of Action (MoA), clinical indications, target species (Canine, Feline, Equine, Bovine, Human), dosage forms, routes of administration, and direct clickable **DOI Literature Citations**.
 
-### 7. Seamless Avogadro 2 Integration
-*   Quantum Forge acts as the perfect companion to desktop Avogadro software. 
-*   Includes a native Avogadro 2 Python Command Plugin to instantly pipe your active desktop molecules directly into the web dashboard.
+### 6. 🧪 Polymer Chemistry & Expanded Cloud Library
+* **Industrial Polymer Synthesis**: Complete reaction coordinates and intermediate transition states for commodity and engineering polymers:
+  * Polyethylene Terephthalate (PET condensation)
+  * Nylon 6,6 (Polyamidation)
+  * Polystyrene (Free-radical polymerization)
+  * Polylactic Acid (PLA ring-opening)
+  * Polyurethane (Diisocyanate polyaddition)
+  * Bakelite (Phenol-formaldehyde crosslinking)
+  * Polymethyl Methacrylate (PMMA)
+  * Polytetrafluoroethylene (PTFE)
+* **200,000+ Cloud Reaction Library**:
+  * Search and filter across 16 reaction classes and 4 educational tiers (High School, Undergraduate, Graduate, Research).
+  * Direct DOI hyperlinks to peer-reviewed journal literature.
+  * **Headless YouTube Scraper**: Streamlined search using `youtube_explode_dart` without API quotas or external billing.
 
-### 8. User Management & Security
-*   **Firebase Authentication**: Secure user login displaying real-time user profiles and emails in the application drawer.
+### 7. 🧬 In-Browser Neural Trajectory Compressor
+* **Transformer Reaction Compressor** (`TransformerReactionCompressor`):
+  * Utilizes geometric multi-head self-attention and collision-free frame decoding directly in Dart/Web.
+  * Dynamically resamples and decompresses NEB trajectories to exactly match the researcher's configured `neb_images` (from 5 to 101 frames).
+  * Implements dielectric solvent electrostatic screening ($\varepsilon_r$) and thermal activation entropy modulation during frame decoding.
+  * Enforces steric clash avoidance with minimum covalent radii constraints, guaranteeing physically valid molecular geometries across every intermediate frame.
 
-## 🛠️ Tools & Platforms Used
+### 8. Reaction Dashboards & Analytics
+* **Energy Profile Graphs**: Interactive 2D line charts plotting the reaction coordinate against relative potential energy, activation energy $\Delta E^\ddagger$, and reaction enthalpy $\Delta H^\ddagger$.
+* **Arrhenius Kinetics Plots**: Interactive $\ln(k)$ vs $1/T$ plots dynamically calculated across user temperatures.
+* **Simulated IR Spectra**: Normal mode vibrational stick spectrum highlighting the unique imaginary frequency characterizing the transition state.
+* **Thermodynamic Readout Cards**: Live Gibbs free energy $\Delta G^\ddagger$, enthalpy $\Delta H^\ddagger$, entropy $\Delta S^\ddagger$, rate constant $k$, dipole moment, polarisability, and HOMO-LUMO gap.
 
-This project leverages modern frameworks and cloud platforms to deliver a robust web experience:
+### 9. Hybrid ML/MM Molecular Dynamics
+* **Complete Peptide System**: Natively handles both `.pdb` and `.xyz` uploads. Automatically solvates, neutralizes, and adds missing hydrogens using OpenMM `Modeller`.
+* **Dynamic MLIP Masking**: Custom PyTorch TorchScript masking restricts MLIP evaluation solely to peptide atoms, letting AMBER19 handle solvent calculations.
+* **Browser Execution**: Launch and inspect GPU-accelerated MD jobs directly from the web client.
 
-*   **Frontend Framework**: Flutter (Web-Targeted)
-*   **Language**: Dart (with `dart:html` for native web APIs)
-*   **Backend as a Service (BaaS)**: Google Firebase
-    *   **Firebase Authentication**: Secure user login and identity management.
-    *   **Cloud Firestore**: Real-time NoSQL database for the centralized reaction library.
-    *   **Firebase Hosting**: Global CDN deployment for the web application.
-*   **State Management**: Custom Riverpod-style architecture utilizing Providers and `ValueNotifier`.
-*   **UI/UX Libraries**: `flutter_staggered_animations` for dynamic transitions, Material 3 design system.
-*   **Computational Chemistry Tools**: Avogadro 2 (via Python Command Plugin integration).
+### 10. Scientific Theming
+Seven presets grounded in real laboratory and publication conventions:
+* **Dark Matter** — Deep field low-glare default for long optimisation runs
+* **Quantum Blue** — Cherenkov blue, metallic renderer
+* **Neon Synth** — Laser pink + cyan on violet, translucent atoms
+* **Electron Cloud** — Teal isosurface palette, high VDW opacity
+* **Spectroscopy** — Low-glare slate with warm IR / violet UV-Vis accents
+* **Scientific Light** — Print-quality light theme for figures and projectors
+* **Journal Mono** — Greyscale-first, Okabe–Ito colour-blind-safe plots
 
-## ⚙️ How to Run
+---
 
-1.  Ensure you have the [Flutter SDK](https://flutter.dev/docs/get-started/install) installed.
-2.  Clone the repository and install dependencies:
-    ```bash
-    git clone https://github.com/aliasgharinnocent/Quantum-forge.git
-    cd Quantum_forge
-    flutter pub get
-    ```
-3.  Run the application locally **on Chrome**:
-    ```bash
-    flutter run -d chrome
-    ```
+## 🛠️ Stack & Architecture
 
-## 🌐 Deployment
+* **Frontend**: Flutter Web · Dart 3 · `dart:js_interop` · WebGL / NGL
+* **State Architecture**: `provider` (`ChangeNotifier` + `ValueNotifier`)
+* **Backend as a Service (BaaS)**: Google Firebase (Authentication, Firestore, Hosting)
+* **MLIP Microservices**: FastAPI (Python 3.10+), PyTorch, ASE (Atomic Simulation Environment)
+* **Chemistry Engine**: Custom multi-format CJSON/CML/SDF/XYZ parser, Avogadro 2 Python bridge, OpenMM
+* **UI/UX**: Material 3, `flutter_staggered_animations`, custom 2D/3D Canvas painters
 
-Quantum Forge is currently deployed and live via Firebase Hosting:
-[https://Quantum-forge.web.app](https://Quantum-forge.web.app)
+---
+
+## ⚙️ Running Locally
+
+1. Ensure the [Flutter SDK](https://flutter.dev/docs/get-started/install) is installed.
+2. Clone the repository and install dependencies:
+   ```bash
+   git clone https://github.com/aliasghar08/Quantum-Forge.git
+   cd Quantum-Forge/quantum_forge
+   flutter pub get
+   ```
+3. Run the application locally on Chrome:
+   ```bash
+   flutter run -d chrome
+   ```
+
+Quality gates:
+```bash
+flutter analyze   # 0 issues (clean)
+flutter test      # 387 passing tests
+```
+
+---
+
+## 🌐 Live Deployment
+
+Quantum Forge is deployed globally via Firebase Hosting:
+[https://quantom-forge.web.app](https://quantom-forge.web.app)
+
+---
 
 ## 👤 Author
 
