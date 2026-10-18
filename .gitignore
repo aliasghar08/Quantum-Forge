@@ -18,12 +18,14 @@ MACE/
 # IDEs
 .idea/
 .vscode/
+.antigravity/
 *.swp
 *.swo
 
 # OS
 .DS_Store
 Thumbs.db
+app
 
 # Model checkpoints and weights (except repo-bundled checkpoints)
 *.pt

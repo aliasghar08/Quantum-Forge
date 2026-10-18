@@ -34,6 +34,60 @@ class FirestoreLibraryRepository {
   /// large enough that the user rarely needs to scroll before the next load.
   static const int pageSize = 24;
 
+  // ── Composite Query Builders ──────────────────────────────────────────────
+
+  /// Builds a paginated library query matching the composite index:
+  /// `category` ASC, `created_at` DESC (or `created_at` DESC if category is omitted).
+  Query<Map<String, dynamic>> buildLibraryQuery({
+    String? category,
+    DocumentSnapshot? lastDocument,
+    int limit = pageSize,
+  }) {
+    Query<Map<String, dynamic>> query = _firestore.collection('library');
+
+    // Equality filter
+    if (category != null && category.isNotEmpty) {
+      query = query.where('category', isEqualTo: category);
+    }
+
+    // Ordering matches the composite index
+    query = query.orderBy('created_at', descending: true);
+
+    // Cursor-based pagination
+    if (lastDocument != null) {
+      query = query.startAfterDocument(lastDocument);
+    }
+
+    return query.limit(limit);
+  }
+
+  /// Builds an activation-energy-sorted query matching the composite indexes:
+  /// `category` ASC, `reference_ea` ASC / DESC.
+  Query<Map<String, dynamic>> buildEnergySortedQuery({
+    required String category,
+    required bool ascending,
+    int limit = pageSize,
+  }) {
+    return _firestore
+        .collection('library')
+        .where('category', isEqualTo: category)
+        .orderBy('reference_ea', descending: !ascending)
+        .limit(limit);
+  }
+
+  /// Builds a medical/curriculum tag query matching the composite index:
+  /// `tags` CONTAINS, `created_at` DESC.
+  Query<Map<String, dynamic>> buildCurriculumTagQuery({
+    required String tag, // e.g., 'MBBS' or 'Pharm-D'
+    int limit = pageSize,
+  }) {
+    return _firestore
+        .collection('library')
+        .where('tags', arrayContains: tag)
+        .orderBy('created_at', descending: true)
+        .limit(limit);
+  }
+
   // ── Pagination ─────────────────────────────────────────────────────────────
 
   /// First page of templates, optionally filtered by [category].
@@ -246,6 +300,20 @@ class FirestoreLibraryRepository {
       }).toList();
       final count = await seedLibrary(templates);
       debugPrint('Auto-seeded $count medical templates into Firestore.');
+
+      try {
+        final vetJsonStr = await rootBundle.loadString('assets/veterinary_reactions.json');
+        final vetList = jsonDecode(vetJsonStr) as List<dynamic>;
+        final vetTemplates = vetList.map((item) {
+          final m = item as Map<String, dynamic>;
+          return ReactionTemplate.fromJson(m, m['id'] as String);
+        }).toList();
+        final vetCount = await seedLibrary(vetTemplates);
+        debugPrint('Auto-seeded $vetCount veterinary templates into Firestore.');
+      } catch (vetErr) {
+        debugPrint('Veterinary auto-seed error: $vetErr');
+      }
+
       return count;
     } catch (e) {
       debugPrint('FirestoreLibraryRepository.autoSeedMedicalLibrary error: $e');

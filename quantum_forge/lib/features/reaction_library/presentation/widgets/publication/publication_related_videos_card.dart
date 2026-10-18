@@ -160,7 +160,7 @@ class _PublicationRelatedVideosCardState extends State<PublicationRelatedVideosC
                 LockedAnimationPlaceholder(
                   title: 'Mechanism Video Player Locked',
                   subtitle:
-                      'Sign in with your researcher credentials or activate the 1-Click Demo account to stream embedded video lectures and chemical mechanism demonstrations.',
+                      'Sign in with your researcher credentials to stream embedded video lectures and chemical mechanism demonstrations.',
                   compact: true,
                   onSignInRequested: widget.onSignInRequested,
                   onSignInSuccess: widget.onSignInSuccess,

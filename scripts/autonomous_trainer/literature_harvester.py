@@ -19,6 +19,8 @@ import sqlite3
 import urllib.parse
 import urllib.request
 
+from scholarly_verifier import ScholarlyReactionVerifier
+
 logging.basicConfig(
     level=logging.INFO,
     format="[%(asctime)s] [%(levelname)s] %(name)s: %(message)s",
@@ -47,7 +49,10 @@ def get_db(db_path: Path = DEFAULT_DB_PATH) -> sqlite3.Connection:
                 status TEXT DEFAULT 'pending',
                 data_links TEXT,
                 discovered_at TEXT,
-                updated_at TEXT
+                updated_at TEXT,
+                citation_count INTEGER DEFAULT 0,
+                journal TEXT DEFAULT '',
+                is_peer_reviewed INTEGER DEFAULT 1
             );
 
             CREATE TABLE IF NOT EXISTS extracted_structures (
@@ -77,6 +82,15 @@ def get_db(db_path: Path = DEFAULT_DB_PATH) -> sqlite3.Connection:
             );
             """
         )
+        for col_def in (
+            "ALTER TABLE papers ADD COLUMN citation_count INTEGER DEFAULT 0",
+            "ALTER TABLE papers ADD COLUMN journal TEXT DEFAULT ''",
+            "ALTER TABLE papers ADD COLUMN is_peer_reviewed INTEGER DEFAULT 1",
+        ):
+            try:
+                conn.execute(col_def)
+            except sqlite3.OperationalError:
+                pass
     return conn
 
 
@@ -86,6 +100,7 @@ class LiteratureHarvester:
     def __init__(self, db_path: Path = DEFAULT_DB_PATH):
         self.db_path = db_path
         self.conn = get_db(db_path)
+        self.verifier = ScholarlyReactionVerifier()
 
     def fetch_json(self, url: str, timeout: int = 15) -> dict | None:
         """Safe HTTP GET with polite User-Agent."""
@@ -190,8 +205,20 @@ class LiteratureHarvester:
         clean_doi = doi.strip().replace("https://doi.org/", "")
         now = datetime.datetime.now(datetime.timezone.utc).isoformat()
         
-        # Try fetching metadata from CrossRef if title not provided
-        if not title:
+        # Verify academic authenticity, peer review, and citation metrics
+        verified = self.verifier.verify_doi_and_citations(clean_doi)
+        citation_count = 0
+        journal = ""
+        is_peer_reviewed = 1
+        if verified:
+            if verified.get("is_retracted"):
+                logger.warning("Paper %s is marked as RETRACTED. Rejecting.", clean_doi)
+                return False
+            title = verified.get("title") or title
+            journal = verified.get("journal", "")
+            citation_count = verified.get("citation_count", 0)
+            is_peer_reviewed = 1 if verified.get("is_peer_reviewed") else 0
+        elif not title:
             meta = self.fetch_json(f"https://api.crossref.org/works/{urllib.parse.quote(clean_doi)}")
             if meta and "message" in meta:
                 title = " ".join(meta["message"].get("title", []))
@@ -208,8 +235,8 @@ class LiteratureHarvester:
 
             cur.execute(
                 """
-                INSERT INTO papers (doi, title, published_date, source, url, status, discovered_at, updated_at)
-                VALUES (?, ?, ?, ?, ?, 'pending', ?, ?)
+                INSERT INTO papers (doi, title, published_date, source, url, status, discovered_at, updated_at, citation_count, journal, is_peer_reviewed)
+                VALUES (?, ?, ?, ?, ?, 'pending', ?, ?, ?, ?, ?)
                 """,
                 (
                     clean_doi,
@@ -219,32 +246,49 @@ class LiteratureHarvester:
                     f"https://doi.org/{clean_doi}",
                     now,
                     now,
+                    citation_count,
+                    journal,
+                    is_peer_reviewed,
                 ),
             )
-            logger.info("Registered new paper DOI: %s ('%s')", clean_doi, title)
+            logger.info("Registered and authenticated paper DOI: %s ('%s', %d citations)", clean_doi, title, citation_count)
             return True
 
     def poll_for_new_research(self) -> list[str]:
-        """Polls scholarly networks and inserts any new papers into the ledger.
+        """Polls scholarly networks, verifies academic authenticity, and queues papers.
         
         Returns:
-            list[str]: List of new DOIs registered in this cycle.
+            list[str]: List of new verified DOIs registered in this cycle.
         """
         now = datetime.datetime.now(datetime.timezone.utc).isoformat()
         
-        # Broad spectrum queries covering previously missing reaction classes:
-        # Sulfur/thiol, Phosphate/kinase, Halogen SN2, Pericyclic/Diels-Alder, Radical HAT, Click chemistry
+        # High-yield search queries targeted for MBBS, Pharm-D, and Polymer curricula:
         search_topics = [
+            # MBBS & Clinical Pharmacology
+            "medicinal chemistry reaction barrier transition state DFT",
+            "cytochrome P450 drug metabolism oxidation mechanism DFT",
+            "beta-lactamase antibiotic resistance hydrolysis barrier",
+            "acetylcholinesterase organophosphate reactivation DFT",
+            "prodrug activation esterase hydrolysis transition state",
+            "kinase inhibitor phosphorylation reaction barrier DFT",
+            "anticancer DNA alkylation crosslinking transition state",
+            "glutamate GABA decarboxylase PLP mechanism DFT",
+            "cyclooxygenase arachidonic acid prostaglandin barrier",
+            "angiotensin converting enzyme inhibitor catalytic triad",
+            # D Pharmacy (Pharm-D)
+            "pharmaceutical formulation active drug stability degradation barrier",
+            "glutathione S-transferase detoxification transition state",
             "thiol disulfide exchange transition state DFT",
             "phosphate hydrolysis reaction barrier DFT",
-            "SN2 nucleophilic substitution halogen barrier",
-            "Diels Alder cycloaddition pericyclic transition state",
-            "click chemistry azide alkyne reaction barrier",
-            "radical hydrogen atom transfer potential energy surface",
-            "minimum energy reaction path transition state DFT",
+            # Polymer Chemistry (from previous days commits)
+            "ring opening metathesis polymerization transition state barrier DFT",
+            "atom transfer radical polymerization ATRP mechanism DFT",
+            "reversible addition fragmentation chain transfer RAFT barrier",
+            "polyurethane isocyanate polyol reaction transition state",
+            "polyamide nylon condensation polymerization barrier DFT",
         ]
         
-        # Pick 2 topics per cycle (round-robin / randomized) to keep queries focused and diverse
+        # Pick 3 topics per cycle (round-robin / randomized)
         chosen_topics = random.sample(search_topics, k=min(3, len(search_topics)))
         all_candidates = []
         for topic in chosen_topics:
@@ -260,10 +304,24 @@ class LiteratureHarvester:
                 if cur.fetchone() is not None:
                     continue  # Already seen and tracked
 
+                # Verify DOI authenticity and citations
+                v = self.verifier.verify_doi_and_citations(doi)
+                citation_count = 0
+                journal = ""
+                is_peer_reviewed = 1
+                if v:
+                    if v.get("is_retracted"):
+                        logger.warning("Skipping retracted publication: %s", doi)
+                        continue
+                    cand["title"] = v.get("title") or cand["title"]
+                    journal = v.get("journal", "")
+                    citation_count = v.get("citation_count", 0)
+                    is_peer_reviewed = 1 if v.get("is_peer_reviewed") else 0
+
                 cur.execute(
                     """
-                    INSERT INTO papers (doi, title, published_date, source, url, abstract, status, data_links, discovered_at, updated_at)
-                    VALUES (?, ?, ?, ?, ?, ?, 'pending', ?, ?, ?)
+                    INSERT INTO papers (doi, title, published_date, source, url, abstract, status, data_links, discovered_at, updated_at, citation_count, journal, is_peer_reviewed)
+                    VALUES (?, ?, ?, ?, ?, ?, 'pending', ?, ?, ?, ?, ?, ?)
                     """,
                     (
                         doi,
@@ -275,9 +333,12 @@ class LiteratureHarvester:
                         cand.get("data_links", "[]"),
                         now,
                         now,
+                        citation_count,
+                        journal,
+                        is_peer_reviewed,
                     ),
                 )
-                logger.info("✨ Discovered new research paper: %s - %s", doi, cand["title"])
+                logger.info("✨ Discovered & authenticated research paper: %s - %s (%d citations)", doi, cand["title"], citation_count)
                 new_dois.append(doi)
 
         logger.info("Polling complete. %d new research publications registered.", len(new_dois))

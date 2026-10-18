@@ -127,9 +127,23 @@ class DashboardViewModel extends ChangeNotifier {
     _products
       ..clear()
       ..add(MoleculeEntry(id: 'p0'));
+    
+    final catalystEntry = MoleculeEntry(id: 'c0');
+    if (template.defaultCatalystName != null && template.defaultCatalystName!.isNotEmpty) {
+      catalystEntry.ctrl.text = template.defaultCatalystName!;
+      final xyzContent = (template.catalystXyz != null && template.catalystXyz!.isNotEmpty)
+          ? template.catalystXyz!
+          : '1\n${template.defaultCatalystName}\nX   0.0000   0.0000   0.0000';
+      final bytes = Uint8List.fromList(utf8.encode(xyzContent));
+      catalystEntry.file = PickedFile(
+        name: '${template.defaultCatalystName}.xyz',
+        size: bytes.length,
+        bytes: bytes,
+      );
+    }
     _catalysts
       ..clear()
-      ..add(MoleculeEntry(id: 'c0'));
+      ..add(catalystEntry);
     
     _activeTemplate = template;
     _navDest = NavDestination.newReaction;
@@ -147,9 +161,23 @@ class DashboardViewModel extends ChangeNotifier {
     _products
       ..clear()
       ..add(MoleculeEntry(id: 'p0'));
+    
+    final catalystEntry = MoleculeEntry(id: 'c0');
+    if (template.defaultCatalystName != null && template.defaultCatalystName!.isNotEmpty) {
+      catalystEntry.ctrl.text = template.defaultCatalystName!;
+      final xyzContent = (template.catalystXyz != null && template.catalystXyz!.isNotEmpty)
+          ? template.catalystXyz!
+          : '1\n${template.defaultCatalystName}\nX   0.0000   0.0000   0.0000';
+      final bytes = Uint8List.fromList(utf8.encode(xyzContent));
+      catalystEntry.file = PickedFile(
+        name: '${template.defaultCatalystName}.xyz',
+        size: bytes.length,
+        bytes: bytes,
+      );
+    }
     _catalysts
       ..clear()
-      ..add(MoleculeEntry(id: 'c0'));
+      ..add(catalystEntry);
     
     _activeTemplate = template;
     _navDest = NavDestination.newReaction;

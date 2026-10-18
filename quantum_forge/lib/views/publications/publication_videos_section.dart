@@ -142,7 +142,7 @@ class _PublicationVideosSectionState extends State<PublicationVideosSection> {
               return LockedAnimationPlaceholder(
                 title: 'Literature Video Demonstrations Locked',
                 subtitle:
-                    'Sign in with your researcher credentials or activate the 1-Click Demo account to stream curated literature simulations and video demonstrations.',
+                    'Sign in with your researcher credentials to stream curated literature simulations and video demonstrations.',
                 compact: true,
                 onSignInRequested: widget.onSignInRequested,
                 onSignInSuccess: widget.onSignInSuccess,

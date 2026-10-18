@@ -28,7 +28,7 @@ void main() {
         findsOneWidget,
       );
       expect(find.text('Sign In / Register'), findsOneWidget);
-      expect(find.text('🧪 1-Click Demo Account'), findsOneWidget);
+      expect(find.text('🧪 1-Click Demo Account'), findsNothing);
       expect(find.byIcon(Icons.lock_outline_rounded), findsOneWidget);
     });
 

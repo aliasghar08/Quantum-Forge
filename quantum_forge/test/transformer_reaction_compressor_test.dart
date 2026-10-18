@@ -134,5 +134,38 @@ H 0.0 0.0 0.0
       final frameMidAtoms = MoleculeParser.tryParse(result.trajectoryFrames[10], 'xyz');
       expect(frameMidAtoms.length, 100);
     });
+
+    test('strictly normalizes ground-state reactant energy to zero', () {
+      const r = '2\nReactant\nC 0 0 0\nO 0 0 1.2\n';
+      const p = '2\nProduct\nC 0 0 0\nO 0 0 1.4\n';
+      final res = TransformerReactionCompressor.process(
+        reactantXyz: r,
+        productXyz: p,
+        referenceEa: 15.0,
+      );
+
+      expect(res.energyProfile[0], 0.0);
+      expect(res.energyProfileEv[0], 0.0);
+      expect(res.energyProfile[res.maxEnergyIndex], closeTo(15.0, 1.5));
+    });
+
+    test('accurately pairs atoms even when product atom ordering is permuted', () {
+      // Reactant: C1 at origin, C2 at x=2
+      const r = '2\nReactant\nC 0.0 0.0 0.0\nC 2.0 0.0 0.0\n';
+      // Product: permuted order (C2 first at x=2.1, C1 second at x=0.1)
+      const p = '2\nProduct\nC 2.1 0.0 0.0\nC 0.1 0.0 0.0\n';
+      final res = TransformerReactionCompressor.process(
+        reactantXyz: r,
+        productXyz: p,
+        referenceEa: 12.0,
+      );
+
+      // In the middle frame (t=0.5), atoms should be near x=0.05 and x=2.05, NOT colliding at x=1.05!
+      final midAtoms = MoleculeParser.tryParse(res.trajectoryFrames[10], 'xyz');
+      expect(midAtoms.length, 2);
+      final xCoords = midAtoms.map((a) => a.x).toList()..sort();
+      expect(xCoords[0], closeTo(0.05, 0.2));
+      expect(xCoords[1], closeTo(2.05, 0.2));
+    });
   });
 }

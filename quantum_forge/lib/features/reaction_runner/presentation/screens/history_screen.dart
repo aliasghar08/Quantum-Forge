@@ -103,27 +103,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
     );
   }
 
-  Future<void> _signInWithGhost() async {
-    setState(() => _isLoading = true);
-    try {
-      final auth = context.read<AuthService>();
-      await auth.signInWithGhostAccount();
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Signed in as Demo Researcher (ghost.researcher@quantumforge.io)'),
-            backgroundColor: Color(0xFF00E676),
-          ),
-        );
-        await _loadReactions();
-      }
-    } catch (e) {
-      debugPrint('[HistoryScreen] Ghost login error: $e');
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
-    }
-  }
 
   Future<void> _deleteReaction(String reactionId) async {
     try {
@@ -295,23 +274,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
                           style: FilledButton.styleFrom(
                             backgroundColor: palette.accent,
                             foregroundColor: palette.onAccent,
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      SizedBox(
-                        width: double.infinity,
-                        child: OutlinedButton.icon(
-                          onPressed: _signInWithGhost,
-                          icon: const Icon(Icons.science_rounded, size: 18, color: Color(0xFF00E676)),
-                          label: const Text(
-                            '🧪 One-Click Demo Researcher (Ghost Account)',
-                            style: TextStyle(color: Color(0xFF00E676), fontWeight: FontWeight.bold),
-                          ),
-                          style: OutlinedButton.styleFrom(
-                            side: const BorderSide(color: Color(0xFF00E676)),
                             padding: const EdgeInsets.symmetric(vertical: 14),
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                           ),

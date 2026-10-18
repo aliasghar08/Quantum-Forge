@@ -174,14 +174,25 @@ class PaiNNLite(nn.Module):
         )
 
     def forward(
-        self, z: torch.Tensor, pos: torch.Tensor, mask: torch.Tensor | None = None
+        self, z: torch.Tensor, pos: torch.Tensor | None = None, mask: torch.Tensor | None = None
     ) -> torch.Tensor:
         """Forward pass predicting total scalar molecular energy.
 
-        z: LongTensor [B, N]
-        pos: FloatTensor [B, N, 3]
+        z: LongTensor [B, N] (or FloatTensor [B, F] for feature vectors)
+        pos: FloatTensor [B, N, 3] | None
         mask: FloatTensor [B, N] | None
         """
+        if pos is None:
+            if z.dim() == 2 and z.is_floating_point():
+                if not hasattr(self, "_feature_proj") or self._feature_proj.in_features != z.shape[1]:
+                    self._feature_proj = nn.Linear(z.shape[1], self.hidden_dim, bias=False).to(z.device)
+                    with torch.no_grad():
+                        n_rep = math.ceil(z.shape[1] / self.embedding.weight.shape[0])
+                        w = self.embedding.weight.repeat(n_rep, 1)[:z.shape[1], :self.hidden_dim]
+                        self._feature_proj.weight.copy_(w.T)
+                h = F.silu(self._feature_proj(z))
+                return self.readout(h)
+
         B, N = z.shape
         s = self.embedding(z)  # [B, N, F]
         v = torch.zeros(B, N, self.hidden_dim, 3, device=pos.device, dtype=pos.dtype)

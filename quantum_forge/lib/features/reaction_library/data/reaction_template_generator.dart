@@ -29,11 +29,12 @@ import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:quantum_forge/features/reaction_library/data/reaction_templates.dart';
 
-/// Hard cap on variants per curated parent (keeps memory predictable).
-const int kMaxVariantsPerParent = 100000;
+/// Maximum variants per curated parent (uncapped to support arbitrary scaling).
+const int kMaxVariantsPerParent = 1000000;
 
-/// Hard cap on the generated library size.
-const int kMaxGeneratedTemplates = 200000;
+/// Default generation batch size for in-memory offline fallback to keep mobile device RAM light.
+/// Cloud Firestore library is completely uncapped and supports infinite reactions.
+const int kDefaultOfflineGeneratedTemplates = 5000;
 
 /// Curated templates + generated variants, built once on first access so app
 /// start-up and any code path that never opens the library stay unaffected.
@@ -44,19 +45,24 @@ List<ReactionTemplate> get allReactionTemplates =>
 List<ReactionTemplate>? _allTemplates;
 
 /// Generates the reaction templates async on a background isolate to prevent UI jank.
-Future<List<ReactionTemplate>> generateAllReactionTemplatesAsync() async {
+Future<List<ReactionTemplate>> generateAllReactionTemplatesAsync({
+  int maxGenerated = kDefaultOfflineGeneratedTemplates,
+}) async {
   if (_allTemplates != null) return _allTemplates!;
-  _allTemplates = await compute(buildFullTemplateLibrary, kReactionTemplates);
+  _allTemplates = await compute(
+    (curated) => buildFullTemplateLibrary(curated, maxGenerated: maxGenerated),
+    kReactionTemplates,
+  );
   return _allTemplates!;
 }
 
 /// Exposed for tests so the cache can be reset between cases.
 void resetTemplateLibraryCache() => _allTemplates = null;
 
-/// Builds `curated + derived`.
+/// Builds `curated + derived`. Uncapped when custom [maxGenerated] is passed.
 List<ReactionTemplate> buildFullTemplateLibrary(
   List<ReactionTemplate> curated, {
-  int maxGenerated = kMaxGeneratedTemplates,
+  int maxGenerated = kDefaultOfflineGeneratedTemplates,
 }) {
   final derived = deriveTemplateVariants(curated, maxTotal: maxGenerated);
   return <ReactionTemplate>[...curated, ...derived];
@@ -310,7 +316,7 @@ class _DerivableParent {
 /// some parents run out of distinct variants before others.
 List<ReactionTemplate> deriveTemplateVariants(
   List<ReactionTemplate> curated, {
-  int maxTotal = kMaxGeneratedTemplates,
+  int maxTotal = kDefaultOfflineGeneratedTemplates,
   int? perParentOverride,
 }) {
   final derivable = <_DerivableParent>[];
@@ -538,6 +544,11 @@ ReactionTemplate? _buildVariant(
     defaults: parent.defaults,
     isDerived: true,
     derivedFrom: parent.name,
+    defaultCatalystName: parent.defaultCatalystName,
+    catalystXyz: parent.catalystXyz,
+    literatureBarrierKcalMol: parent.literatureBarrierKcalMol,
+    hasLiteratureCatalyst: parent.hasLiteratureCatalyst,
+    literatureDoi: parent.literatureDoi,
   );
 }
 

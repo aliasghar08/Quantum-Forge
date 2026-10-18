@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import math
 import os
+import sys
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -996,3 +997,105 @@ async def get_curated_publication_videos(
 
     filtered = [v for v in results if v["views"] >= min_views]
     return {"videos": filtered}
+
+
+# ==========================================
+# PHARMACOLOGY & MEDICINE REASONING API (PharmaBioNet)
+# ==========================================
+
+_REPO_ROOT = Path(__file__).resolve().parent.parent
+if str(_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_ROOT))
+
+_PHARMA_MODEL = None
+_PHARMA_CHECKPOINT = _REPO_ROOT / "models" / "pharma_intelligence" / "pharma_bionet_v1.pt"
+_PHARMA_DATASET = _REPO_ROOT / "quantum_forge" / "assets" / "clinical_pharmacopeia.json"
+
+class PharmaQueryRequest(BaseModel):
+    compound_id: str | None = None
+    name: str | None = None
+    iupac: str | None = None
+    smiles: str | None = None
+    specialty: str | None = None
+    chemical_class: str | None = None
+    features: list[float] | None = None
+
+def get_pharma_model():
+    global _PHARMA_MODEL
+    if _PHARMA_MODEL is not None:
+        return _PHARMA_MODEL
+    if not _PHARMA_CHECKPOINT.exists():
+        return None
+    try:
+        from scripts.autonomous_trainer.pharma_intelligence_model import PharmaBioNet, MOA_CLASSES, SPECIES_LIST, DISCIPLINE_LIST
+        ckpt = torch.load(str(_PHARMA_CHECKPOINT), map_location=DEVICE)
+        m = PharmaBioNet().to(DEVICE)
+        m.load_state_dict(ckpt["model_state_dict"])
+        m.eval()
+        _PHARMA_MODEL = m
+        print(f"[PharmaBioNet] Model loaded successfully from {_PHARMA_CHECKPOINT}")
+        return _PHARMA_MODEL
+    except Exception as e:
+        print(f"[PharmaBioNet] Could not load model: {e}")
+        return None
+
+@app.get("/api/pharma/dossiers")
+def get_pharma_dossiers():
+    """Returns the full research-grade clinical & veterinary pharmacopeia."""
+    if _PHARMA_DATASET.exists():
+        with open(_PHARMA_DATASET, "r", encoding="utf-8") as f:
+            return json.load(f)
+    return []
+
+@app.post("/api/pharma/predict")
+def predict_pharma_intelligence(req: PharmaQueryRequest):
+    """Predicts MoA, species-specific toxicity risk, activation barrier Ea, and discipline affinities."""
+    m = get_pharma_model()
+    if m is not None and req.features and len(req.features) == 32:
+        feats_tensor = torch.tensor([req.features], dtype=torch.float32).to(DEVICE)
+        return m.predict_profile(feats_tensor)
+
+    matched = None
+    if _PHARMA_DATASET.exists():
+        with open(_PHARMA_DATASET, "r", encoding="utf-8") as f:
+            dossiers = json.load(f)
+        for d in dossiers:
+            if req.compound_id and d["id"] == req.compound_id:
+                matched = d
+                break
+            if req.name and req.name.lower() in d["genericName"].lower():
+                matched = d
+                break
+
+    # If no existing dossier matched, generate a dynamic profile from request descriptors
+    if not matched and (req.name or req.iupac or req.smiles or req.chemical_class):
+        matched = {
+            "id": f"novel-{abs(hash(req.name or req.iupac or req.smiles or 'novel')) % 100000}",
+            "genericName": req.name or "Novel Research Molecule",
+            "iupacName": req.iupac or req.smiles or req.name or "Unknown IUPAC",
+            "chemicalClass": req.chemical_class or "Synthetic Organic Compound",
+            "specialty": req.specialty or "Cardiology",
+            "activationBarrierKcalMol": 17.5,
+            "eliminationHalfLifeHours": 4.5,
+            "highYieldExamPearls": [],
+            "clinicalGuidelines": [],
+        }
+
+    if matched:
+        if m is not None:
+            try:
+                import sys
+                sys.path.append(str(Path(__file__).resolve().parent.parent))
+                from scripts.autonomous_trainer.train_pharma_model import compute_molecular_feature_vector
+                vec = compute_molecular_feature_vector(matched, perturbation=0.0)
+                feats_tensor = torch.tensor([vec], dtype=torch.float32).to(DEVICE)
+                preds = m.predict_profile(feats_tensor)
+                return {
+                    "dossier": matched,
+                    "model_predictions": preds
+                }
+            except Exception as e:
+                return {"dossier": matched, "model_error": str(e)}
+        return {"dossier": matched}
+
+    raise HTTPException(status_code=404, detail="Compound or model prediction could not be resolved.")

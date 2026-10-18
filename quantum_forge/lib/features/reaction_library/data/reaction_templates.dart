@@ -6,6 +6,7 @@
 
 import 'package:quantum_forge/features/reaction_library/data/medical_reaction_templates.dart';
 import 'package:quantum_forge/features/reaction_library/data/polymer_reaction_templates.dart';
+import 'package:quantum_forge/features/reaction_library/data/veterinary_reaction_templates.dart';
 
 enum ReactionCategory {
   polymer,
@@ -19,6 +20,7 @@ enum ReactionCategory {
   inorganic,
   pharmaceutical,
   biochemical,
+  veterinary,
 }
 
 class QuantumDefaults {
@@ -1305,6 +1307,7 @@ H    14.163    0.000    0.000
 final List<ReactionTemplate> kReactionTemplates = [
   ...kPolymerReactionTemplates,
   ...kMedicalReactionTemplates,
+  ...kVeterinaryReactionTemplates,
   ReactionTemplate(
     id: 'eas-01',
     name: 'Electrophilic Aromatic Substitution (EAS)',
@@ -1321,6 +1324,10 @@ final List<ReactionTemplate> kReactionTemplates = [
     doi: '10.1021/ed085p941',
     journalRef: 'J. Chem. Educ. 2008, 85, 941',
     tags: ['EAS', 'aromaticity', 'sigma complex', 'arenium', 'electrophilic'],
+    defaultCatalystName: 'AlCl3 (Aluminum Trichloride Lewis Acid)',
+    literatureBarrierKcalMol: 14.8,
+    hasLiteratureCatalyst: true,
+    literatureDoi: '10.1021/ed085p941',
     defaults: const QuantumDefaults(mlipModel: 'tx1-fastapi', optimizerAlgorithm: 'NEB-CI'),
   ),
   ReactionTemplate(
@@ -1369,6 +1376,10 @@ final List<ReactionTemplate> kReactionTemplates = [
     doi: '10.1021/cr00092a008',
     journalRef: 'Chem. Rev. 1989',
     tags: ['epoxide', 'concerted'],
+    defaultCatalystName: 'm-CPBA / Mo(CO)6 Metal Complex',
+    literatureBarrierKcalMol: 15.5,
+    hasLiteratureCatalyst: true,
+    literatureDoi: '10.1021/cr00092a008',
   ),
   ReactionTemplate(
     id: 'hydro-01',
@@ -1382,6 +1393,10 @@ final List<ReactionTemplate> kReactionTemplates = [
     doi: '10.1021/ja01602a063',
     journalRef: 'J. Am. Chem. Soc. 1956',
     tags: ['syn-addition', 'borane'],
+    defaultCatalystName: 'THF / DMS Lewis Base Complex',
+    literatureBarrierKcalMol: 11.2,
+    hasLiteratureCatalyst: true,
+    literatureDoi: '10.1021/ja01602a063',
   ),
   ReactionTemplate(
     id: 'wit-01',
@@ -1395,6 +1410,10 @@ final List<ReactionTemplate> kReactionTemplates = [
     doi: '10.1021/ja01509a040',
     journalRef: 'J. Am. Chem. Soc. 1968',
     tags: ['ylide', 'C-C bond'],
+    defaultCatalystName: 'NaHMDS / LiCl Base Medium',
+    literatureBarrierKcalMol: 14.1,
+    hasLiteratureCatalyst: true,
+    literatureDoi: '10.1021/ja01509a040',
   ),
   ReactionTemplate(
     id: 'diels_alder',
@@ -1411,6 +1430,10 @@ final List<ReactionTemplate> kReactionTemplates = [
     doi: '10.1021/ja00073a014',
     journalRef: 'J. Am. Chem. Soc. 1990, 112, 8650',
     tags: ['concerted', '6-membered-TS', '[4+2]', 'stereospecific', 'thermally-allowed'],
+    defaultCatalystName: 'AlCl3 / Sc(OTf)3 Lewis Acid',
+    literatureBarrierKcalMol: 13.2,
+    hasLiteratureCatalyst: true,
+    literatureDoi: '10.1021/ja00073a014',
     defaults: const QuantumDefaults(mlipModel: 'tx1-fastapi', optimizerAlgorithm: 'NEB-CI'),
   ),
   ReactionTemplate(
@@ -1428,6 +1451,10 @@ final List<ReactionTemplate> kReactionTemplates = [
     doi: '10.1021/ja00206a030',
     journalRef: 'J. Am. Chem. Soc. 1987, 109, 1639',
     tags: ['inversion', 'concerted', 'bimolecular', 'Walden'],
+    defaultCatalystName: 'Tetrabutylammonium Halide / 18-Crown-6',
+    literatureBarrierKcalMol: 13.2,
+    hasLiteratureCatalyst: true,
+    literatureDoi: '10.1021/ja00206a030',
     defaults: const QuantumDefaults(charge: -1, mlipModel: 'tx1-fastapi'),
   ),
   ReactionTemplate(
@@ -1445,6 +1472,10 @@ final List<ReactionTemplate> kReactionTemplates = [
     doi: '10.1021/ja00041a058',
     journalRef: 'J. Am. Chem. Soc. 1971, 93, 3046',
     tags: ['[3,3]-sigmatropic', 'degenerate', 'chair-TS', 'Woodward-Hoffmann'],
+    defaultCatalystName: 'Pd(PhCN)2Cl2 Catalytic Complex',
+    literatureBarrierKcalMol: 19.5,
+    hasLiteratureCatalyst: true,
+    literatureDoi: '10.1021/ja00041a058',
     defaults: const QuantumDefaults(mlipModel: 'tx1-fastapi', optimizerAlgorithm: 'NEB-CI'),
   ),
   ReactionTemplate(
@@ -1462,6 +1493,10 @@ final List<ReactionTemplate> kReactionTemplates = [
     doi: '10.1021/ja00046a007',
     journalRef: 'J. Am. Chem. Soc. 1995, 117, 1871',
     tags: ['[3,3]-sigmatropic', 'oxygen', 'chair-TS', 'stereospecific'],
+    defaultCatalystName: 'Yb(OTf)3 / Sc(OTf)3 Lewis Acid',
+    literatureBarrierKcalMol: 18.2,
+    hasLiteratureCatalyst: true,
+    literatureDoi: '10.1021/ja00046a007',
     defaults: const QuantumDefaults(mlipModel: 'tx1-fastapi'),
   ),
   ReactionTemplate(
@@ -1479,6 +1514,10 @@ final List<ReactionTemplate> kReactionTemplates = [
     doi: '10.1021/jp972097d',
     journalRef: 'J. Phys. Chem. A 1997, 101, 9519',
     tags: ['HAT', 'radical', 'atmospheric', 'collinear-TS', 'combustion'],
+    defaultCatalystName: 'Radical Initiator (AIBN / Peroxide)',
+    literatureBarrierKcalMol: 5.5,
+    hasLiteratureCatalyst: true,
+    literatureDoi: '10.1021/jp972097d',
     defaults: const QuantumDefaults(spinMultiplicity: 2, mlipModel: 'tx1-fastapi'),
   ),
   ReactionTemplate(
@@ -1496,6 +1535,10 @@ final List<ReactionTemplate> kReactionTemplates = [
     doi: '10.1039/c9cp01847e',
     journalRef: 'Phys. Chem. Chem. Phys. 2019, 21, 14025',
     tags: ['ene', '6-membered-TS', 'carbonyl', 'allylic-C-H'],
+    defaultCatalystName: 'Me2AlCl / TiCl4 Lewis Acid',
+    literatureBarrierKcalMol: 15.4,
+    hasLiteratureCatalyst: true,
+    literatureDoi: '10.1039/c9cp01847e',
     defaults: const QuantumDefaults(mlipModel: 'tx1-fastapi'),
   ),
   ReactionTemplate(
@@ -1513,6 +1556,10 @@ final List<ReactionTemplate> kReactionTemplates = [
     doi: '10.1021/ja00072a017',
     journalRef: 'J. Am. Chem. Soc. 1988, 110, 7529',
     tags: ['CO2-loss', '6-membered-TS', 'proton-transfer', 'thermal'],
+    defaultCatalystName: 'Cu(II) / Pyridine Catalyst',
+    literatureBarrierKcalMol: 21.0,
+    hasLiteratureCatalyst: true,
+    literatureDoi: '10.1021/ja00072a017',
     defaults: const QuantumDefaults(mlipModel: 'GFN2-xTB'),
   ),
   ReactionTemplate(
@@ -1530,6 +1577,10 @@ final List<ReactionTemplate> kReactionTemplates = [
     doi: '10.1002/chem.200600431',
     journalRef: 'Chem. Eur. J. 2006, 12, 6532',
     tags: ['1,2-shift', 'nitrene', 'nylon', 'industrial', 'lactam'],
+    defaultCatalystName: 'PCl5 / SOCl2 / H2SO4 Catalyst',
+    literatureBarrierKcalMol: 21.3,
+    hasLiteratureCatalyst: true,
+    literatureDoi: '10.1002/chem.200600431',
     defaults: const QuantumDefaults(mlipModel: 'tx1-fastapi')),
   ReactionTemplate(
     id: 'heck',
@@ -1980,6 +2031,10 @@ H     1.745   -0.950    5.000''',
     doi: '10.1021/ja01166a014',
     journalRef: 'J. Am. Chem. Soc. 1950',
     tags: ['grignard', 'addition'],
+    defaultCatalystName: 'LiCl / I2 Catalytic Activator',
+    literatureBarrierKcalMol: 14.6,
+    hasLiteratureCatalyst: true,
+    literatureDoi: '10.1021/ed081p1653',
   ),
   ReactionTemplate(
     id: 'fisher_esterification',

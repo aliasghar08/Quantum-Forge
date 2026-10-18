@@ -30,7 +30,154 @@ except Exception:
 import numpy as np
 import torch
 import torch.nn as nn
-from torch.utils.data import DataLoader, Dataset
+from torch.utils.data import DataLoader, Dataset, Subset
+import random
+import shutil
+
+class MPSTrainer:
+    def __init__(
+        self,
+        model_dir: str = "tx1-fastapi-backend/models/ensemble_v2",
+        device: str = "mps" if torch.backends.mps.is_available() else "cpu",
+        num_members: int = 5,
+        epochs_per_member: int = 10,
+        batch_size: int = 8,
+        lr: float = 1e-4,
+    ):
+        self.model_dir = Path(model_dir)
+        self.device = torch.device(device)
+        self.num_members = num_members
+        self.epochs_per_member = epochs_per_member
+        self.batch_size = batch_size
+        self.lr = lr
+
+    def _get_bootstrap_indices(self, dataset_size: int, seed: int) -> list[int]:
+        """Generate a bootstrap sample (sampling with replacement, ~63.2% unique)."""
+        rng = random.Random(seed)
+        return [rng.randint(0, dataset_size - 1) for _ in range(dataset_size)]
+
+    def train_ensemble_bootstrap(self, full_dataset):
+        """Fine-tune each ensemble member on an independent bootstrap sample."""
+        total_samples = len(full_dataset)
+        if total_samples == 0:
+            logger.warning("Dataset is empty. Skipping continual training.")
+            return
+
+        logger.info(
+            f"Starting bootstrap fine-tuning on {self.device} across "
+            f"{self.num_members} members with {total_samples} frames."
+        )
+
+        for member_idx in range(self.num_members):
+            member_path = self.model_dir / f"member_{member_idx}.pt"
+            backup_path = self.model_dir / f"member_{member_idx}.pt.bak"
+
+            if not member_path.exists():
+                logger.error(f"Checkpoint {member_path} not found. Skipping member {member_idx}.")
+                continue
+
+            # Create rollback backup
+            shutil.copyfile(member_path, backup_path)
+
+            member_seed = 42 + (member_idx * 1007)
+            torch.manual_seed(member_seed)
+            if torch.cuda.is_available():
+                torch.cuda.manual_seed_all(member_seed)
+
+            # Generate distinct bootstrap split
+            bootstrap_indices = self._get_bootstrap_indices(total_samples, member_seed)
+            member_subset = Subset(full_dataset, bootstrap_indices)
+            collate = pad_collate_fn if hasattr(full_dataset, "samples") or (len(full_dataset) > 0 and isinstance(full_dataset[0], dict) and "z" in full_dataset[0]) else None
+            loader = DataLoader(
+                member_subset,
+                batch_size=self.batch_size,
+                shuffle=True,
+                drop_last=False,
+                collate_fn=collate,
+            )
+
+            try:
+                # Load existing member checkpoint
+                checkpoint = torch.load(member_path, map_location=self.device)
+                if isinstance(checkpoint, nn.Module):
+                    model = checkpoint
+                elif isinstance(checkpoint, dict) and "model" in checkpoint and isinstance(checkpoint["model"], nn.Module):
+                    model = checkpoint["model"]
+                else:
+                    if PaiNNLite is not None:
+                        model = PaiNNLite(hidden_dim=64, num_layers=3, num_rbf=32)
+                        state = checkpoint.get("model_state_dict", checkpoint) if isinstance(checkpoint, dict) else checkpoint
+                        model.load_state_dict(state, strict=False)
+                    else:
+                        model = checkpoint["model"] if isinstance(checkpoint, dict) and "model" in checkpoint else checkpoint
+                model.to(self.device)
+                model.train()
+
+                optimizer = torch.optim.AdamW(model.parameters(), lr=self.lr, weight_decay=1e-5)
+                criterion = nn.MSELoss()
+
+                logger.info(f"--- Training Member {member_idx} (Seed: {member_seed}) ---")
+                best_loss = float("inf")
+
+                for epoch in range(self.epochs_per_member):
+                    running_loss = 0.0
+                    batch_count = 0
+
+                    for batch in loader:
+                        # Move tensors to Metal GPU (MPS) / CPU
+                        if "inputs" in batch and "targets" in batch:
+                            inputs = batch["inputs"].to(self.device)
+                            targets = batch["targets"].to(self.device)
+                            preds = model(inputs)
+                        else:
+                            z = batch["z"].to(self.device)
+                            pos = batch["pos"].to(self.device)
+                            mask = batch.get("mask")
+                            if mask is not None:
+                                mask = mask.to(self.device)
+                            targets = batch["energy"].to(self.device)
+                            preds = model(z, pos, mask)
+
+                        if preds.shape != targets.shape:
+                            targets = targets.view_as(preds)
+
+                        optimizer.zero_grad()
+                        loss = criterion(preds, targets)
+                        loss.backward()
+
+                        torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+                        optimizer.step()
+
+                        running_loss += loss.item()
+                        batch_count += 1
+
+                    avg_loss = running_loss / max(batch_count, 1)
+                    if avg_loss < best_loss:
+                        best_loss = avg_loss
+
+                # Save updated individual checkpoint with dual access: 'model' object & 'model_state_dict'
+                save_payload = {
+                    "model": model,
+                    "model_state_dict": model.state_dict(),
+                    "val_loss": best_loss,
+                }
+                torch.save(save_payload, member_path)
+                logger.info(f"Member {member_idx} successfully updated. Best Loss: {best_loss:.5f}")
+
+                # Remove backup upon clean completion
+                if backup_path.exists():
+                    backup_path.unlink()
+
+            except Exception as e:
+                logger.error(f"Error training member {member_idx}: {e}. Rolling back checkpoint.")
+                if backup_path.exists():
+                    shutil.move(backup_path, member_path)
+
+            finally:
+                # Release Apple Silicon Unified Memory allocations
+                if hasattr(torch, "mps") and torch.backends.mps.is_available():
+                    torch.mps.empty_cache()
+
 
 # Add tx1-fastapi-backend to path to access PaiNNLite and MolecularGraphNetwork
 BACKEND_DIR = Path("tx1-fastapi-backend").resolve()
@@ -277,14 +424,18 @@ class ContinualTrainer:
         torch.save(save_dict, latest_link)
         logger.info("Saved fine-tuned checkpoint to: %s", out_ckpt)
 
-        # Also copy/sync weights to tx1-fastapi-backend models directory if appropriate
-        backend_target = BACKEND_DIR / "models/ensemble_v2/member_0.pt"
-        if backend_target.parent.exists():
-            try:
-                torch.save(save_dict["model_state_dict"], backend_target)
-                logger.info("Updated backend ensemble member_0 with fine-tuned continual weights.")
-            except Exception as exc:
-                logger.warning("Could not update backend ensemble weights: %s", exc)
+        # Bootstrap fine-tune all 5 ensemble members for calibrated epistemic uncertainty
+        ensemble_dir = BACKEND_DIR / "models/ensemble_v2"
+        if ensemble_dir.exists():
+            mps_trainer = MPSTrainer(
+                model_dir=str(ensemble_dir),
+                device=str(self.device),
+                num_members=5,
+                epochs_per_member=max(5, epochs // 2),
+                batch_size=batch_size,
+                lr=lr,
+            )
+            mps_trainer.train_ensemble_bootstrap(train_ds)
 
         # Record run in SQLite ledger
         with self.conn:

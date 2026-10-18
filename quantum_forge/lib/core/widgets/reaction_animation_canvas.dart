@@ -50,6 +50,28 @@ extension _ReactionAnimationCanvasExt on _ReactionAnimationWidgetState {
       fit: StackFit.expand,
       children: [
         viewer,
+        Positioned(
+          left: 10,
+          bottom: 10,
+          child: IgnorePointer(
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              decoration: BoxDecoration(
+                color: Colors.black.withValues(alpha: 0.4),
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: const Text(
+                'Quantum Forge © Ali Asghar · aliasgharinnocent@yahoo.com',
+                style: TextStyle(
+                  color: Colors.white38,
+                  fontSize: 9.5,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 0.2,
+                ),
+              ),
+            ),
+          ),
+        ),
         if (_viewerSettingsOpen)
           Positioned(
             top: 10,

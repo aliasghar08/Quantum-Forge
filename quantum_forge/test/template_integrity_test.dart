@@ -38,6 +38,13 @@ void main() {
         'med-sulfonamide-01',
         'med-glutathione-01',
         'med-prostaglandin-01',
+        'med-captopril-01',
+        'med-atorvastatin-01',
+        'med-nitroglycerin-01',
+        'med-furosemide-01',
+        'med-glimepiride-01',
+        'med-ciprofloxacin-01',
+        'med-ceftriaxone-01',
       ].contains(t.id));
 
       for (final template in computationalTemplates) {

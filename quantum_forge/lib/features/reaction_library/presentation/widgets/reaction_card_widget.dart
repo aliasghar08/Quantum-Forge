@@ -33,6 +33,7 @@ class ReactionCardWidget extends StatefulWidget {
       ReactionCategory.inorganic     => const Color(0xFF8D6E63),
       ReactionCategory.pharmaceutical=> const Color(0xFF00E676),
       ReactionCategory.biochemical   => const Color(0xFF00B0FF),
+      ReactionCategory.veterinary    => const Color(0xFF00BFA5),
     };
   }
 
@@ -49,6 +50,7 @@ class ReactionCardWidget extends StatefulWidget {
       ReactionCategory.inorganic     => 'Inorganic',
       ReactionCategory.pharmaceutical=> 'Pharmaceutical (Pharm-D)',
       ReactionCategory.biochemical   => 'Biochemical (MBBS)',
+      ReactionCategory.veterinary    => 'Veterinary (DVM)',
     };
   }
 
@@ -132,7 +134,10 @@ class _ReactionCardWidgetState extends State<ReactionCardWidget> {
               splashColor: color.withValues(alpha: 0.1),
               highlightColor: Colors.transparent,
               child: Padding(
-                padding: EdgeInsets.all(isMobile ? 12 : 16),
+                padding: EdgeInsets.symmetric(
+                  horizontal: isMobile ? 12 : 16,
+                  vertical: isMobile ? 8 : 16,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.max,
@@ -171,7 +176,7 @@ class _ReactionCardWidgetState extends State<ReactionCardWidget> {
                             Icon(Icons.bolt, size: 12, color: Colors.amber.shade300),
                             const SizedBox(width: 3),
                             Text(
-                              '${template.referenceEa} kcal·mol⁻¹',
+                              '${template.effectiveLiteratureBarrier.toStringAsFixed(1)} kcal·mol⁻¹',
                               style: TextStyle(
                                   color: Colors.amber.shade200,
                                   fontSize: 10,
@@ -181,7 +186,7 @@ class _ReactionCardWidgetState extends State<ReactionCardWidget> {
                         ),
                       ],
                     ),
-                    SizedBox(height: isMobile ? 8 : 12),
+                    SizedBox(height: isMobile ? 4 : 12),
 
                     // ── Reaction name ───────────────────────────────────────────────
                     Text(
@@ -193,7 +198,7 @@ class _ReactionCardWidgetState extends State<ReactionCardWidget> {
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 3),
 
                     // ── IUPAC name ──────────────────────────────────────────────────
                     Text(
@@ -205,7 +210,41 @@ class _ReactionCardWidgetState extends State<ReactionCardWidget> {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    SizedBox(height: isMobile ? 6 : 10),
+                    if (template.defaultCatalystName != null &&
+                        template.defaultCatalystName!.isNotEmpty) ...[
+                      SizedBox(height: isMobile ? 3 : 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF10B981).withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(5),
+                          border: Border.all(
+                            color: const Color(0xFF10B981).withValues(alpha: 0.35),
+                            width: 0.8,
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.biotech, size: 11, color: Color(0xFF10B981)),
+                            const SizedBox(width: 3),
+                            Flexible(
+                              child: Text(
+                                'Cat: ${template.defaultCatalystName}',
+                                style: const TextStyle(
+                                  color: Color(0xFF34D399),
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                    SizedBox(height: isMobile ? 4 : 10),
 
                     // ── Description (Expanded to push footer down) ───────────────────
                     Expanded(
@@ -246,7 +285,7 @@ class _ReactionCardWidgetState extends State<ReactionCardWidget> {
                     // ── Footer: DOI + Load button ───────────────────────────────────
                     Row(
                       children: [
-                        if (template.doi.isNotEmpty)
+                        if (template.effectiveLiteratureDoi.isNotEmpty)
                           Padding(
                             padding: const EdgeInsets.only(right: 6),
                             child: Container(

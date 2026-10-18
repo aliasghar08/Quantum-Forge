@@ -9,6 +9,8 @@ import 'package:quantum_forge/features/reaction_library/presentation/widgets/pub
 import 'package:quantum_forge/features/reaction_library/presentation/screens/publication_details_screen.dart';
 import 'package:quantum_forge/features/reaction_runner/presentation/widgets/dashboard_cards/distinct_molecules_viewer.dart';
 import 'package:quantum_forge/core/widgets/locked_animation_placeholder.dart';
+import 'package:quantum_forge/features/pharmacopeia/data/pharmacopeia_repository.dart';
+import 'package:quantum_forge/features/pharmacopeia/presentation/screens/pharmacopeia_screen.dart';
 
 class TemplateDetailScreen extends StatelessWidget {
   final ReactionTemplate template;
@@ -115,7 +117,7 @@ class TemplateDetailScreen extends StatelessWidget {
                     : LockedAnimationPlaceholder(
                         title: '3D Trajectory Preview Locked',
                         subtitle:
-                            'Sign in with your researcher credentials or activate the 1-Click Demo account to preview 3D reaction mechanisms.',
+                            'Sign in with your researcher credentials to preview 3D reaction mechanisms.',
                         onSignInRequested: () => _onSimulatePressed(context),
                       ),
               ),
@@ -174,7 +176,7 @@ class TemplateDetailScreen extends StatelessWidget {
                                 ),
                                 const SizedBox(width: 4),
                                 Text(
-                                  'Ea: ${template.referenceEa} kcal·mol⁻¹',
+                                  'Ea: ${template.effectiveLiteratureBarrier.toStringAsFixed(1)} kcal·mol⁻¹',
                                   style: TextStyle(
                                     color: Colors.amber.shade300,
                                     fontSize: 12,
@@ -184,6 +186,40 @@ class TemplateDetailScreen extends StatelessWidget {
                               ],
                             ),
                           ),
+                          if (template.defaultCatalystName != null &&
+                              template.defaultCatalystName!.isNotEmpty)
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF10B981).withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(
+                                  color: const Color(0xFF10B981).withValues(alpha: 0.5),
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(
+                                    Icons.biotech,
+                                    size: 16,
+                                    color: Color(0xFF10B981),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    'Catalyst: ${template.defaultCatalystName}',
+                                    style: const TextStyle(
+                                      color: Color(0xFF34D399),
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
                         ],
                       ),
                       const SizedBox(height: 16),
@@ -249,7 +285,7 @@ class TemplateDetailScreen extends StatelessWidget {
                             ),
                             const SizedBox(width: 4),
                             Text(
-                              'Ea: ${template.referenceEa} kcal·mol⁻¹',
+                              'Ea: ${template.effectiveLiteratureBarrier.toStringAsFixed(1)} kcal·mol⁻¹',
                               style: TextStyle(
                                 color: Colors.amber.shade300,
                                 fontSize: 12,
@@ -259,6 +295,42 @@ class TemplateDetailScreen extends StatelessWidget {
                           ],
                         ),
                       ),
+                      if (template.defaultCatalystName != null &&
+                          template.defaultCatalystName!.isNotEmpty) ...[
+                        const SizedBox(width: 12),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF10B981).withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color: const Color(0xFF10B981).withValues(alpha: 0.5),
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Icons.biotech,
+                                size: 16,
+                                color: Color(0xFF10B981),
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                'Catalyst: ${template.defaultCatalystName}',
+                                style: const TextStyle(
+                                  color: Color(0xFF34D399),
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                       const Spacer(),
                       FilledButton.icon(
                         onPressed: () => _onSimulatePressed(context),
@@ -327,6 +399,262 @@ class TemplateDetailScreen extends StatelessWidget {
                 height: 1.6,
               ),
             ),
+            Builder(
+              builder: (ctx) {
+                final matches = PharmacopeiaRepository().filter(query: template.name);
+                final pharma = PharmacopeiaRepository().findByReactionId(template.id) ??
+                    (matches.isNotEmpty ? matches.first : null);
+                if (pharma == null) return const SizedBox.shrink();
+                return Container(
+                  margin: const EdgeInsets.only(top: 20, bottom: 8),
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF00BFA5).withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: const Color(0xFF00BFA5).withValues(alpha: 0.6)),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(Icons.local_pharmacy_rounded, color: Color(0xFF00BFA5), size: 20),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              'Clinical & Veterinary Pharmacopeia: ${pharma.genericName}',
+                              style: const TextStyle(color: Color(0xFF00BFA5), fontSize: 14, fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF00BFA5),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: const Text('RESEARCH GRADE', style: TextStyle(color: Colors.black, fontSize: 9.5, fontWeight: FontWeight.w900)),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Target: ${pharma.molecularTarget} (PDB: ${pharma.pdbAccession}) | Class: ${pharma.chemicalClass}',
+                        style: const TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w500),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        pharma.therapeuticIndications,
+                        style: const TextStyle(color: Colors.white60, fontSize: 11.5, height: 1.35),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 10),
+                      OutlinedButton.icon(
+                        icon: const Icon(Icons.menu_book_rounded, size: 14, color: Color(0xFF00BFA5)),
+                        label: const Text('Open Complete Pharmacopeia Dossier (MoA, Origin, ADME & Species Risks)', style: TextStyle(color: Color(0xFF00BFA5), fontSize: 11.5)),
+                        style: OutlinedButton.styleFrom(
+                          side: const BorderSide(color: Color(0xFF00BFA5)),
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                        ),
+                        onPressed: () {
+                          showDialog<void>(
+                            context: ctx,
+                            builder: (dCtx) => const Dialog(
+                              backgroundColor: Color(0xFF161B22),
+                              child: PharmacopeiaScreen(),
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+            if (template.defaultCatalystName != null &&
+                template.defaultCatalystName!.isNotEmpty) ...[
+              Container(
+                margin: const EdgeInsets.only(top: 16, bottom: 24),
+                padding: const EdgeInsets.all(18),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      const Color(0xFF10B981).withValues(alpha: 0.15),
+                      const Color(0xFF065F46).withValues(alpha: 0.08),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: const Color(0xFF10B981).withValues(alpha: 0.5),
+                    width: 1.2,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF10B981).withValues(alpha: 0.08),
+                      blurRadius: 16,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF10B981).withValues(alpha: 0.2),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Icon(
+                            Icons.biotech_rounded,
+                            color: Color(0xFF34D399),
+                            size: 22,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'LITERATURE CATALYST & REFERENCE BARRIER',
+                                style: TextStyle(
+                                  color: Color(0xFF34D399),
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w900,
+                                  letterSpacing: 1.1,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                template.defaultCatalystName!,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF10B981).withValues(alpha: 0.2),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(color: const Color(0xFF10B981).withValues(alpha: 0.6)),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.verified, size: 13, color: Color(0xFF34D399)),
+                              const SizedBox(width: 4),
+                              Text(
+                                template.catalystXyz != null
+                                    ? 'CARTESIAN XYZ LOADED'
+                                    : 'KINETIC REFERENCE',
+                                style: const TextStyle(
+                                  color: Color(0xFF34D399),
+                                  fontSize: 9.5,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 14),
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.25),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'Catalyzed Reference Barrier (Ea)',
+                                  style: TextStyle(color: Colors.white60, fontSize: 11),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  '${template.effectiveLiteratureBarrier.toStringAsFixed(1)} kcal·mol⁻¹',
+                                  style: const TextStyle(
+                                    color: Color(0xFF34D399),
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Container(
+                            height: 30,
+                            width: 1,
+                            color: Colors.white10,
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'Primary Literature Reference DOI',
+                                  style: TextStyle(color: Colors.white60, fontSize: 11),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  template.effectiveLiteratureDoi.isNotEmpty
+                                      ? template.effectiveLiteratureDoi
+                                      : 'Peer-reviewed derivation',
+                                  style: const TextStyle(
+                                    color: Color(0xFF60A5FA),
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 1,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        FilledButton.icon(
+                          onPressed: () => _onSimulatePressed(context),
+                          style: FilledButton.styleFrom(
+                            backgroundColor: const Color(0xFF10B981),
+                            foregroundColor: Colors.black,
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          ),
+                          icon: const Icon(Icons.play_arrow_rounded, size: 18),
+                          label: const Text(
+                            'Simulate with Literature Catalyst',
+                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
             const SizedBox(height: 32),
 
             // ── Static Molecule Viewers ──────────────────────────────────
@@ -511,6 +839,7 @@ class TemplateDetailScreen extends StatelessWidget {
       ReactionCategory.inorganic => const Color(0xFF8D6E63),
       ReactionCategory.pharmaceutical => const Color(0xFF00E676),
       ReactionCategory.biochemical => const Color(0xFF00B0FF),
+      ReactionCategory.veterinary => const Color(0xFF00BFA5),
     };
   }
 
@@ -527,6 +856,7 @@ class TemplateDetailScreen extends StatelessWidget {
       ReactionCategory.inorganic => 'Inorganic',
       ReactionCategory.pharmaceutical => 'Pharmaceutical (Pharm-D)',
       ReactionCategory.biochemical => 'Biochemical (MBBS)',
+      ReactionCategory.veterinary => 'Veterinary Medicine (DVM)',
     };
   }
 

@@ -10,8 +10,9 @@ void main() {
 
       expect(counts[null], equals(kReactionTemplates.length));
       expect(counts[ReactionCategory.polymer], equals(18));
-      expect(counts[ReactionCategory.pharmaceutical], equals(6));
-      expect(counts[ReactionCategory.biochemical], equals(9));
+      expect(counts[ReactionCategory.pharmaceutical], equals(25));
+      expect(counts[ReactionCategory.biochemical], equals(10));
+      expect(counts[ReactionCategory.veterinary], equals(10));
       expect(counts.values.reduce((a, b) => a + b) - counts[null]!, equals(kReactionTemplates.length));
     });
 
@@ -37,12 +38,13 @@ void main() {
       expect(find.text('🧶 Polymer Chemistry'), findsOneWidget);
       expect(find.text('💊 Pharm-D / Drugs'), findsOneWidget);
       expect(find.text('🩺 MBBS / Clinical'), findsOneWidget);
+      expect(find.text('🐾 Veterinary / DVM'), findsOneWidget);
 
       // Category count badges
       expect(find.text('${kReactionTemplates.length}'), findsOneWidget); // Total count
       expect(find.text('18'), findsOneWidget); // Polymer count
-      expect(find.text('6'), findsOneWidget);  // Pharmaceutical count
-      expect(find.text('9'), findsOneWidget);  // Biochemical count
+      expect(find.text('25'), findsOneWidget);  // Pharmaceutical count
+      expect(find.text('10'), findsNWidgets(3));  // Biochemical, Pericyclic, and Veterinary count (all 10)
     });
 
     testWidgets('Selecting a category chip triggers onCategoryChanged', (tester) async {
@@ -109,5 +111,52 @@ void main() {
 
       expect(resetCalled, isTrue);
     });
+
+    testWidgets('Specialty strip displays curriculum and medical specialty chips and toggles on tap', (tester) async {
+      String? selectedSpecialty;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: StatefulBuilder(
+              builder: (context, setState) {
+                return LibraryFilterBar(
+                  selectedCategory: null,
+                  onCategoryChanged: (_) {},
+                  selectedSpecialty: selectedSpecialty,
+                  onSpecialtyChanged: (spec) => setState(() => selectedSpecialty = spec),
+                );
+              },
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+
+      // Verify label and specialty chips
+      expect(find.text('Specialty:'), findsOneWidget);
+      expect(find.text('🩺 MBBS'), findsOneWidget);
+      expect(find.text('💊 Pharm-D'), findsOneWidget);
+      expect(find.text('🐾 DVM / Vet Med'), findsOneWidget);
+      expect(find.text('🪱 Antiparasitic'), findsOneWidget);
+      expect(find.text('💉 Antibiotic'), findsOneWidget);
+      expect(find.text('🦴 Vet NSAIDs'), findsOneWidget);
+      expect(find.text('💤 Sedatives / Alpha-2'), findsOneWidget);
+      expect(find.text('❤️ Cardiology'), findsOneWidget);
+      expect(find.text('🫘 Nephrology'), findsOneWidget);
+      expect(find.text('🧠 Neurology'), findsOneWidget);
+      expect(find.text('🎗️ Oncology'), findsOneWidget);
+
+      // Tap Veterinary to select
+      await tester.tap(find.text('🐾 DVM / Vet Med'));
+      await tester.pump();
+      expect(selectedSpecialty, equals('Veterinary'));
+
+      // Tap Veterinary again to toggle off
+      await tester.tap(find.text('🐾 DVM / Vet Med'));
+      await tester.pump();
+      expect(selectedSpecialty, isNull);
+    });
   });
 }
+

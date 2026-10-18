@@ -153,28 +153,6 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
     }
   }
 
-  Future<void> _submitGhostAccount() async {
-    setState(() {
-      _errorMessage = null;
-      _isLoading = true;
-    });
-
-    try {
-      final authService = context.read<AuthService>();
-      await authService.signInWithGhostAccount();
-      if (mounted) {
-        widget.onLoginSuccess();
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() => _errorMessage = _cleanAuthError(e));
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
-    }
-  }
 
   Future<void> _showResetPasswordDialog() async {
     final controller = TextEditingController(text: _emailController.text.trim());
@@ -494,42 +472,42 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
 
         // Scientific Feature Highlights
         _featureItem(
-          palette,
-          Icons.auto_awesome,
-          'Equivariant PaiNN-lite GNN',
-          '2.26 kcal/mol Barrier MAE on Transition1x dataset benchmarks.',
+          palette: palette,
+          iconWidget: Icon(Icons.auto_awesome, size: 18, color: palette.accent),
+          title: 'Equivariant PaiNN-lite GNN',
+          subtitle: '2.26 kcal/mol Barrier MAE on Transition1x dataset benchmarks.',
         ),
         const SizedBox(height: 16),
         _featureItem(
-          palette,
-          Icons.shield_outlined,
-          'Calibrated Uncertainty Quantification',
-          'Ensemble temperature scaling provides dependable ±1σ & ±2σ error bounds.',
+          palette: palette,
+          iconWidget: Icon(Icons.shield_rounded, size: 18, color: palette.accent),
+          title: 'Calibrated Uncertainty Quantification',
+          subtitle: 'Ensemble temperature scaling provides dependable ±1σ & ±2σ error bounds.',
         ),
         const SizedBox(height: 16),
         _featureItem(
-          palette,
-          Icons.biotech_outlined,
-          'Medical & Pharmacological Library',
-          'Curated reaction paths for antibiotic synthesis, anesthesia, and GABA congeners.',
+          palette: palette,
+          iconWidget: Icon(Icons.medication_rounded, size: 18, color: palette.accent),
+          title: 'Medical & Pharmacological Library',
+          subtitle: 'Curated reaction paths for antibiotic synthesis, anesthesia, and GABA congeners.',
         ),
         const SizedBox(height: 16),
         _featureItem(
-          palette,
-          Icons.cloud_sync_outlined,
-          'Cloud Sync & DFT Handoff',
-          'Seamless export to ORCA, Gaussian, and Q-Chem format templates.',
+          palette: palette,
+          iconWidget: Icon(Icons.cloud_sync_rounded, size: 18, color: palette.accent),
+          title: 'Cloud Sync & DFT Handoff',
+          subtitle: 'Seamless export to ORCA, Gaussian, and Q-Chem format templates.',
         ),
       ],
     );
   }
 
-  Widget _featureItem(
-    QuantumTheme palette,
-    IconData icon,
-    String title,
-    String subtitle,
-  ) {
+  Widget _featureItem({
+    required QuantumTheme palette,
+    required Widget iconWidget,
+    required String title,
+    required String subtitle,
+  }) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -540,7 +518,7 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
             borderRadius: BorderRadius.circular(10),
             border: Border.all(color: palette.border),
           ),
-          child: Icon(icon, size: 18, color: palette.accent),
+          child: iconWidget,
         ),
         const SizedBox(width: 14),
         Expanded(
@@ -887,39 +865,6 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
                 color: palette.textPrimary,
                 fontSize: 13.5,
                 fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-
-          const SizedBox(height: 12),
-
-          // One-Click Ghost Account Button for Testing
-          FilledButton.icon(
-            onPressed: _isLoading ? null : _submitGhostAccount,
-            style: FilledButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 14),
-              backgroundColor: const Color(0xFF00E676).withValues(alpha: 0.14),
-              foregroundColor: const Color(0xFF00E676),
-              side: BorderSide(color: const Color(0xFF00E676).withValues(alpha: 0.4)),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            ),
-            icon: const Icon(Icons.science_rounded, size: 20, color: Color(0xFF00E676)),
-            label: const Text(
-              '🧪 One-Click Demo Researcher (Ghost Account)',
-              style: TextStyle(
-                color: Color(0xFF00E676),
-                fontSize: 13.5,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ),
-          const SizedBox(height: 8),
-          Center(
-            child: Text(
-              'Quick testing credentials: ghost.researcher@quantumforge.io',
-              style: TextStyle(
-                color: palette.textMuted,
-                fontSize: 11,
               ),
             ),
           ),

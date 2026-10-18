@@ -19,6 +19,9 @@
   <meta charset="UTF-8">
   <meta content="IE=edge" http-equiv="X-UA-Compatible">
   <meta name="description" content="Quantum Forge — Next-Generation Transition State MLIP & Quantum Chemistry Reaction Dynamics Workstation">
+  <meta name="author" content="Ali Asghar <aliasgharinnocent@yahoo.com>">
+  <meta name="copyright" content="Copyright © 2026 Ali Asghar. All Rights Reserved.">
+  <meta name="keywords" content="Quantum Forge, Ali Asghar, Quantum Chemistry, Pharmacopeia, Transition State, MLIP">
 
   <!-- iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
@@ -31,6 +34,11 @@
 
   <title>Quantum Forge — Reaction Dynamics Workstation</title>
   <link rel="manifest" href="manifest.json">
+
+  <!-- Material Icons Font Preconnect & Fallback -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons|Material+Icons+Outlined|Material+Icons+Round">
 
   <!-- Google AdSense -->
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9402443776639153" crossorigin="anonymous"></script>
@@ -85,6 +93,18 @@
   -->
   <script type="module">
     (async () => {
+      console.log(
+        "%c Quantum Forge © Ali Asghar · aliasgharinnocent@yahoo.com %c All Rights Reserved · DMCA Protected",
+        "background: #004D40; color: #00E5FF; font-weight: bold; font-size: 12px; padding: 4px 8px; border-radius: 4px 0 0 4px;",
+        "background: #00BFA5; color: #000; font-weight: bold; font-size: 12px; padding: 4px 8px; border-radius: 0 4px 4px 0;"
+      );
+      window.__QUANTUM_FORGE_COPYRIGHT__ = {
+        author: "Ali Asghar",
+        email: "aliasgharinnocent@yahoo.com",
+        rights: "All Rights Reserved",
+        notice: "Unauthorized reproduction or rehosting constitutes copyright infringement subject to immediate DMCA strike."
+      };
+
       try {
         window.firebase_core = await import('./firebasejs/firebase-app.js');
         window.firebase_auth = await import('./firebasejs/firebase-auth.js');
@@ -112,7 +132,7 @@
       // the way this vendoring exists to prevent. Injecting the bootstrap after
       // the assignments above removes that race.
       const bootstrap = document.createElement('script');
-      bootstrap.src = 'flutter_bootstrap.js';
+      bootstrap.src = 'flutter_bootstrap.js?v=' + Date.now();
       document.body.appendChild(bootstrap);
     })();
   </script>

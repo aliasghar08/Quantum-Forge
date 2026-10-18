@@ -174,47 +174,9 @@ class FirebaseAuthService implements AuthService {
     await _auth.sendPasswordResetEmail(email: email);
   }
 
-  static const String ghostEmail = 'ghost.researcher@quantumforge.io';
-  static const String ghostPassword = 'QuantumTest#2026!';
-
   @override
   Future<void> signInWithGhostAccount() async {
-    _ensureListener();
-    await _ensureLocalPersistence();
-    try {
-      final cred = await _auth.signInWithEmailAndPassword(
-        email: ghostEmail,
-        password: ghostPassword,
-      );
-      if (cred.user != null) {
-        await _syncUserProfile(cred.user!);
-      }
-    } on FirebaseAuthException catch (e) {
-      if (e.code == 'user-not-found' || e.code == 'invalid-credential') {
-        try {
-          final cred = await _auth.createUserWithEmailAndPassword(
-            email: ghostEmail,
-            password: ghostPassword,
-          );
-          if (cred.user != null) {
-            try {
-              await cred.user!.updateDisplayName('Ghost Researcher (Demo)');
-            } catch (_) {}
-            await _syncUserProfile(cred.user!);
-          }
-        } catch (_) {
-          final cred = await _auth.signInWithEmailAndPassword(
-            email: ghostEmail,
-            password: ghostPassword,
-          );
-          if (cred.user != null) {
-            await _syncUserProfile(cred.user!);
-          }
-        }
-      } else {
-        rethrow;
-      }
-    }
+    throw UnsupportedError('Ghost accounts have been disabled.');
   }
 
   /// Cancels active auth subscriptions.

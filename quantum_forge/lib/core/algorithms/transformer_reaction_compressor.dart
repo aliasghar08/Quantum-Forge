@@ -67,18 +67,19 @@ class TransformerReactionCompressor {
       maxPooledLatent,
     );
 
-    // 5. Build Activation Energy Profile (modulating referenceEa with latent deformation)
+    // 5. Build Activation Energy Profile (strictly normalized ground state: E(0) = 0.0)
     final peakEa = referenceEa > 0 ? referenceEa : 21.5;
     final energyProfile = <double>[];
     final energyProfileEv = <double>[];
 
+    const double deltaH = -2.0; // Mild exothermic baseline default
     for (int i = 0; i < kNumFrames; i++) {
       final t = i / (kNumFrames - 1.0);
-      final x = (t - 0.5) * 4.0; // -2 to 2
-      // Asymmetric Gaussian barrier reflecting exothermic/endothermic path
-      final delta = math.exp(-0.5 * x * x);
-      final energyKcal = peakEa * delta + (t * (t - 1.0) * 2.0);
-      energyProfile.add(math.max(0.0, energyKcal));
+      // Parabolic sinusoidal activation barrier: strictly 0 at t=0 and t=1
+      final barrierShape = math.sin(math.pi * t);
+      final barrierKcal = peakEa * (barrierShape * barrierShape);
+      final energyKcal = math.max(0.0, barrierKcal + (t * deltaH));
+      energyProfile.add(energyKcal);
       energyProfileEv.add(energyKcal * 0.0433641); // kcal/mol -> eV
     }
 
@@ -95,7 +96,8 @@ class TransformerReactionCompressor {
     );
   }
 
-  /// Aligns and pairs atoms between reactant and product states
+  /// Aligns and pairs atoms between reactant and product states using greedy
+  /// minimum Euclidean distance matching within each elemental species.
   static List<_AtomPair> _alignAndMatchAtoms(List<Atom> reactants, List<Atom> products) {
     final Map<String, List<Atom>> rBySym = {};
     final Map<String, List<Atom>> pBySym = {};
@@ -111,26 +113,54 @@ class TransformerReactionCompressor {
     final allSymbols = {...rBySym.keys, ...pBySym.keys};
 
     for (final sym in allSymbols) {
-      final rList = rBySym[sym] ?? [];
-      final pList = pBySym[sym] ?? [];
-      final count = math.max(rList.length, pList.length);
+      final rList = List<Atom>.from(rBySym[sym] ?? []);
+      final pList = List<Atom>.from(pBySym[sym] ?? []);
 
-      for (int i = 0; i < count; i++) {
-        final r = i < rList.length ? rList[i] : (pList.isNotEmpty ? pList[0] : null);
-        final p = i < pList.length ? pList[i] : (rList.isNotEmpty ? rList[0] : null);
-
-        if (r != null && p != null) {
-          pairs.add(_AtomPair(
-            symbol: sym,
-            rPos: [r.x, r.y, r.z],
-            pPos: [p.x, p.y, p.z],
-            radius: r.radius,
-            covalentRadius: r.covalentRadius,
-          ));
+      // Optimal greedy nearest-neighbor matching
+      final availableP = List<Atom>.from(pList);
+      for (final r in rList) {
+        if (availableP.isEmpty) {
+          // If product list exhausted, pair with nearest in full product list
+          final fallbackP = pList.isNotEmpty ? pList.first : r;
+          pairs.add(_createPair(sym, r, fallbackP));
+          continue;
         }
+
+        int bestIdx = 0;
+        double bestDistSq = double.infinity;
+        for (int j = 0; j < availableP.length; j++) {
+          final p = availableP[j];
+          final dx = r.x - p.x;
+          final dy = r.y - p.y;
+          final dz = r.z - p.z;
+          final dSq = dx * dx + dy * dy + dz * dz;
+          if (dSq < bestDistSq) {
+            bestDistSq = dSq;
+            bestIdx = j;
+          }
+        }
+
+        final bestP = availableP.removeAt(bestIdx);
+        pairs.add(_createPair(sym, r, bestP));
+      }
+
+      // Any remaining products not matched (e.g. unaligned fragments)
+      for (final p in availableP) {
+        final fallbackR = rList.isNotEmpty ? rList.first : p;
+        pairs.add(_createPair(sym, fallbackR, p));
       }
     }
     return pairs;
+  }
+
+  static _AtomPair _createPair(String sym, Atom r, Atom p) {
+    return _AtomPair(
+      symbol: sym,
+      rPos: [r.x, r.y, r.z],
+      pPos: [p.x, p.y, p.z],
+      radius: r.radius,
+      covalentRadius: r.covalentRadius,
+    );
   }
 
   /// Projects atomic coordinates into multi-channel attention embeddings
@@ -238,10 +268,19 @@ class TransformerReactionCompressor {
         var curY = p.rPos[1] + (p.pPos[1] - p.rPos[1]) * t;
         var curZ = p.rPos[2] + (p.pPos[2] - p.rPos[2]) * t;
 
-        // Apply non-linear max-pooled TS curvature deformation
-        curX += tsWeight * curveScaleX;
-        curY += tsWeight * curveScaleY;
-        curZ += tsWeight * curveScaleZ;
+        // Apply localized non-linear TS curvature deformation
+        // Dynamic atoms undergoing active chemical bond changes receive localized tangent arcs
+        final dx = p.pPos[0] - p.rPos[0];
+        final dy = p.pPos[1] - p.rPos[1];
+        final dz = p.pPos[2] - p.rPos[2];
+        final disp = math.sqrt(dx * dx + dy * dy + dz * dz);
+
+        if (disp > 0.05) {
+          final localScale = math.min(0.35, disp * 0.2);
+          curX += tsWeight * (curveScaleX * (dx / disp) - dy * 0.15 * localScale);
+          curY += tsWeight * (curveScaleY * (dy / disp) + dx * 0.15 * localScale);
+          curZ += tsWeight * (curveScaleZ * (dz / disp));
+        }
 
         sb.writeln(
           '${p.symbol.padRight(2)} '

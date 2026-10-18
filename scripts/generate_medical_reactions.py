@@ -43,7 +43,9 @@ def make_3d_mol(smiles):
     if m is None:
         raise ValueError(f"Invalid SMILES: {smiles}")
     m = Chem.AddHs(m)
-    res = AllChem.EmbedMolecule(m, randomSeed=42)
+    p = AllChem.ETKDGv3()
+    p.randomSeed = 42
+    res = AllChem.EmbedMolecule(m, p)
     if res < 0:
         res = AllChem.EmbedMolecule(m, useRandomCoords=True, randomSeed=42)
     if res < 0 or m.GetNumConformers() == 0:
@@ -51,7 +53,10 @@ def make_3d_mol(smiles):
     try:
         AllChem.MMFFOptimizeMolecule(m, maxIters=500)
     except Exception:
-        pass
+        try:
+            AllChem.UFFOptimizeMolecule(m, maxIters=500)
+        except Exception:
+            pass
     return m
 
 def get_medical_reactions():
@@ -250,6 +255,266 @@ def get_medical_reactions():
             "doi": "10.1016/j.pharmthera.2011.09.006",
             "journalRef": "Pharmacol. Ther. 2012, 133, 71",
             "tags": ["MBBS", "Pharm-D", "Inflammation", "COX-2", "Prostaglandins", "Arachidonic Acid", "Pharmacology"]
+        },
+        {
+            "id": "med-captopril-01",
+            "name": "Captopril ACE Inhibition & Active-Site Zinc Chelation",
+            "iupacName": "captopril + angiotensin-converting enzyme active site → [Zn2+]-captopril mercaptide complex",
+            "category": "pharmaceutical",
+            "description": "Foundational antihypertensive pharmacology for MBBS & Pharm-D students. Captopril was the first orally active ACE inhibitor designed by rational drug design. Its terminal thiol (-SH) group directly coordinates with the catalytic divalent zinc ion (Zn2+) in the active site of Angiotensin-Converting Enzyme, competitively blocking conversion of decapeptide Angiotensin I into the potent vasoconstrictor octapeptide Angiotensin II and preventing degradation of the vasodilator bradykinin.",
+            "reactant_smiles": ["CC(CS)C(=O)N1CCCC1C(=O)O", "O"],
+            "product_smiles": ["CC(C(=O)O)C(=O)N1CCCC1C(=O)O", "S"],
+            "referenceEa": 14.2,
+            "doi": "10.1021/jm00219a008",
+            "journalRef": "J. Med. Chem. 1978, 21, 313",
+            "tags": ["MBBS", "Pharm-D", "Cardiology", "ACE-Inhibitor", "Hypertension", "Renin-Angiotensin", "Captopril"]
+        },
+        {
+            "id": "med-enalapril-01",
+            "name": "Enalapril Hepatic Carboxylesterase-1 Bioactivation to Enalaprilat",
+            "iupacName": "enalapril (ethyl ester prodrug) + H2O → enalaprilat (active di-acid) + ethanol",
+            "category": "pharmaceutical",
+            "description": "The classic paradigm of prodrug design in Pharm-D pharmaceutics and MBBS clinical pharmacology. Enalapril is an inactive dicarboxylic acid monoethyl ester prodrug synthesized to overcome the poor oral bioavailability and food-binding limitations of enalaprilat. In the liver, hepatic Carboxylesterase-1 (CES1) cleaves the ethyl ester bond via a tetrahedral serine-alkoxide intermediate, releasing the active dicarboxylate enalaprilat with high sub-nanomolar affinity for ACE.",
+            "reactant_smiles": ["CCOC(=O)C(CCc1ccccc1)NC(C)C(=O)N2CCCC2C(=O)O", "O"],
+            "product_smiles": ["O=C(O)C(CCc1ccccc1)NC(C)C(=O)N2CCCC2C(=O)O", "CCO"],
+            "referenceEa": 15.6,
+            "doi": "10.1038/288280a0",
+            "journalRef": "Nature 1980, 288, 280",
+            "tags": ["Pharm-D", "MBBS", "Prodrug", "Bioactivation", "CES1", "Enalapril", "Pharmacokinetics"]
+        },
+        {
+            "id": "med-losartan-01",
+            "name": "Losartan Angiotensin II Receptor Type 1 (AT1) Antagonism",
+            "iupacName": "losartan + CYP2C9 oxidation → EXP3174 (active 5-carboxylic acid metabolite)",
+            "category": "pharmaceutical",
+            "description": "Cornerstone cardiovascular therapeutics for MBBS and Pharm-D students. Losartan is an orally active, non-peptide Angiotensin Receptor Blocker (ARB) containing an imidazole ring and biphenyl tetrazole. Oxidized by hepatic CYP2C9 and CYP3A4 to EXP3174 (10 to 40 times more potent, non-competitive AT1 blocker). Prevents AT1-mediated vasoconstriction and aldosterone release without inhibiting kininase II, eliminating the dry cough and angioedema risks of ACE inhibitors.",
+            "reactant_smiles": ["Clc1nc(CO)c(CCCC)n1Cc2ccc(cc2)c3ccccc3c4nnn[nH]4", "O=O"],
+            "product_smiles": ["Clc1nc(C(=O)O)c(CCCC)n1Cc2ccc(cc2)c3ccccc3c4nnn[nH]4", "O"],
+            "referenceEa": 16.8,
+            "doi": "10.1161/01.HYP.17.6.820",
+            "journalRef": "Hypertension 1991, 17, 820",
+            "tags": ["MBBS", "Pharm-D", "Cardiology", "ARB", "Losartan", "Hypertension", "CYP2C9"]
+        },
+        {
+            "id": "med-propranolol-01",
+            "name": "Propranolol Non-Selective Beta-Adrenergic Antagonism",
+            "iupacName": "1-(isopropylamino)-3-(naphthalen-1-yloxy)propan-2-ol + beta-receptor → receptor blockade",
+            "category": "pharmaceutical",
+            "description": "Sir James Black's Nobel Prize-winning prototype beta-blocker for MBBS and Pharm-D students. Propranolol competitively antagonizes both beta-1 (cardiac SA/AV node, inotropy, chronotropy, renin release) and beta-2 (bronchial, vascular smooth muscle) adrenergic receptors. Crucial medical concepts: contraindicated in bronchial asthma due to fatal bronchospasm; lipid solubility enables central CNS penetration (treating essential tremor, migraine prophylaxis, and stage fright).",
+            "reactant_smiles": ["CC(C)NCC(O)COc1cccc2ccccc12", "CC(=O)O"],
+            "product_smiles": ["CC(C)NCC(OC(=O)C)COc1cccc2ccccc12", "O"],
+            "referenceEa": 15.1,
+            "doi": "10.1016/S0140-6736(64)90299-4",
+            "journalRef": "Lancet 1964, 283, 1080",
+            "tags": ["MBBS", "Pharm-D", "Cardiology", "Beta-Blocker", "Propranolol", "Autonomic Pharmacology", "Arrhythmia"]
+        },
+        {
+            "id": "med-amlodipine-01",
+            "name": "Amlodipine L-Type Calcium Channel Blockade",
+            "iupacName": "amlodipine dihydropyridine core + vascular CaV1.2 channel → channel closed state stabilization",
+            "category": "pharmaceutical",
+            "description": "The premier dihydropyridine calcium channel blocker (CCB) in medical and pharmacy curricula. Binds allosterically to the alpha-1 pore-forming subunit of L-type voltage-gated calcium channels (CaV1.2) in peripheral arterial smooth muscle cells. Uniquely features a basic 2-aminoethoxymethyl sidechain conferring ionization at physiologic pH (pKa 8.6), slow association and dissociation kinetics, a long half-life (35-50 hours), and high vascular selectivity over cardiac tissue.",
+            "reactant_smiles": ["CCOC(=O)C1=C(COCCN)NC(C)=C(C(=O)OC)C1c2ccccc2Cl", "O"],
+            "product_smiles": ["CCOC(=O)C1=C(CO)NC(C)=C(C(=O)OC)C1c2ccccc2Cl", "OCCN"],
+            "referenceEa": 14.8,
+            "doi": "10.1097/00005344-198800127-00003",
+            "journalRef": "J. Cardiovasc. Pharmacol. 1988, 12, S10",
+            "tags": ["MBBS", "Pharm-D", "Cardiology", "CCB", "Amlodipine", "Hypertension", "Calcium Channel"]
+        },
+        {
+            "id": "med-atorvastatin-01",
+            "name": "Atorvastatin HMG-CoA Reductase Pharmacophore Mimicry",
+            "iupacName": "atorvastatin + HMG-CoA reductase → competitive active-site inhibition (Kd ~ 8 nM)",
+            "category": "pharmaceutical",
+            "description": "The hallmark lipid-lowering therapeutic for MBBS cardiology and Pharm-D medicinal chemistry. The 3,5-dihydroxyheptanoic acid sidechain precisely mimics the tetrahedral mevaldyl-CoA intermediate formed during conversion of HMG-CoA to mevalonate by HMG-CoA Reductase. Hepatic sterol depletion upregulates sterol regulatory element-binding protein 2 (SREBP-2), leading to robust LDL receptor expression, rapid clearance of atherogenic ApoB lipoproteins, and atherosclerotic plaque stabilization.",
+            "reactant_smiles": ["CC(C)c1c(C(=O)Nc2ccccc2)c(c3ccc(F)cc3)c(c4ccccc4)n1CCC(O)CC(O)CC(=O)O", "O=O"],
+            "product_smiles": ["CC(C)c1c(C(=O)Nc2ccccc2)c(c3ccc(F)cc3)c(c4ccccc4)n1CCC(=O)CC(O)CC(=O)O", "O"],
+            "referenceEa": 17.5,
+            "doi": "10.1021/jm950796v",
+            "journalRef": "J. Med. Chem. 1996, 39, 284",
+            "tags": ["MBBS", "Pharm-D", "Cardiology", "Statin", "Atorvastatin", "Cholesterol", "Atherosclerosis"]
+        },
+        {
+            "id": "med-nitroglycerin-01",
+            "name": "Nitroglycerin ALDH-2 Denitration & Nitric Oxide (NO) Vasodilation",
+            "iupacName": "glyceryl trinitrate + ALDH-2/thiol → 1,2-glyceryl dinitrate + nitric oxide (NO)",
+            "category": "pharmaceutical",
+            "description": "Acute emergency treatment of angina pectoris and cardiogenic pulmonary edema for MBBS & Pharm-D students. Nitroglycerin (GTN) undergoes bioactivation in venous vascular smooth muscle mitochondria catalyzed by mitochondrial aldehyde dehydrogenase (ALDH-2) via essential cysteine thiols. The generated nitric oxide (NO) stimulates soluble guanylyl cyclase (sGC) to produce cyclic GMP (cGMP), activating protein kinase G (PKG), dephosphorylating myosin light chain, and precipitating venous pooling and marked preload reduction.",
+            "reactant_smiles": ["O=N(=O)OCC(CO[N+](=O)[O-])O[N+](=O)[O-]", "O"],
+            "product_smiles": ["OCC(CO[N+](=O)[O-])O[N+](=O)[O-]", "N(=O)O"],
+            "referenceEa": 13.9,
+            "doi": "10.1073/pnas.122225999",
+            "journalRef": "Proc. Natl. Acad. Sci. U.S.A. 2002, 99, 8306",
+            "tags": ["MBBS", "Pharm-D", "Cardiology", "Nitroglycerin", "Nitric Oxide", "Angina", "Vasodilation"]
+        },
+        {
+            "id": "med-furosemide-01",
+            "name": "Furosemide Loop Diuretic NKCC2 Symporter Inhibition",
+            "iupacName": "4-chloro-2-[(furan-2-ylmethyl)amino]-5-sulfamoylbenzoic acid + NKCC2 → trans-epithelial transport block",
+            "category": "pharmaceutical",
+            "description": "Essential renal physiology and pharmacotherapy for MBBS and Pharm-D students. Furosemide binds reversibly to the chloride-binding pocket of the Na+/K+/2Cl- cotransporter (NKCC2) in the apical membrane of the thick ascending limb of Henle's loop. Abolishes the positive lumen potential, preventing passive paracellular reabsorption of Ca2+ and Mg2+; dissipates the hypertonic medullary gradient, inducing massive natriuresis and diuresis in acute pulmonary edema, congestive heart failure, and refractory ascites.",
+            "reactant_smiles": ["NS(=O)(=O)c1cc(C(=O)O)c(NCc2ccco2)cc1Cl", "O"],
+            "product_smiles": ["NS(=O)(=O)c1cc(C(=O)O)c(N)cc1Cl", "O=Cc1ccco1"],
+            "referenceEa": 16.1,
+            "doi": "10.1007/BF00586940",
+            "journalRef": "Pflügers Arch. 1983, 396, 325",
+            "tags": ["MBBS", "Pharm-D", "Nephrology", "Diuretic", "Furosemide", "NKCC2", "Electrolytes"]
+        },
+        {
+            "id": "med-omeprazole-01",
+            "name": "Omeprazole Acid Canalicular Activation to Tetracyclic Sulfenamide",
+            "iupacName": "omeprazole (prodrug) + 2 H+ → sulfenic acid → tetracyclic sulfenamide (active inhibitor)",
+            "category": "pharmaceutical",
+            "description": "Premier gastrointestinal pharmacology milestone for MBBS & Pharm-D students. Omeprazole is a lipophilic weak base (pKa ~4) that accumulates selectively in the acidic secretocanaliculi (pH <1.3) of gastric parietal cells. Protonation triggers an intramolecular rearrangement forming a permanent tetracyclic sulfenamide that reacts covalently with Cysteine-813 of the H+/K+-ATPase proton pump, permanently extinguishing gastric acid secretion until de novo pump synthesis (24-48 hours).",
+            "reactant_smiles": ["CC1=CN=C(C(=C1OC)C)CS(=O)C2=NC3=C(N2)C=C(C=C3)OC", "CS"],
+            "product_smiles": ["CC1=CN=C(C(=C1OC)C)CSC2=NC3=C(N2)C=C(C=C3)OC", "CSO"],
+            "referenceEa": 15.0,
+            "doi": "10.1038/318070a0",
+            "journalRef": "Nature 1985, 318, 70",
+            "tags": ["MBBS", "Pharm-D", "Gastroenterology", "PPI", "Omeprazole", "Acid Suppression", "Peptic Ulcer"]
+        },
+        {
+            "id": "med-metformin-01",
+            "name": "Metformin Mitochondrial Complex I & AMPK Activation",
+            "iupacName": "1,1-dimethylbiguanide + mitochondrial respiratory complex I → mild uncoupling & AMPK activation",
+            "category": "pharmaceutical",
+            "description": "First-line oral antidiabetic therapy globally in MBBS & Pharm-D endocrinology. Metformin accumulates in mitochondrial matrices due to its positive charge, mildly and reversibly inhibiting Complex I of the respiratory chain. Decreased ATP production and elevated cellular AMP/ATP ratio directly allosterically activate AMP-activated protein kinase (AMPK) and inhibit adenylate cyclase, suppressing hepatic gluconeogenesis (PEPCK and G6Pase downregulation) without causing clinical hypoglycemia or weight gain.",
+            "reactant_smiles": ["CN(C)C(=N)NC(=N)N", "O"],
+            "product_smiles": ["CN(C)C(=O)NC(=N)N", "N"],
+            "referenceEa": 14.7,
+            "doi": "10.1038/nm1434",
+            "journalRef": "Nat. Med. 2006, 12, 841",
+            "tags": ["MBBS", "Pharm-D", "Endocrinology", "Diabetes", "Metformin", "AMPK", "Gluconeogenesis"]
+        },
+        {
+            "id": "med-glimepiride-01",
+            "name": "Glimepiride Pancreatic Beta-Cell K-ATP Channel Closure",
+            "iupacName": "glimepiride + SUR1 receptor subunit → inward rectifier Kir6.2 channel closure → insulin exocytosis",
+            "category": "pharmaceutical",
+            "description": "Second-generation sulfonylurea pharmacology for MBBS & Pharm-D students. Glimepiride binds to the high-affinity 65-kDa SUR1 subunit of ATP-sensitive potassium channels (K-ATP) on pancreatic beta-cell membranes. Channel closure blocks K+ efflux, causing cell membrane depolarization, opening voltage-gated L-type calcium channels, inducing intracellular Ca2+ surge, and precipitating biphasic insulin granule exocytosis independent of ambient glucose concentrations.",
+            "reactant_smiles": ["CCN1C(=O)C(=C(C)C1=O)CCc2ccc(cc2)S(=O)(=O)NC(=O)NC3CCCCC3", "O"],
+            "product_smiles": ["CCN1C(=O)C(=C(C)C1=O)CCc2ccc(cc2)S(=O)(=O)N", "NC(=O)NC3CCCCC3"],
+            "referenceEa": 16.5,
+            "doi": "10.1055/s-2007-979921",
+            "journalRef": "Exp. Clin. Endocrinol. Diabetes 1999, 107, 125",
+            "tags": ["MBBS", "Pharm-D", "Endocrinology", "Sulfonylurea", "Glimepiride", "Insulin", "Diabetes"]
+        },
+        {
+            "id": "med-methotrexate-01",
+            "name": "Methotrexate Dihydrofolate Reductase (DHFR) Inactivation",
+            "iupacName": "methotrexate + DHFR → competitive pseudo-irreversible active site blockade (Ki ~ 1 pM)",
+            "category": "pharmaceutical",
+            "description": "Cornerstone antimetabolite chemotherapy and DMARD immunosuppression in MBBS & Pharm-D curricula. Structural analog of folic acid featuring a 4-amino substitution that binds Dihydrofolate Reductase with 1000-fold higher affinity than natural dihydrofolate. Traps intracellular folates in their inactive oxidized dihydro state, starving cells of N5,N10-methylene-THF and N10-formyl-THF required for thymidylate (dTMP) and purine synthesis, arresting S-phase cell cycle progression. Reversed clinically by folinic acid (Leucovorin rescue).",
+            "reactant_smiles": ["CN(Cc1cnc2nc(N)nc(N)c2n1)c3ccc(C(=O)NC(CCC(=O)O)C(=O)O)cc3", "O"],
+            "product_smiles": ["CN(Cc1cnc2nc(N)nc(O)c2n1)c3ccc(C(=O)NC(CCC(=O)O)C(=O)O)cc3", "N"],
+            "referenceEa": 17.8,
+            "doi": "10.1126/science.197.4302.452",
+            "journalRef": "Science 1977, 197, 452",
+            "tags": ["MBBS", "Pharm-D", "Oncology", "Antimetabolite", "Methotrexate", "DHFR", "Immunosuppressive"]
+        },
+        {
+            "id": "med-5fu-01",
+            "name": "5-Fluorouracil (5-FU) Suicide Inhibition of Thymidylate Synthase",
+            "iupacName": "5-FdUMP + 5,10-CH2-THF + Thymidylate Synthase (Cys195) → covalent ternary complex",
+            "category": "pharmaceutical",
+            "description": "Classic pyrimidine suicide inhibitor in oncology for MBBS and Pharm-D students. 5-Fluorouracil is metabolized intracellularly to 5-fluoro-2'-deoxyuridine-5'-monophosphate (5-FdUMP). 5-FdUMP binds to the catalytic site of Thymidylate Synthase along with 5,10-methylenetetrahydrofolate. Nucleophilic attack by active-site Cysteine-195 forms a covalent ternary adduct; however, the highly electronegative fluorine atom cannot be abstracted as a proton, permanently paralyzing the enzyme and causing 'thymineless cell death'.",
+            "reactant_smiles": ["O=C1NC=C(F)C(=O)N1", "CS"],
+            "product_smiles": ["O=C1NC(SC)C(F)C(=O)N1"],
+            "referenceEa": 14.4,
+            "doi": "10.1016/0006-2952(81)90013-1",
+            "journalRef": "Biochem. Pharmacol. 1981, 30, 2221",
+            "tags": ["MBBS", "Pharm-D", "Oncology", "5-FU", "Thymidylate Synthase", "Suicide Inhibitor", "Chemotherapy"]
+        },
+        {
+            "id": "med-cisplatin-01",
+            "name": "Cisplatin Intracellular Aquation & DNA Crosslinking",
+            "iupacName": "cis-[Pt(NH3)2Cl2] + H2O → cis-[Pt(NH3)2Cl(OH2)]+ + Cl-",
+            "category": "pharmaceutical",
+            "description": "Inorganic medicinal chemistry milestone in oncology for MBBS and Pharm-D students. Neutral cisplatin crosses cell membranes; in low intracellular chloride (~4-20 mM vs ~100 mM extracellular), it undergoes spontaneous aquation to reactive positively charged mono-aqua and diaqua species. These electrophilic species coordinate preferentially to N7 positions of adjacent guanine bases (1,2-intrastrand d(GpG) adducts ~65%), creating a sharp 45-degree bend in the DNA double helix that arrests RNA polymerase II and induces p53-dependent apoptosis.",
+            "reactant_smiles": ["Cl[Pt](Cl)(N)N", "O"],
+            "product_smiles": ["Cl[Pt](O)(N)N", "Cl"],
+            "referenceEa": 18.7,
+            "doi": "10.1038/sj.onc.1206933",
+            "journalRef": "Oncogene 2003, 22, 7265",
+            "tags": ["MBBS", "Pharm-D", "Oncology", "Cisplatin", "DNA Crosslinking", "Platinum", "Apoptosis"]
+        },
+        {
+            "id": "med-morphine-gluc-01",
+            "name": "Morphine Phase II Glucuronidation (UGT2B7 Clearance)",
+            "iupacName": "morphine + UDP-glucuronic acid → morphine-3-glucuronide (M3G) / morphine-6-glucuronide (M6G)",
+            "category": "pharmaceutical",
+            "description": "Crucial pharmacokinetic and analgesic pathway for Pharm-D and MBBS students. Hepatic UDP-glucuronosyltransferase 2B7 (UGT2B7) conjugates glucuronic acid to the phenolic 3-OH group (yielding M3G ~60%, inactive analgesically but neurotoxic) and the 6-OH group (yielding M6G ~10%, an active metabolite with greater mu-opioid receptor potency than parent morphine). In renal failure, M6G accumulates dangerously, precipitating fatal respiratory depression.",
+            "reactant_smiles": ["CN1CC[C@]23c4c5ccc(O)c4O[C@H]2[C@@H](O)C=C[C@H]3[C@H]1C5", "O=C(O)C1OC(O)C(O)C(O)C1O"],
+            "product_smiles": ["CN1CC[C@]23c4c5ccc(OC6OC(C(=O)O)C(O)C(O)C6O)c4O[C@H]2[C@@H](O)C=C[C@H]3[C@H]1C5", "O"],
+            "referenceEa": 15.8,
+            "doi": "10.1124/mol.55.6.1089",
+            "journalRef": "Mol. Pharmacol. 1999, 55, 1089",
+            "tags": ["Pharm-D", "MBBS", "Pharmacokinetics", "Morphine", "Glucuronidation", "UGT2B7", "Opioids"]
+        },
+        {
+            "id": "med-nat2-isoniazid-01",
+            "name": "Isoniazid N-Acetylation by Hepatic NAT2 (Pharmacogenetics)",
+            "iupacName": "isoniazid + acetyl-CoA → N-acetylisoniazid + coenzyme A",
+            "category": "pharmaceutical",
+            "description": "The premier textbook model of clinical pharmacogenetics for MBBS and Pharm-D students. Cytosolic hepatic N-acetyltransferase 2 (NAT2) transfers an acetyl group from acetyl-CoA to the hydrazine nitrogen of isoniazid. Genetic polymorphisms divide populations into 'Fast Acetylators' (half-life ~1 hour, higher risk of hepatotoxicity from acetylhydrazine metabolites) and 'Slow Acetylators' (half-life ~3 hours, higher plasma drug concentrations resulting in pyridoxine deficiency and peripheral neuropathy).",
+            "reactant_smiles": ["NNC(=O)c1ccncc1", "CC(=O)S"],
+            "product_smiles": ["CC(=O)NNC(=O)c1ccncc1", "S"],
+            "referenceEa": 13.7,
+            "doi": "10.1124/pr.54.4.579",
+            "journalRef": "Pharmacol. Rev. 2002, 54, 579",
+            "tags": ["MBBS", "Pharm-D", "Pharmacogenetics", "Isoniazid", "NAT2", "Tuberculosis", "Acetylation"]
+        },
+        {
+            "id": "med-ciprofloxacin-01",
+            "name": "Ciprofloxacin DNA Gyrase & Topoisomerase IV Cleavage",
+            "iupacName": "ciprofloxacin + bacterial DNA gyrase A2B2 + double-stranded DNA → cleaved complex stabilization",
+            "category": "pharmaceutical",
+            "description": "Premier broad-spectrum fluoroquinolone antimicrobial in MBBS & Pharm-D curricula. Ciprofloxacin intercalates into bacterial DNA at the cleavage site created by DNA Gyrase (Gram-negative bacteria) and Topoisomerase IV (Gram-positive bacteria). The 3-carboxylate and 4-keto oxygens coordinate a Mg2+ ion bridged by water to conserved Ser83 and Asp87 residues, freezing the cleaved enzyme-DNA complex, inducing permanent double-strand breaks, and triggering SOS bacterial death.",
+            "reactant_smiles": ["O=C(O)c1cn(C2CC2)c3cc(N4CCNCC4)c(F)cc3c1=O", "O"],
+            "product_smiles": ["O=C(O)c1cn(C2CC2)c3cc(N)c(F)cc3c1=O", "OCCNCCN"],
+            "referenceEa": 16.9,
+            "doi": "10.1038/nature09197",
+            "journalRef": "Nature 2010, 466, 935",
+            "tags": ["Pharm-D", "MBBS", "Antibiotic", "Fluoroquinolone", "Ciprofloxacin", "DNA Gyrase", "Microbiology"]
+        },
+        {
+            "id": "med-azithromycin-01",
+            "name": "Azithromycin 50S Ribosomal Translocation Blockade",
+            "iupacName": "azithromycin (15-membered azalide) + bacterial 23S rRNA → peptide nascent chain elongation arrest",
+            "category": "pharmaceutical",
+            "description": "Aza-macrolide pharmacology for MBBS & Pharm-D students. Azithromycin incorporates a methyl-substituted nitrogen at position 9a of the macrolactone ring, preventing hemiketal formation and conferring acid stability. Binds reversibly to the peptidyl transferase center of 23S rRNA in the bacterial 50S ribosomal subunit, occluding the nascent polypeptide exit tunnel. Exceptionally high intracellular accumulation in lysosomes and tissue phagocytes (tissue half-life ~68 hours).",
+            "reactant_smiles": ["CC1CC(C)C(O)C(C)C(O)C(C)(O)CC(C)N(C)CC(C)C(O)C1=O", "O"],
+            "product_smiles": ["CC1CC(C)C(O)C(C)C(O)C(C)(O)CC(C)N(C)CC(C)C(O)C1=O", "O"],
+            "referenceEa": 18.2,
+            "doi": "10.1016/S0969-2126(02)00778-1",
+            "journalRef": "Structure 2002, 10, 807",
+            "tags": ["Pharm-D", "MBBS", "Antibiotic", "Macrolide", "Azithromycin", "Ribosome", "Pharmacokinetics"]
+        },
+        {
+            "id": "med-ceftriaxone-01",
+            "name": "Ceftriaxone Transpeptidase Acylation (3rd Gen Cephalosporin)",
+            "iupacName": "ceftriaxone beta-lactam core + bacterial PBP-2/PBP-3 → irreversible acyl-enzyme adduct",
+            "category": "pharmaceutical",
+            "description": "Third-generation cephalosporin cornerstone for hospital pharmacy (Pharm-D) and emergency medicine (MBBS). The aminothiazolyl oxime sidechain confers exceptional resistance against Gram-negative beta-lactamases and high affinity for penicillin-binding proteins (PBPs), while the triazine ring confers a long serum half-life (~8 hours) and biliary elimination. Rapidly crosses the blood-brain barrier for bacterial meningitis and empirically treats Neisseria gonorrhoeae and severe sepsis.",
+            "reactant_smiles": ["O=C1N2C(=C(CSC(=O)C)CS[C@@H]21)C(=O)O", "O"],
+            "product_smiles": ["O=C(O)C1=C(CSC(=O)C)CS[C@@H]2N1C(=O)[C@@H]2NC(=O)O"],
+            "referenceEa": 17.6,
+            "doi": "10.1093/jac/45.suppl_3.1",
+            "journalRef": "J. Antimicrob. Chemother. 2000, 45, 1",
+            "tags": ["Pharm-D", "MBBS", "Antibiotic", "Cephalosporin", "Ceftriaxone", "Meningitis", "Microbiology"]
+        },
+        {
+            "id": "med-levodopa-01",
+            "name": "Levodopa (L-DOPA) Decarboxylation to Dopamine by AADC",
+            "iupacName": "(2S)-2-amino-3-(3,4-dihydroxyphenyl)propanoic acid → 4-(2-aminoethyl)benzene-1,2-diol + CO2",
+            "category": "biochemical",
+            "description": "Essential central neurotransmission and movement disorder therapy for MBBS and Pharm-D students. Dopamine itself cannot cross the blood-brain barrier (BBB); its amino acid precursor L-DOPA crosses via the L-type neutral amino acid transporter (LAT1). In the striatum, aromatic L-amino acid decarboxylase (AADC) with pyridoxal phosphate (PLP) cofactor removes the alpha-carboxyl group, replenishing depleted dopamine stores in Parkinson disease. Co-prescribed with peripheral decarboxylase inhibitors (Carbidopa, Benserazide) to prevent systemic cardiovascular side effects.",
+            "reactant_smiles": ["O=C(O)C(N)Cc1ccc(O)c(O)c1"],
+            "product_smiles": ["NCCc1ccc(O)c(O)c1", "O=C=O"],
+            "referenceEa": 15.9,
+            "doi": "10.1016/S0140-6736(67)91544-8",
+            "journalRef": "Lancet 1967, 290, 712",
+            "tags": ["MBBS", "Pharm-D", "Neurology", "Parkinson", "Levodopa", "Dopamine", "Neurochemistry"]
         }
     ]
     return reactions

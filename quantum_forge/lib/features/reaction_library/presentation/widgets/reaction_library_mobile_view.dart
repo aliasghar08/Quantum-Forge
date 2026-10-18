@@ -185,6 +185,7 @@ class ReactionLibraryMobileView extends StatelessWidget {
                 _buildCategoryChip(ReactionCategory.polymer, 'Polymer Chemistry', '🧶', _countFor(ReactionCategory.polymer)),
                 _buildCategoryChip(ReactionCategory.pharmaceutical, 'Pharm-D / Drugs', '💊', _countFor(ReactionCategory.pharmaceutical)),
                 _buildCategoryChip(ReactionCategory.biochemical, 'MBBS / Clinical', '🩺', _countFor(ReactionCategory.biochemical)),
+                _buildCategoryChip(ReactionCategory.veterinary, 'Veterinary / DVM', '🐾', _countFor(ReactionCategory.veterinary)),
                 _buildCategoryChip(ReactionCategory.ionic, 'Organic Synthesis', '🧪', _countFor(ReactionCategory.ionic)),
                 _buildCategoryChip(ReactionCategory.pericyclic, 'Pericyclic', '🔄', _countFor(ReactionCategory.pericyclic)),
                 _buildCategoryChip(ReactionCategory.radical, 'Radical', '⚡', _countFor(ReactionCategory.radical)),

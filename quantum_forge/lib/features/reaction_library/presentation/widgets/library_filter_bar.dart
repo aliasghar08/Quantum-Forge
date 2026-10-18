@@ -58,15 +58,34 @@ class LibraryFilterBar extends StatelessWidget {
   final ProvenanceFilter provenanceFilter;
   final ValueChanged<ProvenanceFilter>? onProvenanceFilterChanged;
 
+  final String? selectedSpecialty;
+  final ValueChanged<String?>? onSpecialtyChanged;
+
   final VoidCallback? onResetFilters;
   final bool hasActiveFilters;
   final int? filteredCount;
   final int? totalCount;
 
+  static const List<({String tag, String label, Color color})> defaultSpecialties = [
+    (tag: 'MBBS', label: '🩺 MBBS', color: Color(0xFF4FC3F7)),
+    (tag: 'Pharm-D', label: '💊 Pharm-D', color: Color(0xFF81C784)),
+    (tag: 'Veterinary', label: '🐾 DVM / Vet Med', color: Color(0xFF00BFA5)),
+    (tag: 'Antiparasitic', label: '🪱 Antiparasitic', color: Color(0xFF26A69A)),
+    (tag: 'Antibiotic', label: '💉 Antibiotic', color: Color(0xFF4DB6AC)),
+    (tag: 'NSAID', label: '🦴 Vet NSAIDs', color: Color(0xFFFF8A65)),
+    (tag: 'Sedative', label: '💤 Sedatives / Alpha-2', color: Color(0xFF9575CD)),
+    (tag: 'Cardiology', label: '❤️ Cardiology', color: Color(0xFFFF5252)),
+    (tag: 'Nephrology', label: '🫘 Nephrology', color: Color(0xFFFFB74D)),
+    (tag: 'Neurology', label: '🧠 Neurology', color: Color(0xFFBA68C8)),
+    (tag: 'Oncology', label: '🎗️ Oncology', color: Color(0xFFFF4081)),
+  ];
+
   const LibraryFilterBar({
     super.key,
     required this.selectedCategory,
     required this.onCategoryChanged,
+    this.selectedSpecialty,
+    this.onSpecialtyChanged,
     this.categoryCounts,
     this.sortOrder = ReactionSortOrder.defaultOrder,
     this.onSortChanged,
@@ -103,6 +122,7 @@ class LibraryFilterBar extends StatelessWidget {
       ReactionCategory.polymer,
       ReactionCategory.pharmaceutical,
       ReactionCategory.biochemical,
+      ReactionCategory.veterinary,
       ReactionCategory.ionic,
       ReactionCategory.pericyclic,
       ReactionCategory.radical,
@@ -118,6 +138,7 @@ class LibraryFilterBar extends StatelessWidget {
       ReactionCategory.polymer: '🧶 Polymer Chemistry',
       ReactionCategory.pharmaceutical: '💊 Pharm-D / Drugs',
       ReactionCategory.biochemical: '🩺 MBBS / Clinical',
+      ReactionCategory.veterinary: '🐾 Veterinary / DVM',
       ReactionCategory.pericyclic: 'Pericyclic',
       ReactionCategory.radical: 'Radical',
       ReactionCategory.organometallic: 'Organometallic',
@@ -227,6 +248,89 @@ class LibraryFilterBar extends StatelessWidget {
               }).toList(),
             ),
           ),
+
+          // ── Specialty & Curriculum Strip (MBBS, Pharm-D, Specialties) ──
+          if (onSpecialtyChanged != null) ...[
+            const SizedBox(height: 10),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              physics: const BouncingScrollPhysics(),
+              child: Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: Text(
+                      'Specialty:',
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.45),
+                        fontSize: isMobile ? 11 : 12,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ),
+                  ...defaultSpecialties.map((spec) {
+                    final isSelected = selectedSpecialty?.toLowerCase() ==
+                        spec.tag.toLowerCase();
+                    return Padding(
+                      padding: EdgeInsets.only(right: isMobile ? 6 : 8),
+                      child: InkWell(
+                        onTap: () {
+                          // Toggle specialty on or off
+                          onSpecialtyChanged!(isSelected ? null : spec.tag);
+                        },
+                        borderRadius: BorderRadius.circular(14),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 180),
+                          padding: EdgeInsets.symmetric(
+                            horizontal: isMobile ? 10 : 12,
+                            vertical: isMobile ? 5 : 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: isSelected
+                                ? spec.color.withValues(alpha: 0.22)
+                                : Colors.white.withValues(alpha: 0.04),
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(
+                              color: isSelected
+                                  ? spec.color
+                                  : Colors.white.withValues(alpha: 0.12),
+                              width: isSelected ? 1.5 : 1.0,
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                spec.label,
+                                style: TextStyle(
+                                  color: isSelected
+                                      ? spec.color
+                                      : Colors.white.withValues(alpha: 0.70),
+                                  fontWeight: isSelected
+                                      ? FontWeight.w700
+                                      : FontWeight.w500,
+                                  fontSize: isMobile ? 11 : 12,
+                                ),
+                              ),
+                              if (isSelected) ...[
+                                const SizedBox(width: 4),
+                                Icon(
+                                  Icons.close_rounded,
+                                  size: 13,
+                                  color: spec.color,
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                      ),
+                    );
+                  }),
+                ],
+              ),
+            ),
+          ],
 
           // ── Proper Filter System Controls Strip ──
           if (onSortChanged != null ||

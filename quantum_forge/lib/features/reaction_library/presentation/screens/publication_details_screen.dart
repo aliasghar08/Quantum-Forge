@@ -80,7 +80,9 @@ class _PublicationDetailsScreenState extends State<PublicationDetailsScreen> {
       });
     } catch (_) {}
 
-    _effectiveDoi = widget.template.doi;
+    _effectiveDoi = widget.template.effectiveLiteratureDoi.isNotEmpty
+        ? widget.template.effectiveLiteratureDoi
+        : widget.template.doi;
     Future.microtask(() {
       _fetchCrossrefData();
       _fetchEnergies();
@@ -408,7 +410,7 @@ class _PublicationDetailsScreenState extends State<PublicationDetailsScreen> {
                     : LockedAnimationPlaceholder(
                         title: '3D Mechanism Animation Locked',
                         subtitle:
-                            'This publication was opened via a link. Sign in with your researcher credentials or activate the 1-Click Demo account to view interactive 3D reaction trajectory playback and step through the transition state.',
+                            'This publication was opened via a link. Sign in with your researcher credentials to view interactive 3D reaction trajectory playback and step through the transition state.',
                         onSignInRequested: _openAuthModal,
                         onSignInSuccess: () {
                           if (mounted) setState(() => _isUserSignedIn = true);
@@ -502,6 +504,100 @@ class _PublicationDetailsScreenState extends State<PublicationDetailsScreen> {
             isLoading: _isLoadingCrossref,
             onShare: _sharePublication,
           ),
+          if (widget.template.defaultCatalystName != null &&
+              widget.template.defaultCatalystName!.isNotEmpty) ...[
+            const SizedBox(height: 20),
+            GlassCard(
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF10B981).withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: const Color(0xFF10B981).withValues(alpha: 0.3)),
+                          ),
+                          child: const Icon(Icons.biotech_rounded, color: Color(0xFF34D399), size: 20),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Literature Catalyst & Reference Barrier',
+                                style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                'Primary benchmark DOI: $_effectiveDoi',
+                                style: const TextStyle(color: Colors.white54, fontSize: 12),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Container(
+                            padding: const EdgeInsets.all(14),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.05),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text('Reported Catalyst', style: TextStyle(color: Colors.white70, fontSize: 12)),
+                                const SizedBox(height: 6),
+                                Text(
+                                  widget.template.defaultCatalystName!,
+                                  style: const TextStyle(color: Color(0xFF34D399), fontSize: 15, fontWeight: FontWeight.bold),
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 1,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Container(
+                            padding: const EdgeInsets.all(14),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.05),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text('Reference Ea', style: TextStyle(color: Colors.white70, fontSize: 12)),
+                                const SizedBox(height: 6),
+                                Text(
+                                  '${widget.template.effectiveLiteratureBarrier.toStringAsFixed(1)} kcal·mol⁻¹',
+                                  style: const TextStyle(color: Colors.amber, fontSize: 15, fontWeight: FontWeight.bold),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
           const SizedBox(height: 20),
           PublicationAbstractCard(
             abstractText: abstractText,

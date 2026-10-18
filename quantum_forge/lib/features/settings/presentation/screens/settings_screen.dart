@@ -1505,7 +1505,7 @@ class _BackendUrlFieldState extends State<_BackendUrlField> {
           ),
           const SizedBox(height: 8),
           DropdownButtonFormField<String>(
-            value: settings.effectiveModelStrategy,
+            initialValue: settings.effectiveModelStrategy,
             decoration: const InputDecoration(
               isDense: true,
               prefixIcon: Icon(Icons.psychology_outlined, size: 18),

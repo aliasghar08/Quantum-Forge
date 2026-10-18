@@ -20,6 +20,7 @@ import 'package:quantum_forge/core/services/firestore_reaction_repository.dart';
 import 'package:quantum_forge/core/services/auth_service.dart';
 import 'package:quantum_forge/core/services/session_state_service.dart';
 import 'package:quantum_forge/core/services/feedback_service.dart';
+import 'package:quantum_forge/core/widgets/floating_copyright_watermark.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -165,16 +166,23 @@ class _QuantumForgeAppState extends State<QuantumForgeApp> {
                 // when the reader has asked for reduced motion *and* is on a
                 // large display, where the extra density hurts more than helps.
                 final media = MediaQuery.of(context);
+                final scaledMedia = settings.isCompactMode
+                    ? media.copyWith(
+                        textScaler: media.textScaler.clamp(
+                          minScaleFactor: 0.85,
+                          maxScaleFactor: 1.15,
+                        ),
+                      )
+                    : media;
+
                 return MediaQuery(
-                  data: settings.isCompactMode
-                      ? media.copyWith(
-                          textScaler: media.textScaler.clamp(
-                            minScaleFactor: 0.85,
-                            maxScaleFactor: 1.15,
-                          ),
-                        )
-                      : media,
-                  child: child ?? const SizedBox.shrink(),
+                  data: scaledMedia,
+                  child: Stack(
+                    children: [
+                      child ?? const SizedBox.shrink(),
+                      const FloatingCopyrightWatermark(),
+                    ],
+                  ),
                 );
               },
               home: const AuthGate(),

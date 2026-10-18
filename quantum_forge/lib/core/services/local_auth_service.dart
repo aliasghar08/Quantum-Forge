@@ -49,6 +49,6 @@ class LocalAuthService implements AuthService {
 
   @override
   Future<void> signInWithGhostAccount() async {
-    AppStorage.setString(_keyUserId, 'ghost-demo-user-id');
+    throw UnsupportedError('Ghost accounts have been disabled.');
   }
 }

@@ -1,3 +1,4 @@
+// ignore_for_file: deprecated_member_use
 // ============================================================================
 // Library Screen — Server-side paginated Firestore browser
 // ============================================================================
@@ -38,6 +39,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
   // ── State ──────────────────────────────────────────────────────────────────
   String _query = '';
   ReactionCategory? _filterCategory;
+  String? _filterSpecialty;
   ReactionSortOrder _sortOrder = ReactionSortOrder.defaultOrder;
   CatalystFilter _catalystFilter = CatalystFilter.all;
   ProvenanceFilter _provenanceFilter = ProvenanceFilter.all;
@@ -339,6 +341,39 @@ class _LibraryScreenState extends State<LibraryScreen> {
       if (derived.isNotEmpty) return derived;
     }
 
+    const veterinaryPrefixes = [
+      ('enrofloxacin_var', 'Enrofloxacin Fluoroquinolone Variant',
+          ReactionCategory.veterinary,
+          ['Veterinary', 'DVM', 'Antibiotic', 'Fluoroquinolone', 'DNA Gyrase', 'Bovine Respiratory Disease', 'Companion Animal']),
+      ('ivermectin_var', 'Ivermectin Macrocyclic Lactone Congener',
+          ReactionCategory.veterinary,
+          ['Veterinary', 'DVM', 'Antiparasitic', 'Anthelmintic', 'Macrocyclic Lactone', 'GluCl Channel', 'Heartworm', 'Livestock']),
+      ('meloxicam_var', 'Meloxicam Enolic Carboxamide Variant',
+          ReactionCategory.veterinary,
+          ['Veterinary', 'DVM', 'NSAID', 'COX-2', 'Analgesic', 'Osteoarthritis', 'Canine', 'Feline', 'Bovine']),
+      ('fenbendazole_var', 'Fenbendazole Carbamate Anthelmintic Derivative',
+          ReactionCategory.veterinary,
+          ['Veterinary', 'DVM', 'Antiparasitic', 'Anthelmintic', 'Benzimidazole', 'Microtubules', 'Equine', 'Livestock']),
+      ('flunixin_var', 'Flunixin Nicotinate Derivative',
+          ReactionCategory.veterinary,
+          ['Veterinary', 'DVM', 'NSAID', 'Equine Colic', 'Endotoxemia', 'Bovine Mastitis', 'Prostaglandin', 'Large Animal']),
+      ('xylazine_var', 'Xylazine Thiazine-Amidine Analogue',
+          ReactionCategory.veterinary,
+          ['Veterinary', 'DVM', 'Anesthetic', 'Alpha-2 Agonist', 'Sedative', 'Equine', 'Ruminants', 'Analgesia']),
+      ('florfenicol_var', 'Florfenicol Fluorinated Phenicol Congener',
+          ReactionCategory.veterinary,
+          ['Veterinary', 'DVM', 'Antibiotic', 'Phenicol', 'Ribosome 50S', 'BRD', 'Bovine', 'Swine']),
+      ('carprofen_var', 'Carprofen Carbazole Propionic Acid Variant',
+          ReactionCategory.veterinary,
+          ['Veterinary', 'DVM', 'NSAID', 'Carbazole', 'Canine', 'Osteoarthritis', 'Analgesic']),
+      ('pimobendan_var', 'Pimobendan Benzimidazole Inodilator Congener',
+          ReactionCategory.veterinary,
+          ['Veterinary', 'DVM', 'Cardiology', 'Inodilator', 'Canine DCM', 'Mitral Valve', 'Phosphodiesterase-3']),
+      ('tylosin_var', 'Tylosin Macrolide 16-Membered Ring Variant',
+          ReactionCategory.veterinary,
+          ['Veterinary', 'DVM', 'Antibiotic', 'Macrolide', 'Swine', 'Poultry', 'Bovine', 'Canine Colitis']),
+    ];
+
     const medicalPrefixes = [
       ('aspirin_var', 'Aspirin Salicylate Derivative Esterification',
           ReactionCategory.pharmaceutical,
@@ -378,6 +413,8 @@ class _LibraryScreenState extends State<LibraryScreen> {
           ['Pharm-D', 'Antibiotic', 'Gyrase', 'Topoisomerase']),
     ];
 
+    final targetPrefixes = mode == 'veterinary' ? veterinaryPrefixes : medicalPrefixes;
+
     const substituents = [
       'Fluoro', 'Chloro', 'Bromo', 'Hydroxy', 'Amino', 'Methyl',
       'Trifluoromethyl', 'Cyano', 'Methoxy', 'Nitro', 'Ethyl',
@@ -388,13 +425,13 @@ class _LibraryScreenState extends State<LibraryScreen> {
     final results = <ReactionTemplate>[];
 
     for (var i = 0; i < count; i++) {
-      final groupIdx = (i + now) % medicalPrefixes.length;
+      final groupIdx = (i + now) % targetPrefixes.length;
       final subIdx =
-          ((i + now) ~/ medicalPrefixes.length) % substituents.length;
+          ((i + now) ~/ targetPrefixes.length) % substituents.length;
       final position =
-          ((i + now) ~/ (medicalPrefixes.length * substituents.length)) % 10 + 1;
+          ((i + now) ~/ (targetPrefixes.length * substituents.length)) % 10 + 1;
 
-      final group = medicalPrefixes[groupIdx];
+      final group = targetPrefixes[groupIdx];
       final sub = substituents[subIdx];
       final prefix = group.$1;
       final baseName = group.$2;
@@ -427,7 +464,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
           name: rxnName,
           iupacName: 'Substituted $baseName ($sub)',
           description:
-              'Combinatorial pharmacological variant of $baseName with $sub substitution at position $position. Generated for MBBS and Pharm-D curriculum exploration.',
+              'Combinatorial pharmacological variant of $baseName with $sub substitution at position $position. Generated for ${mode == "veterinary" ? "DVM & Veterinary Pharmacology" : "MBBS & Pharm-D"} curriculum exploration.',
           category: cat,
           reactantXyz: rXyz,
           productXyz: pXyz,
@@ -445,9 +482,10 @@ class _LibraryScreenState extends State<LibraryScreen> {
   }
 
   void _showAutoGenerateDialog() {
-    int selectedCount = 25;
-    String mode = 'medical';
+    int selectedCount = 100;
+    String mode = 'veterinary';
     bool isGenerating = false;
+    final customCountController = TextEditingController(text: '100');
 
     showDialog(
       context: context,
@@ -458,11 +496,11 @@ class _LibraryScreenState extends State<LibraryScreen> {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
             side: BorderSide(
-                color: const Color(0xFF7C4DFF).withValues(alpha: 0.5)),
+                color: const Color(0xFF00BFA5).withValues(alpha: 0.5)),
           ),
           title: const Row(
             children: [
-              Icon(Icons.auto_awesome_rounded, color: Color(0xFFB388FF)),
+              Icon(Icons.auto_awesome_rounded, color: Color(0xFF00BFA5)),
               SizedBox(width: 10),
               Text(
                 'Auto-Generate Reactions',
@@ -474,123 +512,194 @@ class _LibraryScreenState extends State<LibraryScreen> {
             ],
           ),
           content: SizedBox(
-            width: 480,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Automatically generate and populate new physical & clinical reaction variants with 3D Cartesian coordinates and activation energies directly into the cloud library.',
-                  style: TextStyle(
-                      color: Colors.white70, fontSize: 13, height: 1.4),
-                ),
-                const SizedBox(height: 20),
-                const Text(
-                  'Generation Mode',
-                  style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600),
-                ),
-                const SizedBox(height: 8),
-                Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.white24),
+            width: 520,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Manually select category, subcategories, and batch volume to synthesize and populate new physical & clinical reaction variants directly into the Cloud Library.',
+                    style: TextStyle(
+                        color: Colors.white70, fontSize: 13, height: 1.4),
                   ),
-                  child: Column(
+                  const SizedBox(height: 18),
+                  const Text(
+                    'Target Category & Domain',
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: 8),
+                  Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.white24),
+                    ),
+                    child: Column(
+                      children: [
+                        ListTile(
+                          leading: Radio<String>(
+                            value: 'veterinary',
+                            groupValue: mode,
+                            activeColor: const Color(0xFF00BFA5),
+                            onChanged: isGenerating
+                                ? null
+                                : (v) => setDlgState(() => mode = v!),
+                          ),
+                          title: const Text(
+                              '🐾 Veterinary / DVM Medicines',
+                              style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600)),
+                          subtitle: const Text(
+                              'Enrofloxacin, Ivermectin, Meloxicam, Fenbendazole, Flunixin, Xylazine & Florfenicol series',
+                              style: TextStyle(
+                                  color: Colors.white54, fontSize: 11.5)),
+                          onTap: isGenerating
+                              ? null
+                              : () => setDlgState(() => mode = 'veterinary'),
+                        ),
+                        const Divider(height: 1, color: Colors.white12),
+                        ListTile(
+                          leading: Radio<String>(
+                            value: 'medical',
+                            groupValue: mode,
+                            activeColor: const Color(0xFF00BFA5),
+                            onChanged: isGenerating
+                                ? null
+                                : (v) => setDlgState(() => mode = v!),
+                          ),
+                          title: const Text(
+                              '🩺 MBBS & Pharm-D Drug Variants',
+                              style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600)),
+                          subtitle: const Text(
+                              'Aspirin, Paracetamol, Beta-lactam, Catecholamine, Statin & ACE-inhibitor series',
+                              style: TextStyle(
+                                  color: Colors.white54, fontSize: 11.5)),
+                          onTap: isGenerating
+                              ? null
+                              : () => setDlgState(() => mode = 'medical'),
+                        ),
+                        const Divider(height: 1, color: Colors.white12),
+                        ListTile(
+                          leading: Radio<String>(
+                            value: 'chemical',
+                            groupValue: mode,
+                            activeColor: const Color(0xFF00BFA5),
+                            onChanged: isGenerating
+                                ? null
+                                : (v) => setDlgState(() => mode = v!),
+                          ),
+                          title: const Text(
+                              '⚗️ Systematic Chemical Benchmarks',
+                              style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600)),
+                          subtitle: const Text(
+                              'Spectator hydrogen substitution (F, Cl, Br, OH, NH₂, CH₃, CF₃, CN) on all benchmark reactions',
+                              style: TextStyle(
+                                  color: Colors.white54, fontSize: 11.5)),
+                          onTap: isGenerating
+                              ? null
+                              : () => setDlgState(() => mode = 'chemical'),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Quantity to Generate',
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [25, 100, 250, 500, 1000, 5000].map((c) {
+                      final isSel = selectedCount == c;
+                      return ChoiceChip(
+                        label: Text('$c reactions'),
+                        selected: isSel,
+                        selectedColor: const Color(0xFF00BFA5),
+                        backgroundColor: const Color(0xFF21262D),
+                        labelStyle: TextStyle(
+                          color: isSel ? Colors.black87 : Colors.white70,
+                          fontWeight:
+                              isSel ? FontWeight.bold : FontWeight.normal,
+                        ),
+                        onSelected: isGenerating
+                            ? null
+                            : (_) {
+                                setDlgState(() {
+                                  selectedCount = c;
+                                  customCountController.text = '$c';
+                                });
+                              },
+                      );
+                    }).toList(),
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
                     children: [
-                      ListTile(
-                        leading: Radio<String>(
-                          value: 'medical',
-                          groupValue: mode,
-                          activeColor: const Color(0xFFB388FF),
-                          onChanged: isGenerating
-                              ? null
-                              : (v) => setDlgState(() => mode = v!),
-                        ),
-                        title: const Text(
-                            '🩺 MBBS & Pharm-D Drug Variants',
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600)),
-                        subtitle: const Text(
-                            'Substituted aspirin, paracetamol, beta-lactam, catecholamine & ACE-inhibitor series',
-                            style: TextStyle(
-                                color: Colors.white54, fontSize: 11.5)),
-                        onTap: isGenerating
-                            ? null
-                            : () => setDlgState(() => mode = 'medical'),
+                      const Text(
+                        'Or custom count:',
+                        style: TextStyle(color: Colors.white70, fontSize: 12),
                       ),
-                      const Divider(height: 1, color: Colors.white12),
-                      ListTile(
-                        leading: Radio<String>(
-                          value: 'chemical',
-                          groupValue: mode,
-                          activeColor: const Color(0xFFB388FF),
-                          onChanged: isGenerating
-                              ? null
-                              : (v) => setDlgState(() => mode = v!),
+                      const SizedBox(width: 12),
+                      SizedBox(
+                        width: 120,
+                        height: 36,
+                        child: TextField(
+                          controller: customCountController,
+                          keyboardType: TextInputType.number,
+                          enabled: !isGenerating,
+                          style: const TextStyle(color: Colors.white, fontSize: 13),
+                          decoration: InputDecoration(
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                            filled: true,
+                            fillColor: const Color(0xFF21262D),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: const BorderSide(color: Colors.white24),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: const BorderSide(color: Color(0xFF00BFA5)),
+                            ),
+                          ),
+                          onChanged: (val) {
+                            final parsed = int.tryParse(val.trim());
+                            if (parsed != null && parsed > 0) {
+                              setDlgState(() => selectedCount = parsed);
+                            }
+                          },
                         ),
-                        title: const Text(
-                            '⚗️ Systematic Organic Benchmarks',
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600)),
-                        subtitle: const Text(
-                            'Spectator hydrogen substitution (F, Cl, Br, OH, NH₂, CH₃, CF₃, CN) on curated reactions',
-                            style: TextStyle(
-                                color: Colors.white54, fontSize: 11.5)),
-                        onTap: isGenerating
-                            ? null
-                            : () => setDlgState(() => mode = 'chemical'),
                       ),
                     ],
                   ),
-                ),
-                const SizedBox(height: 16),
-                const Text(
-                  'Batch Size to Generate',
-                  style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600),
-                ),
-                const SizedBox(height: 8),
-                Wrap(
-                  spacing: 8,
-                  children: [10, 25, 50, 100].map((c) {
-                    final isSel = selectedCount == c;
-                    return ChoiceChip(
-                      label: Text('$c reactions'),
-                      selected: isSel,
-                      selectedColor: const Color(0xFF7C4DFF),
-                      backgroundColor: const Color(0xFF21262D),
-                      labelStyle: TextStyle(
-                        color: isSel ? Colors.white : Colors.white70,
-                        fontWeight:
-                            isSel ? FontWeight.bold : FontWeight.normal,
+                  if (isGenerating) ...[
+                    const SizedBox(height: 20),
+                    const LinearProgressIndicator(color: Color(0xFF00BFA5)),
+                    const SizedBox(height: 8),
+                    Center(
+                      child: Text(
+                        'Synthesizing $selectedCount 3D reactions and committing to Cloud Library…',
+                        style: const TextStyle(color: Colors.white54, fontSize: 12),
                       ),
-                      onSelected: isGenerating
-                          ? null
-                          : (_) => setDlgState(() => selectedCount = c),
-                    );
-                  }).toList(),
-                ),
-                if (isGenerating) ...[
-                  const SizedBox(height: 20),
-                  const LinearProgressIndicator(color: Color(0xFF7C4DFF)),
-                  const SizedBox(height: 8),
-                  const Center(
-                    child: Text(
-                      'Generating 3D coordinates and committing batch to cloud library…',
-                      style: TextStyle(color: Colors.white54, fontSize: 12),
                     ),
-                  ),
+                  ],
                 ],
-              ],
+              ),
             ),
           ),
           actions: [
@@ -600,6 +709,12 @@ class _LibraryScreenState extends State<LibraryScreen> {
                   style: TextStyle(color: Colors.white60)),
             ),
             FilledButton.icon(
+              icon: const Icon(Icons.cloud_upload_rounded, size: 16),
+              label: Text('Generate & Seed ($selectedCount)'),
+              style: FilledButton.styleFrom(
+                backgroundColor: const Color(0xFF00BFA5),
+                foregroundColor: Colors.black87,
+              ),
               onPressed: isGenerating
                   ? null
                   : () async {
@@ -622,20 +737,14 @@ class _LibraryScreenState extends State<LibraryScreen> {
                         SnackBar(
                           content: Text(
                             seededCount > 0
-                                ? 'Successfully generated and added $seededCount reactions to the Cloud Library!'
+                                ? 'Successfully synthesized and added $seededCount reactions to the Cloud Library!'
                                 : 'Generated ${newVariants.length} reactions in local memory!',
                           ),
-                          backgroundColor: const Color(0xFF00E676),
+                          backgroundColor: const Color(0xFF00BFA5),
                           duration: const Duration(seconds: 3),
                         ),
                       );
                     },
-              icon: const Icon(Icons.bolt, size: 16),
-              label: const Text('Generate & Add to Library'),
-              style: FilledButton.styleFrom(
-                backgroundColor: const Color(0xFF7C4DFF),
-                foregroundColor: Colors.white,
-              ),
             ),
           ],
         ),
@@ -929,6 +1038,13 @@ class _LibraryScreenState extends State<LibraryScreen> {
       list = list.where((t) => t.category == _filterCategory).toList();
     }
 
+    if (_filterSpecialty != null) {
+      final spec = _filterSpecialty!.toLowerCase();
+      list = list
+          .where((t) => t.tags.any((tag) => tag.toLowerCase() == spec))
+          .toList();
+    }
+
     if (_catalystFilter == CatalystFilter.catalyzed) {
       list = list
           .where((t) =>
@@ -979,6 +1095,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
 
   bool get _hasActiveFilters =>
       _filterCategory != null ||
+      _filterSpecialty != null ||
       _sortOrder != ReactionSortOrder.defaultOrder ||
       _catalystFilter != CatalystFilter.all ||
       _provenanceFilter != ProvenanceFilter.all;
@@ -986,6 +1103,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
   void _resetFilters() {
     setState(() {
       _filterCategory = null;
+      _filterSpecialty = null;
       _sortOrder = ReactionSortOrder.defaultOrder;
       _catalystFilter = CatalystFilter.all;
       _provenanceFilter = ProvenanceFilter.all;
@@ -1039,6 +1157,8 @@ class _LibraryScreenState extends State<LibraryScreen> {
           LibraryFilterBar(
             selectedCategory: _filterCategory,
             onCategoryChanged: _onCategoryChanged,
+            selectedSpecialty: _filterSpecialty,
+            onSpecialtyChanged: (s) => setState(() => _filterSpecialty = s),
             categoryCounts: _cloudCategoryCounts,
             sortOrder: _sortOrder,
             onSortChanged: (s) => setState(() => _sortOrder = s),
