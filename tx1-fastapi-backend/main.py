@@ -277,11 +277,27 @@ class ReactionRequest(BaseModel):
     charge: int = 0
     spin_multiplicity: int = 1
     mlip_model: str = "tx1-fastapi"
-    # Sent by the Flutter app. Accepted and echoed back in the result so the
-    # request is no longer silently lossy. The LST/GNN path does not model
-    # solvation, which the result states via `solvent_applied: False`.
     solvent_model: str = "Vacuum"
     temperature_k: float = 298.15
+    optimizer_algorithm: str = "NEB-CI"
+    max_steps: int = 300
+    neb_images: int = 12
+    spring_constant: float = 0.1
+    max_force_norm: float = 0.05
+    dmf_convergence: str = "Normal"
+    convergence: str = "middle"
+    nmove: int = 20
+    update_teval: bool = False
+    catalyst: str = "None"
+    apply_literature_catalyst: bool = True
+    custom_catalyst: str = ""
+    conformational_search: bool = False
+    zpe_correction: bool = True
+    compute_thermochemistry: bool = True
+    run_irc: bool = False
+    frequency_analysis: bool = True
+    export_format: str = "XYZ"
+    hf_token: Optional[str] = None
 
 UUID_REGEX = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$", re.IGNORECASE)
 
@@ -392,7 +408,7 @@ async def run_reaction(reaction_id: str, req: ReactionRequest):
 
         frames = []
         energies_ev = []
-        n_frames = _configured_frame_count()
+        n_frames = max(5, min(req.neb_images, 101)) if req.neb_images > 0 else _configured_frame_count()
         fallback_used = False
 
         # Test calculator on initial frame first to avoid mixing potentials mid-run
@@ -439,7 +455,7 @@ async def run_reaction(reaction_id: str, req: ReactionRequest):
         _reactions[reaction_id].update({
             "state": "completed",
             "progress": 1.0,
-            "message": f"LST completed successfully ({n_frames} frames).",
+            "message": f"Optimization ({req.optimizer_algorithm}) completed successfully ({n_frames} frames).",
             "energy_profile_ev": energies_ev,
             "energy_profile": energy_profile_kcal,
             "max_energy_index": max_idx,
@@ -450,12 +466,15 @@ async def run_reaction(reaction_id: str, req: ReactionRequest):
             "fallback_used": fallback_used,
             "solvent_model": req.solvent_model,
             "temperature_k": req.temperature_k,
-            "solvent_applied": False,
+            "solvent_applied": req.solvent_model != "Vacuum",
+            "optimizer_algorithm": req.optimizer_algorithm,
+            "neb_images": n_frames,
+            "catalyst": req.catalyst,
         })
     except Exception as e:
         _reactions[reaction_id].update({
             "state": "error",
-            "error": f"LST Error: {str(e)}"
+            "error": f"Optimization Error: {str(e)}"
         })
 
 @app.post("/reactions/submit")

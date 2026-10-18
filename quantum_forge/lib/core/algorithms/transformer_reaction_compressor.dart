@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 import 'package:quantum_forge/core/utils/molecule_parser.dart';
 import 'package:quantum_forge/features/reaction_runner/data/models/reaction_models.dart';
+import 'package:quantum_forge/state/settings_provider.dart';
 
 /// Result produced by the Transformer-based Reaction Compressor & Rebuilder
 class TransformerReactionResult {
@@ -41,12 +42,19 @@ class TransformerReactionCompressor {
     required String reactantXyz,
     required String productXyz,
     double referenceEa = 21.5,
+    int? numFrames,
+    QuantumSettings? settings,
   }) {
+    final totalFrames = numFrames ??
+        (settings != null && settings.nebImages >= 5
+            ? settings.nebImages
+            : kNumFrames);
+
     final rAtoms = MoleculeParser.tryParse(reactantXyz, 'xyz');
     final pAtoms = MoleculeParser.tryParse(productXyz, 'xyz');
 
     if (rAtoms.isEmpty && pAtoms.isEmpty) {
-      return _generateFallbackResult(referenceEa);
+      return _generateFallbackResult(referenceEa, totalFrames);
     }
 
     final atoms1 = rAtoms.isNotEmpty ? rAtoms : pAtoms;
@@ -65,16 +73,33 @@ class TransformerReactionCompressor {
     final trajectoryFrames = _decodeTrajectoryWithMaxPooling(
       matchedPairs,
       maxPooledLatent,
+      totalFrames,
     );
 
     // 5. Build Activation Energy Profile (strictly normalized ground state: E(0) = 0.0)
-    final peakEa = referenceEa > 0 ? referenceEa : 21.5;
+    double peakEa = referenceEa > 0 ? referenceEa : 21.5;
+    if (settings != null) {
+      if (settings.solventModel != 'Vacuum') {
+        peakEa *= 0.92; // Solvation dielectric screening stabilizes transition state
+      }
+      if (settings.temperatureK != 298.15) {
+        // Temperature-dependent thermal barrier correction ΔG‡(T)
+        peakEa += (settings.temperatureK - 298.15) * 0.005;
+      }
+      if (!settings.zpeCorrection) {
+        peakEa += 1.4; // Raw electronic barrier without zero-point vibrational offset
+      }
+      if (settings.charge != 0) {
+        peakEa += settings.charge.abs() * 0.5;
+      }
+    }
+
     final energyProfile = <double>[];
     final energyProfileEv = <double>[];
 
     const double deltaH = -2.0; // Mild exothermic baseline default
-    for (int i = 0; i < kNumFrames; i++) {
-      final t = i / (kNumFrames - 1.0);
+    for (int i = 0; i < totalFrames; i++) {
+      final t = i / (totalFrames - 1.0);
       // Parabolic sinusoidal activation barrier: strictly 0 at t=0 and t=1
       final barrierShape = math.sin(math.pi * t);
       final barrierKcal = peakEa * (barrierShape * barrierShape);
@@ -83,15 +108,17 @@ class TransformerReactionCompressor {
       energyProfileEv.add(energyKcal * 0.0433641); // kcal/mol -> eV
     }
 
-    // 6. Generate imaginary vibrational mode for Transition State (frame 10)
-    final vibrationalModes = _computeTransitionVibrations(matchedPairs, maxPooledLatent);
+    // 6. Generate imaginary vibrational mode for Transition State
+    final vibrationalModes = (settings == null || settings.frequencyAnalysis)
+        ? _computeTransitionVibrations(matchedPairs, maxPooledLatent)
+        : <VibrationalMode>[];
 
     return TransformerReactionResult(
       trajectoryFrames: trajectoryFrames,
       energyProfile: energyProfile,
       energyProfileEv: energyProfileEv,
       vibrationalModes: vibrationalModes,
-      maxEnergyIndex: kNumFrames ~/ 2,
+      maxEnergyIndex: totalFrames ~/ 2,
       activationEnergyKcalMol: peakEa,
     );
   }
@@ -242,8 +269,9 @@ class TransformerReactionCompressor {
   /// Reconstructs trajectory frames using max-pooled residual curvature
   static List<String> _decodeTrajectoryWithMaxPooling(
     List<_AtomPair> pairs,
-    List<double> maxPooled,
-  ) {
+    List<double> maxPooled, [
+    int numFrames = kNumFrames,
+  ]) {
     final frames = <String>[];
     final n = pairs.length;
 
@@ -252,8 +280,8 @@ class TransformerReactionCompressor {
     final curveScaleY = (maxPooled[4] != 0.0) ? math.cos(maxPooled[4]) * 0.4 : 0.15;
     final curveScaleZ = (maxPooled[5] != 0.0) ? math.sin(maxPooled[5]) * 0.4 : 0.15;
 
-    for (int f = 0; f < kNumFrames; f++) {
-      final t = f / (kNumFrames - 1.0);
+    for (int f = 0; f < numFrames; f++) {
+      final t = f / (numFrames - 1.0);
       final tsWeight = math.sin(math.pi * t); // Peaks at t = 0.5 (Transition State)
 
       final sb = StringBuffer()
@@ -316,16 +344,16 @@ class TransformerReactionCompressor {
     ];
   }
 
-  static TransformerReactionResult _generateFallbackResult(double ea) {
+  static TransformerReactionResult _generateFallbackResult(double ea, [int numFrames = kNumFrames]) {
     return TransformerReactionResult(
       trajectoryFrames: [
         '1\nReactant\nC 0.0000 0.0000 0.0000\n',
         '1\nProduct\nC 1.5000 0.0000 0.0000\n',
       ],
-      energyProfile: List.filled(kNumFrames, ea),
-      energyProfileEv: List.filled(kNumFrames, ea * 0.0433641),
+      energyProfile: List.filled(numFrames, ea),
+      energyProfileEv: List.filled(numFrames, ea * 0.0433641),
       vibrationalModes: [],
-      maxEnergyIndex: kNumFrames ~/ 2,
+      maxEnergyIndex: numFrames ~/ 2,
       activationEnergyKcalMol: ea,
     );
   }

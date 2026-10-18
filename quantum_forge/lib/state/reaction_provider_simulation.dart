@@ -8,6 +8,7 @@ extension ReactionProviderSimulationExt on ReactionNotifier {
     String reactantXyz,
     String productXyz, [
     double? referenceEa,
+    QuantumSettings? settings,
   ]) async {
     // 1. Pending -> Optimizing
     await Future.delayed(const Duration(milliseconds: 400));
@@ -33,6 +34,7 @@ extension ReactionProviderSimulationExt on ReactionNotifier {
       reactantXyz: reactantXyz,
       productXyz: productXyz,
       referenceEa: referenceEa ?? 21.5,
+      settings: settings,
     );
 
     await Future.delayed(const Duration(milliseconds: 500));

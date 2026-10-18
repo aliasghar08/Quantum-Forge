@@ -74,7 +74,7 @@ extension ReactionProviderDispatchExt on ReactionNotifier {
       _listenToReactionUpdates(reactionId);
       
       // Simulate backend processing
-      _simulateReactionProcessing(reactionId, reactantXyz, productXyz);
+      _simulateReactionProcessing(reactionId, reactantXyz, productXyz, 21.5, settings);
     } catch (e) {
       _setError('Failed to dispatch reaction: $e');
     }
@@ -155,8 +155,13 @@ extension ReactionProviderDispatchExt on ReactionNotifier {
 
       _listenToReactionUpdates(reactionId);
       
+      // Effective barrier reflects active literature catalyst toggle
+      final effectiveEa = (settings.applyLiteratureCatalyst && template.literatureBarrierKcalMol != null)
+          ? template.literatureBarrierKcalMol!
+          : template.referenceEa;
+
       // Simulate backend processing
-      _simulateReactionProcessing(reactionId, template.reactantXyz, template.productXyz, template.referenceEa);
+      _simulateReactionProcessing(reactionId, template.reactantXyz, template.productXyz, effectiveEa, settings);
     } catch (e) {
       _setError('Failed to dispatch template reaction: $e');
     }

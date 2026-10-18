@@ -135,11 +135,24 @@ class BackendComputeService {
       'update_teval': settings.updateTeval,
       'convergence': _convergence(settings),
       'mlip_model': settings.mlipModel,
-      // Solvent and temperature were selectable in the UI but never sent, so
-      // every run silently ignored them.
       'solvent_model': settings.solventModel,
       'temperature_k': settings.temperatureK,
       'hf_token': settings.hfToken.isEmpty ? null : settings.hfToken,
+      'optimizer_algorithm': settings.optimizerAlgorithm,
+      'max_steps': settings.maxSteps,
+      'neb_images': settings.nebImages,
+      'spring_constant': settings.springConstant,
+      'max_force_norm': settings.maxForceNorm,
+      'dmf_convergence': settings.dmfConvergence,
+      'catalyst': settings.catalyst,
+      'apply_literature_catalyst': settings.applyLiteratureCatalyst,
+      'custom_catalyst': settings.customCatalyst,
+      'conformational_search': settings.conformationalSearch,
+      'zpe_correction': settings.zpeCorrection,
+      'compute_thermochemistry': settings.computeThermochemistry,
+      'run_irc': settings.runIrc,
+      'frequency_analysis': settings.frequencyAnalysis,
+      'export_format': settings.exportFormat,
     };
   }
 
