@@ -15,7 +15,7 @@ class ReactionWorkspaceMobileView extends StatelessWidget {
   Widget build(BuildContext context) {
     final vm = context.watch<ReactionWorkspaceViewModel>();
 
-    final dashboardVm = Provider.of<DashboardViewModel?>(context, listen: false);
+    final dashboardVm = Provider.of<DashboardViewModel?>(context);
 
     return Scaffold(
       backgroundColor: const Color(0xFF0D1117),
@@ -38,7 +38,15 @@ class ReactionWorkspaceMobileView extends StatelessWidget {
         selectedItemColor: Colors.cyanAccent,
         unselectedItemColor: Colors.grey,
         type: BottomNavigationBarType.fixed,
-        currentIndex: 1, // 'Reaction' tab
+        currentIndex: dashboardVm != null
+            ? switch (dashboardVm.navDest) {
+                NavDestination.library => 0,
+                NavDestination.newReaction => 1,
+                NavDestination.editor => 2,
+                NavDestination.history => 3,
+                _ => 1,
+              }
+            : 1,
         onTap: (index) {
           if (dashboardVm != null) {
             final dest = switch (index) {

@@ -569,9 +569,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final palette = context.watch<ThemeNotifier>().palette;
     final settings = context.watch<AppSettingsNotifier>().settings;
 
-    return ListenableBuilder(
-      listenable: _viewModel,
-      builder: (context, _) {
+    return ChangeNotifierProvider<DashboardViewModel>.value(
+      value: _viewModel,
+      child: ListenableBuilder(
+        listenable: _viewModel,
+        builder: (context, _) {
         final isMobile = MediaQuery.of(context).size.width < 650;
         return Scaffold(
           backgroundColor: palette.scaffold,
@@ -768,8 +770,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
         );
       },
-    );
-  }
+    ),
+  );
+}
 
   /// Shown when a structure arrived by deep link but was not auto-loaded.
   Widget _buildImportBanner(QuantumTheme palette) {

@@ -61,6 +61,9 @@ class AvogadroBridge {
   static void openUrl(String url) {}
 
   static bool stripImportParams(Uri current) => false;
+
+  /// Synchronizes the current page route/hash into the browser address bar without reloading.
+  static void syncNavRoute(String routeName) {}
 }
 
 String safeFilename(String title, String extension) {

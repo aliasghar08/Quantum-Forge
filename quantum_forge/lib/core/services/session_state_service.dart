@@ -25,8 +25,8 @@ class SessionStateService {
     }
   }
 
-  /// The last persisted session, or null when there is none.
-  Future<Map<String, dynamic>?> loadDashboardState() async {
+  /// Synchronously loads the last persisted session, or null when there is none.
+  Map<String, dynamic>? loadDashboardStateSync() {
     try {
       final jsonStr = AppStorage.getString(_kSessionKey);
       if (jsonStr != null && jsonStr.isNotEmpty) {
@@ -37,8 +37,13 @@ class SessionStateService {
         debugPrint('Session state had an unexpected shape; ignoring it.');
       }
     } catch (e) {
-      debugPrint('Failed to load session state: $e');
+      debugPrint('Failed to load synchronous session state: $e');
     }
     return null;
+  }
+
+  /// The last persisted session, or null when there is none.
+  Future<Map<String, dynamic>?> loadDashboardState() async {
+    return loadDashboardStateSync();
   }
 }

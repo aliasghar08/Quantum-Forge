@@ -4,6 +4,7 @@ import 'package:quantum_forge/features/reaction_library/data/reaction_template_g
 import 'package:quantum_forge/features/reaction_library/data/reaction_templates.dart';
 import 'package:quantum_forge/core/services/file_picker_service.dart';
 import 'package:quantum_forge/core/utils/avogadro_codec.dart';
+import 'package:quantum_forge/core/utils/avogadro_bridge.dart';
 import 'package:quantum_forge/features/reaction_runner/presentation/widgets/dashboard_cards/left_nav_rail.dart';
 import 'dart:convert';
 import 'dart:typed_data';
@@ -42,7 +43,65 @@ class MoleculeEntry {
 class DashboardViewModel extends ChangeNotifier {
   final SessionStateService sessionService;
 
-  DashboardViewModel({required this.sessionService});
+  DashboardViewModel({required this.sessionService}) {
+    _restoreSynchronousState();
+  }
+
+  void _restoreSynchronousState() {
+    // 1. Check if the URL fragment explicitly specifies a tab (e.g. #library, #editor, #history)
+    final fragment = Uri.base.fragment.toLowerCase().replaceAll('/', '').replaceAll('#', '');
+    if (fragment.isNotEmpty) {
+      final destFromFragment = _destinationFromRoute(fragment);
+      if (destFromFragment != null) {
+        _navDest = destFromFragment;
+        final state = sessionService.loadDashboardStateSync();
+        if (state != null && state['controlsPanelOpen'] is bool) {
+          _controlsPanelOpen = state['controlsPanelOpen'] as bool;
+        }
+        return;
+      }
+    }
+
+    // 2. Otherwise restore from persistent AppStorage session state
+    final state = sessionService.loadDashboardStateSync();
+    if (state != null) {
+      _applyNavAndPanelState(state);
+    }
+  }
+
+  static NavDestination? _destinationFromRoute(String route) {
+    switch (route) {
+      case 'library':
+        return NavDestination.library;
+      case 'editor':
+        return NavDestination.editor;
+      case 'history':
+        return NavDestination.history;
+      case 'validation':
+      case 'methodvalidation':
+        return NavDestination.methodValidation;
+      case 'reaction':
+      case 'newreaction':
+        return NavDestination.newReaction;
+      default:
+        return null;
+    }
+  }
+
+  void _applyNavAndPanelState(Map<String, dynamic> state) {
+    if (state['navDest'] != null) {
+      final destName = state['navDest'] as String;
+      for (final d in NavDestination.values) {
+        if (d.name == destName) {
+          _navDest = d;
+          break;
+        }
+      }
+    }
+    if (state['controlsPanelOpen'] is bool) {
+      _controlsPanelOpen = state['controlsPanelOpen'] as bool;
+    }
+  }
 
   NavDestination _navDest = NavDestination.newReaction;
   NavDestination get navDest => _navDest;
@@ -89,6 +148,7 @@ class DashboardViewModel extends ChangeNotifier {
     _pendingStructure = structure;
     _structureRevision++;
     _navDest = NavDestination.editor;
+    AvogadroBridge.syncNavRoute(NavDestination.editor.name);
     notifyListeners();
   }
 
@@ -108,7 +168,9 @@ class DashboardViewModel extends ChangeNotifier {
   }
 
   void setNavDestination(NavDestination dest) {
+    if (_navDest == dest) return;
     _navDest = dest;
+    AvogadroBridge.syncNavRoute(dest.name);
     notifyListeners();
   }
 
@@ -148,6 +210,7 @@ class DashboardViewModel extends ChangeNotifier {
     _activeTemplate = template;
     _navDest = NavDestination.newReaction;
     _triggerAutoRun();
+    AvogadroBridge.syncNavRoute(NavDestination.newReaction.name);
     notifyListeners();
   }
 
@@ -181,6 +244,7 @@ class DashboardViewModel extends ChangeNotifier {
     
     _activeTemplate = template;
     _navDest = NavDestination.newReaction;
+    AvogadroBridge.syncNavRoute(NavDestination.newReaction.name);
     notifyListeners();
   }
 
@@ -225,6 +289,7 @@ class DashboardViewModel extends ChangeNotifier {
 
     _activeTemplate = null;
     _navDest = NavDestination.newReaction;
+    AvogadroBridge.syncNavRoute(NavDestination.newReaction.name);
     notifyListeners();
   }
 
@@ -413,6 +478,8 @@ class DashboardViewModel extends ChangeNotifier {
 
   Future<void> _saveState() async {
     final state = <String, dynamic>{
+      'navDest': _navDest.name,
+      'controlsPanelOpen': _controlsPanelOpen,
       'activeTemplate': _activeTemplate?.id,
       'reactants': _serializeEntries(_reactants),
       'products': _serializeEntries(_products),
@@ -439,6 +506,8 @@ class DashboardViewModel extends ChangeNotifier {
   Future<void> loadState() async {
     final state = await sessionService.loadDashboardState();
     if (state == null) return;
+
+    _applyNavAndPanelState(state);
 
     if (state['activeTemplate'] != null) {
       final tId = state['activeTemplate'] as String;

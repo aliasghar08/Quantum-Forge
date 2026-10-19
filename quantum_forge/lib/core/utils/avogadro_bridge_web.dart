@@ -197,6 +197,23 @@ class AvogadroBridge {
     }
   }
 
+  /// Synchronizes the current page route/hash into the browser address bar without reloading.
+  static void syncNavRoute(String routeName) {
+    try {
+      final history = _window.getProperty('history'.toJS) as JSObject?;
+      if (history == null) return;
+      final uri = Uri.base;
+      final fragment = routeName == 'newReaction' ? null : routeName;
+      final newUri = uri.replace(fragment: fragment);
+      history.callMethod(
+        'replaceState'.toJS,
+        null,
+        ''.toJS,
+        newUri.toString().toJS,
+      );
+    } catch (_) {}
+  }
+
   static void _scheduleRevoke(JSString url) {
     // Revoke on the next macrotask so the navigation has definitely started.
     final timer = _window.getProperty('setTimeout'.toJS) as JSFunction?;
