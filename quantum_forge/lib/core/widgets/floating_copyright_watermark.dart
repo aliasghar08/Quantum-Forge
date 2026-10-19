@@ -17,10 +17,16 @@ class FloatingCopyrightWatermark extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final media = MediaQuery.of(context);
+    final isMobile = media.size.width < 600;
+    final bottomOffset = isMobile
+        ? kBottomNavigationBarHeight + media.padding.bottom + 8.0
+        : (media.padding.bottom > 0 ? media.padding.bottom + 6.0 : 8.0);
+
     return Positioned(
-      bottom: 8,
-      left: 12,
-      right: 12,
+      bottom: bottomOffset,
+      left: 16,
+      right: 16,
       child: Center(
         child: IgnorePointer(
           ignoring: true,

@@ -1471,66 +1471,74 @@ class _DashboardScreenState extends State<DashboardScreen> {
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: palette.border),
       ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(9),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [palette.accent, palette.accentAlt],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: const Icon(Icons.hub_rounded, size: 20, color: Colors.black87),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final isMobile = constraints.maxWidth < 560;
+
+          if (isMobile) {
+            return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Flexible(
-                      child: Text(
-                        _viewModel.activeTemplate?.name ?? 'Custom Reaction Setup',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 20,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: -0.3,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                      padding: const EdgeInsets.all(9),
                       decoration: BoxDecoration(
-                        color: hasTemplate
-                            ? const Color(0xFF10B981).withValues(alpha: 0.15)
-                            : palette.accent.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(6),
-                        border: Border.all(
-                          color: hasTemplate
-                              ? const Color(0xFF10B981).withValues(alpha: 0.4)
-                              : palette.accent.withValues(alpha: 0.4),
+                        gradient: LinearGradient(
+                          colors: [palette.accent, palette.accentAlt],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
                         ),
+                        borderRadius: BorderRadius.circular(10),
                       ),
-                      child: Text(
-                        hasTemplate ? 'LIBRARY TEMPLATE' : 'CUSTOM GEOMETRY',
-                        style: TextStyle(
-                          color: hasTemplate ? const Color(0xFF34D399) : palette.accent,
-                          fontSize: 9.5,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: 0.4,
-                        ),
+                      child: const Icon(Icons.hub_rounded, size: 20, color: Colors.black87),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Wrap(
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        spacing: 8,
+                        runSpacing: 4,
+                        children: [
+                          Text(
+                            _viewModel.activeTemplate?.name ?? 'Custom Reaction Setup',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 18,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: -0.3,
+                            ),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: hasTemplate
+                                  ? const Color(0xFF10B981).withValues(alpha: 0.15)
+                                  : palette.accent.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(6),
+                              border: Border.all(
+                                color: hasTemplate
+                                    ? const Color(0xFF10B981).withValues(alpha: 0.4)
+                                    : palette.accent.withValues(alpha: 0.4),
+                              ),
+                            ),
+                            child: Text(
+                              hasTemplate ? 'LIBRARY TEMPLATE' : 'CUSTOM GEOMETRY',
+                              style: TextStyle(
+                                color: hasTemplate ? const Color(0xFF34D399) : palette.accent,
+                                fontSize: 9.5,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: 0.4,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 3),
+                const SizedBox(height: 8),
                 Text(
                   _viewModel.activeTemplate?.iupacName ??
                       'Configure chemical inputs below to optimize minimum energy paths & compute kinetic barriers',
@@ -1539,28 +1547,123 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     fontSize: 12,
                     fontStyle: hasTemplate ? FontStyle.italic : FontStyle.normal,
                   ),
-                  overflow: TextOverflow.ellipsis,
+                  softWrap: true,
+                ),
+                if (!hasTemplate) ...[
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: _openLibrary,
+                      icon: Icon(Icons.auto_stories_outlined, size: 15, color: palette.accent),
+                      label: Text(
+                        'Browse 1,200+ Library',
+                        style: TextStyle(color: palette.accent, fontSize: 12, fontWeight: FontWeight.w700),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        side: BorderSide(color: palette.accent.withValues(alpha: 0.4)),
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(9)),
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            );
+          }
+
+          return Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(9),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [palette.accent, palette.accentAlt],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Icons.hub_rounded, size: 20, color: Colors.black87),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            _viewModel.activeTemplate?.name ?? 'Custom Reaction Setup',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 20,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: -0.3,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: hasTemplate
+                                ? const Color(0xFF10B981).withValues(alpha: 0.15)
+                                : palette.accent.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(
+                              color: hasTemplate
+                                  ? const Color(0xFF10B981).withValues(alpha: 0.4)
+                                  : palette.accent.withValues(alpha: 0.4),
+                            ),
+                          ),
+                          child: Text(
+                            hasTemplate ? 'LIBRARY TEMPLATE' : 'CUSTOM GEOMETRY',
+                            style: TextStyle(
+                              color: hasTemplate ? const Color(0xFF34D399) : palette.accent,
+                              fontSize: 9.5,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: 0.4,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      _viewModel.activeTemplate?.iupacName ??
+                          'Configure chemical inputs below to optimize minimum energy paths & compute kinetic barriers',
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.55),
+                        fontSize: 12,
+                        fontStyle: hasTemplate ? FontStyle.italic : FontStyle.normal,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+              if (!hasTemplate) ...[
+                const SizedBox(width: 12),
+                OutlinedButton.icon(
+                  onPressed: _openLibrary,
+                  icon: Icon(Icons.auto_stories_outlined, size: 15, color: palette.accent),
+                  label: Text(
+                    'Browse 1,200+ Library',
+                    style: TextStyle(color: palette.accent, fontSize: 12, fontWeight: FontWeight.w700),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    side: BorderSide(color: palette.accent.withValues(alpha: 0.4)),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(9)),
+                  ),
                 ),
               ],
-            ),
-          ),
-          if (!hasTemplate) ...[
-            const SizedBox(width: 12),
-            OutlinedButton.icon(
-              onPressed: _openLibrary,
-              icon: Icon(Icons.auto_stories_outlined, size: 15, color: palette.accent),
-              label: Text(
-                'Browse 1,200+ Library',
-                style: TextStyle(color: palette.accent, fontSize: 12, fontWeight: FontWeight.w700),
-              ),
-              style: OutlinedButton.styleFrom(
-                side: BorderSide(color: palette.accent.withValues(alpha: 0.4)),
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(9)),
-              ),
-            ),
-          ],
-        ],
+            ],
+          );
+        },
       ),
     );
   }
@@ -1830,60 +1933,116 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Widget _buildQuickTemplates() {
     final topTemplates = kReactionTemplates.take(6).toList();
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isMobile = constraints.maxWidth < 600;
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              padding: const EdgeInsets.all(5),
-              decoration: BoxDecoration(
-                color: const Color(0xFF10B981).withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(6),
+            if (isMobile) ...[
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(5),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF10B981).withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: const Icon(Icons.medical_services_outlined, size: 15, color: Color(0xFF34D399)),
+                  ),
+                  const SizedBox(width: 8),
+                  const Expanded(
+                    child: Text(
+                      'Curated High-Yield Medical & Clinical Reaction Presets',
+                      softWrap: true,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.1,
+                      ),
+                    ),
+                  ),
+                ],
               ),
-              child: const Icon(Icons.medical_services_outlined, size: 15, color: Color(0xFF34D399)),
-            ),
-            const SizedBox(width: 8),
-            const Text(
-              'Curated High-Yield Medical & Clinical Reaction Presets',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 13.5,
-                fontWeight: FontWeight.w700,
-                letterSpacing: 0.1,
+              const SizedBox(height: 4),
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton.icon(
+                  onPressed: _openLibrary,
+                  icon: const Icon(Icons.auto_stories_outlined, size: 14),
+                  label: const Text('Browse 1,200+ Library →'),
+                  style: TextButton.styleFrom(
+                    foregroundColor: const Color(0xFF38BDF8),
+                    textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                  ),
+                ),
               ),
-            ),
-            const Spacer(),
-            TextButton.icon(
-              onPressed: _openLibrary,
-              icon: const Icon(Icons.auto_stories_outlined, size: 14),
-              label: const Text('Browse 1,200+ Library →'),
-              style: TextButton.styleFrom(
-                foregroundColor: const Color(0xFF38BDF8),
-                textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
-                padding: const EdgeInsets.symmetric(horizontal: 8),
+            ] else ...[
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(5),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF10B981).withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: const Icon(Icons.medical_services_outlined, size: 15, color: Color(0xFF34D399)),
+                  ),
+                  const SizedBox(width: 8),
+                  const Expanded(
+                    child: Text(
+                      'Curated High-Yield Medical & Clinical Reaction Presets',
+                      softWrap: true,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.1,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  TextButton.icon(
+                    onPressed: _openLibrary,
+                    icon: const Icon(Icons.auto_stories_outlined, size: 14),
+                    label: const Text('Browse 1,200+ Library →'),
+                    style: TextButton.styleFrom(
+                      foregroundColor: const Color(0xFF38BDF8),
+                      textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                    ),
+                  ),
+                ],
               ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        Wrap(
-          spacing: 10,
-          runSpacing: 10,
-          children: topTemplates.map((t) {
-            return InkWell(
-              onTap: () {
-                _viewModel.loadTemplate(t);
-                context.read<QuantumSettingsNotifier>().update((q) => q.copyWith(
-                  charge: t.defaults.charge,
-                  spinMultiplicity: t.defaults.spinMultiplicity,
-                  mlipModel: t.defaults.mlipModel,
-                  optimizerAlgorithm: t.defaults.optimizerAlgorithm,
-                ));
-              },
-              borderRadius: BorderRadius.circular(10),
-              child: Container(
-                constraints: const BoxConstraints(maxWidth: 240, minWidth: 160),
+            ],
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 10,
+              runSpacing: 10,
+              children: topTemplates.map((t) {
+                return InkWell(
+                  onTap: () {
+                    _viewModel.loadTemplate(t);
+                    context.read<QuantumSettingsNotifier>().update((q) => q.copyWith(
+                      charge: t.defaults.charge,
+                      spinMultiplicity: t.defaults.spinMultiplicity,
+                      mlipModel: t.defaults.mlipModel,
+                      optimizerAlgorithm: t.defaults.optimizerAlgorithm,
+                    ));
+                  },
+                  borderRadius: BorderRadius.circular(10),
+                  child: Container(
+                    constraints: BoxConstraints(
+                      maxWidth: isMobile ? double.infinity : 240,
+                      minWidth: isMobile ? double.infinity : 160,
+                    ),
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   color: Colors.white.withValues(alpha: 0.03),
@@ -1947,10 +2106,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
             );
           }).toList(),
-        ),
-      ],
-    );
-  }
+          ),
+        ],
+      );
+    },
+  );
+}
 
   Widget _buildTemplateDisplay() {
     List<String> reactantNames = ['Reactant'];
@@ -1974,65 +2135,107 @@ class _DashboardScreenState extends State<DashboardScreen> {
       }
     }
 
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Expanded(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              for (int i = 0; i < reactantNames.length; i++) ...[
-                _moleculeBox(
-                  label: reactantNames[i],
-                  subtitle: 'Embedded geometry',
-                  color: const Color(0xFF4FC3F7),
-                  icon: Icons.commit,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isCompact = constraints.maxWidth < 560;
+
+        final reactantsColumn = Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            for (int i = 0; i < reactantNames.length; i++) ...[
+              _moleculeBox(
+                label: reactantNames[i],
+                subtitle: 'Embedded geometry',
+                color: const Color(0xFF4FC3F7),
+                icon: Icons.commit,
+              ),
+              if (i < reactantNames.length - 1)
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 8),
+                  child: Icon(Icons.add, color: Colors.white24, size: 20),
                 ),
-                if (i < reactantNames.length - 1)
-                  const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 8),
-                    child: Icon(Icons.add, color: Colors.white24, size: 20),
-                  ),
-              ],
             ],
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.arrow_forward, color: Colors.amber.shade300, size: 24),
-              const SizedBox(height: 4),
-              Text('TS',
-                  style: TextStyle(
-                      color: Colors.amber.shade300,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 11)),
-            ],
-          ),
-        ),
-        Expanded(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              for (int i = 0; i < productNames.length; i++) ...[
-                _moleculeBox(
-                  label: productNames[i],
-                  subtitle: 'Embedded geometry',
-                  color: const Color(0xFF66BB6A),
-                  icon: Icons.commit,
+          ],
+        );
+
+        final productsColumn = Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            for (int i = 0; i < productNames.length; i++) ...[
+              _moleculeBox(
+                label: productNames[i],
+                subtitle: 'Embedded geometry',
+                color: const Color(0xFF66BB6A),
+                icon: Icons.commit,
+              ),
+              if (i < productNames.length - 1)
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 8),
+                  child: Icon(Icons.add, color: Colors.white24, size: 20),
                 ),
-                if (i < productNames.length - 1)
-                  const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 8),
-                    child: Icon(Icons.add, color: Colors.white24, size: 20),
-                  ),
-              ],
             ],
-          ),
-        ),
-      ],
+          ],
+        );
+
+        if (isCompact) {
+          return Column(
+            children: [
+              reactantsColumn,
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.arrow_downward, color: Colors.amber.shade300, size: 20),
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: Colors.amber.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(color: Colors.amber.shade300.withValues(alpha: 0.35)),
+                      ),
+                      child: Text(
+                        'TRANSITION STATE',
+                        style: TextStyle(
+                          color: Colors.amber.shade300,
+                          fontWeight: FontWeight.w800,
+                          fontSize: 10,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              productsColumn,
+            ],
+          );
+        }
+
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Expanded(child: reactantsColumn),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.arrow_forward, color: Colors.amber.shade300, size: 24),
+                  const SizedBox(height: 4),
+                  Text('TS',
+                      style: TextStyle(
+                          color: Colors.amber.shade300,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 11)),
+                ],
+              ),
+            ),
+            Expanded(child: productsColumn),
+          ],
+        );
+      },
     );
   }
 
@@ -2077,25 +2280,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildFileUploadRow() {
-    return Column(
-      children: [
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(child: _buildMoleculeList(MoleculeRole.reactant)),
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 24),
-              child: Icon(Icons.arrow_forward, color: Colors.white24, size: 20),
-            ),
-            Expanded(child: _buildMoleculeList(MoleculeRole.product)),
-          ],
-        ),
-        const SizedBox(height: 16),
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: Container(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isCompact = constraints.maxWidth < 560;
+
+        if (isCompact) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _buildMoleculeList(MoleculeRole.reactant),
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 10),
+                child: Center(
+                  child: Icon(Icons.arrow_downward, color: Colors.white38, size: 22),
+                ),
+              ),
+              _buildMoleculeList(MoleculeRole.product),
+              const SizedBox(height: 16),
+              Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   color: Colors.amber.withValues(alpha: 0.05),
@@ -2104,15 +2306,48 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
                 child: _buildMoleculeList(MoleculeRole.catalyst),
               ),
+            ],
+          );
+        }
+
+        return Column(
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(child: _buildMoleculeList(MoleculeRole.reactant)),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+                  child: Icon(Icons.arrow_forward, color: Colors.white24, size: 20),
+                ),
+                Expanded(child: _buildMoleculeList(MoleculeRole.product)),
+              ],
             ),
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 24),
-              child: SizedBox(width: 20),
+            const SizedBox(height: 16),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.amber.withValues(alpha: 0.05),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.amber.withValues(alpha: 0.2)),
+                    ),
+                    child: _buildMoleculeList(MoleculeRole.catalyst),
+                  ),
+                ),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+                  child: SizedBox(width: 20),
+                ),
+                const Expanded(child: SizedBox.shrink()),
+              ],
             ),
-            const Expanded(child: SizedBox.shrink()),
           ],
-        ),
-      ],
+        );
+      },
     );
   }
 
