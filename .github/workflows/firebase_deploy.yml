@@ -1,0 +1,48 @@
+name: Deploy Web to Firebase Hosting
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'quantum_forge/**'
+      - '.github/workflows/firebase_deploy.yml'
+
+jobs:
+  build_and_deploy:
+    name: Build & Deploy to Firebase
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./quantum_forge
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Install Dependencies
+        run: flutter pub get
+
+      - name: Static Analysis
+        run: flutter analyze
+
+      - name: Run Test Suite
+        run: flutter test
+
+      - name: Build Web Release Bundle
+        run: flutter build web --release --no-tree-shake-icons
+
+      - name: Deploy to Firebase Hosting
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: '${{ secrets.GITHUB_TOKEN }}'
+          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_QUANTOM_FORGE }}'
+          channelId: live
+          projectId: quantom-forge
+          entryPoint: ./quantum_forge
