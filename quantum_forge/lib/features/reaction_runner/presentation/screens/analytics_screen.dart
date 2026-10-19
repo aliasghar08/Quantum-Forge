@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:quantum_forge/features/reaction_runner/data/models/reaction_models.dart';
 import 'package:quantum_forge/state/reaction_provider.dart';
 import 'package:quantum_forge/state/settings_provider.dart';
+import 'package:quantum_forge/core/algorithms/solvent_properties.dart';
 import 'package:quantum_forge/features/reaction_runner/presentation/widgets/kinetic_chart_widget.dart';
 
 class AnalyticsScreen extends StatefulWidget {
@@ -51,8 +52,8 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
           : _mockFrames;
 
       // Apply scaling based on settings (syncs with Dashboard)
-      double scaleFactor = settings.temperatureK / 300.0;
-      if (settings.solventModel != 'Vacuum') scaleFactor *= 0.85;
+      final solventData = SolventProperties.lookup(settings.solventModel);
+      double scaleFactor = (settings.temperatureK / 300.0) * solventData.barrierScaleFactor;
       if (settings.mlipModel == 'ANI-2x') scaleFactor *= 1.05;
       
       final chargeShift = settings.charge * 4.5;
@@ -63,8 +64,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
       
       // Dynamic Thermodynamics
       double baseEnthalpy = 25.4 * scaleFactor + totalShift;
-      double baseEntropy = -12.3 + (settings.temperatureK / 300.0) * 1.5; // cal·mol⁻¹·K⁻¹, scaled by Temp
-      if (settings.solventModel != 'Vacuum') baseEntropy += 2.0; // Solvent increases entropy
+      double baseEntropy = -12.3 + (settings.temperatureK / 300.0) * 1.5 + solventData.entropyShift;
       
       double gibbs = baseEnthalpy - (settings.temperatureK * baseEntropy / 1000.0);
       
@@ -80,7 +80,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
       double zpe = 14.5 * scaleFactor + chargeShift/3;
       double dipole = 2.4 + (settings.charge * 0.5).abs();
       double gap = 5.2 - (settings.spinMultiplicity * 0.1);
-      double polar = 45.2 + (settings.solventModel != 'Vacuum' ? 12.0 : 0.0);
+      double polar = 45.2 + solventData.polarizabilityShift;
       double rmsGrad = 0.00034 * (scaleFactor > 0 ? scaleFactor : 1);
       
       // Partition function approximation based on dG

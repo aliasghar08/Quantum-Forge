@@ -66,10 +66,8 @@ extension _ReactionAnimationBondEnergiesExt on _ReactionAnimationWidgetState {
       // Use default QuantumSettings when not provided in test context
     }
 
-    double scaleFactor = (settings.temperatureK / 300.0);
-    if (settings.solventModel != 'Vacuum') {
-      scaleFactor *= 0.85;
-    }
+    final solventData = SolventProperties.lookup(settings.solventModel);
+    double scaleFactor = (settings.temperatureK / 300.0) * solventData.barrierScaleFactor;
     if (settings.mlipModel == 'ANI-2x') scaleFactor *= 1.05;
     final chargeShift = settings.charge * 1.5;
 

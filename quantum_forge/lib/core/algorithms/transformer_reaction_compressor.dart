@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'package:quantum_forge/core/utils/molecule_parser.dart';
 import 'package:quantum_forge/features/reaction_runner/data/models/reaction_models.dart';
 import 'package:quantum_forge/state/settings_provider.dart';
+import 'package:quantum_forge/core/algorithms/solvent_properties.dart';
 
 /// Result produced by the Transformer-based Reaction Compressor & Rebuilder
 class TransformerReactionResult {
@@ -79,9 +80,8 @@ class TransformerReactionCompressor {
     // 5. Build Activation Energy Profile (strictly normalized ground state: E(0) = 0.0)
     double peakEa = referenceEa > 0 ? referenceEa : 21.5;
     if (settings != null) {
-      if (settings.solventModel != 'Vacuum') {
-        peakEa *= 0.92; // Solvation dielectric screening stabilizes transition state
-      }
+      final solventData = SolventProperties.lookup(settings.solventModel);
+      peakEa *= solventData.compressorMultiplier;
       if (settings.temperatureK != 298.15) {
         // Temperature-dependent thermal barrier correction ΔG‡(T)
         peakEa += (settings.temperatureK - 298.15) * 0.005;

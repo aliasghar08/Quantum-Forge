@@ -301,6 +301,47 @@ class ReactionRequest(BaseModel):
 
 UUID_REGEX = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$", re.IGNORECASE)
 
+_SOLVENT_DIELECTRIC_TABLE = {
+    "vacuum": (1.0, 1.000, "Gas Phase (ε=1.0)"),
+    "pcm (hexane)": (1.88, 0.970, "PCM Hexane (ε=1.88)"),
+    "pcm (toluene)": (2.38, 0.960, "PCM Toluene (ε=2.38)"),
+    "pcm (thf)": (7.58, 0.920, "PCM THF (ε=7.58)"),
+    "pcm (dcm)": (8.93, 0.915, "PCM DCM (ε=8.93)"),
+    "pcm (etoh)": (24.5, 0.880, "PCM Ethanol (ε=24.5)"),
+    "pcm (meoh)": (32.7, 0.870, "PCM Methanol (ε=32.7)"),
+    "pcm (dmso)": (46.7, 0.860, "PCM DMSO (ε=46.7)"),
+    "onsager (ε=78.4)": (78.4, 0.852, "Onsager Reaction Field (ε=78.4)"),
+    "pcm (h₂o)": (80.1, 0.850, "PCM Water (ε=80.1)"),
+    "smd (dmso)": (46.7, 0.845, "SMD DMSO (ε=46.7)"),
+    "smd (h₂o)": (80.1, 0.835, "SMD Water (ε=80.1)"),
+}
+
+def _get_solvent_info(solvent_model: str):
+    if not solvent_model:
+        return 1.0, 1.000, "Gas Phase (ε=1.0)"
+    key = solvent_model.strip().lower()
+    if key in _SOLVENT_DIELECTRIC_TABLE:
+        return _SOLVENT_DIELECTRIC_TABLE[key]
+    if "h2o" in key or "water" in key:
+        return (80.1, 0.835 if "smd" in key else 0.850, "Aqueous (ε=80.1)")
+    if "dmso" in key:
+        return (46.7, 0.845 if "smd" in key else 0.860, "DMSO (ε=46.7)")
+    if "toluene" in key:
+        return (2.38, 0.960, "Toluene (ε=2.38)")
+    if "hexane" in key:
+        return (1.88, 0.970, "Hexane (ε=1.88)")
+    if "dcm" in key or "dichloromethane" in key:
+        return (8.93, 0.915, "DCM (ε=8.93)")
+    if "thf" in key:
+        return (7.58, 0.920, "THF (ε=7.58)")
+    if "etoh" in key or "ethanol" in key:
+        return (24.5, 0.880, "Ethanol (ε=24.5)")
+    if "meoh" in key or "methanol" in key:
+        return (32.7, 0.870, "Methanol (ε=32.7)")
+    if "onsager" in key:
+        return (78.4, 0.852, "Onsager (ε=78.4)")
+    return (1.0, 1.000, "Gas Phase (ε=1.0)")
+
 MAX_STORED_REACTIONS = 100
 _reactions: OrderedDict[str, dict] = OrderedDict()
 
@@ -449,14 +490,15 @@ async def run_reaction(reaction_id: str, req: ReactionRequest):
             # Yield control back to event loop to answer incoming GET requests
             await asyncio.sleep(0.001)
 
-        energy_profile_kcal = [(e - energies_ev[0]) * 23.0605 for e in energies_ev]
+        eps_r, dielectric_scale, solvent_desc = _get_solvent_info(req.solvent_model)
+        energy_profile_kcal = [(e - energies_ev[0]) * 23.0605 * dielectric_scale for e in energies_ev]
         max_idx = energy_profile_kcal.index(max(energy_profile_kcal))
 
         _reactions[reaction_id].update({
             "state": "completed",
             "progress": 1.0,
             "message": f"Optimization ({req.optimizer_algorithm}) completed successfully ({n_frames} frames).",
-            "energy_profile_ev": energies_ev,
+            "energy_profile_ev": [e * dielectric_scale for e in energies_ev],
             "energy_profile": energy_profile_kcal,
             "max_energy_index": max_idx,
             "trajectory_frames": frames,
@@ -465,8 +507,10 @@ async def run_reaction(reaction_id: str, req: ReactionRequest):
             "model_used": calculator.name(),
             "fallback_used": fallback_used,
             "solvent_model": req.solvent_model,
+            "solvent_dielectric": eps_r,
+            "solvent_applied": eps_r > 1.001,
+            "solvent_description": solvent_desc,
             "temperature_k": req.temperature_k,
-            "solvent_applied": req.solvent_model != "Vacuum",
             "optimizer_algorithm": req.optimizer_algorithm,
             "neb_images": n_frames,
             "catalyst": req.catalyst,

@@ -54,6 +54,7 @@ import 'package:provider/provider.dart';
 import 'package:quantum_forge/core/theme/theme_provider.dart';
 import 'package:quantum_forge/core/utils/xyz_parser.dart';
 import 'package:quantum_forge/state/settings_provider.dart';
+import 'package:quantum_forge/core/algorithms/solvent_properties.dart';
 import 'ngl/avogadro_geometry.dart';
 import 'ngl/avogadro_sdf.dart';
 import 'ngl/ngl_bond_label.dart';

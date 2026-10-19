@@ -9,6 +9,7 @@ import 'package:provider/provider.dart';
 import 'package:quantum_forge/features/reaction_library/data/reaction_templates.dart';
 
 import 'package:quantum_forge/features/reaction_library/presentation/screens/publication_details_screen.dart';
+import 'package:quantum_forge/core/algorithms/solvent_properties.dart';
 
 class QuantumControlsPanel extends StatefulWidget {
   final ReactionTemplate? activeTemplate;
@@ -286,6 +287,59 @@ class _QuantumControlsPanelState extends State<QuantumControlsPanel> {
             'The implicit solvation model used to simulate solvent effects on the reaction.',
         onChanged: (v) => n.update((q) => q.copyWith(solventModel: v)),
       ),
+      const SizedBox(height: 6),
+      Builder(builder: (context) {
+        final solventData = SolventProperties.lookup(s.solventModel);
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+          decoration: BoxDecoration(
+            color: const Color(0xFF101E27),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: solventData.isSolvated
+                  ? const Color(0xFF38BDF8).withValues(alpha: 0.25)
+                  : Colors.white12,
+            ),
+          ),
+          child: Row(
+            children: [
+              Icon(
+                solventData.isSolvated ? Icons.water_drop_outlined : Icons.air,
+                size: 14,
+                color: solventData.isSolvated
+                    ? const Color(0xFF38BDF8)
+                    : Colors.white54,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  solventData.description,
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.75),
+                    fontSize: 11,
+                  ),
+                ),
+              ),
+              if (solventData.isSolvated)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF38BDF8).withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    'ε = ${solventData.dielectricConstant}',
+                    style: const TextStyle(
+                      color: Color(0xFF38BDF8),
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        );
+      }),
       const SizedBox(height: 16),
 
       // Temperature slider
@@ -970,7 +1024,8 @@ class _QuantumControlsPanelState extends State<QuantumControlsPanel> {
       ),
       const SizedBox(height: 6),
       DropdownButtonFormField<String>(
-        initialValue: value,
+        key: ValueKey('${label}_$value'),
+        initialValue: items.contains(value) ? value : (items.isNotEmpty ? items.first : null),
         dropdownColor: const Color(0xFF1A2E3A),
         style: const TextStyle(color: Colors.white, fontSize: 13),
         iconEnabledColor: const Color(0xFF4FC3F7),

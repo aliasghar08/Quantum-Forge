@@ -30,6 +30,7 @@ import 'package:flutter/material.dart';
 import 'package:quantum_forge/core/utils/unicode_math.dart';
 import 'package:quantum_forge/state/settings_provider.dart';
 import 'package:quantum_forge/features/reaction_library/data/reaction_templates.dart';
+import 'package:quantum_forge/core/algorithms/solvent_properties.dart';
 
 // ── Quality tiers ───────────────────────────────────────────────────────────
 
@@ -263,12 +264,12 @@ ResultsSummary computeResultsSummary({
   final spinShift = (settings.spinMultiplicity - 1) * 8.0;
   final double scaleFactor;
   final double totalShift;
+  final solventData = SolventProperties.lookup(settings.solventModel);
   if (isRealData) {
     scaleFactor = 1.0;
     totalShift = 0.0;
   } else {
-    var factor = settings.temperatureK / 300.0;
-    if (settings.solventModel != 'Vacuum') factor *= 0.85;
+    var factor = (settings.temperatureK / 300.0) * solventData.barrierScaleFactor;
     if (settings.mlipModel == 'ANI-2x') factor *= 1.05;
     scaleFactor = factor;
     totalShift = chargeShift + spinShift;
@@ -283,7 +284,7 @@ ResultsSummary computeResultsSummary({
   final tK = settings.temperatureK;
   final baseEnthalpy = 25.4 * scaleFactor + totalShift; // surrogate
   final baseEntropy =
-      -12.3 + (tK / 300.0) * 1.5 + (settings.solventModel != 'Vacuum' ? 2.0 : 0.0);
+      -12.3 + (tK / 300.0) * 1.5 + solventData.entropyShift;
   final gibbs = baseEnthalpy - (tK * baseEntropy / 1000.0); // ΔG = ΔH − TΔS
   // Real backend runs report their own imaginary frequency at the TS image.
   final imagFreq = realImaginaryFrequency ?? (-452.1 * scaleFactor);
@@ -305,7 +306,7 @@ ResultsSummary computeResultsSummary({
   final zpe = 14.5 * scaleFactor + chargeShift / 3.0;
   final dipole = 2.4 + (settings.charge * 0.5).abs();
   final gap = 5.2 - (settings.spinMultiplicity * 0.1);
-  final polar = 45.2 + (settings.solventModel != 'Vacuum' ? 12.0 : 0.0);
+  final polar = 45.2 + solventData.polarizabilityShift;
   final rmsGrad = 0.00034 * (scaleFactor > 0 ? scaleFactor : 1);
   
   final lnPartFunc = -gibbsJ / (_gasConstant * tK) + math.log(1e12);

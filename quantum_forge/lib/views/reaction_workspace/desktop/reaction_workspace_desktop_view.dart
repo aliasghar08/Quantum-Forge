@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../../viewmodels/reaction_workspace_viewmodel.dart';
 import '../../../../core/theme/theme_provider.dart';
+import '../../../../core/algorithms/solvent_properties.dart';
 
 class ReactionWorkspaceDesktopView extends StatelessWidget {
   const ReactionWorkspaceDesktopView({super.key});
@@ -186,7 +187,7 @@ class ReactionWorkspaceDesktopView extends StatelessWidget {
           Expanded(
             flex: 3,
             child: SingleChildScrollView(
-              child: _buildQuantumControlsRail(vm, palette),
+              child: _buildQuantumControlsRail(context, vm, palette),
             ),
           ),
         ],
@@ -433,7 +434,7 @@ class ReactionWorkspaceDesktopView extends StatelessWidget {
     );
   }
 
-  Widget _buildQuantumControlsRail(ReactionWorkspaceViewModel vm, dynamic palette) {
+  Widget _buildQuantumControlsRail(BuildContext context, ReactionWorkspaceViewModel vm, dynamic palette) {
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
@@ -465,7 +466,7 @@ class ReactionWorkspaceDesktopView extends StatelessWidget {
           const SizedBox(height: 12),
           _controlField('MLIP Model', vm.mlipModel),
           const SizedBox(height: 12),
-          _controlField('Solvation Model', vm.solvationModel),
+          _controlField('Solvation Model', vm.solvationModel, onTap: () => _selectSolvent(context, vm)),
           const SizedBox(height: 12),
           _controlField('Optimizer', vm.optimizer),
           const SizedBox(height: 16),
@@ -502,25 +503,117 @@ class ReactionWorkspaceDesktopView extends StatelessWidget {
     );
   }
 
-  Widget _controlField(String label, String value) {
-    return Container(
+  Widget _controlField(String label, String value, {VoidCallback? onTap}) {
+    final body = Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
         color: const Color(0xFF0D1117),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+        border: Border.all(
+          color: onTap != null ? const Color(0xFF38BDF8).withValues(alpha: 0.3) : Colors.white.withValues(alpha: 0.06),
+        ),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(label, style: const TextStyle(fontSize: 11, color: Colors.grey)),
-          Text(
-            value,
-            style: const TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                value,
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+              if (onTap != null) ...[
+                const SizedBox(width: 4),
+                const Icon(Icons.arrow_drop_down, size: 16, color: Colors.cyanAccent),
+              ],
+            ],
+          ),
+        ],
+      ),
+    );
+
+    if (onTap != null) {
+      return InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(8),
+        child: body,
+      );
+    }
+    return body;
+  }
+
+  void _selectSolvent(BuildContext context, ReactionWorkspaceViewModel vm) {
+    showDialog(
+      context: context,
+      builder: (dialogCtx) => AlertDialog(
+        backgroundColor: const Color(0xFF161B22),
+        title: const Row(
+          children: [
+            Icon(Icons.water_drop_outlined, color: Colors.cyanAccent, size: 20),
+            SizedBox(width: 8),
+            Text('Select Solvation Model', style: TextStyle(color: Colors.white, fontSize: 16)),
+          ],
+        ),
+        content: SizedBox(
+          width: 420,
+          child: ListView.separated(
+            shrinkWrap: true,
+            itemCount: SolventProperties.all.length,
+            separatorBuilder: (context, index) => const Divider(color: Colors.white10, height: 1),
+            itemBuilder: (ctx, i) {
+              final solvent = SolventProperties.all[i];
+              final isSelected = solvent.id == vm.solvationModel;
+              return ListTile(
+                dense: true,
+                selected: isSelected,
+                selectedTileColor: const Color(0xFF1F2937),
+                title: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        solvent.displayName,
+                        style: TextStyle(
+                          color: isSelected ? Colors.cyanAccent : Colors.white,
+                          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                        ),
+                      ),
+                    ),
+                    if (solvent.isSolvated)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: Colors.cyanAccent.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          'ε = ${solvent.dielectricConstant}',
+                          style: const TextStyle(color: Colors.cyanAccent, fontSize: 10, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                  ],
+                ),
+                subtitle: Text(
+                  solvent.description,
+                  style: TextStyle(color: Colors.white.withValues(alpha: 0.5), fontSize: 11),
+                ),
+                onTap: () {
+                  vm.setSolvationModel(solvent.id);
+                  Navigator.pop(dialogCtx);
+                },
+              );
+            },
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogCtx),
+            child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
           ),
         ],
       ),

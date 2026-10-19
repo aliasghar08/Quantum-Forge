@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:quantum_forge/core/algorithms/solvent_properties.dart';
 
 class ThermodynamicMetric {
   final String label;
@@ -85,6 +86,35 @@ class ReactionWorkspaceViewModel extends ChangeNotifier {
   ];
 
   // --- Actions ---
+  void setSolvationModel(String model) {
+    solvationModel = model;
+    final solventData = SolventProperties.lookup(model);
+    activationEnergyEa = 26.0 * solventData.compressorMultiplier;
+    enthalpy = 25.0 * solventData.barrierScaleFactor;
+    gibbsFreeEnergy = enthalpy - (temperature * (-12.3 + solventData.entropyShift) / 1000.0);
+    notifyListeners();
+  }
+
+  void setSystemCharge(int charge) {
+    systemCharge = charge;
+    notifyListeners();
+  }
+
+  void setSpinMultiplicity(String multiplicity) {
+    spinMultiplicity = multiplicity;
+    notifyListeners();
+  }
+
+  void setMlipModel(String model) {
+    mlipModel = model;
+    notifyListeners();
+  }
+
+  void setOptimizer(String opt) {
+    optimizer = opt;
+    notifyListeners();
+  }
+
   void setTemperature(double temp) {
     temperature = temp;
     notifyListeners();

@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:quantum_forge/core/utils/xyz_parser.dart';
 import 'package:quantum_forge/state/settings_provider.dart';
+import 'package:quantum_forge/core/algorithms/solvent_properties.dart';
 
 class MolecularViewerWidget extends StatefulWidget {
   final String? currentXyzData;
@@ -289,8 +290,8 @@ class _MolecularViewerWidgetState extends State<MolecularViewerWidget> {
 
     if (bonds.isEmpty) return const SizedBox.shrink();
 
-    double scaleFactor = widget.settings?.temperatureK != null ? (widget.settings!.temperatureK / 300.0) : 1.0;
-    if (widget.settings?.solventModel != null && widget.settings!.solventModel != 'Vacuum') scaleFactor *= 0.85;
+    final solventData = SolventProperties.lookup(widget.settings?.solventModel);
+    double scaleFactor = (widget.settings?.temperatureK != null ? (widget.settings!.temperatureK / 300.0) : 1.0) * solventData.barrierScaleFactor;
     if (widget.settings?.mlipModel == 'ANI-2x') scaleFactor *= 1.05;
     final chargeShift = (widget.settings?.charge ?? 0) * 1.5;
 
