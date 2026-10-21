@@ -35,9 +35,10 @@ void main() {
 
     // Verify Title and Badges
     expect(find.text('CLINICAL & VETERINARY PHARMACOLOGY DOSSIER'), findsOneWidget);
-    expect(find.textContaining('Aspirin'), findsOneWidget);
+    expect(find.textContaining('Aspirin'), findsWidgets);
     expect(find.textContaining('Target:'), findsWidgets);
-    expect(find.textContaining('PDB: 1PTH'), findsOneWidget);
+    expect(find.textContaining('PDB: 1PTH'), findsWidgets);
+    expect(find.textContaining('CLINICAL PRESENTATION, SIGNS & PATHOPHYSIOLOGY'), findsOneWidget);
 
     // Verify Tab 1 (Indications & Use) content
     expect(find.textContaining('Primary Therapeutic Indications'), findsOneWidget);

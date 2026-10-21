@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:quantum_forge/core/utils/xyz_parser.dart';
 import 'package:quantum_forge/features/reaction_runner/presentation/widgets/molecular_viewer_widget.dart';
 
 void main() {
