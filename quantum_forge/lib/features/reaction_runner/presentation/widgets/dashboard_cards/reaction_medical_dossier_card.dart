@@ -4,6 +4,7 @@
 // A dedicated, research-grade clinical and veterinary pharmacology section
 // rendered directly on the main reaction simulation page for MBBS, Pharm-D,
 // DVM, and specialist medical researchers.
+// Overhauled with color-coded, infographic-style visual components.
 // ============================================================================
 
 import 'package:flutter/material.dart';
@@ -30,6 +31,10 @@ class ReactionMedicalDossierCard extends StatefulWidget {
 }
 
 class _ReactionMedicalDossierCardState extends State<ReactionMedicalDossierCard> {
+  /// Testing flag for rapid UI mock inspection without backend/database delays.
+  /// Set to `false` for production data.
+  static const bool _isTestingUI = false;
+
   late bool _isExpanded;
   int _activeTabIndex = 0;
 
@@ -43,6 +48,72 @@ class _ReactionMedicalDossierCardState extends State<ReactionMedicalDossierCard>
     (title: 'Evidence & Pearls', icon: Icons.school_rounded),
   ];
 
+  MedicinePharmacologyProfile get _effectiveProfile {
+    if (_isTestingUI) {
+      return const MedicinePharmacologyProfile(
+        id: 'mock-aspirin',
+        genericName: 'Aspirin (Mock)',
+        iupacName: '2-acetoxybenzoic acid',
+        brandNames: ['Bayer Aspirin', 'Disprin', 'Ecotrin'],
+        targetDisciplines: [
+          TargetDiscipline.mbbs,
+          TargetDiscipline.pharmD,
+          TargetDiscipline.dvm,
+        ],
+        specialty: PharmacologicalSpecialty.cardiology,
+        chemicalClass: 'NSAID / Irreversible COX Inhibitor',
+        therapeuticIndications:
+            '• Mild to moderate pain\n• Inflammation\n• Acute Coronary Syndrome (STEMI / NSTEMI)',
+        clinicalStaging: 'ACC/AHA Class I indication for acute coronary syndromes (162–325 mg loading).',
+        sourceAndOrigin:
+            'Natural product origin: Salicin from willow bark (Salix alba) -> Kolbe-Schmitt carboxylation -> Acetylation with acetic anhydride.',
+        discoveryHistory:
+            'Described by Edward Stone in 1763; pure salicylic acid synthesized in 1853 and stabilized by Felix Hoffmann in 1897.',
+        syntheticRoute:
+            'Sodium phenolate + CO₂ → Sodium salicylate → Salicylic acid + (CH₃CO)₂O → Acetylsalicylic acid + CH₃COOH',
+        molecularTarget: 'Cyclooxygenase COX-1 and COX-2',
+        pdbAccession: '1PTH / 1CX2',
+        modeOfAction:
+            'Enters COX hydrophobic tunnel -> Covalently transfers acetyl to Serine-530 -> Irreversible TXA2 inhibition -> Decreased platelet aggregation',
+        downstreamSignaling:
+            'Suppression of TXA2 synthesis -> Blockade of GPIIb/IIIa integrin activation -> Preservation of endothelial PGI2',
+        absorptionAndDistribution:
+            'Absorption: Rapid passive diffusion (Stomach & Duodenum, bioavailability ~65%)\nDistribution: High protein binding (albumin 85%), Vd: 0.17 L/kg',
+        metabolismAndElimination:
+            'Metabolism: Rapid esterase hydrolysis to salicylate (t1/2 15-20m) -> Hepatic glucuronidation\nExcretion: Renal excretion of free salicylate (pH-dependent)',
+        eliminationHalfLifeHours: 0.33,
+        comparativeSpeciesPharmacology:
+            '🐾 DVM Warning: Felines have a marked deficiency in UGT1A6 glucuronidation; prolonged t1/2 of 38-45h requires 48-72h dosing intervals.',
+        transitionStateDescription:
+            'Nucleophilic addition of Ser530 hydroxyl oxygen to the acetyl carbonyl carbon, forming a tetrahedral intermediate stabilized by the catalytic oxyanion hole.',
+        activationBarrierKcalMol: 18.2,
+        catalyticResidues: 'Ser-530, Tyr-385, Arg-120, Val-523',
+        associatedReactionId: 'med-aspirin-01',
+        contraindications:
+            '• Active peptic ulcer disease\n• Bleeding diatheses\n• Third trimester pregnancy\n• Children with viral prodrome',
+        adverseEffectsAndToxicity:
+            '⚠️ WARNING: Reye\'s Syndrome in children.\n⚠️ GI Bleeding risk.\n• Tinnitus as earliest marker of salicylism.',
+        blackBoxWarning:
+            'Reye Syndrome in pediatric and teenage patients with viral prodromes (varicella, influenza); acute microvesicular fatty liver with encephalopathy.',
+        antidoteAndRescue:
+            'Sodium bicarbonate IV (urinary alkalinization to pH > 7.5 promotes ion trapping and renal elimination); hemodialysis for severe poisoning.',
+        clinicalGuidelines: [
+          'ACC/AHA Guidelines for Acute Coronary Syndromes',
+          'ESC Cardiovascular Disease Prevention Guidelines',
+          'ACVIM Consensus: Feline Arterial Thromboembolism',
+        ],
+        primaryDoi: '10.1056/NEJMra052711',
+        pubmedId: '16339097',
+        highYieldExamPearls: [
+          'Tinnitus is an early sign of toxicity.',
+          'Causes respiratory alkalosis followed by metabolic acidosis.',
+          'Only irreversible NSAID via covalent acetylation of Ser-530.',
+        ],
+      );
+    }
+    return widget.profile;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -52,7 +123,7 @@ class _ReactionMedicalDossierCardState extends State<ReactionMedicalDossierCard>
   @override
   Widget build(BuildContext context) {
     final palette = ThemeNotifier.paletteOf(context);
-    final p = widget.profile;
+    final p = _effectiveProfile;
     const accentColor = Color(0xFF00BFA5);
 
     return ResearchCard(
@@ -116,6 +187,23 @@ class _ReactionMedicalDossierCardState extends State<ReactionMedicalDossierCard>
                             ),
                           ),
                         ),
+                        if (_isTestingUI)
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFFF9100).withValues(alpha: 0.2),
+                              borderRadius: BorderRadius.circular(4),
+                              border: Border.all(color: const Color(0xFFFF9100)),
+                            ),
+                            child: const Text(
+                              'TESTING MOCK DATA',
+                              style: TextStyle(
+                                color: Color(0xFFFF9100),
+                                fontSize: 9,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                          ),
                       ],
                     ),
                     if (widget.availableProfiles != null && widget.availableProfiles!.isNotEmpty) ...[
@@ -341,230 +429,756 @@ class _ReactionMedicalDossierCardState extends State<ReactionMedicalDossierCard>
     );
   }
 
+  // ── Tab Content Switcher ───────────────────────────────────────────────────
+
   Widget _buildActiveTabContent(dynamic palette, MedicinePharmacologyProfile p) {
     switch (_activeTabIndex) {
-      case 0: // Indications & Use
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _sectionLabel('1. Primary Therapeutic Indications & Clinical Rationale', Icons.flag_rounded),
-            const SizedBox(height: 6),
-            _bodyText(p.therapeuticIndications, palette),
-            const SizedBox(height: 14),
-            _sectionLabel('Clinical Staging & Line of Therapy', Icons.format_list_numbered_rounded),
-            const SizedBox(height: 6),
-            _bodyText(p.clinicalStaging, palette),
-            if (p.clinicalGuidelines.isNotEmpty) ...[
-              const SizedBox(height: 14),
-              _sectionLabel('Key Consensus Guidelines', Icons.verified_rounded),
-              const SizedBox(height: 6),
-              for (final g in p.clinicalGuidelines)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 4),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text('• ', style: TextStyle(color: Color(0xFF00BFA5), fontSize: 14, fontWeight: FontWeight.bold)),
-                      Expanded(child: _bodyText(g, palette)),
-                    ],
-                  ),
-                ),
-            ],
-          ],
-        );
+      case 0:
+        return _buildIndicationsTab(palette, p);
+      case 1:
+        return _buildSourceAndOriginTab(palette, p);
+      case 2:
+        return _buildModeOfActionTab(palette, p);
+      case 3:
+        return _buildAdmeTab(palette, p);
+      case 4:
+        return _buildQuantumTsTab(palette, p);
+      case 5:
+        return _buildToxicologyTab(palette, p);
+      case 6:
+      default:
+        return _buildEvidenceAndPearlsTab(palette, p);
+    }
+  }
 
-      case 1: // Source & Origin
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _sectionLabel('2. Source & Natural / Synthetic Origin', Icons.eco_rounded),
-            const SizedBox(height: 6),
-            _bodyText(p.sourceAndOrigin, palette),
-            const SizedBox(height: 14),
-            _sectionLabel('Historical Discovery & Milestones', Icons.history_edu_rounded),
-            const SizedBox(height: 6),
-            _bodyText(p.discoveryHistory, palette),
-            const SizedBox(height: 14),
-            _sectionLabel('Synthetic Organic Chemistry Pathway', Icons.science_outlined),
-            const SizedBox(height: 6),
-            _bodyText(p.syntheticRoute, palette),
-          ],
-        );
+  // ── Tab 0: Indications & Clinical Use ──────────────────────────────────────
 
-      case 2: // Mode of Action
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _sectionLabel('3. Molecular Target & Crystallographic Binding', Icons.biotech_rounded),
-            const SizedBox(height: 6),
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: const Color(0xFF00E5FF).withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(6),
-                border: Border.all(color: const Color(0xFF00E5FF).withValues(alpha: 0.3)),
-              ),
-              child: Row(
-                children: [
-                  const Icon(Icons.hub_rounded, color: Color(0xFF00E5FF), size: 18),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      'Target: ${p.molecularTarget} (PDB: ${p.pdbAccession})',
-                      style: const TextStyle(color: Color(0xFF00E5FF), fontSize: 12.5, fontWeight: FontWeight.w700),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 12),
-            _sectionLabel('Mechanism of Action (MoA)', Icons.lock_open_rounded),
-            const SizedBox(height: 6),
-            _bodyText(p.modeOfAction, palette),
-            const SizedBox(height: 14),
-            _sectionLabel('Downstream Cellular & Biochemical Cascade', Icons.account_tree_rounded),
-            const SizedBox(height: 6),
-            _bodyText(p.downstreamSignaling, palette),
-          ],
-        );
+  Widget _buildIndicationsTab(dynamic palette, MedicinePharmacologyProfile p) {
+    const greenColor = Color(0xFF00E676);
+    final rawIndications = _splitItems(p.therapeuticIndications);
 
-      case 3: // ADME & Species Pharmacology
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _sectionLabel('4. Pharmacokinetics (ADME) & Comparative Species Profile', Icons.pets_rounded),
-            const SizedBox(height: 6),
-            _keyValRow('Absorption & Distribution', p.absorptionAndDistribution, palette),
-            const SizedBox(height: 8),
-            _keyValRow('Metabolism & Elimination', p.metabolismAndElimination, palette),
-            const SizedBox(height: 8),
-            _keyValRow('Elimination Half-Life (t½)', '${p.eliminationHalfLifeHours.toStringAsFixed(1)} hours', palette),
-            const SizedBox(height: 14),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: const Color(0xFFFF9100).withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: const Color(0xFFFF9100).withValues(alpha: 0.5)),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Row(
-                    children: [
-                      Icon(Icons.warning_amber_rounded, color: Color(0xFFFF9100), size: 18),
-                      SizedBox(width: 8),
-                      Text(
-                        'Comparative Species Risks (MBBS vs. DVM Critical Alert)',
-                        style: TextStyle(color: Color(0xFFFF9100), fontSize: 12, fontWeight: FontWeight.bold),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    p.comparativeSpeciesPharmacology,
-                    style: TextStyle(color: palette.textPrimary, fontSize: 12, height: 1.45),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        );
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _sectionLabel('1. Primary Therapeutic Indications & Clinical Rationale', Icons.flag_rounded),
+        const SizedBox(height: 10),
+        _buildCardsGrid(
+          children: rawIndications.map((ind) {
+            final isVet = ind.toLowerCase().contains('veterinary') || ind.contains('🐾');
+            final isHuman = ind.toLowerCase().contains('human');
+            final color = isVet ? const Color(0xFF26A69A) : greenColor;
+            final badge = isVet ? 'VETERINARY' : (isHuman ? 'HUMAN CLINICAL' : 'INDICATION');
+            final icon = isVet ? Icons.pets_rounded : Icons.check_circle_outline_rounded;
 
-      case 4: // Quantum TS & Residues
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _sectionLabel('5. Quantum Reaction, Activation Barrier & Active Site', Icons.science_rounded),
-            const SizedBox(height: 6),
-            _keyValRow('Activation Barrier (Ea)', '${p.activationBarrierKcalMol.toStringAsFixed(1)} kcal/mol', palette),
-            const SizedBox(height: 8),
-            _keyValRow('Catalytic Active-Site Residues', p.catalyticResidues, palette),
-            const SizedBox(height: 14),
-            _sectionLabel('Transition State Quantum Mechanism', Icons.timeline_rounded),
-            const SizedBox(height: 6),
-            _bodyText(p.transitionStateDescription, palette),
-          ],
-        );
+            return _buildVisualTile(
+              icon: icon,
+              color: color,
+              title: badge,
+              data: ind,
+              palette: palette,
+            );
+          }).toList(),
+        ),
+        const SizedBox(height: 14),
+        _sectionLabel('Clinical Staging & Line of Therapy', Icons.format_list_numbered_rounded),
+        const SizedBox(height: 8),
+        _buildVisualTile(
+          icon: Icons.stairs_rounded,
+          color: const Color(0xFF00BFA5),
+          title: 'PROTOCOL & DOSING STRATIFICATION',
+          data: p.clinicalStaging,
+          palette: palette,
+        ),
+        if (p.clinicalGuidelines.isNotEmpty) ...[
+          const SizedBox(height: 14),
+          _sectionLabel('Key Consensus Guidelines', Icons.verified_rounded),
+          const SizedBox(height: 8),
+          _buildCardsGrid(
+            children: p.clinicalGuidelines.map((guideline) {
+              return _buildVisualTile(
+                icon: Icons.verified_rounded,
+                color: const Color(0xFF00E5FF),
+                title: 'CONSENSUS GUIDELINE',
+                data: guideline,
+                palette: palette,
+              );
+            }).toList(),
+          ),
+        ],
+      ],
+    );
+  }
 
-      case 5: // Toxicology & Rescue
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (p.blackBoxWarning.isNotEmpty) ...[
+  // ── Tab 1: Source & Origin ─────────────────────────────────────────────────
+
+  Widget _buildSourceAndOriginTab(dynamic palette, MedicinePharmacologyProfile p) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _sectionLabel('2. Source & Natural / Synthetic Origin', Icons.eco_rounded),
+        const SizedBox(height: 10),
+        _buildVisualTile(
+          icon: Icons.eco_rounded,
+          color: const Color(0xFF00E676),
+          title: 'BOTANICAL & NATURAL ORIGIN',
+          data: p.sourceAndOrigin,
+          palette: palette,
+        ),
+        const SizedBox(height: 14),
+        _sectionLabel('Historical Discovery & Milestones', Icons.history_edu_rounded),
+        const SizedBox(height: 8),
+        _buildVisualTile(
+          icon: Icons.history_edu_rounded,
+          color: const Color(0xFFFFD54F),
+          title: 'HISTORICAL MILESTONES',
+          data: p.discoveryHistory,
+          palette: palette,
+        ),
+        const SizedBox(height: 14),
+        _sectionLabel('Synthetic Organic Chemistry Pathway', Icons.science_outlined),
+        const SizedBox(height: 8),
+        _buildVisualTile(
+          icon: Icons.science_rounded,
+          color: const Color(0xFF00E5FF),
+          title: 'SYNTHESIS FLOWCHART',
+          data: p.syntheticRoute,
+          customChild: _buildFlowchart(p.syntheticRoute, color: const Color(0xFF00E5FF), palette: palette),
+          palette: palette,
+        ),
+      ],
+    );
+  }
+
+  // ── Tab 2: Mode of Action (MoA) ────────────────────────────────────────────
+
+  Widget _buildModeOfActionTab(dynamic palette, MedicinePharmacologyProfile p) {
+    const blueColor = Color(0xFF00E5FF);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _sectionLabel('3. Molecular Target & Crystallographic Binding', Icons.biotech_rounded),
+        const SizedBox(height: 10),
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: blueColor.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: blueColor.withValues(alpha: 0.4)),
+          ),
+          child: Row(
+            children: [
               Container(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: Colors.red.withValues(alpha: 0.15),
+                  color: blueColor.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.red.withValues(alpha: 0.7)),
                 ),
+                child: const Icon(Icons.hub_rounded, color: blueColor, size: 20),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Row(
-                      children: [
-                        Icon(Icons.report_problem_rounded, color: Colors.redAccent, size: 18),
-                        SizedBox(width: 8),
-                        Text(
-                          'FDA / EMA BLACK BOX WARNING',
-                          style: TextStyle(color: Colors.redAccent, fontSize: 12, fontWeight: FontWeight.w900),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 6),
                     Text(
-                      p.blackBoxWarning,
-                      style: TextStyle(color: palette.textPrimary, fontSize: 12, height: 1.4),
+                      'Target: ${p.molecularTarget}',
+                      style: const TextStyle(color: blueColor, fontSize: 13, fontWeight: FontWeight.w800),
+                    ),
+                    if (p.pdbAccession.isNotEmpty) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        'PDB Crystallography Code: ${p.pdbAccession}',
+                        style: TextStyle(color: palette.textMuted, fontSize: 11, fontFamily: 'monospace'),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 14),
+        _sectionLabel('Mechanism of Action (MoA)', Icons.lock_open_rounded),
+        const SizedBox(height: 8),
+        _buildVisualTile(
+          icon: Icons.account_tree_rounded,
+          color: blueColor,
+          title: 'PATHWAY FLOWCHART',
+          data: p.modeOfAction,
+          customChild: _buildFlowchart(p.modeOfAction, color: blueColor, palette: palette),
+          palette: palette,
+        ),
+        const SizedBox(height: 14),
+        _sectionLabel('Downstream Cellular & Biochemical Cascade', Icons.account_tree_rounded),
+        const SizedBox(height: 8),
+        _buildVisualTile(
+          icon: Icons.bubble_chart_rounded,
+          color: const Color(0xFF80D8FF),
+          title: 'BIOCHEMICAL CASCADE',
+          data: p.downstreamSignaling,
+          customChild: _buildFlowchart(p.downstreamSignaling, color: const Color(0xFF80D8FF), palette: palette),
+          palette: palette,
+        ),
+      ],
+    );
+  }
+
+  // ── Tab 3: ADME & Species Pharmacology ─────────────────────────────────────
+
+  Widget _buildAdmeTab(dynamic palette, MedicinePharmacologyProfile p) {
+    const orangeColor = Color(0xFFFF9100);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _sectionLabel('4. Pharmacokinetics (ADME) & Comparative Species Profile', Icons.pets_rounded),
+        const SizedBox(height: 10),
+
+        // 4-Quadrant ADME Infographic
+        _buildCardsGrid(
+          minCardWidth: 240,
+          children: [
+            _buildVisualTile(
+              icon: Icons.call_received_rounded,
+              color: orangeColor,
+              title: 'ABSORPTION [A]',
+              data: p.absorptionAndDistribution,
+              palette: palette,
+            ),
+            _buildVisualTile(
+              icon: Icons.alt_route_rounded,
+              color: const Color(0xFFFFAB40),
+              title: 'DISTRIBUTION [D]',
+              data: p.absorptionAndDistribution,
+              palette: palette,
+            ),
+            _buildVisualTile(
+              icon: Icons.biotech_rounded,
+              color: const Color(0xFFFF6D00),
+              title: 'METABOLISM [M]',
+              data: p.metabolismAndElimination,
+              palette: palette,
+            ),
+            _buildVisualTile(
+              icon: Icons.call_made_rounded,
+              color: const Color(0xFFFFAB00),
+              title: 'EXCRETION [E]',
+              data: p.metabolismAndElimination,
+              palette: palette,
+            ),
+          ],
+        ),
+
+        const SizedBox(height: 12),
+
+        // Half-Life metric pill
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          decoration: BoxDecoration(
+            color: orangeColor.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: orangeColor.withValues(alpha: 0.3)),
+          ),
+          child: Row(
+            children: [
+              const Icon(Icons.timer_outlined, color: orangeColor, size: 20),
+              const SizedBox(width: 10),
+              Text(
+                'Elimination Half-Life (t½): ${p.eliminationHalfLifeHours.toStringAsFixed(1)} hours',
+                style: const TextStyle(color: orangeColor, fontSize: 12.5, fontWeight: FontWeight.w800),
+              ),
+            ],
+          ),
+        ),
+
+        const SizedBox(height: 14),
+
+        // Comparative Species Warning Box
+        _buildWarningBox(
+          p.comparativeSpeciesPharmacology,
+          title: 'Comparative Species Risks (MBBS vs. DVM Critical Alert)',
+          icon: Icons.pets_rounded,
+          palette: palette,
+        ),
+      ],
+    );
+  }
+
+  // ── Tab 4: Quantum TS & Residues ───────────────────────────────────────────
+
+  Widget _buildQuantumTsTab(dynamic palette, MedicinePharmacologyProfile p) {
+    const purpleColor = Color(0xFF7C4DFF);
+
+    final residues = p.catalyticResidues
+        .split(RegExp(r'[,;]\s*'))
+        .map((s) => s.trim())
+        .where((s) => s.isNotEmpty)
+        .toList();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _sectionLabel('5. Quantum Reaction, Activation Barrier & Active Site', Icons.science_rounded),
+        const SizedBox(height: 10),
+
+        // Activation barrier card
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: purpleColor.withValues(alpha: 0.12),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: purpleColor.withValues(alpha: 0.4)),
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: purpleColor.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(Icons.bolt_rounded, color: purpleColor, size: 22),
+              ),
+              const SizedBox(width: 12),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Activation Barrier (Ea)',
+                    style: TextStyle(color: purpleColor, fontSize: 11, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    '${p.activationBarrierKcalMol.toStringAsFixed(1)} kcal/mol',
+                    style: TextStyle(
+                      color: palette.textPrimary,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w900,
+                      fontFamily: 'monospace',
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+
+        const SizedBox(height: 14),
+
+        // Active site residues chips
+        _sectionLabel('Catalytic Active-Site Residues', Icons.scatter_plot_rounded),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: residues.map((res) {
+            return Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: purpleColor.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(color: purpleColor.withValues(alpha: 0.5)),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.hub_rounded, size: 14, color: purpleColor),
+                  const SizedBox(width: 6),
+                  Text(
+                    res,
+                    style: const TextStyle(
+                      color: Color(0xFFD1C4E9),
+                      fontFamily: 'monospace',
+                      fontWeight: FontWeight.w700,
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }).toList(),
+        ),
+
+        const SizedBox(height: 14),
+
+        // TS Description
+        _sectionLabel('Transition State Quantum Mechanism', Icons.timeline_rounded),
+        const SizedBox(height: 8),
+        _buildVisualTile(
+          icon: Icons.timeline_rounded,
+          color: const Color(0xFFB388FF),
+          title: 'QUANTUM MECHANISM',
+          data: p.transitionStateDescription,
+          palette: palette,
+        ),
+      ],
+    );
+  }
+
+  // ── Tab 5: Toxicology & Emergency Rescue ───────────────────────────────────
+
+  Widget _buildToxicologyTab(dynamic palette, MedicinePharmacologyProfile p) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (p.blackBoxWarning.isNotEmpty) ...[
+          _buildWarningBox(
+            p.blackBoxWarning,
+            title: 'FDA / EMA BLACK BOX WARNING',
+            icon: Icons.report_problem_rounded,
+            palette: palette,
+          ),
+        ],
+
+        _sectionLabel('6. Contraindications & Drug-Drug Interactions (DDI)', Icons.do_not_disturb_on_rounded),
+        const SizedBox(height: 8),
+        _buildVisualTile(
+          icon: Icons.do_not_disturb_on_rounded,
+          color: const Color(0xFFFF5252),
+          title: 'CONTRAINDICATIONS',
+          data: p.contraindications,
+          palette: palette,
+        ),
+
+        const SizedBox(height: 14),
+
+        _sectionLabel('Adverse Drug Reactions (ADR) & Toxicity Profile', Icons.health_and_safety_rounded),
+        const SizedBox(height: 8),
+        _buildVisualTile(
+          icon: Icons.medical_services_rounded,
+          color: const Color(0xFFFF1744),
+          title: 'ADVERSE EFFECTS',
+          data: p.adverseEffectsAndToxicity,
+          palette: palette,
+        ),
+
+        const SizedBox(height: 14),
+
+        _sectionLabel('Antidote, Reversal Agents & Emergency Rescue', Icons.medication_liquid_rounded),
+        const SizedBox(height: 8),
+        _buildVisualTile(
+          icon: Icons.medication_liquid_rounded,
+          color: const Color(0xFF00E676),
+          title: 'EMERGENCY RESCUE PROTOCOL',
+          data: p.antidoteAndRescue,
+          palette: palette,
+        ),
+      ],
+    );
+  }
+
+  // ── Tab 6: Evidence & High-Yield Pearls ─────────────────────────────────────
+
+  Widget _buildEvidenceAndPearlsTab(dynamic palette, MedicinePharmacologyProfile p) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _sectionLabel('7. High-Yield Board Exam & Clinical Practice Pearls', Icons.school_rounded),
+        const SizedBox(height: 8),
+        for (final pearl in p.highYieldExamPearls)
+          Container(
+            margin: const EdgeInsets.only(bottom: 8),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFFD600).withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: const Color(0xFFFFD600).withValues(alpha: 0.35)),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Icon(Icons.star_rounded, color: Color(0xFFFFD600), size: 18),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    pearl,
+                    style: TextStyle(
+                      color: palette.textPrimary,
+                      fontSize: 12.5,
+                      height: 1.45,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+        const SizedBox(height: 14),
+
+        _sectionLabel('Primary Peer-Reviewed Evidence & Literature', Icons.menu_book_rounded),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 10,
+          runSpacing: 8,
+          children: [
+            if (p.primaryDoi.isNotEmpty)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: palette.scaffold,
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(color: palette.border),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.menu_book_rounded, color: Color(0xFF00E5FF), size: 14),
+                    const SizedBox(width: 6),
+                    Text(
+                      'Primary DOI: ${p.primaryDoi}',
+                      style: TextStyle(color: palette.textPrimary, fontSize: 11, fontWeight: FontWeight.w600),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: 14),
-            ],
-            _sectionLabel('6. Contraindications & Drug-Drug Interactions (DDI)', Icons.do_not_disturb_on_rounded),
-            const SizedBox(height: 6),
-            _bodyText(p.contraindications, palette),
-            const SizedBox(height: 14),
-            _sectionLabel('Adverse Drug Reactions (ADR) & Toxicity Profile', Icons.health_and_safety_rounded),
-            const SizedBox(height: 6),
-            _bodyText(p.adverseEffectsAndToxicity, palette),
-            const SizedBox(height: 14),
-            _sectionLabel('Antidote, Reversal Agents & Emergency Rescue', Icons.medication_liquid_rounded),
-            const SizedBox(height: 6),
-            _bodyText(p.antidoteAndRescue, palette),
-          ],
-        );
-
-      case 6: // Evidence & Pearls
-      default:
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _sectionLabel('7. High-Yield Board Exam & Clinical Practice Pearls', Icons.school_rounded),
-            const SizedBox(height: 8),
-            for (final pearl in p.highYieldExamPearls)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 6),
+            if (p.pubmedId.isNotEmpty)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: palette.scaffold,
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(color: palette.border),
+                ),
                 child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.star_rounded, color: Color(0xFFFFD600), size: 16),
-                    const SizedBox(width: 8),
-                    Expanded(child: _bodyText(pearl, palette)),
+                    const Icon(Icons.local_library_rounded, color: Color(0xFF00E676), size: 14),
+                    const SizedBox(width: 6),
+                    Text(
+                      'PubMed ID: PMID: ${p.pubmedId}',
+                      style: TextStyle(color: palette.textPrimary, fontSize: 11, fontWeight: FontWeight.w600),
+                    ),
                   ],
                 ),
               ),
-            const SizedBox(height: 14),
-            _sectionLabel('Primary Peer-Reviewed Evidence & Literature', Icons.menu_book_rounded),
-            const SizedBox(height: 6),
-            if (p.primaryDoi.isNotEmpty)
-              _keyValRow('Primary DOI', p.primaryDoi, palette),
-            if (p.pubmedId.isNotEmpty)
-              _keyValRow('PubMed ID', 'PMID: ${p.pubmedId}', palette),
           ],
-        );
+        ),
+      ],
+    );
+  }
+
+  // ── Infographic Helper Widgets ─────────────────────────────────────────────
+
+  Widget _buildVisualTile({
+    required IconData icon,
+    required Color color,
+    required String title,
+    required String data,
+    Widget? customChild,
+    String? badge,
+    required dynamic palette,
+  }) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(5),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.18),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Icon(icon, color: color, size: 14),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  title,
+                  style: TextStyle(
+                    color: color,
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.3,
+                  ),
+                ),
+              ),
+              if (badge != null)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: color.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(4),
+                    border: Border.all(color: color.withValues(alpha: 0.5)),
+                  ),
+                  child: Text(
+                    badge,
+                    style: TextStyle(color: color, fontSize: 9, fontWeight: FontWeight.w800),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          customChild ?? _bodyText(data, palette),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildWarningBox(
+    String text, {
+    String title = 'BLACK BOX WARNING',
+    IconData icon = Icons.report_problem_rounded,
+    required dynamic palette,
+  }) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.red.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.redAccent.withValues(alpha: 0.7), width: 1.5),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, color: Colors.redAccent, size: 18),
+              const SizedBox(width: 8),
+              Text(
+                title,
+                style: const TextStyle(
+                  color: Colors.redAccent,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 0.6,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Text(
+            text,
+            style: TextStyle(
+              color: palette.textPrimary,
+              fontSize: 12,
+              height: 1.45,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFlowchartStep(
+    String step, {
+    required Color color,
+    int? stepNumber,
+    IconData? icon,
+    required dynamic palette,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: color.withValues(alpha: 0.45)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (stepNumber != null) ...[
+            Container(
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color: color,
+                shape: BoxShape.circle,
+              ),
+              child: Text(
+                '$stepNumber',
+                style: const TextStyle(color: Colors.black87, fontSize: 9.5, fontWeight: FontWeight.bold),
+              ),
+            ),
+            const SizedBox(width: 6),
+          ] else if (icon != null) ...[
+            Icon(icon, size: 13, color: color),
+            const SizedBox(width: 6),
+          ],
+          Flexible(
+            child: Text(
+              step.trim(),
+              style: TextStyle(
+                color: palette.textPrimary,
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFlowchart(String rawText, {required Color color, required dynamic palette}) {
+    final parts = rawText
+        .split(RegExp(r'\s*(?:->|→)\s*'))
+        .map((s) => s.trim())
+        .where((s) => s.isNotEmpty)
+        .toList();
+
+    if (parts.length <= 1) {
+      return _bodyText(rawText, palette);
     }
+
+    return Wrap(
+      spacing: 6,
+      runSpacing: 6,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: [
+        for (int i = 0; i < parts.length; i++) ...[
+          _buildFlowchartStep(
+            parts[i],
+            color: color,
+            stepNumber: i + 1,
+            palette: palette,
+          ),
+          if (i < parts.length - 1)
+            Icon(Icons.arrow_forward_rounded, color: color, size: 14),
+        ],
+      ],
+    );
+  }
+
+  List<String> _splitItems(String text) {
+    return text
+        .split(RegExp(r'(?:•|\n|\r\n)\s*'))
+        .map((s) => s.replaceAll(RegExp(r'^\s*[-*•]\s*'), '').trim())
+        .where((s) => s.isNotEmpty)
+        .toList();
+  }
+
+  Widget _buildCardsGrid({
+    required List<Widget> children,
+    double minCardWidth = 260,
+  }) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final crossAxisCount = (constraints.maxWidth / minCardWidth).floor().clamp(1, 4);
+        if (crossAxisCount == 1) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: children,
+          );
+        }
+        final itemWidth = (constraints.maxWidth - (crossAxisCount - 1) * 8) / crossAxisCount - 1;
+        return Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: children.map((c) => SizedBox(width: itemWidth, child: c)).toList(),
+        );
+      },
+    );
   }
 
   Widget _sectionLabel(String title, IconData icon) {
@@ -590,23 +1204,8 @@ class _ReactionMedicalDossierCardState extends State<ReactionMedicalDossierCard>
       text,
       style: TextStyle(
         color: palette.textPrimary,
-        fontSize: 12.5,
-        height: 1.5,
-      ),
-    );
-  }
-
-  Widget _keyValRow(String label, String value, dynamic palette) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 2),
-      child: Text.rich(
-        TextSpan(
-          style: TextStyle(fontSize: 12, height: 1.45, color: palette.textPrimary),
-          children: [
-            TextSpan(text: '$label: ', style: TextStyle(fontWeight: FontWeight.w700, color: palette.textMuted)),
-            TextSpan(text: value),
-          ],
-        ),
+        fontSize: 12,
+        height: 1.45,
       ),
     );
   }
