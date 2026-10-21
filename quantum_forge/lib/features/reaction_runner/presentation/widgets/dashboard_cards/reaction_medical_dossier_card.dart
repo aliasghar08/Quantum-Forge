@@ -10,6 +10,7 @@
 import 'package:flutter/material.dart';
 import 'package:quantum_forge/core/theme/theme_provider.dart';
 import 'package:quantum_forge/features/pharmacopeia/data/medicine_pharmacology_profile.dart';
+import 'medical_dossier_diagrams.dart';
 import 'research_ui.dart';
 
 class ReactionMedicalDossierCard extends StatefulWidget {
@@ -524,6 +525,8 @@ class _ReactionMedicalDossierCardState extends State<ReactionMedicalDossierCard>
           data: p.sourceAndOrigin,
           palette: palette,
         ),
+        const SizedBox(height: 12),
+        BotanicalSynthesisCycleDiagram(palette: palette),
         const SizedBox(height: 14),
         _sectionLabel('Historical Discovery & Milestones', Icons.history_edu_rounded),
         const SizedBox(height: 8),
@@ -598,6 +601,8 @@ class _ReactionMedicalDossierCardState extends State<ReactionMedicalDossierCard>
             ],
           ),
         ),
+        const SizedBox(height: 14),
+        BiochemicalCascadeCycleDiagram(palette: palette),
         const SizedBox(height: 14),
         _sectionLabel('Mechanism of Action (MoA)', Icons.lock_open_rounded),
         const SizedBox(height: 8),
@@ -694,6 +699,13 @@ class _ReactionMedicalDossierCardState extends State<ReactionMedicalDossierCard>
 
         const SizedBox(height: 14),
 
+        // Pictorial PK Plasma Concentration Curve & Organ Flow Map
+        PkPlasmaCurveDiagram(palette: palette, halfLifeHours: p.eliminationHalfLifeHours),
+        const SizedBox(height: 12),
+        AdmeOrganFlowDiagram(palette: palette),
+
+        const SizedBox(height: 14),
+
         // Comparative Species Warning Box
         _buildWarningBox(
           p.comparativeSpeciesPharmacology,
@@ -766,6 +778,11 @@ class _ReactionMedicalDossierCardState extends State<ReactionMedicalDossierCard>
 
         const SizedBox(height: 14),
 
+        // Reaction Coordinate Energy Diagram
+        ReactionCoordinateEnergyDiagram(palette: palette, eaKcalMol: p.activationBarrierKcalMol),
+
+        const SizedBox(height: 14),
+
         // Active site residues chips
         _sectionLabel('Catalytic Active-Site Residues', Icons.scatter_plot_rounded),
         const SizedBox(height: 8),
@@ -829,7 +846,12 @@ class _ReactionMedicalDossierCardState extends State<ReactionMedicalDossierCard>
             icon: Icons.report_problem_rounded,
             palette: palette,
           ),
+          const SizedBox(height: 12),
         ],
+
+        // Pictorial Biphasic Acid-Base & Antidote Cycle Diagram
+        ToxicologyBiphasicCycleDiagram(palette: palette),
+        const SizedBox(height: 14),
 
         _sectionLabel('6. Contraindications & Drug-Drug Interactions (DDI)', Icons.do_not_disturb_on_rounded),
         const SizedBox(height: 8),
