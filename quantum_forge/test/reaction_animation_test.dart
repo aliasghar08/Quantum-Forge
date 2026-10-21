@@ -42,6 +42,8 @@ Future<void> pumpAnimation(
   List<double>? energyProfileEv,
   int? maxEnergyIndex,
   int? frameRateOverride,
+  double initialPlaybackSpeed = 1.0,
+  bool dwellAtEndpoints = false,
   Size surface = const Size(900, 2200),
 }) async {
   tester.view.physicalSize = surface;
@@ -59,6 +61,8 @@ Future<void> pumpAnimation(
             energyProfileEv: energyProfileEv,
             maxEnergyIndex: maxEnergyIndex,
             frameRateOverride: frameRateOverride,
+            initialPlaybackSpeed: initialPlaybackSpeed,
+            dwellAtEndpoints: dwellAtEndpoints,
           ),
         ),
       ),
@@ -518,6 +522,32 @@ void main() {
     await tester.tap(find.byTooltip('Close viewer settings'));
     await tester.pump();
     expect(find.text('SCALING'), findsNothing);
+
+    expect(tester.takeException(), isNull);
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
+
+  testWidgets('supports custom initialPlaybackSpeed, 0.1x chip, and endpoint dwell', (tester) async {
+    await pumpAnimation(
+      tester,
+      frameRateOverride: 5,
+      initialPlaybackSpeed: 0.5,
+      dwellAtEndpoints: true,
+    );
+
+    // Initial frame is 1 (Avogadro 1-based display)
+    expect(shownFrame(tester), 1);
+
+    // Speed chips exist including 0.1x and 0.5x
+    expect(find.text('0.1x'), findsOneWidget);
+    expect(find.text('0.5x'), findsOneWidget);
+
+    // Tap 0.1x speed chip
+    await tester.tap(find.text('0.1x'));
+    await tester.pump();
+
+    // Dwell and playback operate smoothly without crashing
+    await tester.pump(const Duration(milliseconds: 500));
 
     expect(tester.takeException(), isNull);
     await tester.pumpWidget(const SizedBox.shrink());

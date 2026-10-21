@@ -112,7 +112,11 @@ class ReactionAnimationCard extends StatelessWidget {
                     energyProfile.isEmpty ? null : energyProfile,
                 energyProfileEv: status.energyProfileEv,
                 maxEnergyIndex: status.maxEnergyIndex,
-                frameRateOverride: 4, // Exact match with template detail / library inspection pacing (4 FPS)
+                frameRateOverride: trajectoryFrames.length <= 15
+                    ? 1
+                    : (trajectoryFrames.length <= 35 ? 2 : 4),
+                initialPlaybackSpeed: 0.5,
+                dwellAtEndpoints: true,
               )
             else
               Padding(

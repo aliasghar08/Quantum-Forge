@@ -90,6 +90,8 @@ class ReactionAnimationWidget extends StatefulWidget {
     this.energyProfileEv,
     this.maxEnergyIndex,
     this.frameRateOverride,
+    this.initialPlaybackSpeed = 1.0,
+    this.dwellAtEndpoints = false,
     this.displayType = AvogadroDisplayType.ballAndStick,
     this.dynamicBonding = true,
     this.showBondNumbers = false,
@@ -101,6 +103,12 @@ class ReactionAnimationWidget extends StatefulWidget {
 
   /// One XYZ document per trajectory image, in path order.
   final List<String> trajectoryFrames;
+
+  /// Starting speed multiplier (default 1.0, relaxed 0.5 for scientific inspection).
+  final double initialPlaybackSpeed;
+
+  /// Whether to pause for a brief dwell time at the reactant and product endpoints.
+  final bool dwellAtEndpoints;
 
   /// Whether to render in compact mode (only the 3D canvas, no toolbars).
   final bool compactMode;
@@ -224,6 +232,7 @@ class _ReactionAnimationWidgetState extends State<ReactionAnimationWidget> {
 
   Timer? _ticker;
   int _direction = 1;
+  int _dwellRemaining = 0;
   AnimationLoopMode _loopMode = AnimationLoopMode.forward;
   AvogadroDisplayType _displayType = AvogadroDisplayType.ballAndStick;
 
@@ -292,6 +301,7 @@ class _ReactionAnimationWidgetState extends State<ReactionAnimationWidget> {
     _displayType = widget.displayType;
     _dynamicBonding = widget.dynamicBonding;
     _showBondNumbers = widget.showBondNumbers;
+    _playbackSpeed = widget.initialPlaybackSpeed;
     if (widget.frameRateOverride != null) {
       _frameRate = widget.frameRateOverride!.clamp(
         ReactionAnimationWidget.minFrameRate,
@@ -314,6 +324,11 @@ class _ReactionAnimationWidgetState extends State<ReactionAnimationWidget> {
   void didUpdateWidget(covariant ReactionAnimationWidget old) {
     super.didUpdateWidget(old);
     didUpdateCount++;
+
+    if (old.initialPlaybackSpeed != widget.initialPlaybackSpeed) {
+      _playbackSpeed = widget.initialPlaybackSpeed;
+      if (_playing) _restartTicker();
+    }
 
     // Current behaviour uses identity, which is over-eager: a parent that
     // rebuilds the frame list on every tick will trigger a reload every tick.

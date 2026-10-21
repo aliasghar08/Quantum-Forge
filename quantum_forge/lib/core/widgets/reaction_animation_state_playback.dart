@@ -52,9 +52,12 @@ extension _ReactionAnimationPlaybackExt on _ReactionAnimationWidgetState {
 
   double get _pathT => _frameCount <= 1 ? 0.0 : _frame / (_frameCount - 1);
 
+  static const int _endpointDwellTicks = 2;
+
   void _restartTicker() {
     _ticker?.cancel();
     _ticker = null;
+    _dwellRemaining = 0;
     if (!_playing || _span <= 1) return;
     _ticker = Timer.periodic(_frameInterval, (_) => _tick());
   }
@@ -64,21 +67,38 @@ extension _ReactionAnimationPlaybackExt on _ReactionAnimationWidgetState {
     if (!mounted || !_playing) return;
     if (_span <= 1) return;
 
+    if (widget.dwellAtEndpoints && _dwellRemaining > 0) {
+      _dwellRemaining--;
+      return;
+    }
+
     var next = _frame + _direction;
     switch (_loopMode) {
       case AnimationLoopMode.forward:
-        if (next > _endFrame) next = _startFrame;
+        if (next > _endFrame) {
+          next = _startFrame;
+          if (widget.dwellAtEndpoints) _dwellRemaining = _endpointDwellTicks;
+        } else if (next == _endFrame && widget.dwellAtEndpoints) {
+          _dwellRemaining = _endpointDwellTicks;
+        }
         if (next < _startFrame) next = _startFrame;
       case AnimationLoopMode.backward:
-        if (next < _startFrame) next = _endFrame;
+        if (next < _startFrame) {
+          next = _endFrame;
+          if (widget.dwellAtEndpoints) _dwellRemaining = _endpointDwellTicks;
+        } else if (next == _startFrame && widget.dwellAtEndpoints) {
+          _dwellRemaining = _endpointDwellTicks;
+        }
         if (next > _endFrame) next = _endFrame;
       case AnimationLoopMode.pingpong:
         if (next > _endFrame) {
           _direction = -1;
           next = _endFrame - 1;
+          if (widget.dwellAtEndpoints) _dwellRemaining = _endpointDwellTicks;
         } else if (next < _startFrame) {
           _direction = 1;
           next = _startFrame + 1;
+          if (widget.dwellAtEndpoints) _dwellRemaining = _endpointDwellTicks;
         }
     }
     _showFrame(next);

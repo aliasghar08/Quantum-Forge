@@ -140,8 +140,9 @@ extension _ReactionAnimationHeaderExt on _ReactionAnimationWidgetState {
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
-        children: [0.25, 0.5, 1.0, 2.0].map((speed) {
-          final isSelected = _playbackSpeed == speed;
+        children: [0.1, 0.25, 0.5, 1.0, 2.0].map((speed) {
+          final isSelected = (_playbackSpeed - speed).abs() < 0.001;
+          final label = speed == 1.0 ? '1x' : (speed == 2.0 ? '2x' : '${speed}x');
           return InkWell(
             borderRadius: BorderRadius.circular(12),
             onTap: () {
@@ -157,7 +158,7 @@ extension _ReactionAnimationHeaderExt on _ReactionAnimationWidgetState {
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text(
-                '${speed}x',
+                label,
                 style: TextStyle(
                   fontSize: 10,
                   fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
