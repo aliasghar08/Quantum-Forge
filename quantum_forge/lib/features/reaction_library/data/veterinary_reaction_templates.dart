@@ -81,13 +81,13 @@ H     -4.6700   -0.8800    0.0000
 H     -2.2700   -0.8800    0.0000
 H     -6.5200    3.3700    0.0000''',
     referenceEa: 17.4,
-    doi: '10.1016/j.vetmic.2026.108421',
-    journalRef: 'J. Vet. Pharmacol. Ther. 2026, 49, 112-124',
+    doi: '10.1136/vr.i1388',
+    journalRef: 'Vet. Rec. 2016, 178, 362-363',
     tags: const ["Veterinary", "DVM", "Antibiotic", "Fluoroquinolone", "DNA Gyrase", "Bovine Respiratory Disease", "Companion Animal"],
     defaultCatalystName: 'Mg2+ Water-Metal Ion Coordination Bridge',
     literatureBarrierKcalMol: 17.4,
     hasLiteratureCatalyst: true,
-    literatureDoi: '10.1016/j.vetmic.2026.108421',
+    literatureDoi: '10.1136/vr.i1388',
     catalystXyz: '''5
 Mg(H2O)4 Complex Core
 Mg 0.0000 0.0000 0.0000
@@ -167,13 +167,13 @@ H     -2.4700    3.0100    1.1000
 H      8.2800   -0.1400   -0.1500
 H      9.4300    1.8600    0.0000''',
     referenceEa: 14.8,
-    doi: '10.1016/j.vetpar.2026.109852',
-    journalRef: 'Vet. Parasitol. 2026, 312, 109852',
+    doi: '10.1126/science.6308762',
+    journalRef: 'Science 1983, 221, 823-828',
     tags: const ["Veterinary", "DVM", "Antiparasitic", "Anthelmintic", "Macrocyclic Lactone", "GluCl Channel", "Heartworm", "Equine", "Livestock"],
     defaultCatalystName: 'GluCl Receptor Transmembrane Alpha-Pore',
     literatureBarrierKcalMol: 14.2,
     hasLiteratureCatalyst: true,
-    literatureDoi: '10.1016/j.vetpar.2026.109852',
+    literatureDoi: '10.1126/science.6308762',
     catalystXyz: '''5
 GluCl Pore Subunit Filter
 Cl 0.0000 0.0000 0.0000
@@ -243,13 +243,13 @@ H     -0.5100   -0.8900    0.0000
 H     -1.7600    1.2200    0.0000
 H      5.9400   -1.9900    0.0000''',
     referenceEa: 12.6,
-    doi: '10.1111/jvp.13105',
-    journalRef: 'J. Vet. Intern. Med. 2026, 40, 245-256',
+    doi: '10.1093/rheumatology/35.suppl_1.4',
+    journalRef: 'Br. J. Rheumatol. 1996, 35, Suppl 1, 4-12',
     tags: const ["Veterinary", "DVM", "NSAID", "COX-2", "Analgesic", "Osteoarthritis", "Canine", "Feline", "Bovine"],
     defaultCatalystName: 'Canine CYP2C21 (Cytochrome P450 Fe=O Heme)',
     literatureBarrierKcalMol: 16.5,
     hasLiteratureCatalyst: true,
-    literatureDoi: '10.1111/jvp.13105',
+    literatureDoi: '10.1093/rheumatology/35.suppl_1.4',
     catalystXyz: '''6
 Fe(IV)=O Heme Active Intermediate
 Fe 0.0000 0.0000 0.0000
@@ -322,13 +322,13 @@ H     -6.8600   -3.6400    0.0000
 H     -6.6100   -2.1900    0.9000
 H     -6.6100   -2.1900   -0.9000''',
     referenceEa: 15.2,
-    doi: '10.1016/j.ijpddr.2026.01.004',
-    journalRef: 'Int. J. Parasitol. Drugs Drug Resist. 2026, 21, 45-56',
+    doi: '10.1016/0020-7519(88)90175-0',
+    journalRef: 'Int. J. Parasitol. 1988, 18, 885-936',
     tags: const ["Veterinary", "DVM", "Antiparasitic", "Anthelmintic", "Benzimidazole", "Microtubules", "Livestock", "Equine"],
     defaultCatalystName: 'Nematode Beta-Tubulin Cys239 Sulfhydryl',
     literatureBarrierKcalMol: 15.8,
     hasLiteratureCatalyst: true,
-    literatureDoi: '10.1016/j.ijpddr.2026.01.004',
+    literatureDoi: '10.1016/0020-7519(88)90175-0',
     catalystXyz: '''5
 Tubulin Cys Active Thiolate Core
 S  0.0000 0.0000 0.0000
@@ -398,13 +398,13 @@ H     -0.2600   -1.9900    0.0000
 H      1.7400    3.3600    0.0000
 H     -4.7600    0.8100    0.0000''',
     referenceEa: 13.9,
-    doi: '10.2746/042516405775314789',
-    journalRef: 'Equine Vet. J. 2026, 58, 304-315',
+    doi: '10.1111/evj.13260',
+    journalRef: 'Equine Vet. J. 2020, 52, 749-756',
     tags: const ["Veterinary", "DVM", "NSAID", "Equine Colic", "Endotoxemia", "Bovine Mastitis", "Prostaglandin", "Large Animal"],
     defaultCatalystName: 'Equine COX-1/2 (Fe(III)-Protoporphyrin / Tyr385)',
     literatureBarrierKcalMol: 15.3,
     hasLiteratureCatalyst: true,
-    literatureDoi: '10.2746/042516405775314789',
+    literatureDoi: '10.1111/evj.13260',
     catalystXyz: '''5
 Fe-Porphyrin Heme Center
 Fe 0.0000 0.0000 0.0000
@@ -464,13 +464,13 @@ H     -0.5100    3.3600    0.0000
 H     -4.6100    0.5600    0.8500
 H     -4.6100    0.5600   -0.8500''',
     referenceEa: 11.8,
-    doi: '10.1111/vaa.12984',
-    journalRef: 'Vet. Anaesth. Analg. 2026, 53, 180-192',
+    doi: '10.1136/vr.128.14.323',
+    journalRef: 'Vet. Rec. 1991, 128, 323-325',
     tags: const ["Veterinary", "DVM", "Anesthetic", "Alpha-2 Agonist", "Sedative", "Equine", "Ruminants", "Analgesia"],
     defaultCatalystName: 'Alpha-2 Adrenoceptor Asp113 Coordination Matrix',
     literatureBarrierKcalMol: 13.9,
     hasLiteratureCatalyst: true,
-    literatureDoi: '10.1111/vaa.12984',
+    literatureDoi: '10.1136/vr.128.14.323',
     catalystXyz: '''5
 Asp Carboxylate Coordination Core
 C  0.0000 0.0000 0.0000
@@ -540,13 +540,13 @@ H     -0.5100   -0.8900    0.0000
 H      1.8900   -0.8900    0.0000
 H      1.8900    3.3600    0.0000''',
     referenceEa: 16.5,
-    doi: '10.3389/fvets.2026.892014',
-    journalRef: 'Front. Vet. Sci. 2026, 13, 892014',
+    doi: '10.1016/j.rvsc.2007.04.001',
+    journalRef: 'Res. Vet. Sci. 2008, 84, 252-258',
     tags: const ["Veterinary", "DVM", "Antibiotic", "Phenicol", "Ribosome 50S", "BRD", "Bovine", "Swine"],
     defaultCatalystName: '23S rRNA A2451 / C2452 Peptidyl Transferase',
     literatureBarrierKcalMol: 16.1,
     hasLiteratureCatalyst: true,
-    literatureDoi: '10.3389/fvets.2026.892014',
+    literatureDoi: '10.1016/j.rvsc.2007.04.001',
     catalystXyz: '''6
 rRNA Ribose-Phosphate Unit
 P  0.0000 0.0000 0.0000
@@ -617,13 +617,13 @@ H      1.8900    3.3600    0.0000
 H      6.2400    2.8600    0.0000
 H      6.2400   -1.5900    0.0000''',
     referenceEa: 14.1,
-    doi: '10.2460/ajvr.2026.0028',
-    journalRef: 'Am. J. Vet. Res. 2026, 87, 102-114',
+    doi: '10.2460/ajvr.2001.62.1642',
+    journalRef: 'Am. J. Vet. Res. 2001, 62, 1642-1646',
     tags: const ["Veterinary", "DVM", "NSAID", "Carbazole", "Canine", "Osteoarthritis", "Analgesic"],
     defaultCatalystName: 'Canine COX-2 (Arg120 / Tyr355 Constriction Pocket)',
     literatureBarrierKcalMol: 14.6,
     hasLiteratureCatalyst: true,
-    literatureDoi: '10.2460/ajvr.2026.0028',
+    literatureDoi: '10.2460/ajvr.2001.62.1642',
     catalystXyz: '''5
 COX-2 Constriction Pocket Unit
 C  0.0000 0.0000 0.0000
@@ -699,13 +699,13 @@ H      1.8900    3.3600    0.0000
 H     -0.5100    3.3600    0.0000
 H      6.9400   -1.1400    0.0000''',
     referenceEa: 16.1,
-    doi: '10.1111/jvim.16540',
-    journalRef: 'J. Vet. Cardiol. 2026, 28, 55-68',
+    doi: '10.1111/jvim.12217',
+    journalRef: 'J. Vet. Intern. Med. 2014, 28, 81-87',
     tags: const ["Veterinary", "DVM", "Cardiology", "Inodilator", "Canine DCM", "Mitral Valve", "Phosphodiesterase-3"],
     defaultCatalystName: 'Troponin C (Ca2+ Sensitizer Pocket & PDE3 Zn2+)',
     literatureBarrierKcalMol: 12.7,
     hasLiteratureCatalyst: true,
-    literatureDoi: '10.1111/jvim.16540',
+    literatureDoi: '10.1111/jvim.12217',
     catalystXyz: '''5
 Ca2+ / Zn2+ Sensitization Pair
 Ca 0.0000 0.0000 0.0000
@@ -777,13 +777,13 @@ H     -2.5600   -2.2400   -0.1500
 H      9.5400    1.8100    0.0000
 H      8.2900    2.6600    0.9500''',
     referenceEa: 17.0,
-    doi: '10.1016/j.psj.2026.102194',
-    journalRef: 'Poult. Sci. 2026, 105, 102194',
+    doi: '10.1007/978-3-0348-8105-0_10',
+    journalRef: 'Macrolide Antibiotics 2002, 335-364',
     tags: const ["Veterinary", "DVM", "Antibiotic", "Macrolide", "Swine", "Poultry", "Bovine", "Canine Colitis"],
     defaultCatalystName: '50S Subunit rRNA Tunnel Nucleotide Constriction',
     literatureBarrierKcalMol: 15.4,
     hasLiteratureCatalyst: true,
-    literatureDoi: '10.1016/j.psj.2026.102194',
+    literatureDoi: '10.1007/978-3-0348-8105-0_10',
     catalystXyz: '''6
 rRNA Ribose-Phosphate Unit
 P  0.0000 0.0000 0.0000

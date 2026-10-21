@@ -75,13 +75,13 @@ H      2.5695    -0.3576     0.6963
 H      3.0133    -0.8625    -0.9702
 H      6.0859    -0.4112     0.6800''',
     referenceEa: 18.2,
-    doi: '10.1021/jm00125a008',
-    journalRef: 'J. Med. Chem. 1990, 33, 1456',
+    doi: '10.1073/pnas.72.8.3073',
+    journalRef: 'Proc. Natl. Acad. Sci. U.S.A. 1975, 72, 3073-3076',
     tags: const ["Pharm-D", "MBBS", "NSAID", "Aspirin", "COX-1/2", "Antiplatelet", "Esterification"],
     defaultCatalystName: 'H2SO4 (Sulfuric Acid)',
     literatureBarrierKcalMol: 18.2,
     hasLiteratureCatalyst: true,
-    literatureDoi: '10.1021/jm00125a008',
+    literatureDoi: '10.1016/s0021-9258(17)36820-5',
     catalystXyz: '''7
 H2SO4 Catalyst
 S  0.0000 0.0000 0.0000
@@ -159,13 +159,13 @@ H      2.5695    -0.3576     0.6963
 H      3.0133    -0.8625    -0.9702
 H      6.0859    -0.4112     0.6800''',
     referenceEa: 14.5,
-    doi: '10.1056/NEJM198104233041705',
-    journalRef: 'N. Engl. J. Med. 1981, 304, 997',
+    doi: '10.1159/000136547',
+    journalRef: 'Pharmacology 1974, 12, 251-260',
     tags: const ["Pharm-D", "MBBS", "Paracetamol", "Analgesic", "CYP2E1", "NAPQI", "Toxicology"],
     defaultCatalystName: 'CH3COONa / H2SO4 Buffer',
     literatureBarrierKcalMol: 14.5,
     hasLiteratureCatalyst: true,
-    literatureDoi: '10.1056/NEJM198104233041705',
+    literatureDoi: '10.1159/000136547',
     catalystXyz: '''7
 CH3COONa Catalyst
 C  0.0000 0.0000 0.0000
@@ -213,13 +213,13 @@ H     -0.2391    -0.4818     1.5663
 H     -2.4214     0.8020     0.0689
 H     -2.4287     0.4060     1.6487''',
     referenceEa: 19.8,
-    doi: '10.1128/AAC.01160-14',
-    journalRef: 'Antimicrob. Agents Chemother. 2014, 58, 6385',
+    doi: '10.1073/pnas.54.4.1133',
+    journalRef: 'Proc. Natl. Acad. Sci. U.S.A. 1965, 54, 1133-1141',
     tags: const ["Pharm-D", "MBBS", "Antibiotic", "Beta-lactam", "Penicillin", "Resistance", "Microbiology"],
     defaultCatalystName: 'Beta-Lactamase (Ser70/Zn2+)',
     literatureBarrierKcalMol: 19.8,
     hasLiteratureCatalyst: true,
-    literatureDoi: '10.1128/AAC.01160-14',
+    literatureDoi: '10.1073/pnas.54.4.1133',
     catalystXyz: '''4
 Zn(II) Active Site Core
 Zn 0.0000 0.0000 0.0000
@@ -1354,13 +1354,13 @@ S      3.9623     0.6121     0.0000
 H      3.0450    -0.3661     0.0000
 H      4.9928    -0.2460     0.0000''',
     referenceEa: 14.2,
-    doi: '10.1021/jm00219a008',
-    journalRef: 'J. Med. Chem. 1978, 21, 313',
+    doi: '10.1126/science.191908',
+    journalRef: 'Science 1977, 196, 441-444',
     tags: const ["MBBS", "Pharm-D", "Cardiology", "ACE-Inhibitor", "Hypertension", "Renin-Angiotensin", "Captopril"],
     defaultCatalystName: 'ACE Active-Site Zn2+ Metalloprotease',
     literatureBarrierKcalMol: 13.9,
     hasLiteratureCatalyst: true,
-    literatureDoi: '10.1021/jm00219a008',
+    literatureDoi: '10.1126/science.191908',
     catalystXyz: '''4
 Zn(II) Active Center
 Zn 0.0000 0.0000 0.0000
@@ -1496,7 +1496,7 @@ H      4.4246    -1.4559     0.5138
 H      5.4671     1.1550     0.0848''',
     referenceEa: 15.6,
     doi: '10.1038/288280a0',
-    journalRef: 'Nature 1980, 288, 280',
+    journalRef: 'Nature 1980, 288, 280-283',
     tags: const ["Pharm-D", "MBBS", "Prodrug", "Bioactivation", "CES1", "Enalapril", "Pharmacokinetics"],
     defaultCatalystName: 'CES1 (Ser221-His468-Glu354 Triad)',
     literatureBarrierKcalMol: 14.4,
@@ -1632,13 +1632,13 @@ O      4.0075     0.3977     0.0000
 H      3.2329    -0.1844     0.0000
 H      4.7596    -0.2134     0.0000''',
     referenceEa: 16.8,
-    doi: '10.1161/01.HYP.17.6.820',
-    journalRef: 'Hypertension 1991, 17, 820',
+    doi: '10.1021/jm00167a007',
+    journalRef: 'J. Med. Chem. 1991, 34, 1514-1522',
     tags: const ["MBBS", "Pharm-D", "Cardiology", "ARB", "Losartan", "Hypertension", "CYP2C9"],
     defaultCatalystName: 'CYP2C9 (Cytochrome P450 Fe=O Heme)',
     literatureBarrierKcalMol: 17.2,
     hasLiteratureCatalyst: true,
-    literatureDoi: '10.1161/01.HYP.17.6.820',
+    literatureDoi: '10.1021/jm00167a007',
     catalystXyz: '''6
 Fe(IV)=O Heme Active Intermediate
 Fe 0.0000 0.0000 0.0000
@@ -2075,13 +2075,13 @@ O      4.0075     0.3977     0.0000
 H      3.2329    -0.1844     0.0000
 H      4.7596    -0.2134     0.0000''',
     referenceEa: 17.5,
-    doi: '10.1021/jm950796v',
-    journalRef: 'J. Med. Chem. 1996, 39, 284',
+    doi: '10.1016/s0079-6468(08)70080-8',
+    journalRef: 'Prog. Med. Chem. 2002, 40, 1-22',
     tags: const ["MBBS", "Pharm-D", "Cardiology", "Statin", "Atorvastatin", "Cholesterol", "Atherosclerosis"],
     defaultCatalystName: 'HMG-CoA Reductase (His866/Lys735)',
     literatureBarrierKcalMol: 13.1,
     hasLiteratureCatalyst: true,
-    literatureDoi: '10.1021/jm950796v',
+    literatureDoi: '10.1016/s0079-6468(08)70080-8',
     catalystXyz: '''6
 His-Lys Active Dyad
 N  0.0000 1.3000 0.0000
@@ -2241,13 +2241,13 @@ H      4.0515    -2.0326     0.1135
 H      1.5113    -1.0315     0.0199
 H      1.8611     1.7065    -0.1268''',
     referenceEa: 16.1,
-    doi: '10.1007/BF00586940',
-    journalRef: 'Pflügers Arch. 1983, 396, 325',
+    doi: '10.1016/0014-2999(77)90261-8',
+    journalRef: 'Eur. J. Pharmacol. 1977, 42, 381-389',
     tags: const ["MBBS", "Pharm-D", "Nephrology", "Diuretic", "Furosemide", "NKCC2", "Electrolytes"],
     defaultCatalystName: 'NKCC2 Symporter Translocation Core',
     literatureBarrierKcalMol: 14.8,
     hasLiteratureCatalyst: true,
-    literatureDoi: '10.1007/BF00586940',
+    literatureDoi: '10.1016/0014-2999(77)90261-8',
     catalystXyz: '''4
 NKCC2 Transport Filter
 Na 0.0000 0.0000 0.0000
@@ -2364,13 +2364,13 @@ H      3.0431     0.7986    -0.4774
 H      3.1352    -0.9585    -0.7596
 H      6.0643     0.9303    -0.2093''',
     referenceEa: 15.0,
-    doi: '10.1038/318070a0',
-    journalRef: 'Nature 1985, 318, 70',
+    doi: '10.1038/290159a0',
+    journalRef: 'Nature 1981, 290, 159-161',
     tags: const ["MBBS", "Pharm-D", "Gastroenterology", "PPI", "Omeprazole", "Acid Suppression", "Peptic Ulcer"],
     defaultCatalystName: 'Gastric H+/K+-ATPase Acid Secretory Matrix (pH < 1.0)',
     literatureBarrierKcalMol: 10.9,
     hasLiteratureCatalyst: true,
-    literatureDoi: '10.1038/318070a0',
+    literatureDoi: '10.1038/290159a0',
     catalystXyz: '''4
 Acid Canalicular Hydronium Cluster
 O  0.0000 0.0000 0.0000
@@ -2435,13 +2435,13 @@ H      4.9171    -0.1996    -0.1089
 H      3.3680    -0.6979    -0.0786
 H      3.7106     0.8929    -0.1080''',
     referenceEa: 14.7,
-    doi: '10.1038/nm1434',
-    journalRef: 'Nat. Med. 2006, 12, 841',
+    doi: '10.1172/JCI13505',
+    journalRef: 'J. Clin. Invest. 2001, 108, 1167-1174',
     tags: const ["MBBS", "Pharm-D", "Endocrinology", "Diabetes", "Metformin", "AMPK", "Gluconeogenesis"],
     defaultCatalystName: 'Mitochondrial Complex I / LKB1-AMPK',
     literatureBarrierKcalMol: 15.0,
     hasLiteratureCatalyst: true,
-    literatureDoi: '10.1038/nm1434',
+    literatureDoi: '10.1172/JCI13505',
     catalystXyz: '''6
 Complex I Fe4S4 Cluster Model
 Fe 0.0000 0.0000 0.0000
@@ -2730,13 +2730,13 @@ H      4.9171    -0.1996    -0.1089
 H      3.3680    -0.6979    -0.0786
 H      3.7106     0.8929    -0.1080''',
     referenceEa: 17.8,
-    doi: '10.1126/science.197.4302.452',
-    journalRef: 'Science 1977, 197, 452',
+    doi: '10.1016/S0021-9258(17)38012-2',
+    journalRef: 'J. Biol. Chem. 1978, 253, 6946-6954',
     tags: const ["MBBS", "Pharm-D", "Oncology", "Antimetabolite", "Methotrexate", "DHFR", "Immunosuppressive"],
     defaultCatalystName: 'DHFR Active Site (Asp27 / NADPH)',
     literatureBarrierKcalMol: 12.4,
     hasLiteratureCatalyst: true,
-    literatureDoi: '10.1126/science.197.4302.452',
+    literatureDoi: '10.1016/S0021-9258(17)38012-2',
     catalystXyz: '''6
 DHFR Catalytic Carboxylate-Hydride Model
 C  0.0000 0.0000 0.0000
@@ -2793,13 +2793,13 @@ H      2.2418     1.8965    -0.0661
 H     -0.6731    -2.1420     0.9864
 H     -3.1244     0.4581    -0.1653''',
     referenceEa: 14.4,
-    doi: '10.1016/0006-2952(81)90013-1',
-    journalRef: 'Biochem. Pharmacol. 1981, 30, 2221',
+    doi: '10.1038/179663a0',
+    journalRef: 'Nature 1957, 179, 663-666',
     tags: const ["MBBS", "Pharm-D", "Oncology", "5-FU", "Thymidylate Synthase", "Suicide Inhibitor", "Chemotherapy"],
     defaultCatalystName: 'Thymidylate Synthase (Cys195 / CH2-H4folate)',
     literatureBarrierKcalMol: 11.2,
     hasLiteratureCatalyst: true,
-    literatureDoi: '10.1016/0006-2952(81)90013-1',
+    literatureDoi: '10.1038/179663a0',
     catalystXyz: '''5
 TS Active Cys Thiolate Model
 S  0.0000 0.0000 0.0000
@@ -2843,13 +2843,13 @@ H      1.9825    -1.3239    -0.0629
 Cl     4.6828     0.0000     0.0000
 H      3.3172     0.0000     0.0000''',
     referenceEa: 18.7,
-    doi: '10.1038/sj.onc.1206933',
-    journalRef: 'Oncogene 2003, 22, 7265',
+    doi: '10.1038/222385a0',
+    journalRef: 'Nature 1969, 222, 385-386',
     tags: const ["MBBS", "Pharm-D", "Oncology", "Cisplatin", "DNA Crosslinking", "Platinum", "Apoptosis"],
     defaultCatalystName: 'Aquation Hydration Matrix (H2O)',
     literatureBarrierKcalMol: 19.5,
     hasLiteratureCatalyst: true,
-    literatureDoi: '10.1038/sj.onc.1206933',
+    literatureDoi: '10.1038/222385a0',
     catalystXyz: '''5
 Cisplatin Active Matrix
 Pt 0.0000 0.0000 0.0000
@@ -3072,13 +3072,13 @@ S      3.9623     0.6121     0.0000
 H      3.0450    -0.3661     0.0000
 H      4.9928    -0.2460     0.0000''',
     referenceEa: 13.7,
-    doi: '10.1124/pr.54.4.579',
-    journalRef: 'Pharmacol. Rev. 2002, 54, 579',
+    doi: '10.1126/science.8284673',
+    journalRef: 'Science 1994, 263, 227-230',
     tags: const ["MBBS", "Pharm-D", "Pharmacogenetics", "Isoniazid", "NAT2", "Tuberculosis", "Acetylation"],
     defaultCatalystName: 'NAT2 (Cys68 Acetyl-Enzyme Intermediate)',
     literatureBarrierKcalMol: 14.2,
     hasLiteratureCatalyst: true,
-    literatureDoi: '10.1124/pr.54.4.579',
+    literatureDoi: '10.1126/science.8284673',
     catalystXyz: '''6
 NAT2 S-Acetyl Cys Intermediate
 S  0.0000 0.0000 0.0000
@@ -3193,13 +3193,13 @@ H      5.5219     1.3565     0.3319
 H      7.5598    -0.6114    -0.4319
 H      7.3204    -0.0438     1.0748''',
     referenceEa: 16.9,
-    doi: '10.1038/nature09197',
-    journalRef: 'Nature 2010, 466, 935',
+    doi: '10.1128/AAC.26.1.104',
+    journalRef: 'Antimicrob. Agents Chemother. 1984, 26, 104-106',
     tags: const ["Pharm-D", "MBBS", "Antibiotic", "Fluoroquinolone", "Ciprofloxacin", "DNA Gyrase", "Microbiology"],
     defaultCatalystName: 'Mg2+ Water-Metal Ion Coordination Bridge',
     literatureBarrierKcalMol: 13.0,
     hasLiteratureCatalyst: true,
-    literatureDoi: '10.1038/nature09197',
+    literatureDoi: '10.1128/AAC.26.1.104',
     catalystXyz: '''5
 Mg(H2O)4 Complex Core
 Mg 0.0000 0.0000 0.0000
@@ -3355,13 +3355,13 @@ O      4.0075     0.3977     0.0000
 H      3.2329    -0.1844     0.0000
 H      4.7596    -0.2134     0.0000''',
     referenceEa: 18.2,
-    doi: '10.1016/S0969-2126(02)00778-1',
-    journalRef: 'Structure 2002, 10, 807',
+    doi: '10.1021/jm00124a023',
+    journalRef: 'J. Med. Chem. 1988, 31, 2038-2046',
     tags: const ["Pharm-D", "MBBS", "Antibiotic", "Macrolide", "Azithromycin", "Ribosome", "Pharmacokinetics"],
     defaultCatalystName: '23S rRNA Peptidyltransferase Residues',
     literatureBarrierKcalMol: 15.1,
     hasLiteratureCatalyst: true,
-    literatureDoi: '10.1016/S0969-2126(02)00778-1',
+    literatureDoi: '10.1021/jm00124a023',
     catalystXyz: '''6
 rRNA Ribose-Phosphate Unit
 P  0.0000 0.0000 0.0000

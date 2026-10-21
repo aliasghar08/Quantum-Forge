@@ -70,8 +70,17 @@ class ScholarlyReactionVerifier:
             logger.debug("Fetch failed for %s: %s", url, exc)
             return None
 
-    def verify_doi_and_citations(self, doi: str) -> dict[str, Any] | None:
-        """Query CrossRef and OpenAlex to verify DOI, citation count, and peer review."""
+    def verify_doi_and_citations(
+        self,
+        doi: str,
+        expected_name: str | None = None,
+    ) -> dict[str, Any] | None:
+        """Query CrossRef and OpenAlex to verify DOI, citation count, and peer review.
+        
+        If expected_name is provided, asserts that the retrieved paper title shares
+        at least 2 relevant chemical/medical keywords with expected_name; otherwise
+        rejects with 'DOI semantic mismatch'.
+        """
         clean_doi = doi.strip().replace("https://doi.org/", "")
         logger.info("🔍 Verifying DOI & citation metrics for: %s", clean_doi)
 
@@ -95,6 +104,38 @@ class ScholarlyReactionVerifier:
             title = oa_data["title"].strip()
         else:
             title = f"Verified Research ({clean_doi})"
+
+        # Semantic entity matching if expected_name is supplied
+        if expected_name:
+            stop_words = {
+                "and", "or", "in", "the", "a", "an", "of", "to", "for", "with", "by", "via",
+                "on", "at", "from", "synthesis", "reaction", "mechanism", "active", "catalytic",
+                "complex", "inactivation", "inhibition", "site", "core", "profile", "cascade",
+                "metabolism", "phase", "target", "pathway", "type", "derivatives", "studies",
+                "evaluation", "investigation"
+            }
+            exp_tokens = {
+                w.lower()
+                for w in re.findall(r"[A-Za-z0-9]+", expected_name)
+                if len(w) > 2 and w.lower() not in stop_words
+            }
+            title_lower = title.lower()
+            title_words = [w.lower() for w in re.findall(r"[A-Za-z0-9]+", title_lower) if len(w) > 2]
+
+            matched = [
+                tok for tok in exp_tokens
+                if tok in title_lower or any(tok in tw or tw in tok for tw in title_words)
+            ]
+            min_required = min(2, len(exp_tokens))
+            if len(matched) < min_required:
+                logger.error(
+                    "❌ DOI semantic mismatch for %s: title '%s' matched only %d keywords (%s) from expected '%s' (required >= %d)",
+                    clean_doi, title, len(matched), matched, expected_name, min_required
+                )
+                raise ValueError(
+                    f"DOI semantic mismatch: paper title '{title}' for DOI {clean_doi} "
+                    f"does not share >= {min_required} keywords with expected reaction '{expected_name}'"
+                )
 
         # Check retraction
         is_retracted = False

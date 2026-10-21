@@ -70,8 +70,8 @@ def get_medical_reactions():
             "reactant_smiles": ["O=C(O)c1ccccc1O", "CC(=O)OC(=O)C"],
             "product_smiles": ["CC(=O)Oc1ccccc1C(=O)O", "CC(=O)O"],
             "referenceEa": 18.2,
-            "doi": "10.1021/jm00125a008",
-            "journalRef": "J. Med. Chem. 1990, 33, 1456",
+            "doi": "10.1073/pnas.72.8.3073",
+            "journalRef": "Proc. Natl. Acad. Sci. U.S.A. 1975, 72, 3073-3076",
             "tags": ["Pharm-D", "MBBS", "NSAID", "Aspirin", "COX-1/2", "Antiplatelet", "Esterification"]
         },
         {

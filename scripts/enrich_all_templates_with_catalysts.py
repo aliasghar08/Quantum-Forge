@@ -13,7 +13,7 @@ MEDICAL_CATALYSTS = {
     "med-aspirin-01": {
         "catalyst": "H2SO4 (Sulfuric Acid)",
         "barrier": 18.2,
-        "doi": "10.1021/jm00125a008",
+        "doi": "10.1073/pnas.72.8.3073",
         "xyz": "7\nH2SO4 Catalyst\nS  0.0000 0.0000 0.0000\nO  0.0000 1.4500 0.0000\nO  1.4500 0.0000 0.0000\nO -0.7500 -0.7500  1.1000\nO -0.7500 -0.7500 -1.1000\nH -0.5000 -1.6500  1.1000\nH -0.5000 -1.6500 -1.1000\n"
     },
     "med-paracetamol-01": {

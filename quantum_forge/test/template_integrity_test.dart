@@ -101,5 +101,35 @@ void main() {
       expect(proline.hasLiteratureCatalyst, isTrue);
       expect(proline.defaultCatalystName, contains('L-Proline'));
     });
+
+    test('all templates have unique, authentic, non-placeholder DOIs', () {
+      final doiRegex = RegExp(r'^10\.\d{4,9}/[-._;()/:A-Za-z0-9]+$');
+
+      for (final template in kReactionTemplates) {
+        // Asserts that template.doi is non-empty
+        expect(
+          template.doi.trim(),
+          isNotEmpty,
+          reason: 'Template "${template.name}" (${template.id}) has empty DOI',
+        );
+
+        // Asserts that no template accidentally shares 10.1021/jm00125a008 (except piperidines)
+        if (!template.name.toLowerCase().contains('piperidine') &&
+            !template.id.toLowerCase().contains('piperidine')) {
+          expect(
+            template.doi,
+            isNot(equals('10.1021/jm00125a008')),
+            reason: 'Template "${template.name}" (${template.id}) retains the placeholder piperidine DOI',
+          );
+        }
+
+        // Asserts all DOIs match the standard DOI regex
+        expect(
+          doiRegex.hasMatch(template.doi),
+          isTrue,
+          reason: 'Template "${template.name}" (${template.id}) has invalid DOI format: "${template.doi}"',
+        );
+      }
+    });
   });
 }
