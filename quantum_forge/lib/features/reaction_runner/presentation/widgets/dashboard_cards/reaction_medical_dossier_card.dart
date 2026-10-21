@@ -1577,7 +1577,7 @@ class _ReactionMedicalDossierCardState extends State<ReactionMedicalDossierCard>
                   ],
                 ],
               ),
-              if (citationBadge != null) citationBadge,
+              ?citationBadge,
             ],
           ),
           const SizedBox(height: 8),

@@ -1467,17 +1467,24 @@ class _AnatomicalClinicalInfographicDiagramState
               );
 
               final centerSilhouette = Container(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                 decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 0.35),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: active.color.withValues(alpha: 0.4)),
+                  color: Colors.black.withValues(alpha: 0.4),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: active.color.withValues(alpha: 0.45)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: active.color.withValues(alpha: 0.08),
+                      blurRadius: 18,
+                      spreadRadius: 2,
+                    ),
+                  ],
                 ),
                 child: Column(
                   children: [
-                    // Anatomical Vector Graphic
+                    // Full-Length Anatomical Standing Silhouette
                     SizedBox(
-                      height: 220,
+                      height: 480,
                       width: double.infinity,
                       child: CustomPaint(
                         painter: _AnatomicalSilhouettePainter(
@@ -1486,7 +1493,7 @@ class _AnatomicalClinicalInfographicDiagramState
                         ),
                       ),
                     ),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 12),
 
                     // Active Selected Organ Card
                     Container(
@@ -1832,8 +1839,10 @@ class _AnatomicalClinicalInfographicDiagramState
   }
 }
 
-/// CustomPainter rendering an interactive, glowing anatomical silhouette
-/// with organs for Brain, Stomach, Liver, Intestines, and Kidneys.
+/// CustomPainter rendering an interactive, full-length human male anatomical
+/// silhouette in standard anatomical standing posture (8-heads canon), featuring
+/// detailed musculoskeletal contours, ribcage guide lines, grounding pedestal,
+/// and precisely localized organ nodes (Brain, Stomach, Liver, Intestines, Kidneys).
 class _AnatomicalSilhouettePainter extends CustomPainter {
   final Color activeColor;
   final int selectedOrganIndex;
@@ -1848,90 +1857,304 @@ class _AnatomicalSilhouettePainter extends CustomPainter {
     final w = size.width;
     final h = size.height;
     final cx = w / 2;
+    // Normalized scale factor for a 500px tall canonical figure
+    final s = h / 500.0;
 
-    // Body silhouette outline paint
-    final bodyPaint = Paint()
-      ..color = Colors.white.withValues(alpha: 0.12)
+    // ── 1. Grounding Pedestal / 3D Stage Glow ────────────────────────────────
+    final floorGlow = Paint()
+      ..color = activeColor.withValues(alpha: 0.16)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 16);
+    canvas.drawOval(
+      Rect.fromCenter(center: Offset(cx, 482 * s), width: 130 * s, height: 18 * s),
+      floorGlow,
+    );
+
+    final floorRing = Paint()
+      ..color = Colors.white.withValues(alpha: 0.08)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.0;
+    canvas.drawOval(
+      Rect.fromCenter(center: Offset(cx, 482 * s), width: 110 * s, height: 12 * s),
+      floorRing,
+    );
+
+    // ── 2. Full Anatomical Human Male Silhouette Path ────────────────────────
+    final bodyPath = Path();
+
+    // Crown of cranium
+    bodyPath.moveTo(cx, 16 * s);
+
+    // ── RIGHT SIDE (Observer's Right) ──
+    // Cranial vault curve down to ear level
+    bodyPath.cubicTo(cx + 17 * s, 16 * s, cx + 21 * s, 26 * s, cx + 21 * s, 42 * s);
+    // Temple down to angle of mandible (jaw)
+    bodyPath.cubicTo(cx + 20 * s, 52 * s, cx + 18 * s, 60 * s, cx + 14 * s, 68 * s);
+    // Jawline tapering in to chin
+    bodyPath.cubicTo(cx + 9 * s, 72 * s, cx + 5 * s, 75 * s, cx, 76 * s);
+    // Neck right lateral contour
+    bodyPath.cubicTo(cx + 9 * s, 76 * s, cx + 13 * s, 82 * s, cx + 14 * s, 92 * s);
+    // Trapezius slope out to shoulder tip (acromion)
+    bodyPath.cubicTo(cx + 24 * s, 95 * s, cx + 38 * s, 98 * s, cx + 48 * s, 104 * s);
+    // Deltoid shoulder cap rounding down
+    bodyPath.cubicTo(cx + 56 * s, 110 * s, cx + 58 * s, 122 * s, cx + 56 * s, 140 * s);
+    // Lateral upper arm (bicep/tricep) down to elbow
+    bodyPath.cubicTo(cx + 54 * s, 158 * s, cx + 52 * s, 178 * s, cx + 50 * s, 196 * s);
+    // Lateral forearm (brachioradialis curve)
+    bodyPath.cubicTo(cx + 49 * s, 212 * s, cx + 46 * s, 235 * s, cx + 42 * s, 256 * s);
+    // Lateral wrist and thumb contour
+    bodyPath.cubicTo(cx + 43 * s, 266 * s, cx + 44 * s, 276 * s, cx + 42 * s, 286 * s);
+    // Fingertips curvature
+    bodyPath.cubicTo(cx + 40 * s, 296 * s, cx + 36 * s, 298 * s, cx + 34 * s, 294 * s);
+    // Medial fingers and palm up to inner wrist
+    bodyPath.cubicTo(cx + 33 * s, 282 * s, cx + 34 * s, 268 * s, cx + 33 * s, 256 * s);
+    // Medial forearm up to medial elbow
+    bodyPath.cubicTo(cx + 34 * s, 236 * s, cx + 36 * s, 214 * s, cx + 37 * s, 196 * s);
+    // Inner upper arm up to axilla (armpit)
+    bodyPath.cubicTo(cx + 36 * s, 178 * s, cx + 33 * s, 155 * s, cx + 28 * s, 138 * s);
+    // Lateral thorax / ribcage down to waist taper
+    bodyPath.cubicTo(cx + 26 * s, 155 * s, cx + 24 * s, 175 * s, cx + 22 * s, 192 * s);
+    // Iliac crest / hip curve outwards to greater trochanter
+    bodyPath.cubicTo(cx + 23 * s, 208 * s, cx + 28 * s, 226 * s, cx + 29 * s, 242 * s);
+    // Lateral thigh (quadriceps) down to lateral knee
+    bodyPath.cubicTo(cx + 28 * s, 275 * s, cx + 24 * s, 318 * s, cx + 21 * s, 350 * s);
+    // Lateral knee (patella joint)
+    bodyPath.cubicTo(cx + 20 * s, 358 * s, cx + 20 * s, 365 * s, cx + 21 * s, 372 * s);
+    // Lateral calf (gastrocnemius muscular curve)
+    bodyPath.cubicTo(cx + 24 * s, 395 * s, cx + 24 * s, 420 * s, cx + 16 * s, 452 * s);
+    // Lateral ankle down to heel
+    bodyPath.cubicTo(cx + 15 * s, 462 * s, cx + 15 * s, 470 * s, cx + 16 * s, 476 * s);
+    // Foot sole forward to toes
+    bodyPath.cubicTo(cx + 18 * s, 478 * s, cx + 21 * s, 479 * s, cx + 23 * s, 480 * s);
+    // Medial foot arch up to medial ankle
+    bodyPath.cubicTo(cx + 18 * s, 480 * s, cx + 12 * s, 476 * s, cx + 10 * s, 452 * s);
+    // Medial calf curve up to medial knee
+    bodyPath.cubicTo(cx + 11 * s, 420 * s, cx + 13 * s, 395 * s, cx + 12 * s, 370 * s);
+    // Medial knee
+    bodyPath.cubicTo(cx + 11 * s, 362 * s, cx + 10 * s, 355 * s, cx + 9 * s, 348 * s);
+    // Medial thigh up to perineum (inguinal cleft)
+    bodyPath.cubicTo(cx + 8 * s, 318 * s, cx + 5 * s, 275 * s, cx + 2.5 * s, 246 * s);
+
+    // Inguinal fold across to left leg
+    bodyPath.lineTo(cx - 2.5 * s, 246 * s);
+
+    // ── LEFT SIDE (Observer's Left - Symmetrical) ──
+    // Left medial thigh down to inner knee
+    bodyPath.cubicTo(cx - 5 * s, 275 * s, cx - 8 * s, 318 * s, cx - 9 * s, 348 * s);
+    // Left medial knee
+    bodyPath.cubicTo(cx - 10 * s, 355 * s, cx - 11 * s, 362 * s, cx - 12 * s, 370 * s);
+    // Left medial calf
+    bodyPath.cubicTo(cx - 13 * s, 395 * s, cx - 11 * s, 420 * s, cx - 10 * s, 452 * s);
+    // Left medial foot arch
+    bodyPath.cubicTo(cx - 12 * s, 476 * s, cx - 18 * s, 480 * s, cx - 23 * s, 480 * s);
+    // Left toes & sole to heel
+    bodyPath.cubicTo(cx - 21 * s, 479 * s, cx - 18 * s, 478 * s, cx - 16 * s, 476 * s);
+    // Left lateral ankle
+    bodyPath.cubicTo(cx - 15 * s, 470 * s, cx - 15 * s, 462 * s, cx - 16 * s, 452 * s);
+    // Left lateral calf curve
+    bodyPath.cubicTo(cx - 24 * s, 420 * s, cx - 24 * s, 395 * s, cx - 21 * s, 372 * s);
+    // Left lateral knee
+    bodyPath.cubicTo(cx - 20 * s, 365 * s, cx - 20 * s, 358 * s, cx - 21 * s, 350 * s);
+    // Left lateral thigh up to hip
+    bodyPath.cubicTo(cx - 24 * s, 318 * s, cx - 28 * s, 275 * s, cx - 29 * s, 242 * s);
+    // Left waist taper
+    bodyPath.cubicTo(cx - 28 * s, 226 * s, cx - 23 * s, 208 * s, cx - 22 * s, 192 * s);
+    // Left ribcage up to axilla
+    bodyPath.cubicTo(cx - 24 * s, 175 * s, cx - 26 * s, 155 * s, cx - 28 * s, 138 * s);
+    // Left inner arm down
+    bodyPath.cubicTo(cx - 33 * s, 155 * s, cx - 36 * s, 178 * s, cx - 37 * s, 196 * s);
+    bodyPath.cubicTo(cx - 36 * s, 214 * s, cx - 34 * s, 236 * s, cx - 33 * s, 256 * s);
+    bodyPath.cubicTo(cx - 34 * s, 268 * s, cx - 33 * s, 282 * s, cx - 34 * s, 294 * s);
+    bodyPath.cubicTo(cx - 36 * s, 298 * s, cx - 40 * s, 296 * s, cx - 42 * s, 286 * s);
+    bodyPath.cubicTo(cx - 44 * s, 276 * s, cx - 43 * s, 266 * s, cx - 42 * s, 258 * s);
+    // Left lateral forearm up to elbow
+    bodyPath.cubicTo(cx - 46 * s, 235 * s, cx - 49 * s, 212 * s, cx - 50 * s, 196 * s);
+    // Left lateral upper arm
+    bodyPath.cubicTo(cx - 52 * s, 178 * s, cx - 54 * s, 158 * s, cx - 56 * s, 140 * s);
+    // Left deltoid shoulder cap
+    bodyPath.cubicTo(cx - 58 * s, 122 * s, cx - 56 * s, 110 * s, cx - 48 * s, 104 * s);
+    // Left trapezius slope in to neck
+    bodyPath.cubicTo(cx - 38 * s, 98 * s, cx - 24 * s, 95 * s, cx - 14 * s, 92 * s);
+    // Left neck up to jaw
+    bodyPath.cubicTo(cx - 13 * s, 82 * s, cx - 9 * s, 76 * s, cx, 76 * s);
+    // Left jaw & cranial vault up to crown
+    bodyPath.cubicTo(cx - 5 * s, 75 * s, cx - 9 * s, 72 * s, cx - 14 * s, 68 * s);
+    bodyPath.cubicTo(cx - 18 * s, 60 * s, cx - 20 * s, 52 * s, cx - 21 * s, 42 * s);
+    bodyPath.cubicTo(cx - 21 * s, 26 * s, cx - 17 * s, 16 * s, cx, 16 * s);
+    bodyPath.close();
+
+    // ── 3. Render Shaded Silhouette Fill & Outline ───────────────────────────
+    final bodyFill = Paint()
+      ..shader = LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [
+          Colors.white.withValues(alpha: 0.06),
+          activeColor.withValues(alpha: 0.03),
+          Colors.white.withValues(alpha: 0.02),
+        ],
+      ).createShader(Rect.fromLTWH(0, 0, w, h))
+      ..style = PaintingStyle.fill;
+    canvas.drawPath(bodyPath, bodyFill);
+
+    final bodyStroke = Paint()
+      ..color = Colors.white.withValues(alpha: 0.16)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.35;
+    canvas.drawPath(bodyPath, bodyStroke);
+
+    // ── 4. Internal Anatomical Landmarks (Medical Guide Lines) ───────────────
+    final guidePaint = Paint()
+      ..color = Colors.white.withValues(alpha: 0.06)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.0;
+
+    // Clavicles (collarbones)
+    final claviclePath = Path()
+      ..moveTo(cx - 36 * s, 102 * s)
+      ..quadraticBezierTo(cx - 14 * s, 96 * s, cx, 98 * s)
+      ..quadraticBezierTo(cx + 14 * s, 96 * s, cx + 36 * s, 102 * s);
+    canvas.drawPath(claviclePath, guidePaint);
+
+    // Sternum (breastbone midline)
+    canvas.drawLine(
+      Offset(cx, 98 * s),
+      Offset(cx, 160 * s),
+      guidePaint,
+    );
+
+    // Pectoral major folds
+    final pectoralPath = Path()
+      ..moveTo(cx - 4 * s, 142 * s)
+      ..quadraticBezierTo(cx - 18 * s, 148 * s, cx - 28 * s, 138 * s)
+      ..moveTo(cx + 4 * s, 142 * s)
+      ..quadraticBezierTo(cx + 18 * s, 148 * s, cx + 28 * s, 138 * s);
+    canvas.drawPath(pectoralPath, guidePaint);
+
+    // Costal arch (lower ribcage margin)
+    final costalPath = Path()
+      ..moveTo(cx - 24 * s, 185 * s)
+      ..quadraticBezierTo(cx - 14 * s, 164 * s, cx, 160 * s)
+      ..quadraticBezierTo(cx + 14 * s, 164 * s, cx + 24 * s, 185 * s);
+    canvas.drawPath(costalPath, guidePaint);
+
+    // Patella (kneecap rings)
+    final patellaPaint = Paint()
+      ..color = Colors.white.withValues(alpha: 0.05)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.0;
+    canvas.drawCircle(Offset(cx - 15 * s, 360 * s), 4 * s, patellaPaint);
+    canvas.drawCircle(Offset(cx + 15 * s, 360 * s), 4 * s, patellaPaint);
+
+    // ── 5. Gut-Brain Vagal Axis (Neural Signaling Path) ──────────────────────
+    final axisPaint = Paint()
+      ..color = const Color(0xFFE040FB).withValues(alpha: 0.5)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.4
+      ..strokeCap = StrokeCap.round;
+
+    final vagusPath = Path()
+      ..moveTo(cx, 55 * s)
+      ..cubicTo(cx + 4 * s, 90 * s, cx - 6 * s, 130 * s, cx - 12 * s, 178 * s) // To Stomach
+      ..cubicTo(cx - 8 * s, 195 * s, cx - 2 * s, 210 * s, cx, 222 * s); // To Celiac/Mesenteric plexus
+    canvas.drawPath(vagusPath, axisPaint);
+
+    // ── 6. Organ Highlight Contours for Active Organ ─────────────────────────
+    final organHighlightPaint = Paint()
+      ..color = activeColor.withValues(alpha: 0.25)
+      ..style = PaintingStyle.fill;
+
+    final organStrokePaint = Paint()
+      ..color = activeColor.withValues(alpha: 0.8)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.5;
 
-    final bodyFill = Paint()
-      ..color = Colors.white.withValues(alpha: 0.03)
-      ..style = PaintingStyle.fill;
+    switch (selectedOrganIndex) {
+      case 0: // Brain: Cerebral cortex silhouette
+        final brainRect = Rect.fromCenter(center: Offset(cx, 44 * s), width: 28 * s, height: 26 * s);
+        canvas.drawOval(brainRect, organHighlightPaint);
+        canvas.drawOval(brainRect, organStrokePaint);
+        break;
+      case 1: // Stomach: J-shaped gastric pouch
+        final stomachPath = Path()
+          ..moveTo(cx - 6 * s, 166 * s) // Cardia / GE junction
+          ..cubicTo(cx - 16 * s, 164 * s, cx - 24 * s, 172 * s, cx - 22 * s, 186 * s) // Fundus & greater curvature
+          ..cubicTo(cx - 20 * s, 198 * s, cx - 10 * s, 198 * s, cx - 4 * s, 190 * s) // Antrum
+          ..cubicTo(cx - 8 * s, 184 * s, cx - 10 * s, 174 * s, cx - 6 * s, 166 * s) // Lesser curvature
+          ..close();
+        canvas.drawPath(stomachPath, organHighlightPaint);
+        canvas.drawPath(stomachPath, organStrokePaint);
+        break;
+      case 2: // Liver: Right hypochondriac wedge
+        final liverPath = Path()
+          ..moveTo(cx + 2 * s, 162 * s)
+          ..lineTo(cx + 26 * s, 166 * s)
+          ..lineTo(cx + 24 * s, 182 * s)
+          ..lineTo(cx + 4 * s, 180 * s)
+          ..close();
+        canvas.drawPath(liverPath, organHighlightPaint);
+        canvas.drawPath(liverPath, organStrokePaint);
+        break;
+      case 3: // Duodenum & Intestines
+        final intestineRect = Rect.fromCenter(center: Offset(cx, 222 * s), width: 34 * s, height: 24 * s);
+        canvas.drawRRect(RRect.fromRectAndRadius(intestineRect, Radius.circular(8 * s)), organHighlightPaint);
+        canvas.drawRRect(RRect.fromRectAndRadius(intestineRect, Radius.circular(8 * s)), organStrokePaint);
+        break;
+      case 4: // Kidneys: Bilateral renal beans
+        final leftKidney = Rect.fromCenter(center: Offset(cx - 17 * s, 196 * s), width: 10 * s, height: 16 * s);
+        final rightKidney = Rect.fromCenter(center: Offset(cx + 17 * s, 196 * s), width: 10 * s, height: 16 * s);
+        canvas.drawOval(leftKidney, organHighlightPaint);
+        canvas.drawOval(leftKidney, organStrokePaint);
+        canvas.drawOval(rightKidney, organHighlightPaint);
+        canvas.drawOval(rightKidney, organStrokePaint);
+        break;
+    }
 
-    // Head
-    canvas.drawOval(
-      Rect.fromCenter(center: Offset(cx, h * 0.14), width: w * 0.24, height: h * 0.18),
-      bodyFill,
-    );
-    canvas.drawOval(
-      Rect.fromCenter(center: Offset(cx, h * 0.14), width: w * 0.24, height: h * 0.18),
-      bodyPaint,
-    );
-
-    // Torso outline
-    final torsoPath = Path()
-      ..moveTo(cx - w * 0.14, h * 0.23)
-      ..lineTo(cx - w * 0.28, h * 0.32) // Left shoulder
-      ..lineTo(cx - w * 0.24, h * 0.58) // Left flank
-      ..lineTo(cx - w * 0.20, h * 0.72) // Left hip
-      ..lineTo(cx - w * 0.10, h * 0.96) // Left leg
-      ..lineTo(cx - w * 0.03, h * 0.96)
-      ..lineTo(cx, h * 0.74) // Inguinal crease
-      ..lineTo(cx + w * 0.03, h * 0.96)
-      ..lineTo(cx + w * 0.10, h * 0.96) // Right leg
-      ..lineTo(cx + w * 0.20, h * 0.72) // Right hip
-      ..lineTo(cx + w * 0.24, h * 0.58) // Right flank
-      ..lineTo(cx + w * 0.28, h * 0.32) // Right shoulder
-      ..lineTo(cx + w * 0.14, h * 0.23)
-      ..close();
-
-    canvas.drawPath(torsoPath, bodyFill);
-    canvas.drawPath(torsoPath, bodyPaint);
-
-    // Gut-Brain Axis connecting pulse line
-    final axisPaint = Paint()
-      ..color = const Color(0xFFE040FB).withValues(alpha: 0.4)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.2
-      ..strokeCap = StrokeCap.round;
-
-    final dashPath = Path()
-      ..moveTo(cx, h * 0.18)
-      ..quadraticBezierTo(cx - 10, h * 0.32, cx, h * 0.45);
-    canvas.drawPath(dashPath, axisPaint);
-
-    // Organ Node Positions
+    // ── 7. Organ Interactive Nodes ───────────────────────────────────────────
     final organNodes = [
-      Offset(cx, h * 0.14), // 0: Brain
-      Offset(cx - 14, h * 0.42), // 1: Stomach
-      Offset(cx + 18, h * 0.44), // 2: Liver
-      Offset(cx, h * 0.58), // 3: Intestines
-      Offset(cx - 24, h * 0.51), // 4: Kidney left
+      Offset(cx, 44 * s), // 0: Brain & CNS
+      Offset(cx - 12 * s, 178 * s), // 1: Stomach & Gastric Mucosa
+      Offset(cx + 14 * s, 170 * s), // 2: Liver & Hepatic Shunt
+      Offset(cx, 222 * s), // 3: Duodenum & Intestines
+      Offset(cx - 17 * s, 196 * s), // 4: Kidney (Primary node)
     ];
 
     for (var i = 0; i < organNodes.length; i++) {
       final pos = organNodes[i];
       final isSelected = selectedOrganIndex == i;
 
-      // Glow circle
+      // Radar glow effect
       final glowPaint = Paint()
-        ..color = (isSelected ? activeColor : Colors.white).withValues(alpha: isSelected ? 0.35 : 0.1)
-        ..maskFilter = MaskFilter.blur(BlurStyle.normal, isSelected ? 8 : 4);
-      canvas.drawCircle(pos, isSelected ? 16 : 9, glowPaint);
+        ..color = (isSelected ? activeColor : Colors.white).withValues(alpha: isSelected ? 0.45 : 0.12)
+        ..maskFilter = MaskFilter.blur(BlurStyle.normal, isSelected ? 12 : 5);
+      canvas.drawCircle(pos, isSelected ? 20 * s : 10 * s, glowPaint);
 
-      // Node circle
+      if (isSelected) {
+        // Outer pulsing target ring
+        final outerRing = Paint()
+          ..color = activeColor.withValues(alpha: 0.4)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1.2;
+        canvas.drawCircle(pos, 24 * s, outerRing);
+      }
+
+      // Core node circle
       final nodePaint = Paint()
-        ..color = isSelected ? activeColor : Colors.white60
+        ..color = isSelected ? activeColor : Colors.white70
         ..style = PaintingStyle.fill;
-      canvas.drawCircle(pos, isSelected ? 6.5 : 4, nodePaint);
+      canvas.drawCircle(pos, isSelected ? 7 * s : 4.5 * s, nodePaint);
+
+      // Inner crisp white pip
+      final pipPaint = Paint()
+        ..color = Colors.white
+        ..style = PaintingStyle.fill;
+      canvas.drawCircle(pos, isSelected ? 3 * s : 1.8 * s, pipPaint);
 
       // Border ring
       final ringPaint = Paint()
-        ..color = isSelected ? Colors.white : Colors.white30
+        ..color = isSelected ? Colors.white : Colors.white38
         ..style = PaintingStyle.stroke
-        ..strokeWidth = isSelected ? 1.8 : 1.0;
-      canvas.drawCircle(pos, isSelected ? 9 : 6, ringPaint);
+        ..strokeWidth = isSelected ? 2.0 : 1.0;
+      canvas.drawCircle(pos, isSelected ? 10 * s : 6.5 * s, ringPaint);
     }
   }
 
