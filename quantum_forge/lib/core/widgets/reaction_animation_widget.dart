@@ -217,6 +217,7 @@ class _ReactionAnimationWidgetState extends State<ReactionAnimationWidget> {
   int _startFrame = 0; // `m_firstFrameIdx->value() - 1`
   int _endFrame = 0; // `m_lastFrameIdx->value() - 1`
   int _frameRate = ReactionAnimationWidget.defaultFrameRate;
+  double _playbackSpeed = 1.0;
   bool _dynamicBonding = true;
   bool _playing = true; // deviation: Avogadro starts stopped
   bool _fpsUserSet = false;

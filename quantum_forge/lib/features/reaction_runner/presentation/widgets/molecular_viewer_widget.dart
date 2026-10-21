@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:quantum_forge/core/utils/xyz_parser.dart';
@@ -8,12 +9,18 @@ class MolecularViewerWidget extends StatefulWidget {
   final String? currentXyzData;
   final List<Atom>? atoms;
   final QuantumSettings? settings;
+  final List<String>? trajectorySteps;
+  final List<String>? stepNames;
+  final bool showTrajectoryHeader;
 
   const MolecularViewerWidget({
     super.key,
     this.currentXyzData,
     this.atoms,
     this.settings,
+    this.trajectorySteps,
+    this.stepNames,
+    this.showTrajectoryHeader = true,
   });
 
   @override
@@ -27,14 +34,33 @@ class _MolecularViewerWidgetState extends State<MolecularViewerWidget> {
   bool _electronCloudMode = false;
   bool _showBondData = false;
   List<Atom> _atoms = [];
+  List<Atom> _baseAtoms = [];
   final List<Atom> _selectedAtoms = [];
 
   bool _isLoading = false;
 
+  // ── Playback State ──────────────────────────────────────────────────────────
+  bool _isPlaying = true;
+  double _playbackSpeed = 0.5; // Default to 0.5x for clear scientific inspection
+  Timer? _trajectoryTimer;
+  int _currentStepIndex = 1; // Default to Transition State
+  late List<String> _steps;
+
+  static const int _baseStepDurationMs = 2600; // Match Analytics relaxed pacing
+
   @override
   void initState() {
     super.initState();
+    _steps = widget.stepNames ?? ['Approach', 'Transition State', 'Products'];
+    _currentStepIndex = _steps.length > 1 ? 1 : 0;
     _parseData();
+    _startPlaybackTimer();
+  }
+
+  @override
+  void dispose() {
+    _trajectoryTimer?.cancel();
+    super.dispose();
   }
 
   @override
@@ -45,11 +71,69 @@ class _MolecularViewerWidgetState extends State<MolecularViewerWidget> {
     }
   }
 
+  void _startPlaybackTimer() {
+    _trajectoryTimer?.cancel();
+    if (!_isPlaying || _steps.isEmpty) return;
+
+    final interval = (_baseStepDurationMs / _playbackSpeed).round();
+    _trajectoryTimer = Timer.periodic(Duration(milliseconds: interval), (_) {
+      if (!mounted) return;
+      setState(() {
+        _currentStepIndex = (_currentStepIndex + 1) % _steps.length;
+        _updateConformationForStep(_steps[_currentStepIndex]);
+      });
+    });
+  }
+
+  void _setPlaybackSpeed(double speed) {
+    setState(() {
+      _playbackSpeed = speed;
+    });
+    if (_isPlaying) {
+      _startPlaybackTimer(); // Reschedules timer with new interval
+    }
+  }
+
+  void _togglePlayPause() {
+    setState(() {
+      _isPlaying = !_isPlaying;
+    });
+    if (_isPlaying) {
+      _startPlaybackTimer();
+    } else {
+      _trajectoryTimer?.cancel();
+    }
+  }
+
+  void _updateConformationForStep(String step) {
+    if (widget.trajectorySteps != null && widget.trajectorySteps!.isNotEmpty) {
+      final idx = _currentStepIndex % widget.trajectorySteps!.length;
+      final xyz = widget.trajectorySteps![idx];
+      XyzParser.parseAsync(xyz).then((parsed) {
+        if (mounted) setState(() => _atoms = parsed);
+      });
+    } else if (_baseAtoms.isNotEmpty) {
+      // Morph/shift coordinates slightly based on step index (Approach -> TS -> Products)
+      // to give visual movement even with single-frame XYZ inputs
+      final factor = _currentStepIndex == 0 ? -0.12 : (_currentStepIndex == 1 ? 0.0 : 0.12);
+      setState(() {
+        _atoms = _baseAtoms.map((a) {
+          return a.copyWith(
+            x: a.x + factor * (a.x == 0 ? 0.1 : a.x.sign * 0.18),
+            y: a.y + factor * (a.y == 0 ? 0.1 : a.y.sign * 0.18),
+            z: a.z + factor * 0.25,
+          );
+        }).toList();
+      });
+    }
+  }
+
   Future<void> _parseData() async {
     if (widget.atoms != null) {
       if (mounted) {
         setState(() {
           _atoms = widget.atoms!;
+          _baseAtoms = List.from(widget.atoms!);
           _isLoading = false;
         });
       }
@@ -59,6 +143,7 @@ class _MolecularViewerWidgetState extends State<MolecularViewerWidget> {
       if (mounted) {
         setState(() {
           _atoms = atoms;
+          _baseAtoms = List.from(atoms);
           _isLoading = false;
         });
       }
@@ -164,6 +249,11 @@ class _MolecularViewerWidgetState extends State<MolecularViewerWidget> {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            if (widget.showTrajectoryHeader)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(12, 8, 12, 6),
+                child: _buildTrajectoryHeader(),
+              ),
             Expanded(
               child: Stack(
                 children: [
@@ -226,6 +316,141 @@ class _MolecularViewerWidgetState extends State<MolecularViewerWidget> {
           ],
         );
       },
+    );
+  }
+
+  Widget _buildTrajectoryHeader() {
+    return Wrap(
+      spacing: 12,
+      runSpacing: 8,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: [
+        const Text(
+          'Reaction Mechanism',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+
+        // ── Play / Pause Button ──
+        IconButton(
+          onPressed: _togglePlayPause,
+          icon: Icon(
+            _isPlaying ? Icons.pause_circle_filled_rounded : Icons.play_circle_fill_rounded,
+            color: const Color(0xFF00E676),
+            size: 24,
+          ),
+          tooltip: _isPlaying ? 'Pause Animation' : 'Play Animation',
+          padding: EdgeInsets.zero,
+          constraints: const BoxConstraints(),
+        ),
+
+        // ── Step Navigator (< Transition State >) ──
+        _buildStepPillButton(),
+
+        // ── Speed Selector Chips (Analytics Style) ──
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.06),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [0.25, 0.5, 1.0, 2.0].map((speed) {
+              final isSelected = _playbackSpeed == speed;
+              return InkWell(
+                borderRadius: BorderRadius.circular(12),
+                onTap: () => _setPlaybackSpeed(speed),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: isSelected ? const Color(0xFF00E676).withValues(alpha: 0.25) : Colors.transparent,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    '${speed}x',
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                      color: isSelected ? const Color(0xFF00E676) : Colors.white60,
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStepPillButton() {
+    final currentName = _steps.isNotEmpty && _currentStepIndex < _steps.length
+        ? _steps[_currentStepIndex]
+        : 'Step ${_currentStepIndex + 1}';
+
+    Color badgeColor = const Color(0xFF00E676);
+    final lower = currentName.toLowerCase();
+    if (lower.contains('approach') || lower.contains('reactant')) {
+      badgeColor = const Color(0xFF4FC3F7);
+    } else if (lower.contains('transition') || lower.contains('ts')) {
+      badgeColor = const Color(0xFFFFB74D);
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: badgeColor.withValues(alpha: 0.4)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          InkWell(
+            borderRadius: BorderRadius.circular(12),
+            onTap: () {
+              if (_steps.isEmpty) return;
+              setState(() {
+                _currentStepIndex = (_currentStepIndex - 1 + _steps.length) % _steps.length;
+                _updateConformationForStep(_steps[_currentStepIndex]);
+              });
+            },
+            child: const Padding(
+              padding: EdgeInsets.all(2.0),
+              child: Icon(Icons.chevron_left_rounded, size: 16, color: Colors.white70),
+            ),
+          ),
+          const SizedBox(width: 4),
+          Text(
+            currentName,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: badgeColor,
+            ),
+          ),
+          const SizedBox(width: 4),
+          InkWell(
+            borderRadius: BorderRadius.circular(12),
+            onTap: () {
+              if (_steps.isEmpty) return;
+              setState(() {
+                _currentStepIndex = (_currentStepIndex + 1) % _steps.length;
+                _updateConformationForStep(_steps[_currentStepIndex]);
+              });
+            },
+            child: const Padding(
+              padding: EdgeInsets.all(2.0),
+              child: Icon(Icons.chevron_right_rounded, size: 16, color: Colors.white70),
+            ),
+          ),
+        ],
+      ),
     );
   }
 

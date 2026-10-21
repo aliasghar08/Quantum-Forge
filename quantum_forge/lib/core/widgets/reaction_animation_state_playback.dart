@@ -12,8 +12,40 @@ extension _ReactionAnimationPlaybackExt on _ReactionAnimationWidgetState {
       _frameRate <= 0 ? ReactionAnimationWidget.defaultFrameRate : _frameRate;
 
   Duration get _frameInterval {
-    final ms = (1000 / _effectiveFrameRate).round();
+    final baseFps = _effectiveFrameRate <= 0 ? ReactionAnimationWidget.defaultFrameRate : _effectiveFrameRate;
+    final ms = ((1000 / baseFps) / _playbackSpeed).round();
     return Duration(milliseconds: ms.clamp(1, 60000).toInt());
+  }
+
+  void _setPlaybackSpeed(double speed) {
+    setState(() => _playbackSpeed = speed);
+    if (_playing) {
+      _restartTicker();
+    }
+  }
+
+  void _jumpToPreviousPhase() {
+    if (_frameCount <= 1) return;
+    final ts = _transitionStateFrame.clamp(0, _frameCount - 1);
+    if (_frame > ts) {
+      _showFrame(ts);
+    } else if (_frame > 0) {
+      _showFrame(0);
+    } else {
+      _showFrame(_frameCount - 1);
+    }
+  }
+
+  void _jumpToNextPhase() {
+    if (_frameCount <= 1) return;
+    final ts = _transitionStateFrame.clamp(0, _frameCount - 1);
+    if (_frame < ts) {
+      _showFrame(ts);
+    } else if (_frame < _frameCount - 1) {
+      _showFrame(_frameCount - 1);
+    } else {
+      _showFrame(0);
+    }
   }
 
   int get _span => _endFrame - _startFrame + 1;

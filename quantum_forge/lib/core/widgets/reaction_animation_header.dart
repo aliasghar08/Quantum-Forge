@@ -10,9 +10,24 @@ extension _ReactionAnimationHeaderExt on _ReactionAnimationWidgetState {
           runSpacing: 8.0,
           crossAxisAlignment: WrapCrossAlignment.center,
           children: [
+            IconButton(
+              onPressed: () {
+                _claimKeyboard();
+                _togglePlay();
+              },
+              icon: Icon(
+                _playing ? Icons.pause_circle_filled_rounded : Icons.play_circle_fill_rounded,
+                color: const Color(0xFF00E676),
+                size: 22,
+              ),
+              tooltip: _playing ? 'Pause Animation' : 'Play Animation',
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(),
+            ),
             _phaseChip(),
+            _speedSelectorChips(),
             SizedBox(
-              width: 120,
+              width: 100,
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(4),
                 child: LinearProgressIndicator(
@@ -67,7 +82,7 @@ extension _ReactionAnimationHeaderExt on _ReactionAnimationWidgetState {
 
   Widget _phaseChip() {
       return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
         decoration: BoxDecoration(
           color: _phaseColor.withValues(alpha: 0.14),
           borderRadius: BorderRadius.circular(20),
@@ -76,8 +91,20 @@ extension _ReactionAnimationHeaderExt on _ReactionAnimationWidgetState {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
+            InkWell(
+              borderRadius: BorderRadius.circular(12),
+              onTap: () {
+                _claimKeyboard();
+                _jumpToPreviousPhase();
+              },
+              child: const Padding(
+                padding: EdgeInsets.all(2.0),
+                child: Icon(Icons.chevron_left_rounded, size: 16, color: Colors.white70),
+              ),
+            ),
+            const SizedBox(width: 2),
             Icon(_phaseIcon, color: _phaseColor, size: 14),
-            const SizedBox(width: 6),
+            const SizedBox(width: 4),
             Text(
               _phaseName,
               style: TextStyle(
@@ -86,10 +113,63 @@ extension _ReactionAnimationHeaderExt on _ReactionAnimationWidgetState {
                 fontWeight: FontWeight.bold,
               ),
             ),
+            const SizedBox(width: 2),
+            InkWell(
+              borderRadius: BorderRadius.circular(12),
+              onTap: () {
+                _claimKeyboard();
+                _jumpToNextPhase();
+              },
+              child: const Padding(
+                padding: EdgeInsets.all(2.0),
+                child: Icon(Icons.chevron_right_rounded, size: 16, color: Colors.white70),
+              ),
+            ),
           ],
         ),
       );
     }
+
+  Widget _speedSelectorChips() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [0.25, 0.5, 1.0, 2.0].map((speed) {
+          final isSelected = _playbackSpeed == speed;
+          return InkWell(
+            borderRadius: BorderRadius.circular(12),
+            onTap: () {
+              _claimKeyboard();
+              _setPlaybackSpeed(speed);
+            },
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(
+                color: isSelected
+                    ? const Color(0xFF00E676).withValues(alpha: 0.25)
+                    : Colors.transparent,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                '${speed}x',
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                  color: isSelected ? const Color(0xFF00E676) : Colors.white60,
+                ),
+              ),
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
 
   Widget _fragmentChip() {
       return Tooltip(
