@@ -75,6 +75,7 @@ class MedicinePharmacologyProfile {
   final String primaryDoi;
   final String pubmedId;
   final List<String> highYieldExamPearls;
+  final List<Map<String, String>> citations;
 
   const MedicinePharmacologyProfile({
     required this.id,
@@ -109,6 +110,7 @@ class MedicinePharmacologyProfile {
     required this.primaryDoi,
     required this.pubmedId,
     required this.highYieldExamPearls,
+    this.citations = const [],
   });
 
   factory MedicinePharmacologyProfile.fromJson(Map<String, dynamic> json) {
@@ -153,6 +155,12 @@ class MedicinePharmacologyProfile {
       primaryDoi: json['primaryDoi'] as String? ?? '',
       pubmedId: json['pubmedId'] as String? ?? '',
       highYieldExamPearls: (json['highYieldExamPearls'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [],
+      citations: (json['citations'] as List<dynamic>?)?.map((e) {
+        if (e is Map) {
+          return e.map((k, v) => MapEntry(k.toString(), v.toString()));
+        }
+        return <String, String>{};
+      }).where((m) => m.isNotEmpty).toList() ?? const [],
     );
   }
 
@@ -190,6 +198,7 @@ class MedicinePharmacologyProfile {
       'primaryDoi': primaryDoi,
       'pubmedId': pubmedId,
       'highYieldExamPearls': highYieldExamPearls,
+      'citations': citations,
     };
   }
 }

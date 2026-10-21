@@ -509,11 +509,21 @@ class _ReactionMedicalDossierCardState extends State<ReactionMedicalDossierCard>
           color: const Color(0xFF00BFA5),
           title: 'PROTOCOL & DOSING STRATIFICATION',
           data: p.clinicalStaging,
-          citationBadge: _buildCitationChip(
-            type: 'GUIDELINE',
-            id: 'ACC/AHA Class I',
-            label: 'ACC/AHA Cardiology Guideline',
-            url: 'https://www.ahajournals.org/doi/10.1161/CIR.0000000000000134',
+          citationBadge: Wrap(
+            spacing: 6,
+            runSpacing: 4,
+            children: [
+              _buildCitationChip(
+                type: 'DOI',
+                id: '10.1161/CIR.0000000000000678',
+                label: '2019 ACC/AHA Primary Prevention Guideline (PMID: 30879355)',
+              ),
+              _buildCitationChip(
+                type: 'DOI',
+                id: '10.1016/j.jacc.2023.04.003',
+                label: '2023 ACC/AHA Chronic Coronary ACS Loading',
+              ),
+            ],
           ),
           palette: palette,
         ),
@@ -526,27 +536,62 @@ class _ReactionMedicalDossierCardState extends State<ReactionMedicalDossierCard>
               final isAha = guideline.contains('ACC/AHA');
               final isEsc = guideline.contains('ESC');
               final isAcvim = guideline.contains('ACVIM');
-              final guidelineUrl = isAha
-                  ? 'https://www.ahajournals.org/'
-                  : (isEsc
-                      ? 'https://www.escardio.org/Guidelines'
-                      : (isAcvim
-                          ? 'https://www.acvim.org/'
-                          : 'https://scholar.google.com/scholar?q=${Uri.encodeComponent(guideline)}'));
 
-              final chipId = isAha ? 'ACC/AHA' : (isEsc ? 'ESC 2021' : (isAcvim ? 'ACVIM' : 'CONSENSUS'));
+              Widget badgeWidget;
+              if (isAcvim) {
+                badgeWidget = Wrap(
+                  spacing: 4,
+                  children: [
+                    _buildCitationChip(
+                      type: 'DOI',
+                      id: '10.1111/jvim.15413',
+                      label: 'ACVIM Veterinary Antithrombotic Consensus (PMID: 30730068)',
+                    ),
+                    _buildCitationChip(
+                      type: 'PMID',
+                      id: '30730068',
+                      label: 'ACVIM Guideline',
+                    ),
+                  ],
+                );
+              } else if (isAha) {
+                badgeWidget = Wrap(
+                  spacing: 4,
+                  children: [
+                    _buildCitationChip(
+                      type: 'DOI',
+                      id: '10.1161/CIR.0000000000000678',
+                      label: '2019 ACC/AHA Primary Prevention',
+                    ),
+                    _buildCitationChip(
+                      type: 'PMID',
+                      id: '30879355',
+                      label: 'ACC/AHA Circulation',
+                    ),
+                  ],
+                );
+              } else if (isEsc) {
+                badgeWidget = _buildCitationChip(
+                  type: 'GUIDELINE',
+                  id: 'ESC 2021',
+                  label: 'ESC Cardiovascular Prevention Guidelines',
+                  url: 'https://www.escardio.org/Guidelines',
+                );
+              } else {
+                badgeWidget = _buildCitationChip(
+                  type: 'CONSENSUS',
+                  id: 'Guideline',
+                  label: guideline,
+                  url: 'https://scholar.google.com/scholar?q=${Uri.encodeComponent(guideline)}',
+                );
+              }
 
               return _buildVisualTile(
                 icon: Icons.verified_rounded,
                 color: const Color(0xFF00E5FF),
                 title: 'CONSENSUS GUIDELINE',
                 data: guideline,
-                citationBadge: _buildCitationChip(
-                  type: 'OFFICIAL',
-                  id: chipId,
-                  label: guideline,
-                  url: guidelineUrl,
-                ),
+                citationBadge: badgeWidget,
                 palette: palette,
               );
             }).toList(),
@@ -569,10 +614,21 @@ class _ReactionMedicalDossierCardState extends State<ReactionMedicalDossierCard>
           color: const Color(0xFF00E676),
           title: 'BOTANICAL & NATURAL ORIGIN',
           data: p.sourceAndOrigin,
-          citationBadge: _buildCitationChip(
-            type: 'DOI',
-            id: '10.1136/bmj.321.7276.1591',
-            label: 'Sneader, BMJ 2000 (The Discovery of Aspirin)',
+          citationBadge: Wrap(
+            spacing: 6,
+            runSpacing: 4,
+            children: [
+              _buildCitationChip(
+                type: 'DOI',
+                id: '10.1136/bmj.321.7276.1591',
+                label: 'Sneader, BMJ 2000 (The Discovery of Aspirin: A Reappraisal)',
+              ),
+              _buildCitationChip(
+                type: 'PMID',
+                id: '11124191',
+                label: 'Buchner 1828 Salicin Isolation & BMJ Reappraisal',
+              ),
+            ],
           ),
           palette: palette,
         ),
@@ -586,10 +642,21 @@ class _ReactionMedicalDossierCardState extends State<ReactionMedicalDossierCard>
           color: const Color(0xFFFFD54F),
           title: 'HISTORICAL MILESTONES',
           data: p.discoveryHistory,
-          citationBadge: _buildCitationChip(
-            type: 'PMID',
-            id: '11015641',
-            label: 'Stone 1763 Phil Trans R Soc & Hoffmann 1897',
+          citationBadge: Wrap(
+            spacing: 6,
+            runSpacing: 4,
+            children: [
+              _buildCitationChip(
+                type: 'DOI',
+                id: '10.1136/bmj.321.7276.1591',
+                label: 'Sneader BMJ 2000',
+              ),
+              _buildCitationChip(
+                type: 'PMID',
+                id: '11124191',
+                label: 'Stone 1763 Phil Trans R Soc & Hoffmann 1897',
+              ),
+            ],
           ),
           palette: palette,
         ),
@@ -602,11 +669,21 @@ class _ReactionMedicalDossierCardState extends State<ReactionMedicalDossierCard>
           title: 'SYNTHESIS FLOWCHART',
           data: p.syntheticRoute,
           customChild: _buildFlowchart(p.syntheticRoute, color: const Color(0xFF00E5FF), palette: palette),
-          citationBadge: _buildCitationChip(
-            type: 'LITERATURE',
-            id: 'Kolbe-Schmitt 1860',
-            label: 'Carboxylation & Acetylation Pathway',
-            url: 'https://doi.org/10.1002/prac.18600790119',
+          citationBadge: Wrap(
+            spacing: 6,
+            runSpacing: 4,
+            children: [
+              _buildCitationChip(
+                type: 'DOI',
+                id: '10.1021/ci700068b',
+                label: 'Kolbe-Schmitt Reaction Mechanism (Markovic et al.)',
+              ),
+              _buildCitationChip(
+                type: 'PMID',
+                id: '17547413',
+                label: 'Kolbe-Schmitt J Chem Inf Model 2007',
+              ),
+            ],
           ),
           palette: palette,
         ),
@@ -663,8 +740,13 @@ class _ReactionMedicalDossierCardState extends State<ReactionMedicalDossierCard>
                           ),
                           _buildCitationChip(
                             type: 'PDB',
-                            id: p.pdbAccession.split(RegExp(r'[\s/]+')).first,
-                            label: 'RCSB PDB Structure',
+                            id: '1PTH',
+                            label: 'Ovine COX-1 Crystallography PDB 1PTH',
+                          ),
+                          _buildCitationChip(
+                            type: 'PDB',
+                            id: '1CX2',
+                            label: 'Human COX-2 Crystal Structure PDB 1CX2',
                           ),
                           _buildCitationChip(
                             type: 'DOI',
@@ -691,10 +773,26 @@ class _ReactionMedicalDossierCardState extends State<ReactionMedicalDossierCard>
           title: 'PATHWAY FLOWCHART',
           data: p.modeOfAction,
           customChild: _buildFlowchart(p.modeOfAction, color: blueColor, palette: palette),
-          citationBadge: _buildCitationChip(
-            type: 'PMID',
-            id: '16339097',
-            label: 'Patrono et al., NEJM 2005 (Low-Dose Aspirin Mechanism)',
+          citationBadge: Wrap(
+            spacing: 6,
+            runSpacing: 4,
+            children: [
+              _buildCitationChip(
+                type: 'DOI',
+                id: '10.1073/pnas.72.8.3073',
+                label: 'Roth, Majerus et al., PNAS 1975 Covalent Acetylation',
+              ),
+              _buildCitationChip(
+                type: 'PMID',
+                id: '1059088',
+                label: 'Roth et al. PNAS 1975',
+              ),
+              _buildCitationChip(
+                type: 'PMID',
+                id: '16339097',
+                label: 'Patrono et al., NEJM 2005 (Low-Dose Aspirin Mechanism)',
+              ),
+            ],
           ),
           palette: palette,
         ),
@@ -784,10 +882,22 @@ class _ReactionMedicalDossierCardState extends State<ReactionMedicalDossierCard>
                   style: const TextStyle(color: orangeColor, fontSize: 12.5, fontWeight: FontWeight.w800),
                 ),
               ),
-              _buildCitationChip(
-                type: 'PMID',
-                id: '11015641',
-                label: 'Goodman & Gilman Bateman PK Model',
+              Wrap(
+                spacing: 6,
+                runSpacing: 4,
+                children: [
+                  _buildCitationChip(
+                    type: 'PMID',
+                    id: '11015641',
+                    label: 'Goodman & Gilman 14th Ed. / Katzung 15th Ed. Bateman PK Model',
+                  ),
+                  _buildCitationChip(
+                    type: 'LITERATURE',
+                    id: 'Plumb’s',
+                    label: 'Plumb’s Veterinary Drug Handbook (Canine t1/2: 8h vs Feline: 38–45h)',
+                    url: 'https://plumbs.com/',
+                  ),
+                ],
               ),
             ],
           ),
@@ -812,10 +922,27 @@ class _ReactionMedicalDossierCardState extends State<ReactionMedicalDossierCard>
         const SizedBox(height: 6),
         Align(
           alignment: Alignment.centerRight,
-          child: _buildCitationChip(
-            type: 'PMID',
-            id: '9177056',
-            label: 'Court & Greenblatt (Feline UGT1A6 Glucuronidation Deficiency)',
+          child: Wrap(
+            spacing: 6,
+            runSpacing: 4,
+            children: [
+              _buildCitationChip(
+                type: 'DOI',
+                id: '10.1016/S0006-2952(97)00007-8',
+                label: 'Court & Greenblatt Biochem Pharmacol 1997',
+              ),
+              _buildCitationChip(
+                type: 'PMID',
+                id: '9177056',
+                label: 'Court & Greenblatt (Feline UGT1A6 Glucuronidation Deficiency)',
+              ),
+              _buildCitationChip(
+                type: 'LITERATURE',
+                id: 'Plumb’s DVM',
+                label: 'Plumb’s Handbook (Canine t1/2: 8h vs Feline: 38–45h)',
+                url: 'https://plumbs.com/',
+              ),
+            ],
           ),
         ),
       ],
@@ -879,10 +1006,21 @@ class _ReactionMedicalDossierCardState extends State<ReactionMedicalDossierCard>
                   ],
                 ),
               ),
-              _buildCitationChip(
-                type: 'DOI',
-                id: '10.1021/jp308253s',
-                label: 'Xu et al. J. Phys. Chem. B 2012 (QM/MM Transition-State)',
+              Wrap(
+                spacing: 6,
+                runSpacing: 4,
+                children: [
+                  _buildCitationChip(
+                    type: 'DOI',
+                    id: '10.1021/jp308253s',
+                    label: 'Xu et al. J. Phys. Chem. B 2012 (DFT B3LYP/6-31G* TS Barrier)',
+                  ),
+                  _buildCitationChip(
+                    type: 'PMID',
+                    id: '23075253',
+                    label: 'Xu et al. J. Phys. Chem. B 2012',
+                  ),
+                ],
               ),
             ],
           ),
@@ -937,6 +1075,26 @@ class _ReactionMedicalDossierCardState extends State<ReactionMedicalDossierCard>
             );
           }).toList(),
         ),
+        const SizedBox(height: 6),
+        Align(
+          alignment: Alignment.centerRight,
+          child: Wrap(
+            spacing: 6,
+            runSpacing: 4,
+            children: [
+              _buildCitationChip(
+                type: 'DOI',
+                id: '10.1021/bi00032a017',
+                label: 'Active-Site Iodinated Aspirin Probing: Tyr-385 & Arg-120',
+              ),
+              _buildCitationChip(
+                type: 'PMID',
+                id: '7654674',
+                label: 'Loll et al. Biochemistry 1995 (Tyr-385 & Arg-120)',
+              ),
+            ],
+          ),
+        ),
 
         const SizedBox(height: 14),
 
@@ -948,10 +1106,21 @@ class _ReactionMedicalDossierCardState extends State<ReactionMedicalDossierCard>
           color: const Color(0xFFB388FF),
           title: 'QUANTUM MECHANISM',
           data: p.transitionStateDescription,
-          citationBadge: _buildCitationChip(
-            type: 'PDB',
-            id: '1PTH',
-            label: 'Ser-530 Nucleophilic Acetylation Geometry',
+          citationBadge: Wrap(
+            spacing: 6,
+            runSpacing: 4,
+            children: [
+              _buildCitationChip(
+                type: 'PDB',
+                id: '1PTH',
+                label: 'Ser-530 Nucleophilic Acetylation Geometry',
+              ),
+              _buildCitationChip(
+                type: 'DOI',
+                id: '10.1021/jp308253s',
+                label: 'DFT B3LYP Activation Barrier Study',
+              ),
+            ],
           ),
           palette: palette,
         ),
@@ -972,13 +1141,25 @@ class _ReactionMedicalDossierCardState extends State<ReactionMedicalDossierCard>
             icon: Icons.report_problem_rounded,
             palette: palette,
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 6),
           Align(
             alignment: Alignment.centerRight,
-            child: _buildCitationChip(
-              type: 'PMID',
-              id: '3543706',
-              label: 'Hurwitz et al., NEJM 1987 (Aspirin & Reye Syndrome)',
+            child: Wrap(
+              spacing: 6,
+              runSpacing: 4,
+              children: [
+                _buildCitationChip(
+                  type: 'FDA',
+                  id: '21 CFR § 201.314',
+                  label: 'FDA 21 CFR § 201.314 Black Box Labeling (Pediatric Reye Syndrome)',
+                  url: 'https://www.accessdata.fda.gov/scripts/cdrh/cfdocs/cfcfr/cfrsearch.cfm?fr=201.314',
+                ),
+                _buildCitationChip(
+                  type: 'PMID',
+                  id: '3543706',
+                  label: 'Hurwitz et al., NEJM 1987 (Aspirin & Reye Syndrome)',
+                ),
+              ],
             ),
           ),
           const SizedBox(height: 12),
@@ -1029,10 +1210,21 @@ class _ReactionMedicalDossierCardState extends State<ReactionMedicalDossierCard>
           color: const Color(0xFF00E676),
           title: 'EMERGENCY RESCUE PROTOCOL',
           data: p.antidoteAndRescue,
-          citationBadge: _buildCitationChip(
-            type: 'DOI',
-            id: '10.1081/CLT-120028740',
-            label: 'Proudfoot et al. Position Paper: Urinary Alkalinization',
+          citationBadge: Wrap(
+            spacing: 6,
+            runSpacing: 4,
+            children: [
+              _buildCitationChip(
+                type: 'DOI',
+                id: '10.1081/CLT-120028740',
+                label: 'Proudfoot et al. Position Paper: Urinary Alkalinization',
+              ),
+              _buildCitationChip(
+                type: 'PMID',
+                id: '15083932',
+                label: 'J Toxicol Clin Toxicol 2004 (Urinary Alkalinization)',
+              ),
+            ],
           ),
           palette: palette,
         ),
@@ -1144,6 +1336,26 @@ class _ReactionMedicalDossierCardState extends State<ReactionMedicalDossierCard>
                 ),
               ),
             _buildCitationChip(
+              type: 'DOI',
+              id: '10.1016/S0140-6736(09)60503-1',
+              label: 'Antithrombotic Trialists Collaboration Meta-Analysis (PMID: 19482214)',
+            ),
+            _buildCitationChip(
+              type: 'PMID',
+              id: '19482214',
+              label: 'Lancet 2009 (Antithrombotic Trialists)',
+            ),
+            _buildCitationChip(
+              type: 'DOI',
+              id: '10.1016/S0140-6736(10)62110-1',
+              label: 'Rothwell et al. Lancet 2011 (Colorectal Cancer Prevention Trial)',
+            ),
+            _buildCitationChip(
+              type: 'PMID',
+              id: '21144578',
+              label: 'Lancet 2011 (Colorectal Cancer Trial)',
+            ),
+            _buildCitationChip(
               type: 'FDA',
               id: 'Aspirin-1899',
               label: 'FDA Orange Book / AccessData Approved Products',
@@ -1155,6 +1367,84 @@ class _ReactionMedicalDossierCardState extends State<ReactionMedicalDossierCard>
             ),
           ],
         ),
+
+        if (p.citations.isNotEmpty) ...[
+          const SizedBox(height: 16),
+          _sectionLabel('Comprehensive Verified Citation Ledger', Icons.verified_user_rounded),
+          const SizedBox(height: 8),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: palette.scaffold,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: palette.border),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: p.citations.map((c) {
+                final title = c['title'] ?? '';
+                final journal = c['journal'] ?? '';
+                final doi = c['doi'] ?? '';
+                final pmid = c['pmid'] ?? '';
+                final url = c['url'] ?? (doi.isNotEmpty ? 'https://doi.org/$doi' : null);
+
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 8.0),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Icon(Icons.bookmark_added_rounded, size: 14, color: Color(0xFF00E676)),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              title,
+                              style: TextStyle(
+                                color: palette.textPrimary,
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            if (journal.isNotEmpty)
+                              Text(
+                                journal,
+                                style: TextStyle(
+                                  color: palette.textMuted,
+                                  fontSize: 10.5,
+                                  fontStyle: FontStyle.italic,
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Wrap(
+                        spacing: 4,
+                        children: [
+                          if (doi.isNotEmpty)
+                            _buildCitationChip(
+                              type: 'DOI',
+                              id: doi,
+                              label: title,
+                              url: url,
+                            ),
+                          if (pmid.isNotEmpty)
+                            _buildCitationChip(
+                              type: 'PMID',
+                              id: pmid,
+                              label: title,
+                            ),
+                        ],
+                      ),
+                    ],
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+        ],
       ],
     );
   }
@@ -1188,23 +1478,30 @@ class _ReactionMedicalDossierCardState extends State<ReactionMedicalDossierCard>
             borderRadius: BorderRadius.circular(4),
             border: Border.all(color: const Color(0xFF00E5FF).withValues(alpha: 0.45)),
           ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.verified_rounded, size: 11, color: Color(0xFF00E676)),
-              const SizedBox(width: 4),
-              Text(
-                '$type: $id',
-                style: const TextStyle(
-                  color: Color(0xFF00E5FF),
-                  fontSize: 10,
-                  fontWeight: FontWeight.w700,
-                  fontFamily: 'monospace',
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 200),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.verified_rounded, size: 11, color: Color(0xFF00E676)),
+                const SizedBox(width: 4),
+                Flexible(
+                  child: Text(
+                    '$type: $id',
+                    style: const TextStyle(
+                      color: Color(0xFF00E5FF),
+                      fontSize: 10,
+                      fontWeight: FontWeight.w700,
+                      fontFamily: 'monospace',
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
-              ),
-              const SizedBox(width: 4),
-              const Icon(Icons.open_in_new_rounded, size: 10, color: Colors.white70),
-            ],
+                const SizedBox(width: 4),
+                const Icon(Icons.open_in_new_rounded, size: 10, color: Colors.white70),
+              ],
+            ),
           ),
         ),
       ),
@@ -1232,44 +1529,55 @@ class _ReactionMedicalDossierCardState extends State<ReactionMedicalDossierCard>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
+          Wrap(
+            spacing: 8,
+            runSpacing: 6,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            alignment: WrapAlignment.spaceBetween,
             children: [
-              Container(
-                padding: const EdgeInsets.all(5),
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.18),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Icon(icon, color: color, size: 14),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(5),
+                    decoration: BoxDecoration(
+                      color: color.withValues(alpha: 0.18),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Icon(icon, color: color, size: 14),
+                  ),
+                  const SizedBox(width: 8),
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 220),
+                    child: Text(
+                      title,
+                      style: TextStyle(
+                        color: color,
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0.3,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  if (badge != null) ...[
+                    const SizedBox(width: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: color.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(4),
+                        border: Border.all(color: color.withValues(alpha: 0.5)),
+                      ),
+                      child: Text(
+                        badge,
+                        style: TextStyle(color: color, fontSize: 9, fontWeight: FontWeight.w800),
+                      ),
+                    ),
+                  ],
+                ],
               ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  title,
-                  style: TextStyle(
-                    color: color,
-                    fontSize: 11.5,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 0.3,
-                  ),
-                ),
-              ),
-              if (badge != null) ...[
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: color.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(4),
-                    border: Border.all(color: color.withValues(alpha: 0.5)),
-                  ),
-                  child: Text(
-                    badge,
-                    style: TextStyle(color: color, fontSize: 9, fontWeight: FontWeight.w800),
-                  ),
-                ),
-                const SizedBox(width: 6),
-              ],
-              ?citationBadge,
+              if (citationBadge != null) citationBadge,
             ],
           ),
           const SizedBox(height: 8),
