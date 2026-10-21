@@ -51,20 +51,19 @@ enum AppTheme {
   /// `darkMatter` → `Dark Matter`
   String get displayName => label;
 
-  static AppTheme fromId(String? id) => AppTheme.values.firstWhere(
-        (t) => t.id == id,
-        orElse: () => AppTheme.darkMatter,
-      );
+  static AppTheme fromId(String? id) {
+    final target = QuantumThemes.byId(id);
+    return AppTheme.values.firstWhere(
+      (t) => t.preset.id == target.id,
+      orElse: () => AppTheme.darkMatter,
+    );
+  }
 }
 
 class ThemeNotifier extends ChangeNotifier {
   ThemeNotifier({AppTheme? initialTheme})
-      : _currentTheme = initialTheme ?? AppTheme.darkMatter {
-    if (initialTheme == null) {
-      _restore();
-    } else {
-      _isInitialized = true;
-    }
+      : _currentTheme = initialTheme ?? _loadInitialTheme() {
+    _isInitialized = true;
   }
 
   static const String storageKey = 'qf_theme_id';
@@ -81,14 +80,25 @@ class ThemeNotifier extends ChangeNotifier {
   ThemeData get themeData => palette.toThemeData();
 
   bool get isLight => palette.isLight;
+  bool get isDark => palette.isDark;
 
-  Future<void> _restore() async {
+  static AppTheme _loadInitialTheme() {
     try {
-      _currentTheme = AppTheme.fromId(AppStorage.getString(storageKey));
+      final saved = AppStorage.getString(storageKey);
+      if (saved != null && saved.isNotEmpty) {
+        return AppTheme.fromId(saved);
+      }
     } catch (e) {
       debugPrint('ThemeNotifier: could not restore theme — $e');
-    } finally {
-      _isInitialized = true;
+    }
+    return AppTheme.darkMatter;
+  }
+
+  /// Reloads the persisted theme from disk.
+  Future<void> reload() async {
+    final restored = _loadInitialTheme();
+    if (restored != _currentTheme) {
+      _currentTheme = restored;
       notifyListeners();
     }
   }
@@ -105,9 +115,13 @@ class ThemeNotifier extends ChangeNotifier {
     }
   }
 
+  /// Sets the active theme using any string format (id, name, label, number).
+  Future<void> setThemeById(String id) => setTheme(AppTheme.fromId(id));
+
   /// Cycles to the next preset (used by the keyboard shortcut / drawer button).
   Future<void> cycleTheme() {
-    final next = AppTheme.values[(_currentTheme.index + 1) % AppTheme.values.length];
+    final next =
+        AppTheme.values[(_currentTheme.index + 1) % AppTheme.values.length];
     return setTheme(next);
   }
 
@@ -115,6 +129,24 @@ class ThemeNotifier extends ChangeNotifier {
   Future<void> reset() => setTheme(AppTheme.darkMatter);
 
   /// Convenience: the active palette for a widget that rebuilds on theme change.
-  static QuantumTheme paletteOf(BuildContext context) =>
-      Provider.of<ThemeNotifier>(context, listen: true).palette;
+  /// Safely falls back to [QuantumThemes.darkMatter] if called outside Provider context.
+  static QuantumTheme paletteOf(BuildContext context) {
+    try {
+      final notifier = Provider.of<ThemeNotifier?>(context, listen: true);
+      return notifier?.palette ?? QuantumThemes.darkMatter;
+    } catch (_) {
+      return QuantumThemes.darkMatter;
+    }
+  }
+
+  /// Convenience: reads the active palette once without subscribing to rebuilds.
+  /// Safely falls back to [QuantumThemes.darkMatter] if called outside Provider context.
+  static QuantumTheme readPalette(BuildContext context) {
+    try {
+      final notifier = Provider.of<ThemeNotifier?>(context, listen: false);
+      return notifier?.palette ?? QuantumThemes.darkMatter;
+    } catch (_) {
+      return QuantumThemes.darkMatter;
+    }
+  }
 }

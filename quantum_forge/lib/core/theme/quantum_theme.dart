@@ -129,6 +129,7 @@ class QuantumTheme {
   });
 
   bool get isLight => brightness == Brightness.light;
+  bool get isDark => brightness == Brightness.dark;
 
   /// Panels that sit on top of a light background need dark text, and vice
   /// versa. Widgets use this instead of hard-coding `Colors.white`.
@@ -142,29 +143,108 @@ class QuantumTheme {
   /// Convenience accessor for charts: colour `i` of the categorical palette.
   Color plotColor(int i) => plotPalette[i % plotPalette.length];
 
+  /// Creates a copy of this theme with the given fields replaced.
+  QuantumTheme copyWith({
+    String? id,
+    String? label,
+    String? family,
+    String? description,
+    Brightness? brightness,
+    Color? accent,
+    Color? accentAlt,
+    Color? scaffold,
+    Color? panel,
+    Color? panelAlt,
+    Color? border,
+    List<Color>? backgroundGradient,
+    Color? viewport,
+    Color? glow,
+    Color? textPrimary,
+    Color? textSecondary,
+    Color? textMuted,
+    Color? drawer,
+    List<Color>? drawerGradient,
+    Color? success,
+    Color? warning,
+    Color? danger,
+    List<Color>? plotPalette,
+    Color? plotGrid,
+    Color? plotAxis,
+    Color? bondColor,
+    Color? bondHighlight,
+    AtomRenderStyle? atomStyle,
+    double? vdwOpacity,
+  }) {
+    return QuantumTheme(
+      id: id ?? this.id,
+      label: label ?? this.label,
+      family: family ?? this.family,
+      description: description ?? this.description,
+      brightness: brightness ?? this.brightness,
+      accent: accent ?? this.accent,
+      accentAlt: accentAlt ?? this.accentAlt,
+      scaffold: scaffold ?? this.scaffold,
+      panel: panel ?? this.panel,
+      panelAlt: panelAlt ?? this.panelAlt,
+      border: border ?? this.border,
+      backgroundGradient: backgroundGradient ?? this.backgroundGradient,
+      viewport: viewport ?? this.viewport,
+      glow: glow ?? this.glow,
+      textPrimary: textPrimary ?? this.textPrimary,
+      textSecondary: textSecondary ?? this.textSecondary,
+      textMuted: textMuted ?? this.textMuted,
+      drawer: drawer ?? this.drawer,
+      drawerGradient: drawerGradient ?? this.drawerGradient,
+      success: success ?? this.success,
+      warning: warning ?? this.warning,
+      danger: danger ?? this.danger,
+      plotPalette: plotPalette ?? this.plotPalette,
+      plotGrid: plotGrid ?? this.plotGrid,
+      plotAxis: plotAxis ?? this.plotAxis,
+      bondColor: bondColor ?? this.bondColor,
+      bondHighlight: bondHighlight ?? this.bondHighlight,
+      atomStyle: atomStyle ?? this.atomStyle,
+      vdwOpacity: vdwOpacity ?? this.vdwOpacity,
+    );
+  }
+
   /// Builds the Material [ThemeData] that wraps the palette.
   ThemeData toThemeData() {
-    final scheme = isLight
-        ? ColorScheme.fromSeed(
-            seedColor: accent,
-            brightness: Brightness.light,
-          ).copyWith(
-            primary: accent,
-            secondary: accentAlt,
-            surface: panel,
-            surfaceTint: Colors.transparent,
-            onSurface: textPrimary,
-          )
-        : ColorScheme.fromSeed(
-            seedColor: accent,
-            brightness: Brightness.dark,
-          ).copyWith(
-            primary: accent,
-            secondary: accentAlt,
-            surface: panel,
-            surfaceTint: Colors.transparent,
-            onSurface: textPrimary,
-          );
+    final onAccentColor = onAccent;
+    final onAccentAltColor =
+        ThemeData.estimateBrightnessForColor(accentAlt) == Brightness.dark
+            ? Colors.white
+            : const Color(0xFF06121A);
+
+    final scheme = (isLight
+            ? ColorScheme.fromSeed(
+                seedColor: accent,
+                brightness: Brightness.light,
+              )
+            : ColorScheme.fromSeed(
+                seedColor: accent,
+                brightness: Brightness.dark,
+              ))
+        .copyWith(
+          primary: accent,
+          onPrimary: onAccentColor,
+          secondary: accentAlt,
+          onSecondary: onAccentAltColor,
+          surface: panel,
+          surfaceTint: Colors.transparent,
+          onSurface: textPrimary,
+          onSurfaceVariant: textSecondary,
+          outline: border,
+          outlineVariant:
+              border.withValues(alpha: (border.a * 0.7).clamp(0.0, 1.0)),
+          surfaceContainerLowest: scaffold,
+          surfaceContainerLow: panel,
+          surfaceContainer: panel,
+          surfaceContainerHigh: panelAlt,
+          surfaceContainerHighest: panelAlt,
+          error: danger,
+          onError: Colors.white,
+        );
 
     final base = ThemeData(
       useMaterial3: true,
@@ -207,6 +287,53 @@ class QuantumTheme {
         surfaceTintColor: Colors.transparent,
       ),
       drawerTheme: DrawerThemeData(backgroundColor: drawer),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: accent,
+          foregroundColor: onAccentColor,
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+      ),
+      filledButtonTheme: FilledButtonThemeData(
+        style: FilledButton.styleFrom(
+          backgroundColor: accent,
+          foregroundColor: onAccentColor,
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: accent,
+          side: BorderSide(color: border),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          foregroundColor: accent,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+      ),
+      floatingActionButtonTheme: FloatingActionButtonThemeData(
+        backgroundColor: accent,
+        foregroundColor: onAccentColor,
+      ),
+      tabBarTheme: TabBarThemeData(
+        labelColor: accent,
+        unselectedLabelColor: textSecondary,
+        indicatorColor: accent,
+        dividerColor: border,
+      ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: panelAlt,
@@ -282,14 +409,34 @@ class QuantumTheme {
   }
 
   TextTheme _textTheme() {
-    final base = isLight ? Typography.blackMountainView : Typography.whiteMountainView;
+    final base =
+        isLight ? Typography.blackMountainView : Typography.whiteMountainView;
     return base.copyWith(
+      displayLarge: base.displayLarge
+          ?.copyWith(color: textPrimary, fontWeight: FontWeight.w800),
+      displayMedium: base.displayMedium
+          ?.copyWith(color: textPrimary, fontWeight: FontWeight.w700),
+      displaySmall: base.displaySmall
+          ?.copyWith(color: textPrimary, fontWeight: FontWeight.w700),
+      headlineLarge: base.headlineLarge
+          ?.copyWith(color: textPrimary, fontWeight: FontWeight.w800),
+      headlineMedium: base.headlineMedium
+          ?.copyWith(color: textPrimary, fontWeight: FontWeight.w700),
+      headlineSmall: base.headlineSmall
+          ?.copyWith(color: textPrimary, fontWeight: FontWeight.w600),
+      titleLarge: base.titleLarge
+          ?.copyWith(color: textPrimary, fontWeight: FontWeight.w700),
+      titleMedium: base.titleMedium
+          ?.copyWith(color: textPrimary, fontWeight: FontWeight.w600),
+      titleSmall: base.titleSmall
+          ?.copyWith(color: textPrimary, fontWeight: FontWeight.w600),
       bodyLarge: base.bodyLarge?.copyWith(color: textPrimary),
       bodyMedium: base.bodyMedium?.copyWith(color: textSecondary),
       bodySmall: base.bodySmall?.copyWith(color: textMuted),
-      titleLarge: base.titleLarge?.copyWith(color: textPrimary, fontWeight: FontWeight.w700),
-      titleMedium: base.titleMedium?.copyWith(color: textPrimary, fontWeight: FontWeight.w600),
-      labelLarge: base.labelLarge?.copyWith(color: textSecondary),
+      labelLarge: base.labelLarge
+          ?.copyWith(color: textSecondary, fontWeight: FontWeight.w600),
+      labelMedium: base.labelMedium?.copyWith(color: textSecondary),
+      labelSmall: base.labelSmall?.copyWith(color: textMuted),
     );
   }
 
@@ -609,10 +756,39 @@ class QuantumThemes {
     journalMono,
   ];
 
-  static QuantumTheme byId(String id) => all.firstWhere(
-        (t) => t.id == id,
-        orElse: () => darkMatter,
-      );
+  static QuantumTheme byId(String? id) {
+    if (id == null) return darkMatter;
+    final trimmed = id.trim();
+    if (trimmed.isEmpty) return darkMatter;
+
+    // 1. Exact match on id
+    for (final t in all) {
+      if (t.id == trimmed) return t;
+    }
+
+    // 2. Case-insensitive match on id or label
+    final lower = trimmed.toLowerCase();
+    for (final t in all) {
+      if (t.id.toLowerCase() == lower || t.label.toLowerCase() == lower) {
+        return t;
+      }
+    }
+
+    // 3. Numeric index ('0'..'6')
+    final asInt = int.tryParse(trimmed);
+    if (asInt != null && asInt >= 0 && asInt < all.length) {
+      return all[asInt];
+    }
+
+    // 4. Normalized match (strip whitespace, hyphens, underscores)
+    final normalized = lower.replaceAll(RegExp(r'[\s\-_]'), '');
+    for (final t in all) {
+      final tNorm = t.id.replaceAll('_', '');
+      if (tNorm == normalized) return t;
+    }
+
+    return darkMatter;
+  }
 
   /// Presets grouped for the settings UI: family → presets.
   static Map<String, List<QuantumTheme>> get byFamily {

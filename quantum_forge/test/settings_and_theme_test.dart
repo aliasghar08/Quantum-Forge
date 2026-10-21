@@ -363,5 +363,124 @@ void main() {
       final notifier = ThemeNotifier();
       expect(notifier.currentTheme, AppTheme.darkMatter);
     });
+
+    test('setThemeById accepts various string formats and persists', () async {
+      AppStorage.clear();
+      final notifier = ThemeNotifier();
+      await notifier.setThemeById('neonSynth');
+      expect(notifier.currentTheme, AppTheme.neonSynth);
+      expect(AppStorage.getString(ThemeNotifier.storageKey), 'neon_synth');
+
+      await notifier.setThemeById('scientific-light');
+      expect(notifier.currentTheme, AppTheme.scientificLight);
+
+      await notifier.setThemeById('Journal Mono');
+      expect(notifier.currentTheme, AppTheme.journalMono);
+    });
+  });
+
+  group('robust theme parsing & fuzzy lookup', () {
+    test('AppTheme.fromId resolves camelCase enum names', () {
+      expect(AppTheme.fromId('darkMatter'), AppTheme.darkMatter);
+      expect(AppTheme.fromId('quantumBlue'), AppTheme.quantumBlue);
+      expect(AppTheme.fromId('neonSynth'), AppTheme.neonSynth);
+      expect(AppTheme.fromId('electronCloud'), AppTheme.electronCloud);
+      expect(AppTheme.fromId('spectroscopy'), AppTheme.spectroscopy);
+      expect(AppTheme.fromId('scientificLight'), AppTheme.scientificLight);
+      expect(AppTheme.fromId('journalMono'), AppTheme.journalMono);
+    });
+
+    test('AppTheme.fromId resolves kebab-case and display labels', () {
+      expect(AppTheme.fromId('neon-synth'), AppTheme.neonSynth);
+      expect(AppTheme.fromId('Neon Synth'), AppTheme.neonSynth);
+      expect(AppTheme.fromId('scientific-light'), AppTheme.scientificLight);
+      expect(AppTheme.fromId('Scientific Light'), AppTheme.scientificLight);
+      expect(AppTheme.fromId('journal-mono'), AppTheme.journalMono);
+      expect(AppTheme.fromId('Journal Mono'), AppTheme.journalMono);
+    });
+
+    test('AppTheme.fromId resolves numeric indexes', () {
+      for (var i = 0; i < AppTheme.values.length; i++) {
+        expect(AppTheme.fromId('$i'), AppTheme.values[i]);
+      }
+    });
+
+    test('QuantumThemes.byId matches AppTheme.fromId across all formats', () {
+      final formats = [
+        'dark_matter', 'darkMatter', 'Dark Matter', '0',
+        'quantum_blue', 'quantumBlue', 'Quantum Blue', '1',
+        'neon_synth', 'neonSynth', 'neon-synth', 'Neon Synth', '2',
+        'electron_cloud', 'electronCloud', 'electron-cloud', 'Electron Cloud', '3',
+        'spectroscopy', 'Spectroscopy', '4',
+        'scientific_light', 'scientificLight', 'scientific-light', 'Scientific Light', '5',
+        'journal_mono', 'journalMono', 'journal-mono', 'Journal Mono', '6',
+      ];
+      for (final format in formats) {
+        expect(QuantumThemes.byId(format).id, AppTheme.fromId(format).id);
+      }
+    });
+  });
+
+  group('Material 3 theme contrast and complete styles', () {
+    test('every preset provides high-contrast onPrimary and onSecondary', () {
+      for (final theme in QuantumThemes.all) {
+        final themeData = theme.toThemeData();
+        final scheme = themeData.colorScheme;
+
+        expect(scheme.primary, theme.accent, reason: theme.id);
+        expect(scheme.onPrimary, theme.onAccent, reason: theme.id);
+
+        final primaryLum = scheme.primary.computeLuminance();
+        final onPrimaryLum = scheme.onPrimary.computeLuminance();
+        final contrastDelta = (primaryLum - onPrimaryLum).abs();
+        expect(contrastDelta, greaterThan(0.2),
+            reason: '${theme.id} onPrimary lacks contrast with primary');
+
+        expect(scheme.surface, theme.panel, reason: theme.id);
+        expect(scheme.onSurface, theme.textPrimary, reason: theme.id);
+        expect(scheme.onSurfaceVariant, theme.textSecondary, reason: theme.id);
+        expect(scheme.surfaceContainer, theme.panel, reason: theme.id);
+        expect(scheme.surfaceContainerHigh, theme.panelAlt, reason: theme.id);
+      }
+    });
+
+    test('themeData defines button and tab themes with correct foregrounds', () {
+      for (final theme in QuantumThemes.all) {
+        final data = theme.toThemeData();
+        expect(data.elevatedButtonTheme.style, isNotNull, reason: theme.id);
+        expect(data.filledButtonTheme.style, isNotNull, reason: theme.id);
+        expect(data.tabBarTheme.indicatorColor, theme.accent, reason: theme.id);
+      }
+    });
+
+    test('isDark and isLight are strictly opposite', () {
+      for (final theme in QuantumThemes.all) {
+        expect(theme.isDark, !theme.isLight, reason: theme.id);
+      }
+    });
+
+    test('copyWith produces identical instance by default and overrides correctly', () {
+      final original = QuantumThemes.spectroscopy;
+      final copy = original.copyWith();
+      expect(copy, equals(original));
+
+      final modified = original.copyWith(label: 'Custom Spec');
+      expect(modified.label, 'Custom Spec');
+      expect(modified.accent, original.accent);
+    });
+  });
+
+  testWidgets('ThemeNotifier.paletteOf safely returns darkMatter when un-provided',
+      (tester) async {
+    late QuantumTheme observedPalette;
+    await tester.pumpWidget(
+      Builder(
+        builder: (context) {
+          observedPalette = ThemeNotifier.paletteOf(context);
+          return const SizedBox.shrink();
+        },
+      ),
+    );
+    expect(observedPalette.id, QuantumThemes.darkMatter.id);
   });
 }
