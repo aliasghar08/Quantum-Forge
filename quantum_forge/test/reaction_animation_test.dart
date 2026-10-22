@@ -19,10 +19,12 @@
 // visible, and assert against real taps rather than poking callbacks.
 // ============================================================================
 
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:quantum_forge/core/widgets/reaction_animation_widget.dart';
+import 'package:quantum_forge/features/reaction_runner/presentation/widgets/molecular_viewer_widget.dart';
 
 const String _frame1 =
     '3\nReactant\nC 0.00 0.00 0.00\nO 1.43 0.00 0.00\nH 2.39 0.00 0.00\n';
@@ -611,6 +613,108 @@ void main() {
     await tester.tap(find.byIcon(Icons.close));
     await tester.pump();
     expect(find.text('BOND SPECTRUM INDEX'), findsNothing);
+
+    expect(tester.takeException(), isNull);
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
+
+  testWidgets('supports trackpad pinch and two-finger scale gestures on ReactionAnimationWidget', (tester) async {
+    await pumpAnimation(tester);
+
+    final canvasFinder = find.byType(Listener).first;
+    expect(canvasFinder, findsWidgets);
+
+    // 1. Simulate trackpad PointerPanZoomUpdateEvent (laptop trackpad pinch)
+    final location = tester.getCenter(canvasFinder);
+    final panZoomUpdate = PointerPanZoomUpdateEvent(
+      position: location,
+      scale: 1.25, // Zoom in
+      timeStamp: Duration.zero,
+    );
+    tester.binding.handlePointerEvent(panZoomUpdate);
+    await tester.pump();
+    expect(tester.takeException(), isNull);
+
+    // 2. Simulate pointer scroll (mouse wheel / trackpad 2-finger scroll)
+    final scrollEvent = PointerScrollEvent(
+      position: location,
+      scrollDelta: const Offset(0, -30),
+      timeStamp: Duration.zero,
+    );
+    tester.binding.handlePointerEvent(scrollEvent);
+    await tester.pump();
+    expect(tester.takeException(), isNull);
+
+    // 3. Simulate phone screen 2-finger pinch gesture
+    final gesture1 = await tester.startGesture(location - const Offset(20, 0));
+    final gesture2 = await tester.startGesture(location + const Offset(20, 0));
+    await tester.pump();
+
+    // Pinch out (move fingers apart)
+    await gesture1.moveBy(const Offset(-30, 0));
+    await gesture2.moveBy(const Offset(30, 0));
+    await tester.pump();
+
+    await gesture1.up();
+    await gesture2.up();
+    await tester.pump();
+
+    expect(tester.takeException(), isNull);
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
+
+  testWidgets('supports trackpad and phone pinch-to-zoom on MolecularViewerWidget', (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: SizedBox(
+            width: 400,
+            height: 400,
+            child: MolecularViewerWidget(
+              currentXyzData: _frame1,
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final canvasFinder = find.byType(CustomPaint).first;
+    expect(canvasFinder, findsOneWidget);
+    final location = tester.getCenter(canvasFinder);
+
+    // 1. Trackpad pinch on MolecularViewerWidget
+    final panZoomUpdate = PointerPanZoomUpdateEvent(
+      position: location,
+      scale: 1.5,
+      timeStamp: Duration.zero,
+    );
+    tester.binding.handlePointerEvent(panZoomUpdate);
+    await tester.pump();
+    expect(tester.takeException(), isNull);
+
+    // 2. Trackpad scroll on MolecularViewerWidget
+    final scrollEvent = PointerScrollEvent(
+      position: location,
+      scrollDelta: const Offset(0, -50),
+      timeStamp: Duration.zero,
+    );
+    tester.binding.handlePointerEvent(scrollEvent);
+    await tester.pump();
+    expect(tester.takeException(), isNull);
+
+    // 3. Two-finger touch pinch on phone screen
+    final gesture1 = await tester.startGesture(location - const Offset(15, 0));
+    final gesture2 = await tester.startGesture(location + const Offset(15, 0));
+    await tester.pump();
+
+    await gesture1.moveBy(const Offset(-40, 0));
+    await gesture2.moveBy(const Offset(40, 0));
+    await tester.pump();
+
+    await gesture1.up();
+    await gesture2.up();
+    await tester.pump();
 
     expect(tester.takeException(), isNull);
     await tester.pumpWidget(const SizedBox.shrink());

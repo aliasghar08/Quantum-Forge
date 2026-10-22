@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:math' as math;
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:quantum_forge/core/utils/xyz_parser.dart';
 import 'package:quantum_forge/state/settings_provider.dart';
@@ -30,7 +31,8 @@ class MolecularViewerWidget extends StatefulWidget {
 class _MolecularViewerWidgetState extends State<MolecularViewerWidget> {
   double _rotationX = 0;
   double _rotationY = 0;
-  final double _scale = 60.0;
+  double _scale = 60.0;
+  double _lastPinchScale = 1.0;
   bool _electronCloudMode = false;
   bool _showBondData = false;
   bool _showBondLabels = true;
@@ -181,13 +183,11 @@ class _MolecularViewerWidgetState extends State<MolecularViewerWidget> {
       if (distSq > maxDistSq) maxDistSq = distSq;
     }
 
-    double dynamicScale = _scale;
-    if (maxDistSq > 0.01) {
-      final maxDist = math.sqrt(maxDistSq);
-      final targetSize = math.min(constraints.maxWidth, constraints.maxHeight) * 0.85;
-      dynamicScale = targetSize / (2 * maxDist);
-      dynamicScale = dynamicScale.clamp(25.0, 200.0);
-    }
+    final baseScale = (maxDistSq > 0.01)
+        ? (math.min(constraints.maxWidth, constraints.maxHeight) * 0.85) /
+            (2 * math.sqrt(maxDistSq))
+        : 60.0;
+    final dynamicScale = (baseScale * (_scale / 60.0)).clamp(15.0, 600.0);
 
     Atom? closestAtom;
     double minScreenDistSq = double.infinity;
@@ -258,28 +258,60 @@ class _MolecularViewerWidgetState extends State<MolecularViewerWidget> {
             Expanded(
               child: Stack(
                 children: [
-                  GestureDetector(
-                    onPanUpdate: (details) {
-                      setState(() {
-                        _rotationY += details.delta.dx * 0.01;
-                        _rotationX += details.delta.dy * 0.01;
-                      });
+                  Listener(
+                    onPointerPanZoomUpdate: (event) {
+                      // macOS trackpad pinch gesture
+                      if (event.scale != 1.0) {
+                        setState(() {
+                          _scale = (_scale * event.scale).clamp(15.0, 600.0);
+                        });
+                      }
                     },
-                    onTapUp: (details) => _handleTap(details, constraints),
-                    child: RepaintBoundary(
-                      child: CustomPaint(
-                        painter: _MolecularPainter(
-                          atoms: _atoms,
-                          selectedAtoms: _selectedAtoms,
-                          rotationX: _rotationX,
-                          rotationY: _rotationY,
-                          scale: _scale,
-                          electronCloudMode: _electronCloudMode,
-                          showBondData: _showBondData,
-                          showBondLabels: _showBondLabels,
-                          settings: widget.settings,
+                    onPointerSignal: (event) {
+                      // Trackpad two-finger scroll or mouse wheel
+                      if (event is PointerScrollEvent) {
+                        setState(() {
+                          _scale = (_scale * (1.0 - event.scrollDelta.dy * 0.002))
+                              .clamp(15.0, 600.0);
+                        });
+                      }
+                    },
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onScaleStart: (details) {
+                        _lastPinchScale = 1.0;
+                      },
+                      onScaleUpdate: (details) {
+                        setState(() {
+                          if (details.pointerCount >= 2 ||
+                              (details.scale - 1.0).abs() > 0.008) {
+                            // Pinch gesture (phone screen or trackpad)
+                            final scaleFactor = details.scale / _lastPinchScale;
+                            _lastPinchScale = details.scale;
+                            _scale = (_scale * scaleFactor).clamp(15.0, 600.0);
+                          } else {
+                            // Single-finger or mouse rotation
+                            _rotationY += details.focalPointDelta.dx * 0.01;
+                            _rotationX += details.focalPointDelta.dy * 0.01;
+                          }
+                        });
+                      },
+                      onTapUp: (details) => _handleTap(details, constraints),
+                      child: RepaintBoundary(
+                        child: CustomPaint(
+                          painter: _MolecularPainter(
+                            atoms: _atoms,
+                            selectedAtoms: _selectedAtoms,
+                            rotationX: _rotationX,
+                            rotationY: _rotationY,
+                            scale: _scale,
+                            electronCloudMode: _electronCloudMode,
+                            showBondData: _showBondData,
+                            showBondLabels: _showBondLabels,
+                            settings: widget.settings,
+                          ),
+                          size: Size.infinite,
                         ),
-                        size: Size.infinite,
                       ),
                     ),
                   ),
@@ -695,14 +727,10 @@ class _MolecularPainter extends CustomPainter {
       }
     }
 
-    double dynamicScale = scale;
-    if (maxDistSq > 0.01) {
-      final maxDist = math.sqrt(maxDistSq);
-      // Target 85% of the smallest screen dimension — gives atoms plenty of breathing room
-      final targetSize = math.min(size.width, size.height) * 0.85;
-      dynamicScale = targetSize / (2 * maxDist);
-      dynamicScale = dynamicScale.clamp(25.0, 200.0);
-    }
+    final baseScale = (maxDistSq > 0.01)
+        ? (math.min(size.width, size.height) * 0.85) / (2 * math.sqrt(maxDistSq))
+        : 60.0;
+    final dynamicScale = (baseScale * (scale / 60.0)).clamp(15.0, 600.0);
 
     // Project atoms
     final projected = <_ProjectedAtom>[];

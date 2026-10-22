@@ -54,6 +54,7 @@
 import 'dart:async';
 import 'dart:js_interop';
 import 'dart:js_interop_unsafe';
+import 'dart:math' as math;
 import 'dart:ui_web' as ui_web;
 
 import 'package:web/web.dart' as web;
@@ -132,6 +133,7 @@ class NglEngine {
   bool _canvasSized = false;
   int _lastObservedWidth = 0;
   int _lastObservedHeight = 0;
+  double? _lastTouchDistance;
 
   // ── [FIX 2] Last-load memory for context-loss recovery ────────────────────
   //
@@ -255,6 +257,7 @@ class NglEngine {
     // ── [FIX 2b] Install the context-loss listener as soon as the stage
     // exists and its canvas is in the DOM.
     _installContextLossListener();
+    _installGestureListeners();
 
     final queued = _queuedLoad;
     _queuedLoad = null;
@@ -402,6 +405,143 @@ class NglEngine {
     } catch (error) {
       // ignore: avoid_print
       print('[QA] failed to install context-loss listener: $error');
+    }
+  }
+
+  /// Installs touch pinch and trackpad wheel listeners on the NGL canvas.
+  ///
+  /// On phones and tablets: calculates Euclidean distance between 2 touch points
+  /// to zoom in/out with pinch gestures.
+  ///
+  /// On laptops with trackpads: intercepts `wheel` events (with `ctrlKey == true`
+  /// on trackpad pinch or two-finger scroll) with `{ passive: false }`, preventing
+  /// the browser from zooming the outer webpage and routing zoom to NGL camera.
+  void _installGestureListeners() {
+    if (_disposed) return;
+    try {
+      final canvases = _element.getElementsByTagName('canvas');
+      if (canvases.length == 0) return;
+      final canvas = canvases.item(0) as JSObject;
+
+      final nonPassiveOptions = JSObject()
+        ..setProperty('passive'.toJS, false.toJS);
+
+      // ── Trackpad pinch & wheel zoom listener ──────────────────────────────
+      final onWheel = ((JSAny event) {
+        try {
+          final jsEvent = event as JSObject;
+          final isCtrl = jsEvent.getProperty<JSBoolean?>('ctrlKey'.toJS)?.toDart ?? false;
+          final deltaY = jsEvent.getProperty<JSNumber?>('deltaY'.toJS)?.toDartDouble ?? 0.0;
+          if (deltaY != 0) {
+            // Prevent browser page zoom or page scrolling while interacting with 3D canvas
+            jsEvent.callMethod('preventDefault'.toJS);
+            if (isCtrl) {
+              // Laptop trackpad pinch-to-zoom
+              zoomBy(deltaY * 1.5);
+            } else {
+              // Mouse wheel / two-finger trackpad scroll zoom
+              zoomBy(deltaY * 0.5);
+            }
+          }
+        } catch (_) {}
+      }).toJS;
+
+      canvas.callMethod(
+        'addEventListener'.toJS,
+        'wheel'.toJS,
+        onWheel,
+        nonPassiveOptions,
+      );
+
+      // ── Phone / tablet 2-finger pinch-to-zoom listeners ───────────────────
+      final onTouchStart = ((JSAny event) {
+        try {
+          final jsEvent = event as JSObject;
+          final touches = jsEvent.getProperty<JSObject?>('touches'.toJS);
+          if (touches != null) {
+            final length = touches.getProperty<JSNumber?>('length'.toJS)?.toDartInt ?? 0;
+            if (length == 2) {
+              final t0 = touches.callMethod<JSObject>('item'.toJS, 0.toJS);
+              final t1 = touches.callMethod<JSObject>('item'.toJS, 1.toJS);
+              final x0 = t0.getProperty<JSNumber>('clientX'.toJS).toDartDouble;
+              final y0 = t0.getProperty<JSNumber>('clientY'.toJS).toDartDouble;
+              final x1 = t1.getProperty<JSNumber>('clientX'.toJS).toDartDouble;
+              final y1 = t1.getProperty<JSNumber>('clientY'.toJS).toDartDouble;
+              final dx = x0 - x1;
+              final dy = y0 - y1;
+              _lastTouchDistance = math.sqrt(dx * dx + dy * dy);
+              jsEvent.callMethod('preventDefault'.toJS);
+            }
+          }
+        } catch (_) {}
+      }).toJS;
+
+      final onTouchMove = ((JSAny event) {
+        try {
+          final jsEvent = event as JSObject;
+          final touches = jsEvent.getProperty<JSObject?>('touches'.toJS);
+          if (touches != null) {
+            final length = touches.getProperty<JSNumber?>('length'.toJS)?.toDartInt ?? 0;
+            if (length == 2) {
+              jsEvent.callMethod('preventDefault'.toJS);
+              final t0 = touches.callMethod<JSObject>('item'.toJS, 0.toJS);
+              final t1 = touches.callMethod<JSObject>('item'.toJS, 1.toJS);
+              final x0 = t0.getProperty<JSNumber>('clientX'.toJS).toDartDouble;
+              final y0 = t0.getProperty<JSNumber>('clientY'.toJS).toDartDouble;
+              final x1 = t1.getProperty<JSNumber>('clientX'.toJS).toDartDouble;
+              final y1 = t1.getProperty<JSNumber>('clientY'.toJS).toDartDouble;
+              final dx = x0 - x1;
+              final dy = y0 - y1;
+              final currentDist = math.sqrt(dx * dx + dy * dy);
+              if (_lastTouchDistance != null && _lastTouchDistance! > 0) {
+                final distDelta = _lastTouchDistance! - currentDist;
+                zoomBy(distDelta * 1.5);
+              }
+              _lastTouchDistance = currentDist;
+            }
+          }
+        } catch (_) {}
+      }).toJS;
+
+      final onTouchEnd = ((JSAny event) {
+        try {
+          final jsEvent = event as JSObject;
+          final touches = jsEvent.getProperty<JSObject?>('touches'.toJS);
+          final length = touches?.getProperty<JSNumber?>('length'.toJS)?.toDartInt ?? 0;
+          if (length < 2) {
+            _lastTouchDistance = null;
+          }
+        } catch (_) {}
+      }).toJS;
+
+      canvas.callMethod(
+        'addEventListener'.toJS,
+        'touchstart'.toJS,
+        onTouchStart,
+        nonPassiveOptions,
+      );
+      canvas.callMethod(
+        'addEventListener'.toJS,
+        'touchmove'.toJS,
+        onTouchMove,
+        nonPassiveOptions,
+      );
+      canvas.callMethod(
+        'addEventListener'.toJS,
+        'touchend'.toJS,
+        onTouchEnd,
+      );
+      canvas.callMethod(
+        'addEventListener'.toJS,
+        'touchcancel'.toJS,
+        onTouchEnd,
+      );
+    } catch (error) {
+      assert(() {
+        // ignore: avoid_print
+        print('Quantum Forge: failed to install gesture listeners: $error');
+        return true;
+      }());
     }
   }
 

@@ -2,43 +2,69 @@
 part of 'reaction_animation_widget.dart';
 
 extension _ReactionAnimationCanvasExt on _ReactionAnimationWidgetState {
+  Widget _wrapCanvasSlotWithGestures(Widget canvas) {
+    return Listener(
+      onPointerPanZoomUpdate: (PointerPanZoomUpdateEvent event) {
+        if (event.scale != 1.0) {
+          // Trackpad pinch-to-zoom: event.scale > 1 is zooming in, < 1 is zooming out.
+          // zoomBy negative delta is zooming in, positive is zooming out.
+          final delta = (1.0 - event.scale) * 60.0;
+          _viewerKey.currentState?.zoomBy(delta);
+        }
+      },
+      onPointerSignal: (PointerSignalEvent event) {
+        if (event is PointerScrollEvent) {
+          // Trackpad or mouse wheel scroll
+          _viewerKey.currentState?.zoomBy(event.scrollDelta.dy * 0.4);
+        }
+      },
+      child: GestureDetector(
+        behavior: HitTestBehavior.translucent,
+        onScaleStart: (ScaleStartDetails details) {
+          _lastPinchScale = 1.0;
+        },
+        onScaleUpdate: (ScaleUpdateDetails details) {
+          if (details.pointerCount >= 2 || (details.scale - 1.0).abs() > 0.008) {
+            final scaleDelta = details.scale / _lastPinchScale;
+            _lastPinchScale = details.scale;
+            final delta = (1.0 - scaleDelta) * 160.0;
+            _viewerKey.currentState?.zoomBy(delta);
+          }
+        },
+        onTap: () {
+          _claimKeyboard();
+          _togglePlay();
+        },
+        child: canvas,
+      ),
+    );
+  }
+
   Widget _buildCanvasSlotUnbounded(BoxConstraints constraints) {
-      // Unbounded (e.g. Dashboard): dynamically give the canvas a reasonable height.
-      final screenH = MediaQuery.of(context).size.height;
-      final screenW = MediaQuery.of(context).size.width;
-      final rawH = (screenW < 600) ? screenH * 0.40 : screenH * 0.75;
-      final height = rawH.clamp(220.0, 300.0);
-      return SizedBox(
-        height: height,
-        child: GestureDetector(
-          onTap: () {
-            _claimKeyboard();
-            _togglePlay();
-          },
-          child: _buildCanvas(),
-        ),
-      );
-    }
+    // Unbounded (e.g. Dashboard): dynamically give the canvas a reasonable height.
+    final screenH = MediaQuery.of(context).size.height;
+    final screenW = MediaQuery.of(context).size.width;
+    final rawH = (screenW < 600) ? screenH * 0.40 : screenH * 0.75;
+    final height = rawH.clamp(220.0, 300.0);
+    return SizedBox(
+      height: height,
+      child: _wrapCanvasSlotWithGestures(_buildCanvas()),
+    );
+  }
 
   Widget _buildCanvasSlotBounded(BoxConstraints constraints) {
-      // Bounded (e.g. Analytics page): use a responsive ratio so it fits cleanly
-      // inside the bounded space without forcing a massive fixed height.
-      const maxH = 300.0;
-      final byRatio = constraints.maxWidth.isFinite
-          ? constraints.maxWidth / 1.2
-          : maxH;
-      final height = byRatio.clamp(220.0, 300.0);
-      return SizedBox(
-        height: height,
-        child: GestureDetector(
-          onTap: () {
-            _claimKeyboard();
-            _togglePlay();
-          },
-          child: _buildCanvas(),
-        ),
-      );
-    }
+    // Bounded (e.g. Analytics page): use a responsive ratio so it fits cleanly
+    // inside the bounded space without forcing a massive fixed height.
+    const maxH = 300.0;
+    final byRatio = constraints.maxWidth.isFinite
+        ? constraints.maxWidth / 1.2
+        : maxH;
+    final height = byRatio.clamp(220.0, 300.0);
+    return SizedBox(
+      height: height,
+      child: _wrapCanvasSlotWithGestures(_buildCanvas()),
+    );
+  }
 
   Widget _buildCanvas() {
     final viewer = _cachedCanvas ??= NglViewer(
