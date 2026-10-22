@@ -283,6 +283,7 @@ class _ReactionAnimationWidgetState extends State<ReactionAnimationWidget> {
 
   /// Tracks pinch scale for pinch-to-zoom on phone screens and trackpads.
   double _lastPinchScale = 1.0;
+  DateTime? _lastCanvasTapTime;
 
   /// Badge labels waiting for the viewer's platform view to exist.
   List<BondLabel>? _pendingBondLabels;

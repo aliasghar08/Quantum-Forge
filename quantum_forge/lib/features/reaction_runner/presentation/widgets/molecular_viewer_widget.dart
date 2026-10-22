@@ -33,6 +33,7 @@ class _MolecularViewerWidgetState extends State<MolecularViewerWidget> {
   double _rotationY = 0;
   double _scale = 60.0;
   double _lastPinchScale = 1.0;
+  DateTime? _lastCanvasTapTime;
   bool _electronCloudMode = false;
   bool _showBondData = false;
   bool _showBondLabels = true;
@@ -187,7 +188,7 @@ class _MolecularViewerWidgetState extends State<MolecularViewerWidget> {
         ? (math.min(constraints.maxWidth, constraints.maxHeight) * 0.85) /
             (2 * math.sqrt(maxDistSq))
         : 60.0;
-    final dynamicScale = (baseScale * (_scale / 60.0)).clamp(15.0, 600.0);
+    final dynamicScale = (baseScale * (_scale / 60.0)).clamp(20.0, 300.0);
 
     Atom? closestAtom;
     double minScreenDistSq = double.infinity;
@@ -260,19 +261,21 @@ class _MolecularViewerWidgetState extends State<MolecularViewerWidget> {
                 children: [
                   Listener(
                     onPointerPanZoomUpdate: (event) {
-                      // macOS trackpad pinch gesture
+                      // macOS trackpad pinch gesture (dampened)
                       if (event.scale != 1.0) {
+                        final factor = event.scale.clamp(0.6, 1.5);
                         setState(() {
-                          _scale = (_scale * event.scale).clamp(15.0, 600.0);
+                          _scale = (_scale * factor).clamp(30.0, 200.0);
                         });
                       }
                     },
                     onPointerSignal: (event) {
-                      // Trackpad two-finger scroll or mouse wheel
+                      // Trackpad two-finger scroll or mouse wheel (dampened)
                       if (event is PointerScrollEvent) {
+                        final dy = event.scrollDelta.dy.clamp(-60.0, 60.0);
                         setState(() {
-                          _scale = (_scale * (1.0 - event.scrollDelta.dy * 0.002))
-                              .clamp(15.0, 600.0);
+                          _scale = (_scale * (1.0 - dy * 0.002))
+                              .clamp(30.0, 200.0);
                         });
                       }
                     },
@@ -286,9 +289,10 @@ class _MolecularViewerWidgetState extends State<MolecularViewerWidget> {
                           if (details.pointerCount >= 2 ||
                               (details.scale - 1.0).abs() > 0.008) {
                             // Pinch gesture (phone screen or trackpad)
-                            final scaleFactor = details.scale / _lastPinchScale;
+                            final rawRatio = details.scale / _lastPinchScale;
+                            final scaleFactor = rawRatio.clamp(0.7, 1.4);
                             _lastPinchScale = details.scale;
-                            _scale = (_scale * scaleFactor).clamp(15.0, 600.0);
+                            _scale = (_scale * scaleFactor).clamp(30.0, 200.0);
                           } else {
                             // Single-finger or mouse rotation
                             _rotationY += details.focalPointDelta.dx * 0.01;
@@ -296,7 +300,22 @@ class _MolecularViewerWidgetState extends State<MolecularViewerWidget> {
                           }
                         });
                       },
-                      onTapUp: (details) => _handleTap(details, constraints),
+                      onTapUp: (details) {
+                        final now = DateTime.now();
+                        if (_lastCanvasTapTime != null &&
+                            now.difference(_lastCanvasTapTime!).inMilliseconds < 350) {
+                          _lastCanvasTapTime = null;
+                          setState(() {
+                            _scale = 60.0;
+                            _rotationX = 0;
+                            _rotationY = 0;
+                            _selectedAtoms.clear();
+                          });
+                        } else {
+                          _lastCanvasTapTime = now;
+                          _handleTap(details, constraints);
+                        }
+                      },
                       child: RepaintBoundary(
                         child: CustomPaint(
                           painter: _MolecularPainter(
@@ -730,7 +749,7 @@ class _MolecularPainter extends CustomPainter {
     final baseScale = (maxDistSq > 0.01)
         ? (math.min(size.width, size.height) * 0.85) / (2 * math.sqrt(maxDistSq))
         : 60.0;
-    final dynamicScale = (baseScale * (scale / 60.0)).clamp(15.0, 600.0);
+    final dynamicScale = (baseScale * (scale / 60.0)).clamp(20.0, 300.0);
 
     // Project atoms
     final projected = <_ProjectedAtom>[];

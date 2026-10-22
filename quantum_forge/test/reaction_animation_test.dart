@@ -620,6 +620,7 @@ void main() {
 
   testWidgets('supports trackpad pinch and two-finger scale gestures on ReactionAnimationWidget', (tester) async {
     await pumpAnimation(tester);
+    await pause(tester);
 
     final canvasFinder = find.byType(Listener).first;
     expect(canvasFinder, findsWidgets);
@@ -659,11 +660,17 @@ void main() {
     await gesture2.up();
     await tester.pump();
 
+    // 4. Simulate double-tap to reset view
+    await tester.tap(canvasFinder);
+    await tester.pump(const Duration(milliseconds: 50));
+    await tester.tap(canvasFinder);
+    await tester.pump(const Duration(milliseconds: 100));
+
     expect(tester.takeException(), isNull);
     await tester.pumpWidget(const SizedBox.shrink());
   });
 
-  testWidgets('supports trackpad and phone pinch-to-zoom on MolecularViewerWidget', (tester) async {
+  testWidgets('supports trackpad and phone pinch-to-zoom and double-tap reset on MolecularViewerWidget', (tester) async {
     await tester.pumpWidget(
       const MaterialApp(
         home: Scaffold(
@@ -715,8 +722,54 @@ void main() {
     await gesture1.up();
     await gesture2.up();
     await tester.pump();
+    expect(tester.takeException(), isNull);
+
+    // 4. Double-tap to reset view
+    await tester.tap(canvasFinder);
+    await tester.pump(const Duration(milliseconds: 50));
+    await tester.tap(canvasFinder);
+    await tester.pump(const Duration(milliseconds: 100));
 
     expect(tester.takeException(), isNull);
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
+
+  testWidgets('handles extreme zoom in and out without breaking or throwing', (tester) async {
+    await pumpAnimation(tester);
+    await pause(tester);
+
+    final canvasFinder = find.byType(Listener).first;
+    final location = tester.getCenter(canvasFinder);
+
+    // Extreme zoom in attempts (10 rapid massive zoom in events)
+    for (int i = 0; i < 10; i++) {
+      tester.binding.handlePointerEvent(PointerPanZoomUpdateEvent(
+        position: location,
+        scale: 2.0,
+        timeStamp: Duration.zero,
+      ));
+    }
+    await tester.pump();
+    expect(tester.takeException(), isNull);
+
+    // Extreme zoom out attempts (10 rapid massive zoom out events)
+    for (int i = 0; i < 10; i++) {
+      tester.binding.handlePointerEvent(PointerPanZoomUpdateEvent(
+        position: location,
+        scale: 0.1,
+        timeStamp: Duration.zero,
+      ));
+    }
+    await tester.pump();
+    expect(tester.takeException(), isNull);
+
+    // Double tap snaps back cleanly
+    await tester.tap(canvasFinder);
+    await tester.pump(const Duration(milliseconds: 50));
+    await tester.tap(canvasFinder);
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(tester.takeException(), isNull);
+
     await tester.pumpWidget(const SizedBox.shrink());
   });
 }

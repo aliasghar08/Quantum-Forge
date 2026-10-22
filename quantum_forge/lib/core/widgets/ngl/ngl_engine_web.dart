@@ -134,6 +134,7 @@ class NglEngine {
   int _lastObservedWidth = 0;
   int _lastObservedHeight = 0;
   double? _lastTouchDistance;
+  double? _initialCameraDistance;
 
   // ── [FIX 2] Last-load memory for context-loss recovery ────────────────────
   //
@@ -435,12 +436,13 @@ class NglEngine {
           if (deltaY != 0) {
             // Prevent browser page zoom or page scrolling while interacting with 3D canvas
             jsEvent.callMethod('preventDefault'.toJS);
+            final clampedY = deltaY.clamp(-60.0, 60.0);
             if (isCtrl) {
-              // Laptop trackpad pinch-to-zoom
-              zoomBy(deltaY * 1.5);
+              // Laptop trackpad pinch-to-zoom (dampened)
+              zoomBy(clampedY * 1.0);
             } else {
-              // Mouse wheel / two-finger trackpad scroll zoom
-              zoomBy(deltaY * 0.5);
+              // Mouse wheel / two-finger trackpad scroll zoom (dampened)
+              zoomBy(clampedY * 0.4);
             }
           }
         } catch (_) {}
@@ -451,6 +453,20 @@ class NglEngine {
         'wheel'.toJS,
         onWheel,
         nonPassiveOptions,
+      );
+
+      // ── Double-click to reset view ────────────────────────────────────────
+      final onDblClick = ((JSAny event) {
+        try {
+          (event as JSObject).callMethod('preventDefault'.toJS);
+          resetView();
+        } catch (_) {}
+      }).toJS;
+
+      canvas.callMethod(
+        'addEventListener'.toJS,
+        'dblclick'.toJS,
+        onDblClick,
       );
 
       // ── Phone / tablet 2-finger pinch-to-zoom listeners ───────────────────
@@ -494,8 +510,8 @@ class NglEngine {
               final dy = y0 - y1;
               final currentDist = math.sqrt(dx * dx + dy * dy);
               if (_lastTouchDistance != null && _lastTouchDistance! > 0) {
-                final distDelta = _lastTouchDistance! - currentDist;
-                zoomBy(distDelta * 1.5);
+                final distDelta = (_lastTouchDistance! - currentDist).clamp(-40.0, 40.0);
+                zoomBy(distDelta * 1.0);
               }
               _lastTouchDistance = currentDist;
             }
@@ -780,6 +796,8 @@ class NglEngine {
 
     if (request.resetView) {
       resetView();
+    } else {
+      _recordInitialCameraDistance();
     }
   }
 
@@ -967,14 +985,15 @@ class NglEngine {
     }
   }
 
-  /// Passes [delta] to NGL's camera zoom.
+  /// Passes [delta] to NGL's camera zoom with robust dynamic bounds.
   ///
   /// Sign convention matches browser wheel event: negative = closer (zoom in),
   /// positive = further (zoom out).
   ///
-  /// In NGL, `viewerControls.zoom(d)` scales distance by `(1 - d)`, where
-  /// `d` is a small fractional change (e.g. 0.1 = 10% closer).
-  /// A delta of ±25 maps to a ~12.5% step (`-delta * 0.005`).
+  /// In NGL, `viewerControls.zoom(d)` scales distance by `(1 - d)`.
+  /// Uses dynamic relative clamping anchored to `_initialCameraDistance` with
+  /// fallback guards so both small benchmark molecules and massive polymers
+  /// never clip through the near plane or disappear into the far plane.
   void zoomBy(double delta) {
     if (_disposed || delta == 0) return;
     final stage = _stage;
@@ -983,19 +1002,36 @@ class NglEngine {
       final controls = stage.getProperty<JSObject?>('viewerControls'.toJS);
       if (controls == null) return;
 
-      final distNumber = controls.callMethod<JSNumber>('getCameraDistance'.toJS);
-      final dist = distNumber.toDartDouble;
+      final distNumber = controls.callMethod<JSNumber?>('getCameraDistance'.toJS);
+      final dist = distNumber?.toDartDouble;
 
-      final clampedDelta = delta.clamp(-200.0, 200.0);
-      final d = (-clampedDelta * 0.005).clamp(-0.5, 0.5);
+      if (dist == null || dist.isNaN || dist <= 0) {
+        // Recover cleanly from any unexpected NaN or zero distance
+        resetView();
+        return;
+      }
 
-      // Distance floor: refuse if zooming in would go below 4.0 Å from focus
-      if (d > 0 && dist < 4.0) return;
+      // Record baseline on first valid measurement if not yet captured
+      _initialCameraDistance ??= dist;
 
-      controls.callMethod('zoom'.toJS, d.toJS);
+      // Dampen per-frame delta to prevent huge jumps from high-velocity trackpad flicks
+      final clampedDelta = delta.clamp(-120.0, 120.0);
+      final d = (-clampedDelta * 0.005).clamp(-0.4, 0.4);
 
-      final viewer = stage.getProperty<JSObject?>('viewer'.toJS);
-      viewer?.callMethod('requestRender'.toJS);
+      final double baseDist = _initialCameraDistance ?? dist;
+      // Dynamic relative clamping anchored to initial distance
+      final double minDist = math.max(6.0, baseDist * 0.30);
+      final double maxDist = math.max(80.0, baseDist * 3.50);
+
+      final double targetDist = (dist * (1.0 - d)).clamp(minDist, maxDist);
+      final double safeD = 1.0 - (targetDist / dist);
+
+      if (safeD.abs() > 0.0001) {
+        controls.callMethod('zoom'.toJS, safeD.toJS);
+
+        final viewer = stage.getProperty<JSObject?>('viewer'.toJS);
+        viewer?.callMethod('requestRender'.toJS);
+      }
     } catch (error, stack) {
       assert(() {
         // ignore: avoid_print
@@ -1063,10 +1099,30 @@ class NglEngine {
       } else {
         glue.callMethod('autoView'.toJS, stage);
       }
+      _recordInitialCameraDistance();
     } catch (error) {
       // ignore: avoid_print
       print('[QA] resetView caught (likely post-context-loss): $error');
     }
+  }
+
+  void _recordInitialCameraDistance() {
+    void readDist() {
+      try {
+        final controls = _stage?.getProperty<JSObject?>('viewerControls'.toJS);
+        if (controls != null) {
+          final distNumber =
+              controls.callMethod<JSNumber?>('getCameraDistance'.toJS);
+          final dist = distNumber?.toDartDouble;
+          if (dist != null && !dist.isNaN && dist > 0) {
+            _initialCameraDistance = dist;
+          }
+        }
+      } catch (_) {}
+    }
+
+    readDist();
+    _afterNextFrame(readDist);
   }
 
   void handleResize() {

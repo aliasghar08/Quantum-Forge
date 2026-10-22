@@ -6,16 +6,17 @@ extension _ReactionAnimationCanvasExt on _ReactionAnimationWidgetState {
     return Listener(
       onPointerPanZoomUpdate: (PointerPanZoomUpdateEvent event) {
         if (event.scale != 1.0) {
-          // Trackpad pinch-to-zoom: event.scale > 1 is zooming in, < 1 is zooming out.
-          // zoomBy negative delta is zooming in, positive is zooming out.
-          final delta = (1.0 - event.scale) * 60.0;
+          // Trackpad pinch-to-zoom (dampened)
+          final clampedScale = event.scale.clamp(0.6, 1.6);
+          final delta = (1.0 - clampedScale) * 45.0;
           _viewerKey.currentState?.zoomBy(delta);
         }
       },
       onPointerSignal: (PointerSignalEvent event) {
         if (event is PointerScrollEvent) {
-          // Trackpad or mouse wheel scroll
-          _viewerKey.currentState?.zoomBy(event.scrollDelta.dy * 0.4);
+          // Trackpad or mouse wheel scroll (dampened)
+          final dy = event.scrollDelta.dy.clamp(-60.0, 60.0);
+          _viewerKey.currentState?.zoomBy(dy * 0.35);
         }
       },
       child: GestureDetector(
@@ -25,15 +26,23 @@ extension _ReactionAnimationCanvasExt on _ReactionAnimationWidgetState {
         },
         onScaleUpdate: (ScaleUpdateDetails details) {
           if (details.pointerCount >= 2 || (details.scale - 1.0).abs() > 0.008) {
-            final scaleDelta = details.scale / _lastPinchScale;
+            final scaleDelta = (details.scale / _lastPinchScale).clamp(0.7, 1.4);
             _lastPinchScale = details.scale;
-            final delta = (1.0 - scaleDelta) * 160.0;
+            final delta = (1.0 - scaleDelta) * 110.0;
             _viewerKey.currentState?.zoomBy(delta);
           }
         },
         onTap: () {
           _claimKeyboard();
-          _togglePlay();
+          final now = DateTime.now();
+          if (_lastCanvasTapTime != null &&
+              now.difference(_lastCanvasTapTime!).inMilliseconds < 350) {
+            _lastCanvasTapTime = null;
+            _viewerKey.currentState?.resetView();
+          } else {
+            _lastCanvasTapTime = now;
+            _togglePlay();
+          }
         },
         child: canvas,
       ),
