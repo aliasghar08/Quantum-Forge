@@ -142,7 +142,7 @@ class _ResearchCardState extends State<ResearchCard> with SingleTickerProviderSt
               borderRadius: BorderRadius.circular(16),
               child: Stack(
                 children: [
-                  if (!(kIsWeb && defaultTargetPlatform == TargetPlatform.iOS))
+                  if (!(kIsWeb && (defaultTargetPlatform == TargetPlatform.iOS || defaultTargetPlatform == TargetPlatform.android)))
                     Positioned.fill(
                       child: BackdropFilter(
                         filter: dart_ui.ImageFilter.blur(sigmaX: 12, sigmaY: 12),

@@ -12,6 +12,7 @@
 //     scroll view silently sizes to content and no scrollbar appears.
 // ============================================================================
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:quantum_forge/features/reaction_runner/data/models/reaction_models.dart';
 import 'package:quantum_forge/core/widgets/reaction_animation_widget.dart';
@@ -38,12 +39,29 @@ class ReactionAnimationCard extends StatefulWidget {
 }
 
 class _ReactionAnimationCardState extends State<ReactionAnimationCard> {
-  bool _hdSmoothInterpolation = true;
+  late bool _hdSmoothInterpolation;
+
+  @override
+  void initState() {
+    super.initState();
+    final isMobile = kIsWeb && (
+      defaultTargetPlatform == TargetPlatform.iOS ||
+      defaultTargetPlatform == TargetPlatform.android
+    );
+    // On mobile devices, default to discrete frames to save memory and avoid 61-frame spline compute
+    _hdSmoothInterpolation = !isMobile;
+  }
 
   @override
   Widget build(BuildContext context) {
     final rawEnergyProfile    = widget.status.energyProfile    ?? [];
     final rawTrajectoryFrames = widget.status.trajectoryFrames ?? [];
+
+    final isMobile = kIsWeb && (
+      defaultTargetPlatform == TargetPlatform.iOS ||
+      defaultTargetPlatform == TargetPlatform.android ||
+      MediaQuery.sizeOf(context).width < 768
+    );
 
     final canInterpolate = rawTrajectoryFrames.length >= 2 && rawTrajectoryFrames.length < 61;
     final trajectoryFrames = (_hdSmoothInterpolation && canInterpolate)
@@ -184,6 +202,7 @@ class _ReactionAnimationCardState extends State<ReactionAnimationCard> {
                     : (trajectoryFrames.length <= 35 ? 2 : 4),
                 initialPlaybackSpeed: 0.5,
                 dwellAtEndpoints: true,
+                dynamicBonding: !isMobile,
               )
             else
               Padding(

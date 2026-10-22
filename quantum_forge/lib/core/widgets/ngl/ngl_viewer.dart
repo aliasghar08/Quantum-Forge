@@ -111,8 +111,15 @@ class NglViewerState extends State<NglViewer> {
   /// and repainting a 72 px box is not measurable next to the WebGL render.
   void _startOrientationPoll() {
     _orientationPoll?.cancel();
+    final isMobile = kIsWeb && (
+      defaultTargetPlatform == TargetPlatform.iOS ||
+      defaultTargetPlatform == TargetPlatform.android
+    );
+    final interval = isMobile
+        ? const Duration(milliseconds: 120)
+        : const Duration(milliseconds: 33);
     _orientationPoll = Timer.periodic(
-      const Duration(milliseconds: 33),
+      interval,
       (_) => _refreshOrientation(),
     );
   }

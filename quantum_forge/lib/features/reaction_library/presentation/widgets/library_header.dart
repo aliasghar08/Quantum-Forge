@@ -324,13 +324,13 @@ class LibraryHeader extends StatelessWidget {
             constraints: const BoxConstraints(maxWidth: 320),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(12),
-              color: (kIsWeb && defaultTargetPlatform == TargetPlatform.iOS)
-                  ? Colors.black.withValues(alpha: 0.3)
+              color: (kIsWeb && (defaultTargetPlatform == TargetPlatform.iOS || defaultTargetPlatform == TargetPlatform.android))
+                  ? Colors.black.withValues(alpha: 0.35)
                   : Colors.transparent,
             ),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(12),
-              child: (!(kIsWeb && defaultTargetPlatform == TargetPlatform.iOS))
+              child: (!(kIsWeb && (defaultTargetPlatform == TargetPlatform.iOS || defaultTargetPlatform == TargetPlatform.android)))
                   ? BackdropFilter(
                       filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                       child: _buildTextField(),

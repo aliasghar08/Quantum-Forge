@@ -34,6 +34,7 @@ class _DistinctMoleculesViewerState extends State<DistinctMoleculesViewer> {
   int _selectedIndex = 0;
   List<List<Atom>>? _distinctMolecules;
   int _rawMoleculesCount = 0;
+  bool _mobileViewerActivated = false;
 
   @override
   void initState() {
@@ -325,51 +326,98 @@ class _DistinctMoleculesViewerState extends State<DistinctMoleculesViewer> {
                 ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(14),
-                  child: widget.isUserSignedIn
-                      ? LayoutBuilder(
-                          builder: (context, constraints) {
-                            // Use a shared key so the ReactionAnimationWidget
-                            // survives the SizedBox↔ConstrainedBox layout branch
-                            // toggle on resize — otherwise the HtmlElementView
-                            // (WebGL context) is destroyed and recreated at 600 px.
-                            const viewerKey =
-                                ValueKey<String>('distinct-mol-viewer');
-                            if (MediaQuery.of(context).size.width < 600) {
-                              return SizedBox(
-                                height: 250,
-                                width: double.infinity,
-                                child: ReactionAnimationWidget(
-                                  key: viewerKey,
-                                  trajectoryFrames: [_toXyz(selectedMol)],
-                                  compactMode: true,
-                                ),
-                              );
-                            } else {
-                              return ConstrainedBox(
-                                constraints:
-                                    const BoxConstraints(maxHeight: 400),
-                                child: ReactionAnimationWidget(
-                                  key: viewerKey,
-                                  trajectoryFrames: [_toXyz(selectedMol)],
-                                  compactMode: true,
-                                ),
-                              );
-                            }
-                          },
-                        )
-                      : LockedAnimationPlaceholder(
+                  child: !widget.isUserSignedIn
+                      ? LockedAnimationPlaceholder(
                           compact: true,
                           title: '3D Structure Viewer Locked',
                           subtitle:
                               'Sign in to rotate and inspect distinct 3D molecular fragments.',
                           onSignInRequested: widget.onSignInRequested,
                           onSignInSuccess: widget.onSignInSuccess,
-                        ),
+                        )
+                      : (MediaQuery.of(context).size.width < 650 && !_mobileViewerActivated)
+                          ? _buildMobile3dPlaceholder(selectedMol, _indexColor(_selectedIndex))
+                          : LayoutBuilder(
+                              builder: (context, constraints) {
+                                // Use a shared key so the ReactionAnimationWidget
+                                // survives the SizedBox↔ConstrainedBox layout branch
+                                // toggle on resize — otherwise the HtmlElementView
+                                // (WebGL context) is destroyed and recreated at 600 px.
+                                const viewerKey =
+                                    ValueKey<String>('distinct-mol-viewer');
+                                if (MediaQuery.of(context).size.width < 600) {
+                                  return SizedBox(
+                                    height: 250,
+                                    width: double.infinity,
+                                    child: ReactionAnimationWidget(
+                                      key: viewerKey,
+                                      trajectoryFrames: [_toXyz(selectedMol)],
+                                      compactMode: true,
+                                    ),
+                                  );
+                                } else {
+                                  return ConstrainedBox(
+                                    constraints:
+                                        const BoxConstraints(maxHeight: 400),
+                                    child: ReactionAnimationWidget(
+                                      key: viewerKey,
+                                      trajectoryFrames: [_toXyz(selectedMol)],
+                                      compactMode: true,
+                                    ),
+                                  );
+                                }
+                              },
+                            ),
                 ),
               ),
             ),
           ],
         ],
+      ),
+    );
+  }
+
+  Widget _buildMobile3dPlaceholder(List<Atom> selectedMol, Color cardColor) {
+    final info = XyzParser.getMolecularInfo(selectedMol);
+    final formula = info.formula.isEmpty ? 'Fragment' : subscriptFormula(info.formula);
+    return InkWell(
+      onTap: () => setState(() => _mobileViewerActivated = true),
+      borderRadius: BorderRadius.circular(14),
+      child: Container(
+        height: 180,
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+        alignment: Alignment.center,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: cardColor.withValues(alpha: 0.15),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(Icons.view_in_ar_rounded, size: 28, color: cardColor),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              'Load 3D Structure ($formula)',
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 13,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Tap to render interactive 3D model (conserves GPU memory)',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Colors.white.withValues(alpha: 0.55),
+                fontSize: 11,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

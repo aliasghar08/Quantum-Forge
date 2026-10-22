@@ -45,6 +45,7 @@ extension _ReactionAnimationCanvasExt on _ReactionAnimationWidgetState {
       key: _viewerKey,
       width: double.infinity,
       height: double.infinity,
+      showAxesTriad: !widget.compactMode,
     );
     return Stack(
       fit: StackFit.expand,

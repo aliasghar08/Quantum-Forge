@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'dart:math' as math;
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 /// A completely from-scratch implementation of a Glassmorphism container.
@@ -51,6 +52,35 @@ class GlassContainer extends StatelessWidget {
       width: 1.2,
     );
 
+    // BackdropFilter is disabled on mobile web / narrow devices to prevent GPU freeze
+    final bool disableBlur = blur <= 0 || (kIsWeb && (
+      defaultTargetPlatform == TargetPlatform.iOS ||
+      defaultTargetPlatform == TargetPlatform.android ||
+      MediaQuery.sizeOf(context).width < 900
+    ));
+
+    final effectiveOpacity = disableBlur ? math.min(1.0, opacity + 0.08) : opacity;
+
+    final content = Container(
+      padding: padding,
+      decoration: BoxDecoration(
+        color: themeColor.withValues(alpha: effectiveOpacity),
+        borderRadius: effectiveRadius,
+        border: effectiveBorder,
+        image: image,
+        gradient: gradient ?? LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            themeColor.withValues(alpha: math.min(1.0, effectiveOpacity + 0.05)),
+            themeColor.withValues(alpha: effectiveOpacity),
+            themeColor.withValues(alpha: math.max(0, effectiveOpacity - 0.05)),
+          ],
+        ),
+      ),
+      child: child,
+    );
+
     return Container(
       margin: margin,
       width: width,
@@ -68,29 +98,12 @@ class GlassContainer extends StatelessWidget {
       child: ClipRRect(
         borderRadius: effectiveRadius,
         clipBehavior: clipBehavior,
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: blur, sigmaY: blur),
-          child: Container(
-            padding: padding,
-            decoration: BoxDecoration(
-              color: themeColor.withValues(alpha: opacity),
-              borderRadius: effectiveRadius,
-              border: effectiveBorder,
-              image: image,
-              // Optional subtle gradient over the glass to give a lighting effect
-              gradient: gradient ?? LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  themeColor.withValues(alpha: opacity + 0.05),
-                  themeColor.withValues(alpha: opacity),
-                  themeColor.withValues(alpha: math.max(0, opacity - 0.05)),
-                ],
+        child: disableBlur
+            ? content
+            : BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: blur, sigmaY: blur),
+                child: content,
               ),
-            ),
-            child: child,
-          ),
-        ),
       ),
     );
   }

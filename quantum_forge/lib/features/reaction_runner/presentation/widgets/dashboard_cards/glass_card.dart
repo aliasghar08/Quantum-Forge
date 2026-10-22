@@ -12,12 +12,19 @@ class GlassCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // BackdropFilter (especially with ImageFilter.blur) causes severe lag on iOS Safari
-    // in CanvasKit mode. We fall back to a semi-transparent solid color on iOS web.
-    final bool isIOSWeb = kIsWeb && (defaultTargetPlatform == TargetPlatform.iOS);
+    // BackdropFilter (especially with ImageFilter.blur) causes severe GPU fillrate
+    // bottlenecks and freezing on mobile web in CanvasKit/WebGL mode.
+    // We fall back to a clean semi-transparent solid background on mobile web.
+    final isMobileWeb = kIsWeb && (
+      defaultTargetPlatform == TargetPlatform.iOS ||
+      defaultTargetPlatform == TargetPlatform.android ||
+      MediaQuery.sizeOf(context).width < 900
+    );
 
     final material = Material(
-      color: isIOSWeb ? Colors.black.withValues(alpha: 0.3) : Colors.white.withValues(alpha: 0.07),
+      color: isMobileWeb
+          ? const Color(0xFF161B22).withValues(alpha: 0.85)
+          : Colors.white.withValues(alpha: 0.07),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
         side: BorderSide(color: Colors.white.withValues(alpha: 0.12)),
@@ -26,7 +33,7 @@ class GlassCard extends StatelessWidget {
       child: child,
     );
 
-    if (isIOSWeb) {
+    if (isMobileWeb) {
       return ClipRRect(
         borderRadius: BorderRadius.circular(16),
         child: material,
