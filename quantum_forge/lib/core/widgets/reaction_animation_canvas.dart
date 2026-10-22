@@ -47,12 +47,200 @@ extension _ReactionAnimationCanvasExt on _ReactionAnimationWidgetState {
       height: double.infinity,
       showAxesTriad: !widget.compactMode,
     );
+    final currentAtoms = _atomsAt(_frame);
+    final activeBondLabels = currentAtoms.isNotEmpty
+        ? bondLabelsForFrame(currentAtoms)
+        : const <BondLabel>[];
+
     return Stack(
       fit: StackFit.expand,
       children: [
         viewer,
+        // ── Floating Bond Index Badge & HUD ──
+        if (activeBondLabels.isNotEmpty && !widget.compactMode) ...[
+          Positioned(
+            left: 10,
+            bottom: 10,
+            child: Material(
+              type: MaterialType.transparency,
+              child: InkWell(
+                key: const Key('qf-bond-legend-chip'),
+                onTap: () {
+                  _claimKeyboard();
+                  setState(() => _bondLegendExpanded = !_bondLegendExpanded);
+                },
+                borderRadius: BorderRadius.circular(6),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.72),
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(
+                      color: _bondLegendExpanded
+                          ? const Color(0xFF00E676)
+                          : const Color(0xFF00E5FF).withValues(alpha: 0.4),
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.4),
+                        blurRadius: 4,
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.hub_outlined,
+                        size: 13,
+                        color: _bondLegendExpanded
+                            ? const Color(0xFF00E676)
+                            : const Color(0xFF00E5FF),
+                      ),
+                      const SizedBox(width: 5),
+                      Text(
+                        'Bonds: ${activeBondLabels.length}',
+                        style: TextStyle(
+                          color: _bondLegendExpanded
+                              ? const Color(0xFF00E676)
+                              : Colors.white,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(width: 3),
+                      Icon(
+                        _bondLegendExpanded
+                            ? Icons.keyboard_arrow_down_rounded
+                            : Icons.keyboard_arrow_up_rounded,
+                        size: 15,
+                        color: Colors.white70,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+          if (_bondLegendExpanded)
+            Positioned(
+              left: 10,
+              bottom: 42,
+              width: 240,
+              child: Material(
+                type: MaterialType.transparency,
+                child: Container(
+                  constraints: const BoxConstraints(maxHeight: 200),
+                  padding: const EdgeInsets.fromLTRB(10, 8, 10, 10),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF0B0F19).withValues(alpha: 0.92),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: const Color(0xFF00E5FF).withValues(alpha: 0.35),
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.6),
+                        blurRadius: 14,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            'BOND SPECTRUM INDEX',
+                            style: TextStyle(
+                              color: Color(0xFF00E5FF),
+                              fontSize: 9.5,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: 1.0,
+                            ),
+                          ),
+                          InkWell(
+                            onTap: () {
+                              _claimKeyboard();
+                              setState(() => _bondLegendExpanded = false);
+                            },
+                            child: const Padding(
+                              padding: EdgeInsets.all(2.0),
+                              child: Icon(Icons.close, size: 14, color: Colors.white60),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      Flexible(
+                        child: SingleChildScrollView(
+                          child: Column(
+                            children: [
+                              for (final label in activeBondLabels)
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(vertical: 2.5),
+                                  child: Row(
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 5, vertical: 1),
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFF00E5FF)
+                                              .withValues(alpha: 0.15),
+                                          borderRadius: BorderRadius.circular(4),
+                                          border: Border.all(
+                                            color: const Color(0xFF00E5FF)
+                                                .withValues(alpha: 0.45),
+                                          ),
+                                        ),
+                                        child: Text(
+                                          '#${label.index}',
+                                          style: const TextStyle(
+                                            color: Color(0xFF00E5FF),
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Expanded(
+                                        child: Text(
+                                          '${label.atomA ?? 'A'}–${label.atomB ?? 'B'}',
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                      ),
+                                      if (label.length != null)
+                                        Text(
+                                          '${label.length!.toStringAsFixed(2)} Å',
+                                          style: const TextStyle(
+                                            color: Colors.white70,
+                                            fontSize: 10.5,
+                                            fontFeatures: [FontFeature.tabularFigures()],
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+        ],
+        // ── Watermark (Bottom Right) ──
         Positioned(
-          left: 10,
+          right: 10,
           bottom: 10,
           child: IgnorePointer(
             child: Container(

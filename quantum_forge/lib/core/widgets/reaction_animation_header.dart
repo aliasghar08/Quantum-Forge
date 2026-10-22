@@ -41,17 +41,44 @@ extension _ReactionAnimationHeaderExt on _ReactionAnimationWidgetState {
             _fragmentChip(),
             _displayTypePicker(),
             _palettePicker(),
+            ActionChip(
+              key: const Key('qf-bond-number-toggle'),
+              avatar: Icon(
+                _showBondNumbers ? Icons.label_rounded : Icons.label_outline_rounded,
+                size: 13,
+                color: _showBondNumbers ? const Color(0xFF00E676) : Colors.white60,
+              ),
+              label: Text(
+                'Bond #',
+                style: TextStyle(
+                  fontSize: 11,
+                  color: _showBondNumbers ? const Color(0xFF00E676) : Colors.white70,
+                  fontWeight: _showBondNumbers ? FontWeight.bold : FontWeight.normal,
+                ),
+              ),
+              backgroundColor: _showBondNumbers
+                  ? const Color(0xFF00E676).withValues(alpha: 0.15)
+                  : Colors.white.withValues(alpha: 0.05),
+              side: BorderSide(
+                color: _showBondNumbers ? const Color(0xFF00E676) : Colors.white12,
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 0),
+              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              tooltip: 'Toggle 3D Bond Numbers (#1, #2...)',
+              onPressed: () {
+                _claimKeyboard();
+                _setShowBondNumbers(!_showBondNumbers);
+              },
+            ),
             _iconButton(
-              (_showBondNumbers && _showBondEnergies)
+              _showBondEnergies
                   ? Icons.analytics
                   : Icons.analytics_outlined,
               () {
                 _claimKeyboard();
-                final newState = !(_showBondNumbers && _showBondEnergies);
-                setState(() => _showBondEnergies = newState);
-                _setShowBondNumbers(newState);
+                setState(() => _showBondEnergies = !_showBondEnergies);
               },
-              tooltip: 'Toggle Analysis Overlay (Bond Numbers & Energies)',
+              tooltip: 'Toggle Bond Energy Spectrum',
               key: const Key('qf-analysis-overlay'),
             ),
             _iconButton(Icons.center_focus_strong, () {

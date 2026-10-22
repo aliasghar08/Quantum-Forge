@@ -56,6 +56,10 @@ void main() {
         expect(labels[i].x, closeTo((first.x + second.x) / 2, 1e-12));
         expect(labels[i].y, closeTo((first.y + second.y) / 2, 1e-12));
         expect(labels[i].z, closeTo((first.z + second.z) / 2, 1e-12));
+        expect(labels[i].atomA, isNotNull);
+        expect(labels[i].atomB, isNotNull);
+        expect(labels[i].length, isNotNull);
+        expect(labels[i].length!, greaterThan(0.5));
       }
     });
 

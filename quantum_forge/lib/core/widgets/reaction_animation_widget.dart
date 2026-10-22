@@ -95,7 +95,7 @@ class ReactionAnimationWidget extends StatefulWidget {
     this.dwellAtEndpoints = false,
     this.displayType = AvogadroDisplayType.ballAndStick,
     this.dynamicBonding = true,
-    this.showBondNumbers = false,
+    this.showBondNumbers = true,
     this.compactMode = false,
     this.pdbUrl,
     this.dcdUrl,
@@ -271,12 +271,14 @@ class _ReactionAnimationWidgetState extends State<ReactionAnimationWidget> {
 
   /// Whether numbered bond badges are drawn on the 3D structure.
   ///
-  /// Off by default: a figure for a paper or a thesis usually wants the structure
-  /// clean, and numbers are a working aid for cross-referencing a bond table.
+  /// Enabled by default for direct mechanism inspection and energy spectrum correlation.
   bool _showBondNumbers = true;
 
   /// Whether to show the bond energies panel.
   bool _showBondEnergies = true;
+
+  /// Whether the on-canvas floating bond spectrum index HUD is expanded.
+  bool _bondLegendExpanded = false;
 
   /// Badge labels waiting for the viewer's platform view to exist.
   List<BondLabel>? _pendingBondLabels;

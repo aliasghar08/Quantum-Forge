@@ -33,6 +33,7 @@ class _MolecularViewerWidgetState extends State<MolecularViewerWidget> {
   final double _scale = 60.0;
   bool _electronCloudMode = false;
   bool _showBondData = false;
+  bool _showBondLabels = true;
   List<Atom> _atoms = [];
   List<Atom> _baseAtoms = [];
   final List<Atom> _selectedAtoms = [];
@@ -275,6 +276,7 @@ class _MolecularViewerWidgetState extends State<MolecularViewerWidget> {
                           scale: _scale,
                           electronCloudMode: _electronCloudMode,
                           showBondData: _showBondData,
+                          showBondLabels: _showBondLabels,
                           settings: widget.settings,
                         ),
                         size: Size.infinite,
@@ -383,6 +385,37 @@ class _MolecularViewerWidgetState extends State<MolecularViewerWidget> {
               );
             }).toList(),
           ),
+        ),
+
+        // ── Bond # Toggle Chip ──
+        ActionChip(
+          key: const Key('qf-mol-viewer-bond-chip'),
+          avatar: Icon(
+            _showBondLabels ? Icons.label_rounded : Icons.label_outline_rounded,
+            size: 13,
+            color: _showBondLabels ? const Color(0xFF00E676) : Colors.white60,
+          ),
+          label: Text(
+            'Bond #',
+            style: TextStyle(
+              fontSize: 11,
+              color: _showBondLabels ? const Color(0xFF00E676) : Colors.white70,
+              fontWeight: _showBondLabels ? FontWeight.bold : FontWeight.normal,
+            ),
+          ),
+          backgroundColor: _showBondLabels
+              ? const Color(0xFF00E676).withValues(alpha: 0.15)
+              : Colors.white.withValues(alpha: 0.05),
+          side: BorderSide(
+            color: _showBondLabels ? const Color(0xFF00E676) : Colors.white12,
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 0),
+          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          onPressed: () {
+            setState(() {
+              _showBondLabels = !_showBondLabels;
+            });
+          },
         ),
       ],
     );
@@ -579,6 +612,7 @@ class _MolecularPainter extends CustomPainter {
   final double scale;
   final bool electronCloudMode;
   final bool showBondData;
+  final bool showBondLabels;
   final QuantumSettings? settings;
 
   static final Map<Color, Paint> _basePaints = {};
@@ -598,6 +632,7 @@ class _MolecularPainter extends CustomPainter {
     required this.scale,
     required this.electronCloudMode,
     required this.showBondData,
+    this.showBondLabels = true,
     this.settings,
   });
 
@@ -749,24 +784,32 @@ class _MolecularPainter extends CustomPainter {
           canvas.drawLine(Offset(item.p1.screenX, item.p1.screenY), Offset(item.p2.screenX, item.p2.screenY), paint);
         }
         
-        if (showBondData) {
-          // Draw badge
-          final badgeRadius = 7.0;
+        if (showBondLabels || showBondData) {
+          // Draw high-contrast bond number badge (#1, #2...)
+          final badgeRadius = 8.5;
           final midX = (item.p1.screenX + item.p2.screenX) / 2;
           final midY = (item.p1.screenY + item.p2.screenY) / 2;
           
           canvas.drawCircle(
             Offset(midX, midY), 
             badgeRadius, 
-            Paint()..color = Colors.orangeAccent
+            Paint()..color = const Color(0xFF0F172A),
+          );
+          canvas.drawCircle(
+            Offset(midX, midY), 
+            badgeRadius, 
+            Paint()
+              ..color = const Color(0xFF00E5FF)
+              ..style = PaintingStyle.stroke
+              ..strokeWidth = 1.2,
           );
           
           final textSpan = TextSpan(
-            text: '${item.index}',
+            text: '#${item.index}',
             style: const TextStyle(
-              color: Colors.black87, 
-              fontSize: 10, 
-              fontWeight: FontWeight.bold
+              color: Color(0xFF00E5FF), 
+              fontSize: 9.5, 
+              fontWeight: FontWeight.bold,
             ),
           );
           final textPainter = TextPainter(text: textSpan, textDirection: TextDirection.ltr)..layout();

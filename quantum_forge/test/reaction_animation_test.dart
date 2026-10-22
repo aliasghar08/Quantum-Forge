@@ -573,4 +573,46 @@ void main() {
 
     await tester.pumpWidget(const SizedBox.shrink());
   });
+
+  testWidgets('renders Bond # ActionChip and toggles 3D bond numbers', (tester) async {
+    await pumpAnimation(tester);
+
+    final bondChip = find.byKey(const Key('qf-bond-number-toggle'));
+    expect(bondChip, findsOneWidget);
+    expect(find.text('Bond #'), findsOneWidget);
+
+    // Tap to toggle bond numbers off
+    await tester.tap(bondChip);
+    await tester.pump();
+
+    // Tap to toggle bond numbers back on
+    await tester.tap(bondChip);
+    await tester.pump();
+
+    expect(tester.takeException(), isNull);
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
+
+  testWidgets('renders floating bond legend badge and expands HUD', (tester) async {
+    await pumpAnimation(tester);
+
+    final legendChip = find.byKey(const Key('qf-bond-legend-chip'));
+    expect(legendChip, findsOneWidget);
+
+    // Initial state: HUD not expanded
+    expect(find.text('BOND SPECTRUM INDEX'), findsNothing);
+
+    // Tap to expand HUD
+    await tester.tap(legendChip);
+    await tester.pump();
+    expect(find.text('BOND SPECTRUM INDEX'), findsOneWidget);
+
+    // Tap close to collapse HUD
+    await tester.tap(find.byIcon(Icons.close));
+    await tester.pump();
+    expect(find.text('BOND SPECTRUM INDEX'), findsNothing);
+
+    expect(tester.takeException(), isNull);
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
 }

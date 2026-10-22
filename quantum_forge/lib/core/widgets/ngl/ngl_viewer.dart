@@ -226,6 +226,12 @@ class NglViewerState extends State<NglViewer> {
     engine.setBondLabels(labels);
   }
 
+  /// Toggles bond number badges on/off. When [enabled] is true, renders [labels].
+  /// When [enabled] is false, cleanly clears the 3D bond number labels.
+  void setBondNumberLabels(bool enabled, [List<BondLabel>? labels]) {
+    setBondLabels(enabled && labels != null ? labels : const <BondLabel>[]);
+  }
+
   /// Fits the camera to the structure currently on screen.
   void resetView() => _engine?.resetView();
 

@@ -344,15 +344,15 @@
 
     try {
       var shape = new window.NGL.Shape('bond-badges');
-      var bgColour = [0.06, 0.08, 0.12]; // Dark slate backing disc for maximum contrast
-      var textColour = [1.0, 0.88, 0.22]; // Bright amber text
-      var markerRadius = 0.20; // 0.20 Å sphere
-      var labelSize = 0.32;    // 0.32 Å text
+      var bgColour = [0.05, 0.08, 0.14]; // Dark slate backing disc for maximum contrast
+      var textColour = [0.0, 0.90, 1.0]; // Bright cyan (#00E5FF)
+      var markerRadius = 0.28; // 0.28 Å sphere
+      var labelSize = 0.55;    // 0.55 Å text
 
       for (var i = 0; i < indices.length; i++) {
         var pos = [positions[i * 3], positions[i * 3 + 1], positions[i * 3 + 2]];
         shape.addSphere(pos, bgColour, markerRadius);
-        shape.addText(pos, textColour, labelSize, String(indices[i]));
+        shape.addText(pos, textColour, labelSize, '#' + String(indices[i]));
       }
 
       var component = stage.addComponentFromObject(shape);

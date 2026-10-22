@@ -7,6 +7,8 @@
 // that imports the stub.
 // ============================================================================
 
+import 'dart:math' as math;
+
 import 'package:quantum_forge/core/utils/xyz_parser.dart' show Atom;
 
 import 'avogadro_geometry.dart';
@@ -33,11 +35,19 @@ List<BondLabel> bondLabelsForFrame(List<Atom> atoms) {
   for (var b = 0; b < bonds.length; b++) {
     final first = atoms[bonds[b].a];
     final second = atoms[bonds[b].b];
+    final dx = first.x - second.x;
+    final dy = first.y - second.y;
+    final dz = first.z - second.z;
+    final dist = math.sqrt(dx * dx + dy * dy + dz * dz);
+
     labels.add(BondLabel(
       index: b + 1,
       x: (first.x + second.x) / 2,
       y: (first.y + second.y) / 2,
       z: (first.z + second.z) / 2,
+      atomA: '${first.symbol}${bonds[b].a + 1}',
+      atomB: '${second.symbol}${bonds[b].b + 1}',
+      length: dist,
     ));
   }
   return labels;
@@ -58,6 +68,9 @@ class BondLabel {
     required this.x,
     required this.y,
     required this.z,
+    this.atomA,
+    this.atomB,
+    this.length,
   });
 
   /// 1-based bond number.
@@ -67,6 +80,15 @@ class BondLabel {
   final double x;
   final double y;
   final double z;
+
+  /// 1-based representation of first atom (e.g. C1).
+  final String? atomA;
+
+  /// 1-based representation of second atom (e.g. C2).
+  final String? atomB;
+
+  /// Bond length in angstroms.
+  final double? length;
 
   @override
   bool operator ==(Object other) =>
@@ -83,3 +105,4 @@ class BondLabel {
   String toString() => 'BondLabel($index @ ${x.toStringAsFixed(2)}, '
       '${y.toStringAsFixed(2)}, ${z.toStringAsFixed(2)})';
 }
+

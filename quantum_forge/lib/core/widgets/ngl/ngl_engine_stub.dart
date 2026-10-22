@@ -64,6 +64,9 @@ class NglEngine {
   /// Draws numbered badges at bond midpoints. No-op.
   void setBondLabels(List<BondLabel> labels) {}
 
+  /// Toggles bond number badges on/off. No-op.
+  void setBondNumberLabels(bool enabled, [List<BondLabel>? labels]) {}
+
   /// Fits the camera to the current structure. No-op.
   void resetView() {}
 

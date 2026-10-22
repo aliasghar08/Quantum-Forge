@@ -757,16 +757,15 @@ class NglEngine {
         'bond-labels'.toJS,
       );
 
-      // High-contrast badge palette: dark slate backing disc with bright amber text
-      final badgeBgColor = <JSAny>[0.06.toJS, 0.08.toJS, 0.12.toJS].toJS;
-      final textColor = <JSAny>[1.0.toJS, 0.88.toJS, 0.22.toJS].toJS;
+      // High-contrast badge palette: dark slate backing disc with bright cyan text (#00E5FF)
+      final badgeBgColor = <JSAny>[0.05.toJS, 0.08.toJS, 0.14.toJS].toJS;
+      final textColor = <JSAny>[0.0.toJS, 0.90.toJS, 1.0.toJS].toJS;
 
       // Bond-calibrated dimensions (in Angstroms):
       // A standard covalent bond is 1.0–1.6 Å. Badges must be calibrated to the
-      // physical bond scale rather than the full simulation box diagonal, so
-      // drifting solvent/dissociated fragments during MD never balloon the labels.
-      const double markerRadius = 0.20;
-      const double labelSize = 0.32;
+      // physical bond scale rather than the full simulation box diagonal.
+      const double markerRadius = 0.28;
+      const double labelSize = 0.55;
 
       for (final label in labels) {
         final position = <JSAny>[label.x.toJS, label.y.toJS, label.z.toJS].toJS;
@@ -778,13 +777,13 @@ class NglEngine {
           badgeBgColor,
           markerRadius.toJS,
         );
-        // Bright 3D text overlay; use addText (official non-deprecated NGL Shape API)
+        // Bright 3D text overlay formatted as "#1", "#2", etc.
         shape.callMethod(
           'addText'.toJS,
           position,
           textColor,
           labelSize.toJS,
-          label.index.toString().toJS,
+          '#${label.index}'.toJS,
         );
       }
 
@@ -815,6 +814,16 @@ class NglEngine {
       _bondLabelComponent = null;
       // ignore: avoid_print
       print('Quantum Forge: NGL bond labels failed — $error\n$stack');
+    }
+  }
+
+  /// Toggles bond number badges on/off. When [enabled] is true, renders [labels].
+  /// When [enabled] is false, cleanly disposes the 3D bond-labels representation.
+  void setBondNumberLabels(bool enabled, [List<BondLabel>? labels]) {
+    if (!enabled || labels == null || labels.isEmpty) {
+      setBondLabels(const <BondLabel>[]);
+    } else {
+      setBondLabels(labels);
     }
   }
 
