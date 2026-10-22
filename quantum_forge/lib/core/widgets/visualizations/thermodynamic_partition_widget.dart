@@ -1,10 +1,14 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:quantum_forge/core/state/quantum_provider.dart';
+import 'package:quantum_forge/state/settings_provider.dart';
 
 class ThermodynamicPartitionWidget extends StatefulWidget {
   final double deltaH; // kcal/mol
   final double deltaS; // cal/(mol·K)
   final double initialTemperatureK;
+  final double? temperatureK;
+  final ValueChanged<double>? onTemperatureChanged;
   final double? zpeKcal;
   final double? imaginaryFrequency;
 
@@ -13,6 +17,8 @@ class ThermodynamicPartitionWidget extends StatefulWidget {
     required this.deltaH,
     required this.deltaS,
     this.initialTemperatureK = 298.15,
+    this.temperatureK,
+    this.onTemperatureChanged,
     this.zpeKcal,
     this.imaginaryFrequency,
   });
@@ -22,7 +28,7 @@ class ThermodynamicPartitionWidget extends StatefulWidget {
 }
 
 class _ThermodynamicPartitionWidgetState extends State<ThermodynamicPartitionWidget> {
-  late double _temperatureK;
+  late double _localTemperatureK;
 
   static const double _kb = 1.380649e-23; // J/K
   static const double _h = 6.62607015e-34; // J·s
@@ -32,12 +38,36 @@ class _ThermodynamicPartitionWidgetState extends State<ThermodynamicPartitionWid
   @override
   void initState() {
     super.initState();
-    _temperatureK = widget.initialTemperatureK;
+    _localTemperatureK = widget.temperatureK ?? widget.initialTemperatureK;
+  }
+
+  @override
+  void didUpdateWidget(covariant ThermodynamicPartitionWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.temperatureK != null && widget.temperatureK != oldWidget.temperatureK) {
+      _localTemperatureK = widget.temperatureK!;
+    }
+  }
+
+  void _updateTemperature(double newTemp, QuantumSettingsNotifier? notifier) {
+    final clamped = newTemp.clamp(100.0, 1000.0);
+    setState(() => _localTemperatureK = clamped);
+    widget.onTemperatureChanged?.call(clamped);
+    if (notifier != null && (notifier.value.temperatureK - clamped).abs() > 0.001) {
+      notifier.update((q) => q.copyWith(temperatureK: clamped));
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final tK = _temperatureK;
+    QuantumSettingsNotifier? notifier;
+    try {
+      notifier = Provider.of<QuantumSettingsNotifier>(context);
+    } catch (_) {}
+
+    final activeTempK = widget.temperatureK ??
+        (notifier != null ? notifier.value.temperatureK : _localTemperatureK);
+    final tK = activeTempK.clamp(100.0, 1000.0);
     final tDeltaS = (tK * widget.deltaS) / 1000.0; // kcal/mol
     final deltaG = widget.deltaH - tDeltaS; // ΔG = ΔH - TΔS
 
@@ -78,15 +108,18 @@ class _ThermodynamicPartitionWidgetState extends State<ThermodynamicPartitionWid
             children: [
               const Icon(Icons.waterfall_chart_rounded, size: 18, color: Color(0xFFFFB74D)),
               const SizedBox(width: 8),
-              const Text(
-                'Thermodynamic Partition & TST Simulator',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
+              const Expanded(
+                child: Text(
+                  'Thermodynamic Partition & TST Simulator',
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
-              const Spacer(),
+              const SizedBox(width: 8),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
@@ -162,7 +195,7 @@ class _ThermodynamicPartitionWidgetState extends State<ThermodynamicPartitionWid
                       ],
                     ),
                     Text(
-                      '${_temperatureK.toStringAsFixed(1)} K (${(_temperatureK - 273.15).toStringAsFixed(1)} °C)',
+                      '${tK.toStringAsFixed(1)} K (${(tK - 273.15).toStringAsFixed(1)} °C)',
                       style: const TextStyle(
                         color: Color(0xFFFF7043),
                         fontSize: 12,
@@ -180,12 +213,11 @@ class _ThermodynamicPartitionWidgetState extends State<ThermodynamicPartitionWid
                     thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
                   ),
                   child: Slider(
-                    value: _temperatureK,
-                    min: 150.0,
-                    max: 600.0,
-                    divisions: 90,
-                    label: '${_temperatureK.toStringAsFixed(0)} K',
-                    onChanged: (v) => setState(() => _temperatureK = v),
+                    value: tK,
+                    min: 100.0,
+                    max: 1000.0,
+                    label: '${tK.toStringAsFixed(1)} K',
+                    onChanged: (v) => _updateTemperature(v, notifier),
                   ),
                 ),
                 // Quick temperature buttons
@@ -194,11 +226,11 @@ class _ThermodynamicPartitionWidgetState extends State<ThermodynamicPartitionWid
                   runSpacing: 4,
                   alignment: WrapAlignment.center,
                   children: [
-                    _buildTempPreset(195.15, '195 K (Dry Ice)'),
-                    _buildTempPreset(273.15, '273 K (0 °C)'),
-                    _buildTempPreset(298.15, '298 K (Room Temp)'),
-                    _buildTempPreset(310.15, '310 K (Body Temp)'),
-                    _buildTempPreset(373.15, '373 K (Boiling)'),
+                    _buildTempPreset(195.15, '195 K (Dry Ice)', tK, notifier),
+                    _buildTempPreset(273.15, '273 K (0 °C)', tK, notifier),
+                    _buildTempPreset(298.15, '298 K (Room Temp)', tK, notifier),
+                    _buildTempPreset(310.15, '310 K (Body Temp)', tK, notifier),
+                    _buildTempPreset(373.15, '373 K (Boiling)', tK, notifier),
                   ],
                 ),
               ],
@@ -294,11 +326,11 @@ class _ThermodynamicPartitionWidgetState extends State<ThermodynamicPartitionWid
     );
   }
 
-  Widget _buildTempPreset(double tempK, String label) {
-    final isSelected = (_temperatureK - tempK).abs() < 1.0;
+  Widget _buildTempPreset(double tempK, String label, double currentTemp, QuantumSettingsNotifier? notifier) {
+    final isSelected = (currentTemp - tempK).abs() < 1.0;
     return InkWell(
       borderRadius: BorderRadius.circular(6),
-      onTap: () => setState(() => _temperatureK = tempK),
+      onTap: () => _updateTemperature(tempK, notifier),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2.5),
         decoration: BoxDecoration(

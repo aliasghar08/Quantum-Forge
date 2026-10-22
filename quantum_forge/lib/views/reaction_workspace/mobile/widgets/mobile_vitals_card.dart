@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:quantum_forge/core/state/quantum_provider.dart';
+import 'package:quantum_forge/state/settings_provider.dart';
 import '../../../../viewmodels/reaction_workspace_viewmodel.dart';
 import '../../../../core/algorithms/solvent_properties.dart';
 
@@ -255,6 +256,9 @@ class MobileVitalsCard extends StatelessWidget {
                       inactiveColor: Colors.white12,
                       onChanged: (val) {
                         vm.setTemperature(val);
+                        try {
+                          context.read<QuantumSettingsNotifier>().update((q) => q.copyWith(temperatureK: val));
+                        } catch (_) {}
                         setSheetState(() {});
                       },
                     ),

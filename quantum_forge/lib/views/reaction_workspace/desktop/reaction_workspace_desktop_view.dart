@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:quantum_forge/core/state/quantum_provider.dart';
+import 'package:quantum_forge/state/settings_provider.dart';
 import '../../../../viewmodels/reaction_workspace_viewmodel.dart';
 import '../../../../core/theme/theme_provider.dart';
 import '../../../../core/algorithms/solvent_properties.dart';
@@ -496,7 +497,12 @@ class ReactionWorkspaceDesktopView extends StatelessWidget {
             divisions: 90,
             activeColor: Colors.cyanAccent,
             inactiveColor: Colors.white12,
-            onChanged: (val) => vm.setTemperature(val),
+            onChanged: (val) {
+              vm.setTemperature(val);
+              try {
+                context.read<QuantumSettingsNotifier>().update((q) => q.copyWith(temperatureK: val));
+              } catch (_) {}
+            },
           ),
         ],
       ),

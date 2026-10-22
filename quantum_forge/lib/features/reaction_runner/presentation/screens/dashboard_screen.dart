@@ -215,6 +215,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
       final template = _findTemplateById(templateId);
       if (template != null && mounted) {
         _viewModel.loadTemplateForView(template);
+        context.read<QuantumSettingsNotifier>().update((q) => q.copyWith(
+          charge: template.defaults.charge,
+          spinMultiplicity: template.defaults.spinMultiplicity,
+          mlipModel: template.defaults.mlipModel,
+          optimizerAlgorithm: template.defaults.optimizerAlgorithm,
+          catalyst: template.defaultCatalystName ?? q.catalyst,
+        ));
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Loaded shared template: ${template.name} (Public View)'),
@@ -222,6 +229,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
         );
       }
+    }
+  }
+
+  void _onTemplateSelected(ReactionTemplate template) {
+    _viewModel.loadTemplate(template);
+    if (mounted) {
+      context.read<QuantumSettingsNotifier>().update((q) => q.copyWith(
+        charge: template.defaults.charge,
+        spinMultiplicity: template.defaults.spinMultiplicity,
+        mlipModel: template.defaults.mlipModel,
+        optimizerAlgorithm: template.defaults.optimizerAlgorithm,
+        catalyst: template.defaultCatalystName ?? q.catalyst,
+      ));
     }
   }
 
@@ -242,6 +262,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
       final template = _findTemplateById(templateId);
       if (template != null) {
         _viewModel.loadTemplateForView(template);
+        if (mounted) {
+          context.read<QuantumSettingsNotifier>().update((q) => q.copyWith(
+            charge: template.defaults.charge,
+            spinMultiplicity: template.defaults.spinMultiplicity,
+            mlipModel: template.defaults.mlipModel,
+            optimizerAlgorithm: template.defaults.optimizerAlgorithm,
+            catalyst: template.defaultCatalystName ?? q.catalyst,
+          ));
+        }
       }
     } else {
       _viewModel.loadMoleculesFromData(
@@ -830,7 +859,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       width: double.infinity,
       child: switch (_viewModel.navDest) {
         NavDestination.library  =>
-            LibraryScreen(onTemplateSelected: _viewModel.loadTemplate),
+            LibraryScreen(onTemplateSelected: _onTemplateSelected),
         NavDestination.history  => HistoryScreen(
               onReactionSelected: (reaction) {
                 context.read<ReactionNotifier>().value = reaction;
@@ -2057,15 +2086,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               runSpacing: 10,
               children: topTemplates.map((t) {
                 return InkWell(
-                  onTap: () {
-                    _viewModel.loadTemplate(t);
-                    context.read<QuantumSettingsNotifier>().update((q) => q.copyWith(
-                      charge: t.defaults.charge,
-                      spinMultiplicity: t.defaults.spinMultiplicity,
-                      mlipModel: t.defaults.mlipModel,
-                      optimizerAlgorithm: t.defaults.optimizerAlgorithm,
-                    ));
-                  },
+                  onTap: () => _onTemplateSelected(t),
                   borderRadius: BorderRadius.circular(10),
                   child: Container(
                     constraints: BoxConstraints(
@@ -3220,7 +3241,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
             const SizedBox(height: 16),
 
             // Thermo properties grid
-            ThermoPropertiesGrid(metrics: summary.thermoMetrics),
+            ThermoPropertiesGrid(
+              metrics: summary.thermoMetrics,
+              allMetrics: summary.metrics,
+            ),
             const SizedBox(height: 16),
 
             // Molecular data

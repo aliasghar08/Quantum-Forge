@@ -347,12 +347,11 @@ class _QuantumControlsPanelState extends State<QuantumControlsPanel> {
       // Temperature slider
       _labeledWidget(
         'Temperature',
-        '${s.temperatureK.toStringAsFixed(0)} K',
+        '${s.temperatureK.toStringAsFixed(1)} K (${(s.temperatureK - 273.15).toStringAsFixed(1)} °C)',
         Slider(
-          value: s.temperatureK,
-          min: 100,
-          max: 1000,
-          divisions: 90,
+          value: s.temperatureK.clamp(100.0, 1000.0),
+          min: 100.0,
+          max: 1000.0,
           activeColor: const Color(0xFF4FC3F7),
           inactiveColor: Colors.white12,
           onChanged: (v) => n.update((q) => q.copyWith(temperatureK: v)),

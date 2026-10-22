@@ -11,8 +11,13 @@ enum _ThermoViewMode { all, metrics, fmo, partition }
 /// error, quality tier and provenance method, plus interactive quantum visualizations.
 class ThermoPropertiesGrid extends StatefulWidget {
   final List<MetricEstimate> metrics;
+  final List<MetricEstimate>? allMetrics;
 
-  const ThermoPropertiesGrid({super.key, required this.metrics});
+  const ThermoPropertiesGrid({
+    super.key,
+    required this.metrics,
+    this.allMetrics,
+  });
 
   @override
   State<ThermoPropertiesGrid> createState() => _ThermoPropertiesGridState();
@@ -24,39 +29,40 @@ class _ThermoPropertiesGridState extends State<ThermoPropertiesGrid> {
   @override
   Widget build(BuildContext context) {
     final palette = ThemeNotifier.paletteOf(context);
+    final searchMetrics = widget.allMetrics ?? widget.metrics;
 
     // Extract physical quantities for specialized visualization widgets
-    final deltaH = widget.metrics.cast<MetricEstimate?>().firstWhere(
+    final deltaH = searchMetrics.cast<MetricEstimate?>().firstWhere(
       (m) => m != null && (m.label.contains('ΔH') || m.label.contains('Enthalpy')),
       orElse: () => null,
     )?.value ?? 22.4;
 
-    final deltaS = widget.metrics.cast<MetricEstimate?>().firstWhere(
+    final deltaS = searchMetrics.cast<MetricEstimate?>().firstWhere(
       (m) => m != null && (m.label.contains('ΔS') || m.label.contains('Entropy')),
       orElse: () => null,
     )?.value ?? -12.3;
 
-    final gap = widget.metrics.cast<MetricEstimate?>().firstWhere(
+    final gap = searchMetrics.cast<MetricEstimate?>().firstWhere(
       (m) => m != null && (m.label.contains('HOMO') || m.label.contains('Gap')),
       orElse: () => null,
     )?.value ?? 4.2;
 
-    final dipole = widget.metrics.cast<MetricEstimate?>().firstWhere(
+    final dipole = searchMetrics.cast<MetricEstimate?>().firstWhere(
       (m) => m != null && m.label.contains('Dipole'),
       orElse: () => null,
     )?.value;
 
-    final polarizability = widget.metrics.cast<MetricEstimate?>().firstWhere(
+    final polarizability = searchMetrics.cast<MetricEstimate?>().firstWhere(
       (m) => m != null && m.label.contains('Polariz'),
       orElse: () => null,
     )?.value;
 
-    final zpe = widget.metrics.cast<MetricEstimate?>().firstWhere(
+    final zpe = searchMetrics.cast<MetricEstimate?>().firstWhere(
       (m) => m != null && (m.label.contains('ZPE') || m.label.contains('Zero-Point')),
       orElse: () => null,
     )?.value;
 
-    final imagFreq = widget.metrics.cast<MetricEstimate?>().firstWhere(
+    final imagFreq = searchMetrics.cast<MetricEstimate?>().firstWhere(
       (m) => m != null && (m.label.contains('Imaginary') || m.label.contains('ν‡')),
       orElse: () => null,
     )?.value;

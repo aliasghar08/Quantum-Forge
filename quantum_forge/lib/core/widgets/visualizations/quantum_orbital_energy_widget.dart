@@ -89,15 +89,18 @@ class _QuantumOrbitalEnergyWidgetState extends State<QuantumOrbitalEnergyWidget>
             children: [
               const Icon(Icons.blur_on_rounded, size: 18, color: Color(0xFF4FC3F7)),
               const SizedBox(width: 8),
-              const Text(
-                'Frontier Molecular Orbital (FMO) Ladder',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
+              const Expanded(
+                child: Text(
+                  'Frontier Molecular Orbital (FMO) Ladder',
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
-              const Spacer(),
+              const SizedBox(width: 8),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
