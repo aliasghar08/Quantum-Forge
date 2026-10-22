@@ -52,4 +52,18 @@ void main() {
       expect(unicodeMinus('10^(-2.3)'), '10^(−2.3)');
     });
   });
+
+  group('formatPowersAndSuperscripts', () {
+    test('converts powers of ten without ^', () {
+      expect(formatPowersAndSuperscripts('10^5'), '10⁵');
+      expect(formatPowersAndSuperscripts('10^-8'), '10⁻⁸');
+      expect(formatPowersAndSuperscripts('10^(-45.8 ± 3.5)'), '10⁽⁻⁴⁵˙⁸ ± ³˙⁵⁾');
+    });
+
+    test('converts unit powers without ^', () {
+      expect(formatPowersAndSuperscripts('s^-1'), 's⁻¹');
+      expect(formatPowersAndSuperscripts('cm^-1'), 'cm⁻¹');
+      expect(formatPowersAndSuperscripts('mol^-1'), 'mol⁻¹');
+    });
+  });
 }

@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:quantum_forge/core/state/quantum_provider.dart';
+import 'package:quantum_forge/core/utils/unicode_math.dart';
 import 'package:quantum_forge/state/settings_provider.dart';
 
 class ThermodynamicPartitionWidget extends StatefulWidget {
@@ -373,7 +374,7 @@ class _ThermodynamicPartitionWidgetState extends State<ThermodynamicPartitionWid
     if (val >= 0.01 && val < 1000) return val.toStringAsFixed(3);
     final exp = (math.log(val) / math.ln10).floor();
     final mantissa = val / math.pow(10.0, exp);
-    return '${mantissa.toStringAsFixed(2)} × 10^$exp';
+    return '${mantissa.toStringAsFixed(2)} × 10${toSuperscript('$exp')}';
   }
 
   String _formatHalfLife(double sec) {

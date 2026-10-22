@@ -38,7 +38,7 @@ class ReactionWorkspaceViewModel extends ChangeNotifier {
   double eaUncertainty = 2.0;
   double gibbsFreeEnergy = 28.0;
   double enthalpy = 25.0;
-  String rateConstant = "10^(-8.1 ± 1.2)";
+  String rateConstant = "10⁽⁻⁸˙¹ ± ¹˙²⁾";
 
   List<ThermodynamicMetric> get thermodynamicMetrics => [
     const ThermodynamicMetric(

@@ -96,8 +96,12 @@ class MetricEstimate {
       case ValueFormat.exponential:
         return scientificNotation(value, significant: 2);
       case ValueFormat.logScale:
-        return '10^(${unicodeMinus(value.toStringAsFixed(1))} ± '
-            '${unicodeMinus(uncertainty.toStringAsFixed(1))})';
+        final valStr = unicodeMinus(value.toStringAsFixed(1));
+        if (uncertainty <= 0) {
+          return '10${toSuperscript(valStr)}';
+        }
+        final uncStr = unicodeMinus(uncertainty.toStringAsFixed(1));
+        return '10${toSuperscript('($valStr ± $uncStr)')}';
       case ValueFormat.decimal:
         return value.toStringAsFixed(decimals);
     }

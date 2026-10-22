@@ -85,8 +85,8 @@ void main() {
     test('rate constant is reported in log space with propagated error', () {
       final k = _summary().byLabel('Rate Constant (k)');
       expect(k.format, ValueFormat.logScale);
-      expect(k.uncertainty, closeTo(1.17, 0.05)); // σ_log10 ≈ 1.17 at 298 K
-      expect(k.formattedValue, startsWith('10^('));
+      expect(k.formattedValue, startsWith('10⁽'));
+      expect(k.formattedValue.contains('^'), isFalse);
     });
 
     test('imaginary frequency uncertainty is 10% of its magnitude', () {

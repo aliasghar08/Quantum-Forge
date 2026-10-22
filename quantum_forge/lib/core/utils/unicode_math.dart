@@ -14,14 +14,22 @@ import 'dart:math' as math;
 const Map<String, String> _superscript = {
   '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴',
   '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹',
-  '+': '⁺', '-': '⁻', '=': '⁼', '(': '⁽', ')': '⁾',
-  'n': 'ⁿ', 'i': 'ⁱ',
+  '+': '⁺', '-': '⁻', '−': '⁻', '=': '⁼', '(': '⁽', ')': '⁾',
+  '.': '˙', '·': '˙', '±': '±',
+  'a': 'ᵃ', 'b': 'ᵇ', 'c': 'ᶜ', 'd': 'ᵈ', 'e': 'ᵉ', 'f': 'ᶠ',
+  'g': 'ᵍ', 'h': 'ʰ', 'i': 'ⁱ', 'j': 'ʲ', 'k': 'ᵏ', 'l': 'ˡ',
+  'm': 'ᵐ', 'n': 'ⁿ', 'o': 'ᵒ', 'p': 'ᵖ', 'r': 'ʳ', 's': 'ˢ',
+  't': 'ᵗ', 'u': 'ᵘ', 'v': 'ᵛ', 'w': 'ʷ', 'x': 'ˣ', 'y': 'ʸ', 'z': 'ᶻ',
 };
 
 const Map<String, String> _subscript = {
   '0': '₀', '1': '₁', '2': '₂', '3': '₃', '4': '₄',
   '5': '₅', '6': '₆', '7': '₇', '8': '₈', '9': '₉',
-  '+': '₊', '-': '₋', '=': '₌', '(': '₍', ')': '₎',
+  '+': '₊', '-': '₋', '−': '₋', '=': '₌', '(': '₍', ')': '₎',
+  '.': '.',
+  'a': 'ₐ', 'e': 'ₑ', 'h': 'ₕ', 'i': 'ᵢ', 'j': 'ⱼ', 'k': 'ₖ',
+  'l': 'ₗ', 'm': 'ₘ', 'n': 'ₙ', 'o': 'ₒ', 'p': 'ₚ', 'r': 'ᵣ',
+  's': 'ₛ', 't': 'ₜ', 'u': 'ᵤ', 'v': 'ᵥ', 'x': 'ₓ',
 };
 
 /// Maps every supported character to its superscript form.
@@ -34,11 +42,36 @@ String toSubscript(String value) =>
 
 /// Converts digit counts in a chemical formula to subscript digits
 /// (e.g. `C8H10N4O2` → `C₈H₁₀N₄O₂`). Element symbols are untouched.
-String subscriptFormula(String formula) =>
-    formula.split('').map((c) => _subscript[c] ?? c).join();
+String subscriptFormula(String formula) => formula.replaceAllMapped(
+      RegExp(r'\d+'),
+      (m) => toSubscript(m.group(0)!),
+    );
 
 /// Replaces an ASCII minus with the typographic minus sign (for exponents).
 String unicodeMinus(String value) => value.replaceAll('-', '−');
+
+/// Replaces any caret notation powers of ten (e.g. `10^5`, `10^-8`, `10^(-8.1 ± 1.2)`)
+/// or general units (e.g. `s^-1`, `cm^-1`, `mol^-1`, `K^-1`) with Unicode superscripts.
+String formatPowersAndSuperscripts(String text) {
+  // 1. Replace 10^(...) or 10^X
+  var result = text.replaceAllMapped(
+    RegExp(r'10\^(\([^)]+\)|[-+−0-9.a-zA-Z]+)'),
+    (match) {
+      final exp = match.group(1)!;
+      return '10${toSuperscript(exp)}';
+    },
+  );
+  // 2. Replace general unit exponents like s^-1, cm^-1, mol^-1, K^-1, etc.
+  result = result.replaceAllMapped(
+    RegExp(r'([a-zA-Z·])\^([-+−0-9.a-zA-Z()]+)'),
+    (match) {
+      final base = match.group(1)!;
+      final exp = match.group(2)!;
+      return '$base${toSuperscript(exp)}';
+    },
+  );
+  return result;
+}
 
 /// Formats a number as `mantissa × 10^exponent` with a Unicode superscript,
 /// e.g. `0.00034` → `3.4×10⁻⁴`. [significant] is the number of significant
