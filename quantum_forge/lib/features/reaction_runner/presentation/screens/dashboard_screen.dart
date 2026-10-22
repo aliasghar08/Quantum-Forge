@@ -25,6 +25,7 @@ import 'package:quantum_forge/core/utils/zip_writer.dart';
 import 'package:quantum_forge/features/reaction_runner/data/models/results_summary.dart';
 import 'package:quantum_forge/features/reaction_runner/presentation/widgets/dashboard_cards/results_header_card.dart';
 import 'package:quantum_forge/features/reaction_runner/presentation/widgets/quantum_controls_panel.dart';
+import 'package:quantum_forge/features/reaction_runner/presentation/widgets/quantum_on_screen_controls.dart';
 import 'package:quantum_forge/features/reaction_library/data/reaction_templates.dart';
 import 'package:quantum_forge/features/reaction_library/data/reaction_template_generator.dart';
 import 'package:quantum_forge/features/reaction_library/data/firestore_library_repository.dart';
@@ -978,12 +979,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 else
                   _buildResultsArea(status),
                   
-                if (!isDesktop && _viewModel.controlsPanelOpen) ...[
-                  const SizedBox(height: 32),
-                  const Divider(color: Colors.white24),
-                  const SizedBox(height: 16),
-                  QuantumControlsPanel(activeTemplate: _viewModel.activeTemplate),
-                ],
                 const SizedBox(height: 24),
                 SafeArea(
                   top: false,
@@ -1830,161 +1825,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
               _buildQuickTemplates(),
             ],
             const SizedBox(height: 20),
-            _buildVitalsSummary(context),
+            QuantumOnScreenControlsCard(
+              activeTemplate: _viewModel.activeTemplate,
+            ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildVitalsSummary(BuildContext context) {
-    final isMobile = MediaQuery.of(context).size.width < 600;
-    return ValueListenableBuilder<QuantumSettings>(
-      valueListenable: context.read<QuantumSettingsNotifier>(),
-      builder: (context, settings, _) {
-        return Container(
-          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 18),
-          decoration: BoxDecoration(
-            color: Colors.black.withValues(alpha: 0.35),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  const Icon(Icons.tune_rounded, size: 15, color: Color(0xFF38BDF8)),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      isMobile ? 'Quantum Parameters' : 'Workspace Quantum Parameters & Vitals',
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.9),
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 0.2,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  InkWell(
-                    borderRadius: BorderRadius.circular(6),
-                    onTap: () {
-                      if (!_viewModel.controlsPanelOpen) {
-                        _viewModel.toggleControlsPanel();
-                      }
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            isMobile ? 'Configure' : 'Configure in Side Panel',
-                            style: TextStyle(
-                              color: Colors.cyanAccent.shade200,
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          const SizedBox(width: 4),
-                          Icon(Icons.arrow_forward_ios, size: 10, color: Colors.cyanAccent.shade200),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Wrap(
-                spacing: 12,
-                runSpacing: 10,
-                alignment: WrapAlignment.start,
-                children: [
-                  _vitalItem(
-                    Icons.bolt_rounded,
-                    'System Charge',
-                    settings.charge > 0 ? '+${settings.charge}' : settings.charge.toString(),
-                    const Color(0xFFFBBF24),
-                  ),
-                  _vitalItem(
-                    Icons.rotate_right_rounded,
-                    'Spin Multiplicity',
-                    '2S+1 = ${settings.spinMultiplicity}',
-                    const Color(0xFFA78BFA),
-                  ),
-                  _vitalItem(
-                    Icons.memory_rounded,
-                    'Surrogate MLIP',
-                    settings.mlipModel,
-                    const Color(0xFF38BDF8),
-                  ),
-                  _vitalItem(
-                    Icons.water_drop_outlined,
-                    'Solvation Model',
-                    settings.solventModel,
-                    const Color(0xFF34D399),
-                  ),
-                  _vitalItem(
-                    Icons.thermostat_rounded,
-                    'Temperature',
-                    '${settings.temperatureK.toStringAsFixed(1)} K',
-                    const Color(0xFFF472B6),
-                  ),
-                  _vitalItem(
-                    Icons.speed_rounded,
-                    'Optimizer',
-                    settings.optimizerAlgorithm.toUpperCase(),
-                    const Color(0xFF60A5FA),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _vitalItem(IconData icon, String label, String value, Color accent) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: accent.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(9),
-        border: Border.all(color: accent.withValues(alpha: 0.25)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 16, color: accent),
-          const SizedBox(width: 8),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                label,
-                style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.55),
-                  fontSize: 9.5,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 1),
-              Text(
-                value,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-            ],
-          ),
-        ],
       ),
     );
   }
