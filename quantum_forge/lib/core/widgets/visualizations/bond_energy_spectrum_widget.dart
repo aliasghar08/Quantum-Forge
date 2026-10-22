@@ -195,34 +195,8 @@ class _BondEnergySpectrumWidgetState extends State<BondEnergySpectrumWidget>
               ),
               const SizedBox(width: 8),
 
-              // View Mode Toggle
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.05),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    _modeButton(
-                      mode: BondViewMode.spectrum,
-                      icon: Icons.bar_chart_rounded,
-                      tooltip: 'Spectrum Bars',
-                    ),
-                    _modeButton(
-                      mode: BondViewMode.morse,
-                      icon: Icons.waves_rounded,
-                      tooltip: 'Morse Potential Curve',
-                    ),
-                    _modeButton(
-                      mode: BondViewMode.heatmap,
-                      icon: Icons.grid_view_rounded,
-                      tooltip: 'Strain Heatmap Matrix',
-                    ),
-                  ],
-                ),
-              ),
+              // View Mode Tabs
+              _buildViewModeTabs(),
             ],
           ),
 
@@ -313,28 +287,75 @@ class _BondEnergySpectrumWidgetState extends State<BondEnergySpectrumWidget>
     );
   }
 
-  Widget _modeButton({
+  Widget _buildViewModeTabs() {
+    return Container(
+      padding: const EdgeInsets.all(3),
+      decoration: BoxDecoration(
+        color: const Color(0xFF0D121F),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _modeTab(
+            mode: BondViewMode.spectrum,
+            label: 'Spectrum',
+            icon: Icons.bar_chart_rounded,
+          ),
+          _modeTab(
+            mode: BondViewMode.morse,
+            label: 'Morse Curve',
+            icon: Icons.waves_rounded,
+          ),
+          _modeTab(
+            mode: BondViewMode.heatmap,
+            label: 'Strain Matrix',
+            icon: Icons.grid_view_rounded,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _modeTab({
     required BondViewMode mode,
+    required String label,
     required IconData icon,
-    required String tooltip,
   }) {
     final active = _mode == mode;
-    return Tooltip(
-      message: tooltip,
-      child: InkWell(
-        onTap: () => setState(() => _mode = mode),
-        borderRadius: BorderRadius.circular(6),
-        child: Container(
-          padding: const EdgeInsets.all(6),
-          decoration: BoxDecoration(
-            color: active ? Colors.cyanAccent.withValues(alpha: 0.25) : Colors.transparent,
-            borderRadius: BorderRadius.circular(6),
-          ),
-          child: Icon(
-            icon,
-            size: 15,
-            color: active ? Colors.cyanAccent : Colors.white54,
-          ),
+    return InkWell(
+      onTap: () => setState(() => _mode = mode),
+      borderRadius: BorderRadius.circular(7),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        curve: Curves.easeOutCubic,
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        decoration: BoxDecoration(
+          color: active ? Colors.cyanAccent.withValues(alpha: 0.20) : Colors.transparent,
+          borderRadius: BorderRadius.circular(7),
+          border: active
+              ? Border.all(color: Colors.cyanAccent.withValues(alpha: 0.45))
+              : Border.all(color: Colors.transparent),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              size: 13,
+              color: active ? Colors.cyanAccent : Colors.grey.shade400,
+            ),
+            const SizedBox(width: 5),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: active ? FontWeight.bold : FontWeight.w500,
+                color: active ? Colors.cyanAccent : Colors.grey.shade400,
+              ),
+            ),
+          ],
         ),
       ),
     );

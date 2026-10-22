@@ -64,6 +64,13 @@ String buildMethodsParagraph({
 /// Difference beyond which MLIP is no longer considered reliable for a system.
 const double kMlipReliableDeltaKcal = 5.0;
 
+enum DftWorkflowTab {
+  export,
+  attach,
+  comparison,
+  methods,
+}
+
 class DftWorkflowCard extends StatefulWidget {
   final ReactionStatusResponse status;
   final String backendUrl;
@@ -91,6 +98,7 @@ class _DftWorkflowCardState extends State<DftWorkflowCard> {
   /// a fresh poll cannot make a just-attached result disappear.
   final List<DftAttachment> _attachedHere = [];
   bool _busy = false;
+  DftWorkflowTab _currentTab = DftWorkflowTab.export;
 
   List<DftAttachment> get _all {
     final fromStatus = widget.status.dftAttachments;
@@ -112,7 +120,6 @@ class _DftWorkflowCardState extends State<DftWorkflowCard> {
     try {
       final xyz = await const BackendComputeService()
           .exportTransitionState(widget.backendUrl, widget.status.reactionId);
-      // The backend already wrote the provenance comment, so download verbatim.
       final modelSafe = widget.mlipModel.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '_');
       AvogadroBridge.download(
         '${widget.status.reactionId}_${modelSafe}_ts.xyz',
@@ -143,7 +150,10 @@ class _DftWorkflowCardState extends State<DftWorkflowCard> {
       final attachment = await const BackendComputeService()
           .attachDft(widget.backendUrl, widget.status.reactionId, result);
       if (!mounted) return;
-      setState(() => _attachedHere.add(attachment));
+      setState(() {
+        _attachedHere.add(attachment);
+        _currentTab = DftWorkflowTab.comparison;
+      });
       widget.onNotify(
         attachment.hasBarrier
             ? 'DFT result attached — barrier ${attachment.barrierKcalMol!.toStringAsFixed(1)} kcal·mol⁻¹'
@@ -154,45 +164,6 @@ class _DftWorkflowCardState extends State<DftWorkflowCard> {
     } finally {
       if (mounted) setState(() => _busy = false);
     }
-  }
-
-  void _exportMethods() {
-    final attachments = _all;
-    if (attachments.isEmpty) {
-      widget.onError('Attach a DFT result first — the paragraph needs its level of theory.');
-      return;
-    }
-    final paragraph = buildMethodsParagraph(
-      model: widget.mlipModel,
-      method: attachments.last.levelOfTheory,
-      solvent: widget.solvent,
-      // Null unless the user recorded a separate single-point level; the
-      // paragraph omits the sentence rather than guessing one.
-      singlePointMethod: attachments.last.singlePointMethod,
-    );
-    showDialog<void>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Methods paragraph'),
-        content: SingleChildScrollView(
-          child: SelectableText(paragraph, style: const TextStyle(height: 1.5)),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Clipboard.setData(ClipboardData(text: paragraph));
-              Navigator.of(ctx).pop();
-              widget.onNotify('Methods paragraph copied to the clipboard.');
-            },
-            child: const Text('Copy'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('Close'),
-          ),
-        ],
-      ),
-    );
   }
 
   @override
@@ -235,37 +206,386 @@ class _DftWorkflowCardState extends State<DftWorkflowCard> {
             style: TextStyle(
                 color: palette.textMuted, fontSize: 11.5, height: 1.4),
           ),
-          const SizedBox(height: 12),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              _action(Icons.download_outlined, 'Export for DFT', _exportTs),
-              _action(Icons.upload_file_outlined, 'Attach DFT result',
-                  _openAttachDialog),
-              _action(Icons.article_outlined, 'Export methods paragraph',
-                  _exportMethods),
-            ],
+          const SizedBox(height: 14),
+
+          // Modern Interactive Workflow Tabs
+          _buildWorkflowTabs(palette, attachments),
+          const SizedBox(height: 14),
+
+          // Active Tab Content
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 220),
+            child: _buildActiveTabContent(palette, attachments),
           ),
-          if (attachments.isNotEmpty) ...[
-            const SizedBox(height: 16),
-            _ComparisonTable(
-              attachments: attachments,
-              mlipProfile: widget.status.energyProfile ?? const [],
-            ),
-          ],
         ],
       ),
     );
   }
 
-  Widget _action(IconData icon, String label, VoidCallback onTap) {
-    return OutlinedButton.icon(
-      onPressed: _busy ? null : onTap,
-      icon: Icon(icon, size: 15),
-      label: Text(label, style: const TextStyle(fontSize: 12)),
-      style: OutlinedButton.styleFrom(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+  Widget _buildWorkflowTabs(QuantumTheme palette, List<DftAttachment> attachments) {
+    return Container(
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: const Color(0xFF0C101C),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.10)),
+      ),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: [
+            _tabButton(
+              tab: DftWorkflowTab.export,
+              label: 'Export for DFT',
+              icon: Icons.download_outlined,
+              palette: palette,
+            ),
+            const SizedBox(width: 4),
+            _tabButton(
+              tab: DftWorkflowTab.attach,
+              label: 'Attach Result',
+              icon: Icons.upload_file_outlined,
+              badge: attachments.isNotEmpty ? '${attachments.length}' : null,
+              palette: palette,
+            ),
+            const SizedBox(width: 4),
+            _tabButton(
+              tab: DftWorkflowTab.comparison,
+              label: 'Barrier Comparison',
+              icon: Icons.compare_arrows_rounded,
+              badge: attachments.isNotEmpty ? 'Active' : null,
+              palette: palette,
+            ),
+            const SizedBox(width: 4),
+            _tabButton(
+              tab: DftWorkflowTab.methods,
+              label: 'Methods Paragraph',
+              icon: Icons.article_outlined,
+              palette: palette,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _tabButton({
+    required DftWorkflowTab tab,
+    required String label,
+    required IconData icon,
+    String? badge,
+    required QuantumTheme palette,
+  }) {
+    final active = _currentTab == tab;
+    return InkWell(
+      onTap: () => setState(() => _currentTab = tab),
+      borderRadius: BorderRadius.circular(7),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        curve: Curves.easeOutCubic,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+        decoration: BoxDecoration(
+          color: active ? palette.accent.withValues(alpha: 0.20) : Colors.transparent,
+          borderRadius: BorderRadius.circular(7),
+          border: active
+              ? Border.all(color: palette.accent.withValues(alpha: 0.50))
+              : Border.all(color: Colors.transparent),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              size: 14,
+              color: active ? palette.accent : Colors.grey.shade400,
+            ),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 11.5,
+                fontWeight: active ? FontWeight.bold : FontWeight.w500,
+                color: active ? Colors.white : Colors.grey.shade400,
+              ),
+            ),
+            if (badge != null) ...[
+              const SizedBox(width: 6),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                decoration: BoxDecoration(
+                  color: active ? palette.accent : Colors.white12,
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  badge,
+                  style: TextStyle(
+                    fontSize: 9.5,
+                    fontWeight: FontWeight.bold,
+                    color: active ? Colors.black : Colors.white70,
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActiveTabContent(QuantumTheme palette, List<DftAttachment> attachments) {
+    switch (_currentTab) {
+      case DftWorkflowTab.export:
+        return _buildExportTab(palette);
+      case DftWorkflowTab.attach:
+        return _buildAttachTab(palette, attachments);
+      case DftWorkflowTab.comparison:
+        return _buildComparisonTab(palette, attachments);
+      case DftWorkflowTab.methods:
+        return _buildMethodsTab(palette, attachments);
+    }
+  }
+
+  Widget _buildExportTab(QuantumTheme palette) {
+    final modelSafe = widget.mlipModel.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '_');
+    final filename = '${widget.status.reactionId}_${modelSafe}_ts.xyz';
+
+    return Container(
+      key: const ValueKey('export_tab'),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xFF101524),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.description_outlined, size: 16, color: palette.accent),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Transition State Coordinates · $filename',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Exports the exact machine-learned saddle point structure in standard .xyz format '
+            'ready for high-precision quantum chemical refinement (ORCA, Gaussian, Q-Chem, or PySCF).',
+            style: TextStyle(color: palette.textMuted, fontSize: 11.5, height: 1.4),
+          ),
+          const SizedBox(height: 14),
+          FilledButton.icon(
+            onPressed: _busy ? null : _exportTs,
+            icon: _busy
+                ? const SizedBox(
+                    width: 14,
+                    height: 14,
+                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black),
+                  )
+                : const Icon(Icons.download_rounded, size: 16),
+            label: const Text('Export .xyz for DFT Calculation'),
+            style: FilledButton.styleFrom(
+              backgroundColor: palette.accent,
+              foregroundColor: Colors.black,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAttachTab(QuantumTheme palette, List<DftAttachment> attachments) {
+    return Container(
+      key: const ValueKey('attach_tab'),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xFF101524),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.cloud_upload_outlined, size: 16, color: Colors.greenAccent),
+              const SizedBox(width: 8),
+              const Text(
+                'Cluster Refinement Results',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const Spacer(),
+              if (attachments.isNotEmpty)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: Colors.greenAccent.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(
+                    '${attachments.length} Attached',
+                    style: const TextStyle(
+                      color: Colors.greenAccent,
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Attach single-point Hartrees, transition state frequencies, or output logs (.log, .out, .txt) '
+            'to compute barrier deviations against surrogate MLIP screening.',
+            style: TextStyle(color: palette.textMuted, fontSize: 11.5, height: 1.4),
+          ),
+          const SizedBox(height: 14),
+          OutlinedButton.icon(
+            onPressed: _busy ? null : _openAttachDialog,
+            icon: const Icon(Icons.add_circle_outline, size: 16),
+            label: const Text('Attach DFT Result / Output Log'),
+            style: OutlinedButton.styleFrom(
+              side: BorderSide(color: palette.accent.withValues(alpha: 0.5)),
+              foregroundColor: palette.accent,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildComparisonTab(QuantumTheme palette, List<DftAttachment> attachments) {
+    if (attachments.isEmpty) {
+      return Container(
+        key: const ValueKey('comparison_empty'),
+        padding: const EdgeInsets.all(22),
+        decoration: BoxDecoration(
+          color: const Color(0xFF101524),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+        ),
+        child: Center(
+          child: Column(
+            children: [
+              Icon(Icons.compare_arrows_rounded, size: 34, color: Colors.grey.shade600),
+              const SizedBox(height: 10),
+              const Text(
+                'No DFT Results Attached Yet',
+                style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Attach completed DFT results to inspect side-by-side barrier comparisons and calibration deviations.',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: palette.textMuted, fontSize: 11.5),
+              ),
+              const SizedBox(height: 14),
+              OutlinedButton.icon(
+                onPressed: () => setState(() => _currentTab = DftWorkflowTab.attach),
+                icon: const Icon(Icons.arrow_forward, size: 14),
+                label: const Text('Go to Attach Result'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+    return Container(
+      key: const ValueKey('comparison_table'),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xFF101524),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+      ),
+      child: _ComparisonTable(
+        attachments: attachments,
+        mlipProfile: widget.status.energyProfile ?? const [],
+      ),
+    );
+  }
+
+  Widget _buildMethodsTab(QuantumTheme palette, List<DftAttachment> attachments) {
+    final method = attachments.isNotEmpty ? attachments.last.levelOfTheory : '<DFT level of theory>';
+    final sp = attachments.isNotEmpty ? attachments.last.singlePointMethod : null;
+    final paragraph = buildMethodsParagraph(
+      model: widget.mlipModel,
+      method: method,
+      solvent: widget.solvent,
+      singlePointMethod: sp,
+    );
+
+    return Container(
+      key: const ValueKey('methods_tab'),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xFF101524),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.article_outlined, size: 16, color: palette.accent),
+              const SizedBox(width: 8),
+              const Text(
+                'Publication Methods Statement',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const Spacer(),
+              TextButton.icon(
+                onPressed: () {
+                  Clipboard.setData(ClipboardData(text: paragraph));
+                  widget.onNotify('Methods paragraph copied to the clipboard.');
+                },
+                icon: const Icon(Icons.copy, size: 14),
+                label: const Text('Copy to Clipboard', style: TextStyle(fontSize: 12)),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.black.withValues(alpha: 0.35),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+            ),
+            child: SelectableText(
+              paragraph,
+              style: const TextStyle(
+                color: Colors.white70,
+                fontSize: 12,
+                height: 1.5,
+                fontFamily: 'monospace',
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
