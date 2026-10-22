@@ -11,6 +11,8 @@ import 'package:quantum_forge/features/reaction_runner/presentation/widgets/dash
 import 'package:quantum_forge/core/widgets/locked_animation_placeholder.dart';
 import 'package:quantum_forge/features/pharmacopeia/data/pharmacopeia_repository.dart';
 import 'package:quantum_forge/features/pharmacopeia/presentation/screens/pharmacopeia_screen.dart';
+import 'package:quantum_forge/core/services/doi_verification_service.dart';
+import 'package:quantum_forge/core/services/url_service.dart';
 
 class TemplateDetailScreen extends StatelessWidget {
   final ReactionTemplate template;
@@ -755,11 +757,37 @@ class TemplateDetailScreen extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(height: 4),
-                        Text(
-                          'DOI: ${template.doi}',
-                          style: const TextStyle(
-                            color: Colors.blueAccent,
-                            fontSize: 12,
+                        InkWell(
+                          onTap: () {
+                            if (DoiVerificationService.isVerifiedDoi(template.doi)) {
+                              UrlService.launch('https://doi.org/${template.doi}');
+                            } else {
+                              DoiVerificationService.showUnverifiedDoiDialog(
+                                context: context,
+                                doi: template.doi,
+                                articleTitle: template.name,
+                                journalRef: template.journalRef,
+                              );
+                            }
+                          },
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                'DOI: ${template.doi}',
+                                style: TextStyle(
+                                  color: DoiVerificationService.isVerifiedDoi(template.doi)
+                                      ? Colors.blueAccent
+                                      : Colors.grey,
+                                  fontSize: 12,
+                                  decoration: TextDecoration.underline,
+                                ),
+                              ),
+                              if (!DoiVerificationService.isVerifiedDoi(template.doi)) ...[
+                                const SizedBox(width: 4),
+                                const Icon(Icons.help_outline_rounded, size: 12, color: Colors.amber),
+                              ],
+                            ],
                           ),
                         ),
                       ],

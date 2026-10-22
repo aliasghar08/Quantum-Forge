@@ -10,6 +10,8 @@ import 'package:quantum_forge/features/reaction_library/data/reaction_templates.
 
 import 'package:quantum_forge/features/reaction_library/presentation/screens/publication_details_screen.dart';
 import 'package:quantum_forge/core/algorithms/solvent_properties.dart';
+import 'package:quantum_forge/core/services/doi_verification_service.dart';
+import 'package:quantum_forge/core/services/url_service.dart';
 
 class QuantumControlsPanel extends StatefulWidget {
   final ReactionTemplate? activeTemplate;
@@ -530,10 +532,45 @@ class _QuantumControlsPanelState extends State<QuantumControlsPanel> {
                 ),
               ],
               if (template?.literatureDoi != null) ...[
-                const SizedBox(height: 2),
-                Text(
-                  'DOI: ${template!.literatureDoi}',
-                  style: const TextStyle(color: Colors.white38, fontSize: 9),
+                Builder(
+                  builder: (context) {
+                    final tmpl = template!;
+                    final litDoi = tmpl.literatureDoi!;
+                    final isVerified = DoiVerificationService.isVerifiedDoi(litDoi);
+                    return InkWell(
+                      onTap: () {
+                        if (isVerified) {
+                          UrlService.launch('https://doi.org/$litDoi');
+                        } else {
+                          DoiVerificationService.showUnverifiedDoiDialog(
+                            context: context,
+                            doi: litDoi,
+                            articleTitle: tmpl.name,
+                            journalRef: tmpl.journalRef,
+                          );
+                        }
+                      },
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'DOI: $litDoi',
+                            style: TextStyle(
+                              color: isVerified
+                                  ? const Color(0xFF4FC3F7)
+                                  : Colors.grey.withValues(alpha: 0.6),
+                              fontSize: 9,
+                              decoration: TextDecoration.underline,
+                            ),
+                          ),
+                          if (!isVerified) ...[
+                            const SizedBox(width: 4),
+                            const Icon(Icons.help_outline_rounded, size: 10, color: Colors.amber),
+                          ],
+                        ],
+                      ),
+                    );
+                  },
                 ),
               ],
             ],
@@ -830,27 +867,84 @@ class _QuantumControlsPanelState extends State<QuantumControlsPanel> {
           Row(
             children: [
               Expanded(
-                child: SelectableText(
-                  'DOI: ${t.doi}',
-                  style: TextStyle(
-                    color: const Color(0xFF4FC3F7).withValues(alpha: 0.7),
-                    fontSize: 10,
+                child: InkWell(
+                  onTap: () {
+                    if (DoiVerificationService.isVerifiedDoi(t.doi)) {
+                      UrlService.launch('https://doi.org/${t.doi}');
+                    } else {
+                      DoiVerificationService.showUnverifiedDoiDialog(
+                        context: context,
+                        doi: t.doi,
+                        articleTitle: t.name,
+                        journalRef: t.journalRef,
+                      );
+                    }
+                  },
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Flexible(
+                        child: Text(
+                          'DOI: ${t.doi}',
+                          style: TextStyle(
+                            color: DoiVerificationService.isVerifiedDoi(t.doi)
+                                ? const Color(0xFF4FC3F7).withValues(alpha: 0.7)
+                                : Colors.grey.withValues(alpha: 0.6),
+                            fontSize: 10,
+                            decoration: TextDecoration.underline,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      if (!DoiVerificationService.isVerifiedDoi(t.doi)) ...[
+                        const SizedBox(width: 4),
+                        const Icon(Icons.warning_amber_rounded, size: 11, color: Colors.amber),
+                      ],
+                    ],
                   ),
                 ),
               ),
               TextButton.icon(
                 onPressed: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          PublicationDetailsScreen(template: t),
-                    ),
-                  );
+                  if (!DoiVerificationService.isVerifiedDoi(t.doi)) {
+                    DoiVerificationService.showUnverifiedDoiDialog(
+                      context: context,
+                      doi: t.doi,
+                      articleTitle: t.name,
+                      journalRef: t.journalRef,
+                    );
+                  } else {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            PublicationDetailsScreen(template: t),
+                      ),
+                    );
+                  }
                 },
-                icon: const Icon(Icons.open_in_new, size: 12),
-                label: const Text('View Publication'),
+                icon: Icon(
+                  DoiVerificationService.isVerifiedDoi(t.doi)
+                      ? Icons.open_in_new
+                      : Icons.warning_amber_rounded,
+                  size: 12,
+                  color: DoiVerificationService.isVerifiedDoi(t.doi)
+                      ? const Color(0xFF4FC3F7)
+                      : Colors.grey,
+                ),
+                label: Text(
+                  DoiVerificationService.isVerifiedDoi(t.doi)
+                      ? 'View Publication'
+                      : 'View Publication (Unverified)',
+                  style: TextStyle(
+                    color: DoiVerificationService.isVerifiedDoi(t.doi)
+                        ? const Color(0xFF4FC3F7)
+                        : Colors.grey,
+                  ),
+                ),
                 style: TextButton.styleFrom(
-                  foregroundColor: const Color(0xFF4FC3F7),
+                  foregroundColor: DoiVerificationService.isVerifiedDoi(t.doi)
+                      ? const Color(0xFF4FC3F7)
+                      : Colors.grey,
                   textStyle: const TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.bold,

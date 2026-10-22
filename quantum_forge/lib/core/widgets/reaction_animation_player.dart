@@ -140,7 +140,123 @@ extension _ReactionAnimationPlayerExt on _ReactionAnimationWidgetState {
                 ),
               ],
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),
+
+            // Speed Controller (Slider & Presets)
+            Container(
+              margin: const EdgeInsets.symmetric(vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.03),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 4,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    alignment: WrapAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.speed_rounded, size: 14, color: Color(0xFF4FC3F7)),
+                          const SizedBox(width: 5),
+                          Text(
+                            'Speed:',
+                            style: TextStyle(
+                              color: Colors.white.withValues(alpha: 0.7),
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(width: 5),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF4FC3F7).withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(4),
+                              border: Border.all(color: const Color(0xFF4FC3F7).withValues(alpha: 0.3)),
+                            ),
+                            child: Text(
+                              '${_playbackSpeed.toStringAsFixed(2)}x'
+                              '${_playbackSpeed <= 0.25 ? ' (Ultra Slow-Mo)' : (_playbackSpeed <= 0.5 ? ' (Slow)' : (_playbackSpeed == 1.0 ? ' (1x)' : ''))}',
+                              style: const TextStyle(
+                                color: Color(0xFF4FC3F7),
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      Wrap(
+                        spacing: 3,
+                        runSpacing: 3,
+                        children: [0.10, 0.25, 0.50, 1.0, 2.0].map((spd) {
+                          final isSel = (_playbackSpeed - spd).abs() < 0.01;
+                          final label = spd >= 1.0 ? '${spd.toInt()}x' : '${spd.toStringAsFixed(2)}x';
+                          return InkWell(
+                            borderRadius: BorderRadius.circular(4),
+                            onTap: () {
+                              _claimKeyboard();
+                              _setPlaybackSpeed(spd);
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: isSel
+                                    ? const Color(0xFF4FC3F7).withValues(alpha: 0.25)
+                                    : Colors.white.withValues(alpha: 0.05),
+                                borderRadius: BorderRadius.circular(4),
+                                border: Border.all(
+                                  color: isSel
+                                      ? const Color(0xFF4FC3F7)
+                                      : Colors.white.withValues(alpha: 0.1),
+                                ),
+                              ),
+                              child: Text(
+                                label,
+                                style: TextStyle(
+                                  color: isSel ? const Color(0xFF4FC3F7) : Colors.white60,
+                                  fontSize: 10,
+                                  fontWeight: isSel ? FontWeight.bold : FontWeight.normal,
+                                ),
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 2),
+                  SliderTheme(
+                    data: SliderTheme.of(context).copyWith(
+                      activeTrackColor: const Color(0xFF4FC3F7),
+                      inactiveTrackColor: Colors.white.withValues(alpha: 0.08),
+                      thumbColor: const Color(0xFF4FC3F7),
+                      trackHeight: 2,
+                      thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 5),
+                      overlayShape: const RoundSliderOverlayShape(overlayRadius: 10),
+                    ),
+                    child: Slider(
+                      value: _playbackSpeed.clamp(0.05, 2.5),
+                      min: 0.05,
+                      max: 2.5,
+                      divisions: 49,
+                      label: '${_playbackSpeed.toStringAsFixed(2)}x',
+                      onChanged: (val) {
+                        _claimKeyboard();
+                        _setPlaybackSpeed(val);
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
 
             // Row 6 — loop mode extension + Play / Pause.
             Wrap(

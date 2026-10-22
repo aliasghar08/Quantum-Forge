@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:quantum_forge/core/utils/unicode_math.dart';
 import 'package:quantum_forge/core/utils/xyz_parser.dart';
+import 'package:quantum_forge/core/widgets/visualizations/elemental_composition_donut_widget.dart';
+import 'package:quantum_forge/core/widgets/visualizations/mass_conservation_ledger_widget.dart';
 
 /// Representation of a distinct molecular species in the reactant or product state.
 class _UniqueComponent {
@@ -128,6 +130,7 @@ class MolecularDataCards extends StatelessWidget {
                     accentColor: const Color(0xFF4FC3F7),
                     components: rComponents,
                     totalAtoms: rAtoms.length,
+                    sideAtoms: rAtoms,
                   ),
                   const SizedBox(height: 16),
                   _buildSideCard(
@@ -136,6 +139,7 @@ class MolecularDataCards extends StatelessWidget {
                     accentColor: const Color(0xFF81C784),
                     components: pComponents,
                     totalAtoms: pAtoms.length,
+                    sideAtoms: pAtoms,
                   ),
                 ],
               );
@@ -151,6 +155,7 @@ class MolecularDataCards extends StatelessWidget {
                     accentColor: const Color(0xFF4FC3F7),
                     components: rComponents,
                     totalAtoms: rAtoms.length,
+                    sideAtoms: rAtoms,
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -161,11 +166,20 @@ class MolecularDataCards extends StatelessWidget {
                     accentColor: const Color(0xFF81C784),
                     components: pComponents,
                     totalAtoms: pAtoms.length,
+                    sideAtoms: pAtoms,
                   ),
                 ),
               ],
             );
           },
+        ),
+
+        const SizedBox(height: 16),
+        // Conservation of Mass Ledger
+        MassConservationLedgerWidget(
+          reactantAtoms: rAtoms,
+          productAtoms: pAtoms,
+          catalystFormulas: catalystFormulas,
         ),
       ],
     );
@@ -239,6 +253,7 @@ class MolecularDataCards extends StatelessWidget {
     required Color accentColor,
     required List<_UniqueComponent> components,
     required int totalAtoms,
+    required List<Atom> sideAtoms,
   }) {
     final netFormulaEquation = components.isEmpty
         ? 'Unknown'
@@ -385,6 +400,13 @@ class MolecularDataCards extends StatelessWidget {
                 ],
               ),
             ],
+
+            const SizedBox(height: 14),
+            ElementalCompositionDonutWidget(
+              atoms: sideAtoms,
+              title: '$title Elemental Distribution',
+              accentColor: accentColor,
+            ),
           ],
         ),
       ),

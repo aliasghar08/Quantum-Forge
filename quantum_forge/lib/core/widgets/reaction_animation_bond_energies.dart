@@ -71,67 +71,20 @@ extension _ReactionAnimationBondEnergiesExt on _ReactionAnimationWidgetState {
     if (settings.mlipModel == 'ANI-2x') scaleFactor *= 1.05;
     final chargeShift = settings.charge * 1.5;
 
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.3),
-        border: Border(
-          top: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Bond Energies',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 13,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Wrap(
-            spacing: 12,
-            runSpacing: 8,
-            children: bonds.map((b) {
-              final energy =
-                  100 * math.exp(-2.0 * (b.dist - b.idealDist)) * scaleFactor +
-                  chargeShift;
-              return Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: const BoxDecoration(
-                      color: Colors.orangeAccent,
-                      shape: BoxShape.circle,
-                    ),
-                    child: Text(
-                      '${b.index}',
-                      style: const TextStyle(
-                        color: Colors.black87,
-                        fontSize: 9,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    '${b.a1.symbol}–${b.a2.symbol}: '
-                    '${energy.toStringAsFixed(1)} kcal·mol⁻¹',
-                    style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.85),
-                      fontSize: 11,
-                    ),
-                  ),
-                ],
-              );
-            }).toList(),
-          ),
-        ],
-      ),
-    );
+    final dataPoints = bonds.map((b) {
+      final energy =
+          100 * math.exp(-2.0 * (b.dist - b.idealDist)) * scaleFactor +
+          chargeShift;
+      return BondDataPoint(
+        index: b.index,
+        a1: b.a1,
+        a2: b.a2,
+        distance: b.dist,
+        idealDistance: b.idealDist,
+        energy: energy,
+      );
+    }).toList();
+
+    return BondEnergySpectrumWidget(bonds: dataPoints);
   }
 }

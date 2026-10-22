@@ -60,6 +60,7 @@ import 'ngl/avogadro_sdf.dart';
 import 'ngl/ngl_bond_label.dart';
 import 'ngl/ngl_style.dart';
 import 'ngl/ngl_viewer.dart';
+import 'visualizations/bond_energy_spectrum_widget.dart';
 
 part 'reaction_animation_header.dart';
 part 'reaction_animation_canvas.dart';

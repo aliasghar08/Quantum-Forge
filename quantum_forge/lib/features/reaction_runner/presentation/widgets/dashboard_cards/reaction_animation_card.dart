@@ -16,9 +16,10 @@ import 'package:flutter/material.dart';
 import 'package:quantum_forge/features/reaction_runner/data/models/reaction_models.dart';
 import 'package:quantum_forge/core/widgets/reaction_animation_widget.dart';
 import 'package:quantum_forge/core/widgets/locked_animation_placeholder.dart';
+import 'package:quantum_forge/core/utils/trajectory_interpolator.dart';
 import 'glass_card.dart';
 
-class ReactionAnimationCard extends StatelessWidget {
+class ReactionAnimationCard extends StatefulWidget {
   final ReactionStatusResponse status;
   final bool isUserSignedIn;
   final VoidCallback? onSignInRequested;
@@ -33,14 +34,27 @@ class ReactionAnimationCard extends StatelessWidget {
   });
 
   @override
+  State<ReactionAnimationCard> createState() => _ReactionAnimationCardState();
+}
+
+class _ReactionAnimationCardState extends State<ReactionAnimationCard> {
+  bool _hdSmoothInterpolation = true;
+
+  @override
   Widget build(BuildContext context) {
-    final energyProfile    = status.energyProfile    ?? [];
-    final trajectoryFrames = status.trajectoryFrames ?? [];
+    final rawEnergyProfile    = widget.status.energyProfile    ?? [];
+    final rawTrajectoryFrames = widget.status.trajectoryFrames ?? [];
+
+    final canInterpolate = rawTrajectoryFrames.length >= 2 && rawTrajectoryFrames.length < 61;
+    final trajectoryFrames = (_hdSmoothInterpolation && canInterpolate)
+        ? TrajectoryInterpolator.interpolate(rawTrajectoryFrames, minFrames: 61)
+        : rawTrajectoryFrames;
+
+    final energyProfile = (_hdSmoothInterpolation && canInterpolate && rawEnergyProfile.isNotEmpty)
+        ? TrajectoryInterpolator.interpolateEnergies(rawEnergyProfile, targetLength: trajectoryFrames.length) ?? rawEnergyProfile
+        : rawEnergyProfile;
 
     return GlassCard(
-      // SingleChildScrollView defends against any upstream height cap.
-      // Under normal conditions the parent is unbounded, so this is a
-      // pass-through and the page itself scrolls.
       child: SingleChildScrollView(
         physics: const ClampingScrollPhysics(),
         child: Column(
@@ -52,14 +66,14 @@ class ReactionAnimationCard extends StatelessWidget {
               padding: const EdgeInsets.fromLTRB(16, 14, 16, 6),
               child: Wrap(
                 spacing: 8,
-                runSpacing: 4,
+                runSpacing: 6,
                 alignment: WrapAlignment.spaceBetween,
                 crossAxisAlignment: WrapCrossAlignment.center,
                 children: [
                   Row(mainAxisSize: MainAxisSize.min, children: [
                     Icon(
-                      isUserSignedIn ? Icons.animation : Icons.lock_outline_rounded,
-                      color: isUserSignedIn ? const Color(0xFF4FC3F7) : const Color(0xFFFFB74D),
+                      widget.isUserSignedIn ? Icons.animation : Icons.lock_outline_rounded,
+                      color: widget.isUserSignedIn ? const Color(0xFF4FC3F7) : const Color(0xFFFFB74D),
                       size: 18,
                     ),
                     const SizedBox(width: 8),
@@ -73,45 +87,98 @@ class ReactionAnimationCard extends StatelessWidget {
                       ),
                     ),
                   ]),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 10, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: (isUserSignedIn
-                              ? const Color(0xFF4FC3F7)
-                              : const Color(0xFFFFB74D))
-                          .withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: (isUserSignedIn
+                  Wrap(
+                    spacing: 8,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      if (widget.isUserSignedIn && rawTrajectoryFrames.length >= 2) ...[
+                        InkWell(
+                          borderRadius: BorderRadius.circular(20),
+                          onTap: () => setState(() => _hdSmoothInterpolation = !_hdSmoothInterpolation),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: (_hdSmoothInterpolation
+                                      ? const Color(0xFF00E676)
+                                      : Colors.white24)
+                                  .withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(
+                                color: (_hdSmoothInterpolation
+                                        ? const Color(0xFF00E676)
+                                        : Colors.white30)
+                                    .withValues(alpha: 0.4),
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  _hdSmoothInterpolation ? Icons.auto_awesome : Icons.grain,
+                                  size: 12,
+                                  color: _hdSmoothInterpolation ? const Color(0xFF00E676) : Colors.white70,
+                                ),
+                                const SizedBox(width: 5),
+                                Text(
+                                  _hdSmoothInterpolation
+                                      ? 'HD Smooth (${trajectoryFrames.length} Frames)'
+                                      : 'Discrete (${rawTrajectoryFrames.length} Frames)',
+                                  style: TextStyle(
+                                    color: _hdSmoothInterpolation ? const Color(0xFF00E676) : Colors.white70,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: (widget.isUserSignedIn
+                                  ? const Color(0xFF4FC3F7)
+                                  : const Color(0xFFFFB74D))
+                              .withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: (widget.isUserSignedIn
+                                    ? const Color(0xFF4FC3F7)
+                                    : const Color(0xFFFFB74D))
+                                .withValues(alpha: 0.3),
+                          ),
+                        ),
+                        child: Text(
+                          widget.isUserSignedIn ? '3D Trajectory' : 'Sign-In Required',
+                          style: TextStyle(
+                            color: widget.isUserSignedIn
                                 ? const Color(0xFF4FC3F7)
-                                : const Color(0xFFFFB74D))
-                            .withValues(alpha: 0.3),
+                                : const Color(0xFFFFB74D),
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                       ),
-                    ),
-                    child: Text(
-                      isUserSignedIn ? '3D Trajectory' : 'Sign-In Required',
-                      style: TextStyle(
-                        color: isUserSignedIn
-                            ? const Color(0xFF4FC3F7)
-                            : const Color(0xFFFFB74D),
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
+                    ],
                   ),
                 ],
               ),
             ),
 
             // ── Animation or Locked Placeholder ───────────────────
-            if (isUserSignedIn)
+            if (widget.isUserSignedIn)
               ReactionAnimationWidget(
                 trajectoryFrames: trajectoryFrames,
                 energyProfile:
                     energyProfile.isEmpty ? null : energyProfile,
-                energyProfileEv: status.energyProfileEv,
-                maxEnergyIndex: status.maxEnergyIndex,
+                energyProfileEv: widget.status.energyProfileEv,
+                maxEnergyIndex: widget.status.maxEnergyIndex != null
+                    ? (_hdSmoothInterpolation && canInterpolate && rawTrajectoryFrames.isNotEmpty
+                        ? (widget.status.maxEnergyIndex! * trajectoryFrames.length ~/ rawTrajectoryFrames.length)
+                        : widget.status.maxEnergyIndex)
+                    : null,
                 frameRateOverride: trajectoryFrames.length <= 15
                     ? 1
                     : (trajectoryFrames.length <= 35 ? 2 : 4),
@@ -125,8 +192,8 @@ class ReactionAnimationCard extends StatelessWidget {
                   title: '3D Trajectory Animation Locked',
                   subtitle:
                       'This reaction was opened via a shared link. Full kinetic, thermodynamic, and vibrational metrics are accessible below.\nSign in to unlock interactive 3D trajectory playback, transition-state stepping, and camera rotation.',
-                  onSignInRequested: onSignInRequested,
-                  onSignInSuccess: onSignInSuccess,
+                  onSignInRequested: widget.onSignInRequested,
+                  onSignInSuccess: widget.onSignInSuccess,
                 ),
               ),
           ],
