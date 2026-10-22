@@ -1,6 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:quantum_forge/core/state/quantum_provider.dart';
 import '../../../../viewmodels/reaction_workspace_viewmodel.dart';
 import '../../../../core/services/feedback_service.dart';
 import '../../../../features/settings/presentation/screens/settings_screen.dart';

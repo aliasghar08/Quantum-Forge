@@ -2,7 +2,7 @@ import 'dart:async' show unawaited;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:provider/provider.dart';
+import 'package:quantum_forge/core/state/quantum_provider.dart';
 import 'package:quantum_forge/core/services/firebase_auth_gate.dart';
 import 'package:quantum_forge/core/theme/theme_provider.dart';
 import 'package:quantum_forge/core/settings/app_settings_provider.dart';

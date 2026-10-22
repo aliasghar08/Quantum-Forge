@@ -344,20 +344,25 @@
 
     try {
       var shape = new window.NGL.Shape('bond-badges');
-      var colour = [1.0, 1.0, 1.0]; // White for maximum visibility
+      var bgColour = [0.06, 0.08, 0.12]; // Dark slate backing disc for maximum contrast
+      var textColour = [1.0, 0.88, 0.22]; // Bright amber text
+      var markerRadius = 0.20; // 0.20 Å sphere
+      var labelSize = 0.32;    // 0.32 Å text
+
       for (var i = 0; i < indices.length; i++) {
-        shape.addText(
-          [positions[i * 3], positions[i * 3 + 1], positions[i * 3 + 2]],
-          colour,
-          4.5,
-          String(indices[i])
-        );
+        var pos = [positions[i * 3], positions[i * 3 + 1], positions[i * 3 + 2]];
+        shape.addSphere(pos, bgColour, markerRadius);
+        shape.addText(pos, textColour, labelSize, String(indices[i]));
       }
 
       var component = stage.addComponentFromObject(shape);
       component.addRepresentation('buffer', {
         depthTest: false,
+        opacity: 0.95,
       });
+      if (stage.viewer && typeof stage.viewer.requestRender === 'function') {
+        stage.viewer.requestRender();
+      }
       badgeSeq += 1;
       lastBadges = { seq: badgeSeq, count: indices.length };
       lastError = null;

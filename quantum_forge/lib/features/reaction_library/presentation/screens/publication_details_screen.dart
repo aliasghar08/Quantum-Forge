@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:provider/provider.dart';
+import 'package:quantum_forge/core/state/quantum_provider.dart';
 
 import 'package:quantum_forge/core/config/api_endpoints.dart';
 import 'package:quantum_forge/core/services/backend_compute_service.dart';

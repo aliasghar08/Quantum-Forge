@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
+import 'staggered_animation_list_item.dart';
 
+export 'staggered_animation_list_item.dart' show AnimationLimiter, StaggeredAnimationListItem;
+
+/// Pure Flutter self-contained staggered animation list replacing flutter_staggered_animations.
 class StaggeredAnimationList extends StatelessWidget {
   final List<Widget> children;
   final Duration duration;
@@ -12,8 +15,8 @@ class StaggeredAnimationList extends StatelessWidget {
   const StaggeredAnimationList({
     super.key,
     required this.children,
-    this.duration = const Duration(milliseconds: 500),
-    this.verticalOffset = 40.0,
+    this.duration = const Duration(milliseconds: 400),
+    this.verticalOffset = 30.0,
     this.crossAxisAlignment = CrossAxisAlignment.start,
     this.mainAxisAlignment = MainAxisAlignment.start,
     this.mainAxisSize = MainAxisSize.max,
@@ -21,20 +24,19 @@ class StaggeredAnimationList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AnimationLimiter(
-      child: Column(
-        crossAxisAlignment: crossAxisAlignment,
-        mainAxisAlignment: mainAxisAlignment,
-        mainAxisSize: mainAxisSize,
-        children: AnimationConfiguration.toStaggeredList(
-          duration: duration,
-          childAnimationBuilder: (widget) => SlideAnimation(
+    return Column(
+      crossAxisAlignment: crossAxisAlignment,
+      mainAxisAlignment: mainAxisAlignment,
+      mainAxisSize: mainAxisSize,
+      children: [
+        for (var i = 0; i < children.length; i++)
+          StaggeredAnimationListItem(
+            index: i,
+            duration: duration,
             verticalOffset: verticalOffset,
-            child: FadeInAnimation(child: widget),
+            child: children[i],
           ),
-          children: children,
-        ),
-      ),
+      ],
     );
   }
 }

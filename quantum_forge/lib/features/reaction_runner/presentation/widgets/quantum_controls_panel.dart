@@ -5,7 +5,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:quantum_forge/state/settings_provider.dart';
-import 'package:provider/provider.dart';
+import 'package:quantum_forge/core/state/quantum_provider.dart';
 import 'package:quantum_forge/features/reaction_library/data/reaction_templates.dart';
 
 import 'package:quantum_forge/features/reaction_library/presentation/screens/publication_details_screen.dart';

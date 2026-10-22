@@ -14,7 +14,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:provider/provider.dart';
+import 'package:quantum_forge/core/state/quantum_provider.dart';
 
 import 'package:quantum_forge/core/services/app_storage.dart';
 import 'package:quantum_forge/core/settings/app_settings_provider.dart';

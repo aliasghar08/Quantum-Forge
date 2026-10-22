@@ -552,4 +552,25 @@ void main() {
     expect(tester.takeException(), isNull);
     await tester.pumpWidget(const SizedBox.shrink());
   });
+
+  testWidgets('player controls remain at fixed stable vertical position during frame advance', (tester) async {
+    await pumpAnimation(tester);
+
+    final playBtn = find.byKey(const Key('qf-play-button'));
+    expect(playBtn, findsOneWidget);
+    final initialY = tester.getTopLeft(playBtn).dy;
+
+    // Step through all frames
+    final nextBtn = find.text('>');
+    expect(nextBtn, findsOneWidget);
+
+    for (int i = 0; i < 5; i++) {
+      await tester.tap(nextBtn);
+      await tester.pump();
+      final currentY = tester.getTopLeft(playBtn).dy;
+      expect(currentY, equals(initialY), reason: 'Play/Pause button Y-coordinate must remain rock-solid and not jitter between frames');
+    }
+
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
 }

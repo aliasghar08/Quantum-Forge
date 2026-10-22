@@ -17,26 +17,38 @@ extension _ReactionAnimationReadoutExt on _ReactionAnimationWidgetState {
               color: const Color(0xFF4FC3F7).withValues(alpha: 0.25),
             ),
           ),
-          child: Wrap(
-            spacing: 18,
-            runSpacing: 6,
-            children: [
-              _infoItem('Frame', '${_frame + 1} / $_frameCount'),
-              if (energy != null)
-                _infoItem('Energy', '${energy.toStringAsFixed(2)} kcal·mol⁻¹'),
-              if (absolute != null)
-                _infoItem('MLIP E', '${absolute.toStringAsFixed(4)} eV'),
-              _infoItem('Progress', '${_progressPercent.toStringAsFixed(1)}%'),
-              _infoItem('Status', _playing ? 'Playing' : 'Stopped'),
-              _infoItem('Speed', '$_effectiveFrameRate FPS'),
-              _infoItem('Cycle', '${_cycleSeconds.toStringAsFixed(1)} s'),
-              _infoItem('Loop', _loopMode.name),
-              _infoItem(
-                'TS frame',
-                '${_transitionStateFrame + 1} / $_frameCount',
-              ),
-              _infoItem('Bonds', '${_bondsForCurrentFrame().length}'),
-            ],
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                _infoItem('Frame', '${_frame + 1} / $_frameCount'),
+                const SizedBox(width: 16),
+                if (energy != null) ...[
+                  _infoItem('Energy', '${energy.toStringAsFixed(2)} kcal·mol⁻¹'),
+                  const SizedBox(width: 16),
+                ],
+                if (absolute != null) ...[
+                  _infoItem('MLIP E', '${absolute.toStringAsFixed(4)} eV'),
+                  const SizedBox(width: 16),
+                ],
+                _infoItem('Progress', '${_progressPercent.toStringAsFixed(1)}%'),
+                const SizedBox(width: 16),
+                _infoItem('Status', _playing ? 'Playing' : 'Stopped'),
+                const SizedBox(width: 16),
+                _infoItem('Speed', '$_effectiveFrameRate FPS'),
+                const SizedBox(width: 16),
+                _infoItem('Cycle', '${_cycleSeconds.toStringAsFixed(1)} s'),
+                const SizedBox(width: 16),
+                _infoItem('Loop', _loopMode.name),
+                const SizedBox(width: 16),
+                _infoItem(
+                  'TS frame',
+                  '${_transitionStateFrame + 1} / $_frameCount',
+                ),
+                const SizedBox(width: 16),
+                _infoItem('Bonds', '${_bondsForCurrentFrame().length}'),
+              ],
+            ),
           ),
         ),
       );

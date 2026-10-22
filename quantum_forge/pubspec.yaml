@@ -37,8 +37,6 @@ dependencies:
   firebase_core: ^4.15.0
   firebase_auth: ^6.7.0
   cloud_firestore: ^6.10.0
-  flutter_staggered_animations: ^1.1.1
-  provider: ^6.1.5+1
   # NOTE: `shared_preferences` was removed on purpose. On this web build its
   # plugin channel was never registered, so every read threw
   # `MissingPluginException` and nothing persisted across a refresh. Persistence
@@ -49,7 +47,6 @@ dependencies:
   # `ngl_engine_web.dart` is the single file allowed to touch it, and everything
   # else resolves to `ngl_engine_stub.dart` via a conditional import.
   web: ^1.1.1
-  url_launcher: ^6.3.2
 
 dev_dependencies:
   flutter_test:

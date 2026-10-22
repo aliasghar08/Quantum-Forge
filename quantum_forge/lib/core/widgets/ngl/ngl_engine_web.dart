@@ -54,7 +54,6 @@
 import 'dart:async';
 import 'dart:js_interop';
 import 'dart:js_interop_unsafe';
-import 'dart:math' as math;
 import 'dart:ui_web' as ui_web;
 
 import 'package:web/web.dart' as web;
@@ -758,46 +757,32 @@ class NglEngine {
         'bond-labels'.toJS,
       );
 
-      final labelColor = <JSAny>[1.0.toJS, 0.85.toJS, 0.25.toJS].toJS;
+      // High-contrast badge palette: dark slate backing disc with bright amber text
+      final badgeBgColor = <JSAny>[0.06.toJS, 0.08.toJS, 0.12.toJS].toJS;
+      final textColor = <JSAny>[1.0.toJS, 0.88.toJS, 0.22.toJS].toJS;
 
-      // Dynamic label sizing based on the spatial extent of the molecule.
-      double minX = double.infinity, maxX = double.negativeInfinity;
-      double minY = double.infinity, maxY = double.negativeInfinity;
-      double minZ = double.infinity, maxZ = double.negativeInfinity;
-
-      for (final label in labels) {
-        if (label.x < minX) minX = label.x;
-        if (label.x > maxX) maxX = label.x;
-        if (label.y < minY) minY = label.y;
-        if (label.y > maxY) maxY = label.y;
-        if (label.z < minZ) minZ = label.z;
-        if (label.z > maxZ) maxZ = label.z;
-      }
-
-      final extX = maxX - minX;
-      final extY = maxY - minY;
-      final extZ = maxZ - minZ;
-      final diagonal = math.sqrt(extX * extX + extY * extY + extZ * extZ);
-
-      final effectiveDiagonal = math.max(10.0, diagonal);
-      final scaleFactor = math.sqrt(effectiveDiagonal / 10.0);
-
-      final double markerRadius = 0.25 * scaleFactor;
-      final double labelSize = 0.35 * scaleFactor;
+      // Bond-calibrated dimensions (in Angstroms):
+      // A standard covalent bond is 1.0–1.6 Å. Badges must be calibrated to the
+      // physical bond scale rather than the full simulation box diagonal, so
+      // drifting solvent/dissociated fragments during MD never balloon the labels.
+      const double markerRadius = 0.20;
+      const double labelSize = 0.32;
 
       for (final label in labels) {
         final position = <JSAny>[label.x.toJS, label.y.toJS, label.z.toJS].toJS;
 
+        // Dark circular backing sphere to guarantee readability against any background/element
         shape.callMethod(
           'addSphere'.toJS,
           position,
-          labelColor,
+          badgeBgColor,
           markerRadius.toJS,
         );
+        // Bright 3D text overlay; use addText (official non-deprecated NGL Shape API)
         shape.callMethod(
-          'addLabel'.toJS,
+          'addText'.toJS,
           position,
-          labelColor,
+          textColor,
           labelSize.toJS,
           label.index.toString().toJS,
         );
@@ -810,11 +795,22 @@ class NglEngine {
         return;
       }
 
+      // depthTest: false is load-bearing: without it, the bond cylinder that
+      // encloses the bond midpoint depth-occludes the label, rendering it invisible.
+      final repParams = JSObject();
+      repParams.setProperty('depthTest'.toJS, false.toJS);
+      repParams.setProperty('opacity'.toJS, 0.95.toJS);
+
       (component as JSObject).callMethod(
         'addRepresentation'.toJS,
         'buffer'.toJS,
+        repParams,
       );
       _bondLabelComponent = component;
+
+      // Force an immediate redraw so badges appear in lockstep with the frame
+      final viewer = stage.getProperty<JSObject?>('viewer'.toJS);
+      viewer?.callMethod('requestRender'.toJS);
     } catch (error, stack) {
       _bondLabelComponent = null;
       // ignore: avoid_print

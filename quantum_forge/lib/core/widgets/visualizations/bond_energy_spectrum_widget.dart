@@ -34,10 +34,12 @@ enum BondViewMode { spectrum, heatmap, morse }
 
 class BondEnergySpectrumWidget extends StatefulWidget {
   final List<BondDataPoint> bonds;
+  final double? height;
 
   const BondEnergySpectrumWidget({
     super.key,
     required this.bonds,
+    this.height = 360,
   });
 
   @override
@@ -107,8 +109,11 @@ class _BondEnergySpectrumWidgetState extends State<BondEnergySpectrumWidget>
 
     final criticalBonds = widget.bonds.where((b) => b.isCriticalReactionBond).toList();
 
+    final widgetHeight = widget.height ?? 360.0;
+
     return Container(
       width: double.infinity,
+      height: widgetHeight,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: const Color(0xFF0B101B).withValues(alpha: 0.95),
@@ -221,76 +226,87 @@ class _BondEnergySpectrumWidgetState extends State<BondEnergySpectrumWidget>
             ],
           ),
 
-          // Critical Cleavage / Transition Alert Badge
-          if (criticalBonds.isNotEmpty) ...[
-            const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-              decoration: BoxDecoration(
-                color: const Color(0xFFFF1744).withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: const Color(0xFFFF1744).withValues(alpha: 0.35)),
-              ),
-              child: Row(
+          const SizedBox(height: 10),
+
+          // Scrollable Body (Alert, Filter bar, Main content)
+          Expanded(
+            child: SingleChildScrollView(
+              physics: const ClampingScrollPhysics(),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Icon(Icons.warning_amber_rounded, size: 15, color: Color(0xFFFF5252)),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      'Transition-State Reactivity: ${criticalBonds.length} bond(s) experiencing critical elongation / cleavage '
-                      '(${criticalBonds.take(3).map((b) => '#${b.index} ${b.label} (+${b.strainPercentage.toStringAsFixed(1)}%)').join(', ')}).',
-                      style: const TextStyle(
-                        color: Color(0xFFFF8A80),
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
+                  // Critical Cleavage / Transition Alert Badge
+                  if (criticalBonds.isNotEmpty) ...[
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFF1744).withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: const Color(0xFFFF1744).withValues(alpha: 0.35)),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.warning_amber_rounded, size: 15, color: Color(0xFFFF5252)),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              'Transition-State Reactivity: ${criticalBonds.length} bond(s) experiencing critical elongation / cleavage '
+                              '(${criticalBonds.take(3).map((b) => '#${b.index} ${b.label} (+${b.strainPercentage.toStringAsFixed(1)}%)').join(', ')}).',
+                              style: const TextStyle(
+                                color: Color(0xFFFF8A80),
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
+                    const SizedBox(height: 10),
+                  ],
+
+                  // Filter bar
+                  if (_availableFilterElements.length > 2) ...[
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: _availableFilterElements.map((elem) {
+                          final isSel = _filterElement == elem;
+                          return Padding(
+                            padding: const EdgeInsets.only(right: 6),
+                            child: ChoiceChip(
+                              label: Text(elem),
+                              selected: isSel,
+                              onSelected: (_) => setState(() => _filterElement = elem),
+                              labelStyle: TextStyle(
+                                fontSize: 10.5,
+                                fontWeight: isSel ? FontWeight.bold : FontWeight.normal,
+                                color: isSel ? Colors.black : Colors.white70,
+                              ),
+                              selectedColor: Colors.cyanAccent,
+                              backgroundColor: Colors.white.withValues(alpha: 0.05),
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                  ],
+
+                  // Main Visual Content by Mode
+                  AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 300),
+                    child: _buildModeContent(displayedBonds, maxEnergy),
                   ),
                 ],
               ),
             ),
-          ],
-
-          // Filter bar
-          if (_availableFilterElements.length > 2) ...[
-            const SizedBox(height: 10),
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: _availableFilterElements.map((elem) {
-                  final isSel = _filterElement == elem;
-                  return Padding(
-                    padding: const EdgeInsets.only(right: 6),
-                    child: ChoiceChip(
-                      label: Text(elem),
-                      selected: isSel,
-                      onSelected: (_) => setState(() => _filterElement = elem),
-                      labelStyle: TextStyle(
-                        fontSize: 10.5,
-                        fontWeight: isSel ? FontWeight.bold : FontWeight.normal,
-                        color: isSel ? Colors.black : Colors.white70,
-                      ),
-                      selectedColor: Colors.cyanAccent,
-                      backgroundColor: Colors.white.withValues(alpha: 0.05),
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    ),
-                  );
-                }).toList(),
-              ),
-            ),
-          ],
-
-          const SizedBox(height: 14),
-
-          // Main Visual Content by Mode
-          AnimatedSwitcher(
-            duration: const Duration(milliseconds: 300),
-            child: _buildModeContent(displayedBonds, maxEnergy),
           ),
 
-          // Legend Bar
-          const SizedBox(height: 14),
+          // Pinned Legend Bar
+          const SizedBox(height: 10),
           _buildLegend(),
         ],
       ),

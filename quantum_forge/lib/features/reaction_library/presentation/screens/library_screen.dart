@@ -15,7 +15,7 @@ import 'package:quantum_forge/features/reaction_library/presentation/widgets/lib
 import 'package:quantum_forge/features/reaction_library/presentation/widgets/library_grid.dart';
 import 'package:quantum_forge/features/reaction_library/presentation/widgets/pubmed_panel.dart';
 import 'package:quantum_forge/features/reaction_library/data/firestore_library_repository.dart';
-import 'package:provider/provider.dart';
+import 'package:quantum_forge/core/state/quantum_provider.dart';
 import 'package:quantum_forge/core/services/auth_service.dart';
 import 'package:quantum_forge/core/widgets/adsense_banner_web.dart';
 

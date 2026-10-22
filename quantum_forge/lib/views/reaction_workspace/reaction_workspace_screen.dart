@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:quantum_forge/core/state/quantum_provider.dart';
 import '../../viewmodels/reaction_workspace_viewmodel.dart';
 import 'mobile/reaction_workspace_mobile_view.dart';
 import 'desktop/reaction_workspace_desktop_view.dart';

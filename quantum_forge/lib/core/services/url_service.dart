@@ -1,26 +1,33 @@
 import 'package:flutter/foundation.dart';
-import 'package:url_launcher/url_launcher.dart' as ul;
 
+import 'i_url_launcher.dart';
 import 'web_services.dart';
+import 'url_launcher_stub.dart'
+    if (dart.library.io) 'url_launcher_io.dart';
 
+/// Web implementation of [IUrlLauncher] utilizing browser window APIs.
+class WebUrlLauncher implements IUrlLauncher {
+  const WebUrlLauncher();
+
+  @override
+  bool launch(String url) => WebServices.openUrl(url);
+}
+
+/// Abstracted URL launch service applying the strategy pattern to delegate
+/// execution to the active platform's [IUrlLauncher].
 class UrlService {
-  /// Opens a URL synchronously if on the web (to prevent popup blockers),
-  /// or asynchronously on native using url_launcher.
-  static void launch(String url) {
+  const UrlService._();
+
+  static final IUrlLauncher _launcher =
+      kIsWeb ? const WebUrlLauncher() : getPlatformLauncher();
+
+  /// Opens a URL using the abstracted platform launcher.
+  static bool launch(String url) {
     try {
-      if (kIsWeb) {
-        final opened = WebServices.openUrl(url);
-        if (!opened) {
-          final uri = Uri.parse(url);
-          ul.launchUrl(uri, mode: ul.LaunchMode.externalApplication);
-        }
-      } else {
-        // Native fallback
-        final uri = Uri.parse(url);
-        ul.launchUrl(uri, mode: ul.LaunchMode.externalApplication);
-      }
+      return _launcher.launch(url);
     } catch (e) {
       debugPrint('Error launching URL ($url): $e');
+      return false;
     }
   }
 }

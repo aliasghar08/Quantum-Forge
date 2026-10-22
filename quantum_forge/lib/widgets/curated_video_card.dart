@@ -3,7 +3,7 @@
 // ============================================================================
 
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:quantum_forge/core/services/url_service.dart';
 import 'package:quantum_forge/core/widgets/youtube/embedded_youtube_player.dart';
 import '../models/curated_video.dart';
 
@@ -12,11 +12,8 @@ class CuratedVideoCard extends StatelessWidget {
 
   const CuratedVideoCard({super.key, required this.video});
 
-  Future<void> _openExternalVideo() async {
-    final uri = Uri.parse('https://www.youtube.com/watch?v=${video.id}');
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-    }
+  void _openExternalVideo() {
+    UrlService.launch('https://www.youtube.com/watch?v=${video.id}');
   }
 
   void _showPlayerModal(BuildContext context) {

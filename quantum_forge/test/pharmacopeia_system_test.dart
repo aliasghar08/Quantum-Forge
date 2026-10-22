@@ -4,7 +4,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:provider/provider.dart';
+import 'package:quantum_forge/core/state/quantum_provider.dart';
 import 'package:quantum_forge/core/theme/theme_provider.dart';
 import 'package:quantum_forge/features/pharmacopeia/data/medicine_pharmacology_profile.dart';
 import 'package:quantum_forge/features/pharmacopeia/data/pharmacopeia_database.dart';

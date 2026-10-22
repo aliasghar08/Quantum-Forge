@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:provider/provider.dart';
+import 'package:quantum_forge/core/state/quantum_provider.dart';
 import 'package:quantum_forge/core/services/auth_service.dart';
 import 'package:quantum_forge/core/services/local_auth_service.dart';
 import 'package:quantum_forge/core/theme/theme_provider.dart';

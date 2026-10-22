@@ -3,14 +3,13 @@
 // ============================================================================
 
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:quantum_forge/core/state/quantum_provider.dart';
 import 'package:quantum_forge/core/services/reaction_repository.dart';
 import 'package:quantum_forge/core/services/auth_service.dart';
 import 'package:quantum_forge/core/theme/theme_provider.dart';
 import 'package:quantum_forge/features/auth/presentation/screens/auth_screen.dart';
 import 'package:quantum_forge/features/reaction_runner/data/models/reaction_models.dart';
 import 'package:quantum_forge/core/widgets/animations/staggered_animation_list_item.dart';
-import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:quantum_forge/core/widgets/adsense_banner_web.dart';
 
 class HistoryScreen extends StatefulWidget {

@@ -9,7 +9,7 @@
 // ============================================================================
 
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:quantum_forge/core/state/quantum_provider.dart';
 
 import 'package:quantum_forge/core/services/backend_compute_service.dart';
 import 'package:quantum_forge/core/services/web_services.dart';

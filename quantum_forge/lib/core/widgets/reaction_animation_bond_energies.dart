@@ -85,6 +85,12 @@ extension _ReactionAnimationBondEnergiesExt on _ReactionAnimationWidgetState {
       );
     }).toList();
 
-    return BondEnergySpectrumWidget(bonds: dataPoints);
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: BondEnergySpectrumWidget(
+        bonds: dataPoints,
+        height: 360,
+      ),
+    );
   }
 }

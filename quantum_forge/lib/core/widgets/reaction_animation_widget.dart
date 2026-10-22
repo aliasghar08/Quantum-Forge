@@ -50,7 +50,7 @@ import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:provider/provider.dart';
+import 'package:quantum_forge/core/state/quantum_provider.dart';
 import 'package:quantum_forge/core/theme/theme_provider.dart';
 import 'package:quantum_forge/core/utils/xyz_parser.dart';
 import 'package:quantum_forge/state/settings_provider.dart';
@@ -422,15 +422,16 @@ class _ReactionAnimationWidgetState extends State<ReactionAnimationWidget> {
           isUnbounded
               ? _buildCanvasSlotUnbounded(constraints)
               : _buildCanvasSlotBounded(constraints),
-          if (_showBondEnergies) _buildBondEnergiesPanel(),
           if (_frameCount > 1) ...[
+            _buildPlayerControls(),
+            const Divider(height: 18, thickness: 1, color: Colors.white12),
             buildEnergyGraph(),
             _buildTimeline(),
             _buildReadout(),
-            const Divider(height: 18, thickness: 1, color: Colors.white12),
-            _buildPlayerControls(),
-            const SizedBox(height: 12),
+            const SizedBox(height: 6),
           ],
+          if (_showBondEnergies) _buildBondEnergiesPanel(),
+          const SizedBox(height: 6),
         ],
       ),
     );

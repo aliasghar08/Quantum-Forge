@@ -522,7 +522,8 @@ class _MolecularViewerWidgetState extends State<MolecularViewerWidget> {
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      height: 96,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       decoration: BoxDecoration(
         color: Colors.black.withValues(alpha: 0.3),
         border: Border(top: BorderSide(color: Colors.white.withValues(alpha: 0.1))),
@@ -531,26 +532,30 @@ class _MolecularViewerWidgetState extends State<MolecularViewerWidget> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text('Bond Energies', style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 8),
-          Wrap(
-            spacing: 12,
-            runSpacing: 8,
-            children: bonds.map((b) {
-              final energy = 100 * math.exp(-2.0 * (b.dist - b.idealDist)) * scaleFactor + chargeShift;
-              return Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: const BoxDecoration(color: Colors.orangeAccent, shape: BoxShape.circle),
-                    child: Text('${b.index}', style: const TextStyle(color: Colors.black87, fontSize: 9, fontWeight: FontWeight.bold)),
-                  ),
-                  const SizedBox(width: 6),
-                  Text('${b.a1.symbol}–${b.a2.symbol}: ${energy.toStringAsFixed(1)} kcal·mol⁻¹',
-                      style: TextStyle(color: Colors.white.withValues(alpha: 0.85), fontSize: 11)),
-                ],
-              );
-            }).toList(),
+          const SizedBox(height: 6),
+          Expanded(
+            child: SingleChildScrollView(
+              child: Wrap(
+                spacing: 12,
+                runSpacing: 8,
+                children: bonds.map((b) {
+                  final energy = 100 * math.exp(-2.0 * (b.dist - b.idealDist)) * scaleFactor + chargeShift;
+                  return Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: const BoxDecoration(color: Colors.orangeAccent, shape: BoxShape.circle),
+                        child: Text('${b.index}', style: const TextStyle(color: Colors.black87, fontSize: 9, fontWeight: FontWeight.bold)),
+                      ),
+                      const SizedBox(width: 6),
+                      Text('${b.a1.symbol}–${b.a2.symbol}: ${energy.toStringAsFixed(1)} kcal·mol⁻¹',
+                          style: TextStyle(color: Colors.white.withValues(alpha: 0.85), fontSize: 11)),
+                    ],
+                  );
+                }).toList(),
+              ),
+            ),
           ),
         ],
       ),
