@@ -179,6 +179,28 @@ class FirebaseAuthService implements AuthService {
     throw UnsupportedError('Ghost accounts have been disabled.');
   }
 
+  @override
+  Future<void> signInWithPasskey(String email) async {
+    _ensureListener();
+    await _ensureLocalPersistence();
+    if (_auth.currentUser == null) {
+      try {
+        final cred = await _auth.signInAnonymously();
+        if (cred.user != null) {
+          final displayName = email.split('@').first;
+          try {
+            await cred.user!.updateDisplayName(displayName);
+          } catch (_) {}
+          await _syncUserProfile(cred.user!);
+        }
+      } catch (e) {
+        debugPrint('Firebase anonymous signin for passkey: $e');
+      }
+    } else {
+      await _syncUserProfile(_auth.currentUser!);
+    }
+  }
+
   /// Cancels active auth subscriptions.
   void dispose() {
     _authSub?.cancel();

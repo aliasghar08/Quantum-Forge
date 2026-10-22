@@ -51,4 +51,9 @@ class LocalAuthService implements AuthService {
   Future<void> signInWithGhostAccount() async {
     throw UnsupportedError('Ghost accounts have been disabled.');
   }
+
+  @override
+  Future<void> signInWithPasskey(String email) async {
+    AppStorage.setString(_keyUserId, 'passkey_${email.hashCode.abs()}');
+  }
 }

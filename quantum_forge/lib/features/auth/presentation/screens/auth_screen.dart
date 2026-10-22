@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:quantum_forge/core/services/auth_service.dart';
+import 'package:quantum_forge/core/services/passkey_service.dart';
 import 'package:quantum_forge/core/theme/theme_provider.dart';
 import 'package:quantum_forge/core/widgets/quantum_forge_logo.dart';
 
@@ -28,6 +30,9 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
   bool _obscurePassword = true;
   String? _errorMessage;
 
+  PasskeyPlatformInfo? _passkeyPlatform;
+  bool _isPasskeyAvailable = false;
+
   late final AnimationController _animController;
   late final Animation<double> _fadeAnim;
 
@@ -40,6 +45,7 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
     );
     _fadeAnim = CurvedAnimation(parent: _animController, curve: Curves.easeInOut);
     _animController.forward();
+    _loadPasskeyInfo();
   }
 
   @override
@@ -117,6 +123,8 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
         }
       }
       if (mounted) {
+        // Direct Google Password Manager, Apple Keychain, and Windows Credential Manager to prompt saving credentials
+        TextInput.finishAutofillContext(shouldSave: true);
         widget.onLoginSuccess();
       }
     } catch (e) {
@@ -140,11 +148,140 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
       final authService = context.read<AuthService>();
       await authService.signInWithGoogle();
       if (mounted) {
+        TextInput.finishAutofillContext(shouldSave: true);
         widget.onLoginSuccess();
       }
     } catch (e) {
       if (mounted) {
         setState(() => _errorMessage = _cleanAuthError(e));
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  Future<void> _loadPasskeyInfo() async {
+    try {
+      final info = await PasskeyService.instance.getPlatformInfo();
+      final supported = await PasskeyService.instance.isPasskeySupported();
+      if (mounted) {
+        setState(() {
+          _passkeyPlatform = info;
+          _isPasskeyAvailable = supported;
+        });
+      }
+    } catch (_) {}
+  }
+
+  Future<void> _submitPasskey() async {
+    final email = _emailController.text.trim();
+    setState(() {
+      _errorMessage = null;
+      _isLoading = true;
+    });
+
+    final authService = context.read<AuthService>();
+    try {
+      final result = await PasskeyService.instance.authenticatePasskey(
+        email: email.isNotEmpty ? email : null,
+      );
+
+      if (!result.success) {
+        if (!result.cancelled && mounted) {
+          setState(() {
+            _errorMessage = result.error ?? 'Passkey verification failed.';
+          });
+        }
+        return;
+      }
+
+      final authEmail = result.email ?? email;
+      await authService.signInWithPasskey(
+        authEmail.isNotEmpty ? authEmail : 'passkey@quantumforge.internal',
+      );
+
+      if (mounted) {
+        TextInput.finishAutofillContext(shouldSave: false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.verified_user_rounded, color: Colors.greenAccent, size: 20),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    result.message ?? 'Authenticated via Passkey successfully!',
+                  ),
+                ),
+              ],
+            ),
+            backgroundColor: const Color(0xFF131B2E),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+        widget.onLoginSuccess();
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _errorMessage = _cleanAuthError(e));
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  Future<void> _registerDevicePasskey() async {
+    final email = _emailController.text.trim();
+    if (email.isEmpty || !RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(email)) {
+      setState(() => _errorMessage = 'Please enter a valid email address to register a Passkey on this device.');
+      return;
+    }
+
+    setState(() {
+      _errorMessage = null;
+      _isLoading = true;
+    });
+
+    try {
+      final name = _nameController.text.trim();
+      final result = await PasskeyService.instance.registerPasskey(
+        email: email,
+        displayName: name.isNotEmpty ? name : null,
+      );
+
+      if (!result.success) {
+        if (!result.cancelled && mounted) {
+          setState(() => _errorMessage = result.error ?? 'Passkey registration cancelled.');
+        }
+        return;
+      }
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.check_circle_rounded, color: Colors.greenAccent, size: 20),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    result.message ?? 'Passkey successfully created on this device!',
+                  ),
+                ),
+              ],
+            ),
+            backgroundColor: const Color(0xFF131B2E),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _errorMessage = 'Failed to register passkey: $e');
       }
     } finally {
       if (mounted) {
@@ -702,49 +839,63 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
               ),
             ),
 
-          // Name Field (Only in Sign Up Mode)
-          if (!_isLogin) ...[
-            _inputField(
-              controller: _nameController,
-              label: 'Full Name / Research Lab',
-              hint: 'Dr. Jane Doe',
-              icon: Icons.person_outline,
-              palette: palette,
-              keyboardType: TextInputType.name,
-              onSubmitted: (_) => _submit(),
-            ),
-            const SizedBox(height: 16),
-          ],
+          // Autofill Group ensures Google Password Manager, Apple Keychain, and Windows Credential Manager detect credentials
+          AutofillGroup(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Name Field (Only in Sign Up Mode)
+                if (!_isLogin) ...[
+                  _inputField(
+                    controller: _nameController,
+                    label: 'Full Name / Research Lab',
+                    hint: 'Dr. Jane Doe',
+                    icon: Icons.person_outline,
+                    palette: palette,
+                    keyboardType: TextInputType.name,
+                    autofillHints: const [AutofillHints.name],
+                    onSubmitted: (_) => _submit(),
+                  ),
+                  const SizedBox(height: 16),
+                ],
 
-          // Email Field
-          _inputField(
-            controller: _emailController,
-            label: 'Email Address',
-            hint: 'researcher@institution.edu',
-            icon: Icons.alternate_email,
-            palette: palette,
-            keyboardType: TextInputType.emailAddress,
-            onSubmitted: (_) => _submit(),
-          ),
-          const SizedBox(height: 16),
+                // Email Field
+                _inputField(
+                  controller: _emailController,
+                  label: 'Email Address',
+                  hint: 'researcher@institution.edu',
+                  icon: Icons.alternate_email,
+                  palette: palette,
+                  keyboardType: TextInputType.emailAddress,
+                  autofillHints: const [AutofillHints.email, AutofillHints.username],
+                  onSubmitted: (_) => _submit(),
+                ),
+                const SizedBox(height: 16),
 
-          // Password Field
-          _inputField(
-            controller: _passwordController,
-            label: 'Password',
-            hint: '••••••••',
-            icon: Icons.lock_outline,
-            palette: palette,
-            obscureText: _obscurePassword,
-            suffixIcon: IconButton(
-              icon: Icon(
-                _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                size: 18,
-                color: palette.textMuted,
-              ),
-              onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                // Password Field
+                _inputField(
+                  controller: _passwordController,
+                  label: 'Password',
+                  hint: '••••••••',
+                  icon: Icons.lock_outline,
+                  palette: palette,
+                  obscureText: _obscurePassword,
+                  autofillHints: _isLogin
+                      ? const [AutofillHints.password]
+                      : const [AutofillHints.newPassword],
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                      size: 18,
+                      color: palette.textMuted,
+                    ),
+                    onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                  ),
+                  onSubmitted: (_) => _submit(),
+                ),
+              ],
             ),
-            onSubmitted: (_) => _submit(),
           ),
 
           // Forgot Password Link
@@ -825,6 +976,96 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
             ),
           ),
 
+          // Register Passkey Affordance in Sign-Up mode
+          if (!_isLogin && _isPasskeyAvailable) ...[
+            const SizedBox(height: 12),
+            InkWell(
+              onTap: _isLoading ? null : _registerDevicePasskey,
+              borderRadius: BorderRadius.circular(8),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+                child: Wrap(
+                  alignment: WrapAlignment.center,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    Icon(
+                      _passkeyPlatform?.platform == PasskeyPlatform.apple
+                          ? Icons.fingerprint_rounded
+                          : _passkeyPlatform?.platform == PasskeyPlatform.windows
+                              ? Icons.shield_rounded
+                              : Icons.key_rounded,
+                      size: 16,
+                      color: palette.accent,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      _passkeyPlatform?.platform == PasskeyPlatform.apple
+                          ? 'Register Apple Passkey / Touch ID'
+                          : _passkeyPlatform?.platform == PasskeyPlatform.windows
+                              ? 'Register Windows Hello Passkey'
+                              : 'Register Device Passkey (Google / WebAuthn)',
+                      style: TextStyle(
+                        color: palette.accent,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+
+          // Native Passkey Biometric Sign-In (Apple Touch ID, Windows Hello, Google Password Manager)
+          if (_isLogin && _isPasskeyAvailable) ...[
+            const SizedBox(height: 12),
+            OutlinedButton.icon(
+              onPressed: _isLoading ? null : _submitPasskey,
+              style: OutlinedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 13, horizontal: 16),
+                backgroundColor: _passkeyPlatform?.platform == PasskeyPlatform.apple
+                    ? const Color(0xFF1E1E24).withValues(alpha: 0.8)
+                    : _passkeyPlatform?.platform == PasskeyPlatform.windows
+                        ? const Color(0xFF0A2540).withValues(alpha: 0.6)
+                        : palette.panelAlt.withValues(alpha: 0.7),
+                side: BorderSide(
+                  color: _passkeyPlatform?.platform == PasskeyPlatform.apple
+                      ? Colors.white24
+                      : _passkeyPlatform?.platform == PasskeyPlatform.windows
+                          ? const Color(0xFF0078D4)
+                          : palette.accent.withValues(alpha: 0.4),
+                ),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              icon: Icon(
+                _passkeyPlatform?.platform == PasskeyPlatform.apple
+                    ? Icons.fingerprint_rounded
+                    : _passkeyPlatform?.platform == PasskeyPlatform.windows
+                        ? Icons.shield_rounded
+                        : Icons.key_rounded,
+                size: 20,
+                color: _passkeyPlatform?.platform == PasskeyPlatform.apple
+                    ? const Color(0xFFE5E5EA)
+                    : _passkeyPlatform?.platform == PasskeyPlatform.windows
+                        ? const Color(0xFF60CDFF)
+                        : palette.accent,
+              ),
+              label: Text(
+                _passkeyPlatform?.platform == PasskeyPlatform.apple
+                    ? 'Sign In with Apple Touch ID / Keychain'
+                    : _passkeyPlatform?.platform == PasskeyPlatform.windows
+                        ? 'Sign In with Windows Hello Passkey'
+                        : 'Sign In with Google / Device Passkey',
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: palette.textPrimary,
+                  fontSize: 13.5,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+
           const SizedBox(height: 20),
 
           // Divider
@@ -866,6 +1107,35 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
                 fontSize: 13.5,
                 fontWeight: FontWeight.w600,
               ),
+            ),
+          ),
+
+          const SizedBox(height: 22),
+
+          // Password Manager & Passkey Trust Banner
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            decoration: BoxDecoration(
+              color: palette.panelAlt.withValues(alpha: 0.4),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: palette.border.withValues(alpha: 0.6)),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.lock_person_outlined, size: 16, color: palette.accent),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    'Compatible with Google Password Manager, Apple iCloud Keychain, and Windows Passkeys on macOS & Windows.',
+                    style: TextStyle(
+                      color: palette.textMuted,
+                      fontSize: 11,
+                      height: 1.35,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -918,6 +1188,7 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
     bool obscureText = false,
     Widget? suffixIcon,
     TextInputType keyboardType = TextInputType.text,
+    Iterable<String>? autofillHints,
     void Function(String)? onSubmitted,
   }) {
     return Column(
@@ -936,6 +1207,7 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
           controller: controller,
           obscureText: obscureText,
           keyboardType: keyboardType,
+          autofillHints: autofillHints,
           onSubmitted: onSubmitted,
           style: TextStyle(color: palette.textPrimary, fontSize: 14),
           decoration: InputDecoration(

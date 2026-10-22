@@ -35,4 +35,7 @@ abstract class AuthService {
 
   /// Signs in using a pre-configured ghost / demo researcher testing account.
   Future<void> signInWithGhostAccount();
+
+  /// Sign in with a verified Passkey (Apple Touch ID / Windows Hello / Google).
+  Future<void> signInWithPasskey(String email);
 }
