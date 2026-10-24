@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:quantum_forge/core/services/url_service.dart';
+import 'package:quantum_forge/features/pharmacopeia/data/medicine_pharmacology_profile.dart';
 
 // ============================================================================
 // Medical & Biochemical Vector Diagrams for Clinical Dossier
@@ -116,6 +117,102 @@ class VerificationSourceFooter extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Verification footer for pictorial diagrams rendering verified data origin.
+Widget buildDiagramSourceFooter({
+  required String authorYear,
+  required String citationTitle,
+  required String identifierLabel,
+  required String targetUrl,
+  VerifiedRepositoryType repoType = VerifiedRepositoryType.crossref,
+}) {
+  return Container(
+    margin: const EdgeInsets.only(top: 10),
+    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+    decoration: BoxDecoration(
+      color: Colors.white.withValues(alpha: 0.03),
+      borderRadius: BorderRadius.circular(8),
+      border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+    ),
+    child: Row(
+      children: [
+        const Icon(Icons.verified_outlined, color: Color(0xFF00E676), size: 14),
+        const SizedBox(width: 6),
+        _buildDiagramRepositoryTag(repoType),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            '$authorYear — $citationTitle',
+            style: const TextStyle(fontSize: 11, color: Colors.white70),
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+        InkWell(
+          borderRadius: BorderRadius.circular(6),
+          onTap: () => UrlService.launch(targetUrl),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+            decoration: BoxDecoration(
+              color: const Color(0xFF00E676).withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  identifierLabel,
+                  style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF00E676)),
+                ),
+                const SizedBox(width: 4),
+                const Icon(Icons.open_in_new_rounded, size: 10, color: Color(0xFF00E676)),
+              ],
+            ),
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+Widget _buildDiagramRepositoryTag(VerifiedRepositoryType type) {
+  Color color;
+  String label;
+  switch (type) {
+    case VerifiedRepositoryType.pubmed:
+      color = const Color(0xFF0288D1);
+      label = 'NCBI PubMed';
+      break;
+    case VerifiedRepositoryType.crossref:
+      color = const Color(0xFFFF9800);
+      label = 'CrossRef Registry';
+      break;
+    case VerifiedRepositoryType.rcsbPdb:
+      color = const Color(0xFFAB47BC);
+      label = 'RCSB Protein Data Bank';
+      break;
+    case VerifiedRepositoryType.fdaAccessData:
+      color = const Color(0xFF26A69A);
+      label = 'FDA Regulatory Label';
+      break;
+    case VerifiedRepositoryType.emaEpar:
+      color = const Color(0xFF3F51B5);
+      label = 'EMA EPAR Record';
+      break;
+    case VerifiedRepositoryType.openAlex:
+      color = const Color(0xFF00ACC1);
+      label = 'OpenAlex Scholarly';
+      break;
+    case VerifiedRepositoryType.textbookBenchmark:
+      color = const Color(0xFF8D6E63);
+      label = 'Pharmacology Benchmark';
+      break;
+  }
+  return Container(
+    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+    decoration: BoxDecoration(color: color.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(4)),
+    child: Text(label, style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: color)),
+  );
 }
 
 /// 1. Biochemical Cascade & Enzyme Inhibition Cycle

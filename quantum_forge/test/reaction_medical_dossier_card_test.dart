@@ -40,6 +40,16 @@ void main() {
     expect(find.textContaining('PDB: 1PTH'), findsWidgets);
     expect(find.textContaining('CLINICAL PRESENTATION, SIGNS & PATHOPHYSIOLOGY'), findsOneWidget);
 
+    // Verify Verified Data Provenance status bar and modal
+    expect(find.textContaining('Verified Data Provenance:'), findsOneWidget);
+    expect(find.text('View Source Ledger'), findsOneWidget);
+    await tester.tap(find.text('View Source Ledger'));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('Data Origin & Verification Ledger'), findsOneWidget);
+    expect(find.textContaining('PEER-REVIEWED'), findsWidgets);
+    await tester.tap(find.byIcon(Icons.close));
+    await tester.pumpAndSettle();
+
     // Verify Tab 1 (Indications & Use) content
     expect(find.textContaining('Primary Therapeutic Indications'), findsOneWidget);
     expect(find.textContaining('Secondary prevention of myocardial infarction'), findsOneWidget);

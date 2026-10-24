@@ -1,4 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:quantum_forge/features/pharmacopeia/data/medicine_pharmacology_profile.dart';
+import 'package:quantum_forge/features/pharmacopeia/data/pharmacopeia_database.dart';
 import 'package:quantum_forge/features/reaction_library/data/reaction_templates.dart';
 
 /// Parses an XYZ string and counts occurrences of each element symbol.
@@ -132,4 +134,50 @@ void main() {
       }
     });
   });
+
+  group('Medical Dossier Provenance Integrity Tests', () {
+    final curatedList = PharmacopeiaDatabase.getAllCuratedProfiles();
+
+    test('All curated medicines must have at least 3 peer-reviewed sources', () {
+      for (final profile in curatedList) {
+        expect(
+          profile.verifiedSources.length,
+          greaterThanOrEqualTo(3),
+          reason: 'Medicine ${profile.genericName} lacks sufficient verification sources.',
+        );
+      }
+    });
+
+    test('No template contains placeholder or banned DOIs', () {
+      const bannedDoi = '10.1021/jm00125a008';
+      for (final profile in curatedList) {
+        for (final src in profile.verifiedSources) {
+          expect(
+            src.doi,
+            isNot(equals(bannedDoi)),
+            reason: 'Medicine ${profile.genericName} contains banned placeholder DOI!',
+          );
+        }
+      }
+    });
+
+    test('All sources must point to verified scientific repositories', () {
+      for (final profile in curatedList) {
+        for (final src in profile.verifiedSources) {
+          expect(
+            [
+              VerifiedRepositoryType.pubmed,
+              VerifiedRepositoryType.crossref,
+              VerifiedRepositoryType.rcsbPdb,
+              VerifiedRepositoryType.fdaAccessData,
+              VerifiedRepositoryType.emaEpar,
+            ].contains(src.repositoryType),
+            isTrue,
+            reason: '${src.id} in ${profile.genericName} is from an unverified repository.',
+          );
+        }
+      }
+    });
+  });
 }
+

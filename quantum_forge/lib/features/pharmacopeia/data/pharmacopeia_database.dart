@@ -845,3 +845,28 @@ const List<MedicinePharmacologyProfile> kClinicalPharmacopeiaDatabase = [
     ],
   ),
 ];
+
+/// Curated research database access service for clinical and veterinary pharmacology.
+abstract final class PharmacopeiaDatabase {
+  /// Returns all 12 curated benchmark medical and veterinary profiles.
+  static List<MedicinePharmacologyProfile> getAllCuratedProfiles() => kClinicalPharmacopeiaDatabase;
+
+  /// Looks up a profile by unique medicine ID (e.g. 'pharma-aspirin').
+  static MedicinePharmacologyProfile? findById(String id) {
+    try {
+      return kClinicalPharmacopeiaDatabase.firstWhere((p) => p.id == id);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Looks up a profile by associated reaction template ID (e.g. 'med-aspirin-01').
+  static MedicinePharmacologyProfile? findByReactionId(String reactionId) {
+    try {
+      return kClinicalPharmacopeiaDatabase.firstWhere((p) => p.associatedReactionId == reactionId);
+    } catch (_) {
+      return null;
+    }
+  }
+}
+

@@ -380,6 +380,10 @@ class _ReactionMedicalDossierCardState extends State<ReactionMedicalDossierCard>
             const Divider(color: Colors.white12, height: 1),
             const SizedBox(height: 12),
 
+            // ── Verified Data Provenance Status Bar ───────────────────────────────
+            _buildProvenanceStatusBar(context, p),
+            const SizedBox(height: 14),
+
             // ── Segmented Navigation Tabs ─────────────────────────────────────────
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
@@ -1768,6 +1772,244 @@ class _ReactionMedicalDossierCardState extends State<ReactionMedicalDossierCard>
         color: palette.textPrimary,
         fontSize: 12,
         height: 1.45,
+      ),
+    );
+  }
+
+  // ── Data Provenance Status Bar & Modal Ledger ─────────────────────────────
+  Widget _buildProvenanceStatusBar(BuildContext context, MedicinePharmacologyProfile profile) {
+    final verifiedCount = profile.verifiedSources.length;
+    final hasPdb = profile.verifiedSources.any((s) => s.repositoryType == VerifiedRepositoryType.rcsbPdb);
+    final hasPubMed = profile.verifiedSources.any((s) => s.repositoryType == VerifiedRepositoryType.pubmed);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      decoration: BoxDecoration(
+        color: const Color(0xFF0D1B2A).withValues(alpha: 0.6),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: const Color(0xFF00E676).withValues(alpha: 0.3)),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.verified_user_rounded, color: Color(0xFF00E676), size: 16),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text.rich(
+              TextSpan(
+                style: const TextStyle(fontSize: 12, color: Colors.white70),
+                children: [
+                  const TextSpan(text: 'Verified Data Provenance: '),
+                  TextSpan(
+                    text: '$verifiedCount Primary Sources ',
+                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                  ),
+                  TextSpan(
+                    text: '(${hasPubMed ? "PubMed • " : ""}${hasPdb ? "RCSB PDB • " : ""}CrossRef)',
+                    style: const TextStyle(color: Color(0xFF00E676)),
+                  ),
+                ],
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          TextButton.icon(
+            style: TextButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              visualDensity: VisualDensity.compact,
+              backgroundColor: Colors.white.withValues(alpha: 0.05),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+            ),
+            icon: const Icon(Icons.account_tree_outlined, size: 14, color: Colors.cyanAccent),
+            label: const Text('View Source Ledger', style: TextStyle(fontSize: 11, color: Colors.cyanAccent)),
+            onPressed: () => _showSourceLedgerModal(context, profile),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showSourceLedgerModal(BuildContext context, MedicinePharmacologyProfile profile) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: const Color(0xFF0A0F1D),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        side: BorderSide(color: Color(0xFF1E293B)),
+      ),
+      builder: (ctx) {
+        return Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const Icon(Icons.verified_rounded, color: Color(0xFF00E676), size: 24),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      'Data Origin & Verification Ledger (${profile.genericName})',
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close, color: Colors.white54),
+                    onPressed: () => Navigator.of(ctx).pop(),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 6),
+              const Text(
+                'All facts, transition states, active-site residues, and clinical lines are retrieved exclusively from indexed, peer-reviewed, and regulatory databases.',
+                style: TextStyle(fontSize: 12, color: Colors.white60),
+              ),
+              const Divider(color: Color(0xFF1E293B), height: 24),
+              Expanded(
+                child: ListView.separated(
+                  itemCount: profile.verifiedSources.length,
+                  separatorBuilder: (_, _) => const SizedBox(height: 10),
+                  itemBuilder: (context, idx) {
+                    final src = profile.verifiedSources[idx];
+                    return Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF131D31),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: Colors.white12),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              _buildRepositoryTag(src.repositoryType),
+                              const SizedBox(width: 8),
+                              if (src.isPeerReviewed)
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: Colors.green.withValues(alpha: 0.15),
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: const Text(
+                                    'PEER-REVIEWED',
+                                    style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Color(0xFF00E676)),
+                                  ),
+                                ),
+                              const Spacer(),
+                              if (src.citationCount != null)
+                                Text(
+                                  '${src.citationCount} Citations',
+                                  style: const TextStyle(fontSize: 11, color: Colors.white54),
+                                ),
+                            ],
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            src.title,
+                            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.white),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            '${src.journalOrSource} (${src.publicationYear})',
+                            style: const TextStyle(fontSize: 11, color: Colors.white70),
+                          ),
+                          const SizedBox(height: 8),
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 6,
+                            children: [
+                              if (src.doi != null)
+                                _buildActionBadge('DOI: ${src.doi}', src.url),
+                              if (src.pmid != null)
+                                _buildActionBadge('PMID: ${src.pmid}', 'https://pubmed.ncbi.nlm.nih.gov/${src.pmid}/'),
+                              if (src.pdbId != null)
+                                _buildActionBadge('PDB: ${src.pdbId}', 'https://www.rcsb.org/structure/${src.pdbId}'),
+                              if (src.regulatoryCode != null)
+                                _buildActionBadge('REG: ${src.regulatoryCode}', src.url),
+                            ],
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildRepositoryTag(VerifiedRepositoryType type) {
+    Color color;
+    String label;
+    switch (type) {
+      case VerifiedRepositoryType.pubmed:
+        color = const Color(0xFF0288D1);
+        label = 'NCBI PubMed';
+        break;
+      case VerifiedRepositoryType.crossref:
+        color = const Color(0xFFFF9800);
+        label = 'CrossRef Registry';
+        break;
+      case VerifiedRepositoryType.rcsbPdb:
+        color = const Color(0xFFAB47BC);
+        label = 'RCSB Protein Data Bank';
+        break;
+      case VerifiedRepositoryType.fdaAccessData:
+        color = const Color(0xFF26A69A);
+        label = 'FDA Regulatory Label';
+        break;
+      case VerifiedRepositoryType.emaEpar:
+        color = const Color(0xFF3F51B5);
+        label = 'EMA EPAR Record';
+        break;
+      case VerifiedRepositoryType.openAlex:
+        color = const Color(0xFF00ACC1);
+        label = 'OpenAlex Scholarly';
+        break;
+      case VerifiedRepositoryType.textbookBenchmark:
+        color = const Color(0xFF8D6E63);
+        label = 'Pharmacology Benchmark';
+        break;
+    }
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(color: color.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(4)),
+      child: Text(label, style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: color)),
+    );
+  }
+
+  Widget _buildActionBadge(String label, String url) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(4),
+      onTap: () => UrlService.launch(url),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2.5),
+        decoration: BoxDecoration(
+          color: const Color(0xFF00E5FF).withValues(alpha: 0.12),
+          borderRadius: BorderRadius.circular(4),
+          border: Border.all(color: const Color(0xFF00E5FF).withValues(alpha: 0.45)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              label,
+              style: const TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF00E5FF),
+                fontFamily: 'monospace',
+              ),
+            ),
+            const SizedBox(width: 4),
+            const Icon(Icons.open_in_new_rounded, size: 10, color: Color(0xFF00E5FF)),
+          ],
+        ),
       ),
     );
   }
