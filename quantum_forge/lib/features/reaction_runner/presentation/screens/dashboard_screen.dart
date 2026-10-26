@@ -956,11 +956,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   builder: (ctx) {
                     final medProfile = _resolveCurrentMedicineProfile(status);
                     if (medProfile == null) return const SizedBox.shrink();
+
+                    final baseProfile = _resolveCurrentMedicineProfile(status, ignoreUserSelection: true);
+                    final repo = PharmacopeiaRepository();
+                    final availableProfiles = <MedicinePharmacologyProfile>[
+                      ?baseProfile,
+                      ...repo.allProfiles.where((x) => x.id != baseProfile?.id),
+                    ];
+
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 16),
                       child: ReactionMedicalDossierCard(
                         profile: medProfile,
-                        availableProfiles: PharmacopeiaRepository().allProfiles,
+                        availableProfiles: availableProfiles,
                         onProfileSelected: (profile) {
                           setState(() {
                             _userSelectedMedicineProfile = profile;
@@ -1099,10 +1107,215 @@ class _DashboardScreenState extends State<DashboardScreen> {
     });
   }
 
+  PharmacologicalSpecialty _inferSpecialtyForTemplate(
+    ReactionTemplate template, {
+    required bool isVet,
+  }) {
+    if (isVet || template.category == ReactionCategory.veterinary) {
+      return PharmacologicalSpecialty.veterinaryMedicine;
+    }
+
+    final text = '${template.name} ${template.description} ${template.tags.join(' ')} ${template.iupacName}'.toUpperCase();
+
+    // Neurology / Psychiatry
+    if (text.contains('NEURO') ||
+        text.contains('DOPAMINE') ||
+        text.contains('NOREPINEPHRINE') ||
+        text.contains('SEROTONIN') ||
+        text.contains('GABA') ||
+        text.contains('ACETYLCHOLINE') ||
+        text.contains('LEVODOPA') ||
+        text.contains('PARKINSON') ||
+        text.contains('PSYCH') ||
+        text.contains('BRAIN') ||
+        text.contains('CATECHOLAMINE') ||
+        text.contains('SYNAPSE') ||
+        text.contains('OPIOID') ||
+        text.contains('MORPHINE') ||
+        text.contains('SEDATIVE')) {
+      return PharmacologicalSpecialty.neurology;
+    }
+
+    // Infectious Diseases / Antimicrobial
+    if (text.contains('INFECT') ||
+        text.contains('ANTIBIOTIC') ||
+        text.contains('ANTIMICROBIAL') ||
+        text.contains('BACTERIA') ||
+        text.contains('VIRAL') ||
+        text.contains('ANTIVIRAL') ||
+        text.contains('BETA-LACTAM') ||
+        text.contains('FLUOROQUINOLONE') ||
+        text.contains('MACROLIDE') ||
+        text.contains('CEPHALOSPORIN') ||
+        text.contains('PENICILLIN') ||
+        text.contains('CIPRO') ||
+        text.contains('AZITHROMYCIN') ||
+        text.contains('CEFTRIAXONE') ||
+        text.contains('ISONIAZID') ||
+        text.contains('SULFONAMIDE') ||
+        text.contains('FUNGAL')) {
+      return PharmacologicalSpecialty.infectiousDiseases;
+    }
+
+    // Oncology / Chemotherapy
+    if (text.contains('ONCOLOGY') ||
+        text.contains('CANCER') ||
+        text.contains('TUMOR') ||
+        text.contains('ANTINEOPLASTIC') ||
+        text.contains('CHEMOTHERAPY') ||
+        text.contains('CYTOTOXIC') ||
+        text.contains('CISPLATIN') ||
+        text.contains('METHOTREXATE') ||
+        text.contains('5-FU') ||
+        text.contains('FLUOROURACIL') ||
+        text.contains('ALKYLATING')) {
+      return PharmacologicalSpecialty.oncology;
+    }
+
+    // Nephrology / Renal
+    if (text.contains('RENAL') ||
+        text.contains('KIDNEY') ||
+        text.contains('NEPHRO') ||
+        text.contains('DIURETIC') ||
+        text.contains('FUROSEMIDE') ||
+        text.contains('GLOMERULAR')) {
+      return PharmacologicalSpecialty.nephrology;
+    }
+
+    // Critical Care / Anesthesia / Emergency
+    if (text.contains('ANESTHESIA') ||
+        text.contains('ANESTHETIC') ||
+        text.contains('PROCAINE') ||
+        text.contains('LIDOCAINE') ||
+        text.contains('CRITICAL CARE') ||
+        text.contains('EMERGENCY') ||
+        text.contains('EPINEPHRINE') ||
+        text.contains('ADRENALINE') ||
+        text.contains('RESUSCITATION') ||
+        text.contains('SHOCK') ||
+        text.contains('GLUTATHIONE') ||
+        text.contains('ANTIDOTE') ||
+        text.contains('ICU')) {
+      return PharmacologicalSpecialty.criticalCare;
+    }
+
+    // Cardiology
+    if (text.contains('CARDIO') ||
+        text.contains('HEART') ||
+        text.contains('HYPERTENSION') ||
+        text.contains('STATIN') ||
+        text.contains('ATORVASTATIN') ||
+        text.contains('BETA-BLOCKER') ||
+        text.contains('PROPRANOLOL') ||
+        text.contains('ACE-INHIBITOR') ||
+        text.contains('CAPTOPRIL') ||
+        text.contains('ENALAPRIL') ||
+        text.contains('LOSARTAN') ||
+        text.contains('AMLODIPINE') ||
+        text.contains('NITROGLYCERIN') ||
+        text.contains('ANTIPLATELET') ||
+        text.contains('ANTICOAGULANT') ||
+        text.contains('HEMODYNAMIC') ||
+        text.contains('VASCULAR') ||
+        text.contains('ARRHYTHMIA')) {
+      return PharmacologicalSpecialty.cardiology;
+    }
+
+    return PharmacologicalSpecialty.cardiology;
+  }
+
+  ({String target, String pdb}) _resolveTargetAndPdb(ReactionTemplate template, {required bool isVet}) {
+    switch (template.id) {
+      case 'med-dopamine-01':
+        return (target: 'Dopamine β-Hydroxylase (DBH) / Ascorbate Enzyme Complex', pdb: '4ZEL');
+      case 'med-epinephrine-01':
+        return (target: 'Phenylethanolamine N-Methyltransferase (PNMT)', pdb: '1HNN');
+      case 'med-acetylcholine-01':
+        return (target: 'Choline Acetyltransferase (ChAT) / Acetylcholinesterase', pdb: '2HA2');
+      case 'med-serotonin-01':
+        return (target: 'Tryptophan Hydroxylase (TPH2) / Catalytic Dimer', pdb: '1MLW');
+      case 'med-gaba-01':
+        return (target: 'Glutamate Decarboxylase (GAD65)', pdb: '2OKJ');
+      case 'med-ldh-01':
+        return (target: 'Lactate Dehydrogenase (LDH-A) / NADH Coordinate', pdb: '1I10');
+      case 'med-atp-01':
+        return (target: 'Mitochondrial F1-Fo ATP Synthase / Mg²⁺-ATP', pdb: '1E79');
+      case 'med-histamine-01':
+        return (target: 'Histidine Decarboxylase (HDC)', pdb: '4E1O');
+      case 'med-sulfonamide-01':
+        return (target: 'Dihydropteroate Synthase (DHPS)', pdb: '2VEG');
+      case 'med-procaine-01':
+        return (target: 'Voltage-Gated Sodium Channel (Nav1.7 / Nav1.5)', pdb: '6J8H');
+      case 'med-glutathione-01':
+        return (target: 'Glutathione S-Transferase (GSTP1-1)', pdb: '1AQW');
+      case 'med-prostaglandin-01':
+        return (target: 'Prostaglandin Endoperoxide H Synthase (COX-1/2)', pdb: '1PTH');
+      case 'med-enalapril-01':
+        return (target: 'Angiotensin-Converting Enzyme (ACE)', pdb: '1O86');
+      case 'med-losartan-01':
+        return (target: 'Angiotensin II Type 1 Receptor (AT1R)', pdb: '4ZUD');
+      case 'med-amlodipine-01':
+        return (target: 'L-type Voltage-Gated Calcium Channel (Cav1.2)', pdb: '6JP5');
+      case 'med-nitroglycerin-01':
+        return (target: 'Mitochondrial Aldehyde Dehydrogenase (mtALDH-2)', pdb: '1CW3');
+      case 'med-omeprazole-01':
+        return (target: 'Gastric H⁺/K⁺-ATPase (Proton Pump)', pdb: '5YLU');
+      case 'med-metformin-01':
+        return (target: 'Mitochondrial Complex I / AMP-Activated Protein Kinase (AMPK)', pdb: '5ZCS');
+      case 'med-glimepiride-01':
+        return (target: 'Sulfonylurea Receptor 1 (SUR1 / Kir6.2)', pdb: '6BAA');
+      case 'med-5fu-01':
+        return (target: 'Thymidylate Synthase (TS) / 5,10-CH₂-THF Complex', pdb: '1HVY');
+      case 'med-morphine-gluc-01':
+        return (target: 'UDP-Glucuronosyltransferase 2B7 (UGT2B7)', pdb: '2O6L');
+      case 'med-nat2-isoniazid-01':
+        return (target: 'Arylamine N-Acetyltransferase 2 (NAT2) / KatG', pdb: '2PFR');
+      case 'med-azithromycin-01':
+        return (target: 'Bacterial 50S Ribosomal Subunit (Peptidyl Transferase Center)', pdb: '1M1K');
+      case 'med-ceftriaxone-01':
+        return (target: 'Penicillin-Binding Proteins (PBP2a / PBP3)', pdb: '1VQQ');
+      case 'med-levodopa-01':
+        return (target: 'Aromatic L-Amino Acid Decarboxylase (AADC / DOPA Decarboxylase)', pdb: '1JS3');
+      // Veterinary
+      case 'vet-enrofloxacin-01':
+        return (target: 'Bacterial DNA Gyrase (GyrA) / Topoisomerase IV', pdb: '2XCT');
+      case 'vet-ivermectin-01':
+        return (target: 'Glutamate-Gated Chloride Channel (GluCl)', pdb: '3RHW');
+      case 'vet-meloxicam-01':
+        return (target: 'Comparative Veterinary Cyclooxygenase-2 (COX-2)', pdb: '4COX');
+      case 'vet-fenbendazole-01':
+        return (target: 'Helminthic β-Tubulin Microtubule Dimer', pdb: '1FFX');
+      case 'vet-flunixin-01':
+        return (target: 'Equine / Bovine Cyclooxygenase-1 & 2', pdb: '6COX');
+      case 'vet-xylazine-01':
+        return (target: 'Central Presynaptic α₂-Adrenergic Receptor (α₂A)', pdb: '6KUW');
+      case 'vet-florfenicol-01':
+        return (target: 'Bacterial 50S Ribosome / Chloramphenicol Transacetylase', pdb: '1Q23');
+      case 'vet-carprofen-01':
+        return (target: 'Canine Cyclooxygenase-2 (COX-2)', pdb: '3LN1');
+      case 'vet-pimobendan-01':
+        return (target: 'Cardiac Troponin C (cTnC) / Phosphodiesterase-3 (PDE3)', pdb: '1J1D');
+      case 'vet-tylosin-01':
+        return (target: 'Bacterial 50S Ribosomal Peptidyl Transferase Cleft', pdb: '1K01');
+      default:
+        final cat = template.defaultCatalystName;
+        if (cat != null && cat.isNotEmpty) {
+          return (target: cat, pdb: template.doi.isNotEmpty ? 'COMP-LIT' : 'COMP-EXP');
+        }
+        return (
+          target: isVet ? 'Comparative Veterinary Enzyme / Receptor' : 'Cellular Active Site / Enzyme Target',
+          pdb: 'COMP-EXP',
+        );
+    }
+  }
+
   MedicinePharmacologyProfile _buildDynamicProfileFromTemplate(
     ReactionTemplate template, {
     required bool isVet,
   }) {
+    final targetInfo = _resolveTargetAndPdb(template, isVet: isVet);
+    final specialty = _inferSpecialtyForTemplate(template, isVet: isVet);
+
     return MedicinePharmacologyProfile(
       id: 'dyn-${template.id}',
       genericName: template.name,
@@ -1111,9 +1324,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       targetDisciplines: isVet
           ? const [TargetDiscipline.dvm, TargetDiscipline.pharmD]
           : const [TargetDiscipline.mbbs, TargetDiscipline.pharmD, TargetDiscipline.specialist],
-      specialty: isVet
-          ? PharmacologicalSpecialty.veterinaryMedicine
-          : PharmacologicalSpecialty.cardiology,
+      specialty: specialty,
       chemicalClass: isVet
           ? 'Veterinary Pharmaceutical / Targeted Bioactive Intermediate'
           : 'Medicinal Chemistry Active Pharmaceutical Ingredient (API)',
@@ -1128,8 +1339,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
           'Modeled and calculated using Quantum Forge MLIP and transition-state potential energy surfaces.',
       syntheticRoute:
           'Reactants → Activated Transition State (Ea = ${template.referenceEa.toStringAsFixed(1)} kcal/mol) → Synthesized Products.',
-      molecularTarget: isVet ? 'Comparative Veterinary Enzyme / Receptor' : 'Cellular Active Site / Enzyme Target',
-      pdbAccession: 'COMP-EXP',
+      molecularTarget: targetInfo.target,
+      pdbAccession: targetInfo.pdb,
       modeOfAction: template.description.isNotEmpty
           ? template.description
           : 'Modulates enzymatic catalytic mechanism through specific bond reorganization along the reaction coordinate.',
@@ -1194,7 +1405,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   // ── Medicine Profile Resolver ─────────────────────────────────────────────
-  MedicinePharmacologyProfile? _resolveCurrentMedicineProfile(ReactionStatusResponse status) {
+  MedicinePharmacologyProfile? _resolveCurrentMedicineProfile(
+    ReactionStatusResponse status, {
+    bool ignoreUserSelection = false,
+  }) {
     final repo = PharmacopeiaRepository();
     final template = _viewModel.activeTemplate;
 
@@ -1213,7 +1427,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       }
 
       // If user selected a specific profile in dropdown while on this reaction
-      if (_userSelectedMedicineProfile != null) {
+      if (!ignoreUserSelection && _userSelectedMedicineProfile != null) {
         return _userSelectedMedicineProfile;
       }
 
@@ -1257,7 +1471,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         }
       }
       if (statusTemplate != null && _isMedicineTemplate(statusTemplate)) {
-        if (_userSelectedMedicineProfile != null) {
+        if (!ignoreUserSelection && _userSelectedMedicineProfile != null) {
           return _userSelectedMedicineProfile;
         }
         final byName = repo.filter(query: statusTemplate.name);
@@ -1297,7 +1511,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     // Verify candidate matched template qualifies as a medicine by its tags
     if (matchedTemplate != null && _isMedicineTemplate(matchedTemplate)) {
-      if (_userSelectedMedicineProfile != null) {
+      if (!ignoreUserSelection && _userSelectedMedicineProfile != null) {
         return _userSelectedMedicineProfile;
       }
       final direct = repo.findByReactionId(matchedTemplate.id);

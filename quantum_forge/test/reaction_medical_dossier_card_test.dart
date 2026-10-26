@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:quantum_forge/core/state/quantum_provider.dart';
 import 'package:quantum_forge/core/theme/theme_provider.dart';
 import 'package:quantum_forge/features/pharmacopeia/data/pharmacopeia_database.dart';
+import 'package:quantum_forge/features/pharmacopeia/data/medicine_pharmacology_profile.dart';
 import 'package:quantum_forge/features/reaction_library/data/reaction_templates.dart';
 import 'package:quantum_forge/features/reaction_library/data/medical_reaction_templates.dart';
 import 'package:quantum_forge/features/reaction_library/data/veterinary_reaction_templates.dart';
@@ -184,4 +185,76 @@ void main() {
       }
     });
   });
+
+  testWidgets('ReactionMedicalDossierCard with dynamic candidate profile displays candidate in dropdown and does not default to Aspirin', (tester) async {
+    tester.view.physicalSize = const Size(1280, 1024);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    final dopamineTemplate = kMedicalReactionTemplates.firstWhere((t) => t.id == 'med-dopamine-01');
+    final dopamineProfile = MedicinePharmacologyProfile(
+      id: 'dyn-${dopamineTemplate.id}',
+      genericName: dopamineTemplate.name,
+      iupacName: dopamineTemplate.iupacName,
+      brandNames: const ['Investigational Medicinal Candidate'],
+      targetDisciplines: const [TargetDiscipline.mbbs, TargetDiscipline.pharmD],
+      specialty: PharmacologicalSpecialty.neurology,
+      chemicalClass: 'Neurotransmitter Catecholamine Precursor',
+      therapeuticIndications: dopamineTemplate.description,
+      clinicalStaging: 'Biochemical pathway milestone',
+      sourceAndOrigin: 'Endogenous neuronal biosynthesis',
+      discoveryHistory: 'Discovered by Kathleen Montagu',
+      syntheticRoute: 'L-DOPA -> Dopamine -> Norepinephrine',
+      molecularTarget: 'Dopamine beta-hydroxylase',
+      pdbAccession: '4ZEL',
+      modeOfAction: dopamineTemplate.description,
+      downstreamSignaling: 'Adrenergic signaling',
+      absorptionAndDistribution: 'CNS & peripheral circulation',
+      metabolismAndElimination: 'MAO & COMT degradation',
+      eliminationHalfLifeHours: 2.0,
+      comparativeSpeciesPharmacology: 'Mammalian CNS',
+      transitionStateDescription: 'TS barrier 16.7 kcal/mol',
+      activationBarrierKcalMol: 16.7,
+      catalyticResidues: 'Cu(II) / Ascorbate',
+      associatedReactionId: dopamineTemplate.id,
+      contraindications: 'Pheochromocytoma, uncorrected tachyarrhythmias',
+      adverseEffectsAndToxicity: 'Tachycardia, hypertension',
+      blackBoxWarning: '',
+      antidoteAndRescue: 'Phentolamine IV',
+      clinicalGuidelines: const ['Neuropharmacology Curriculum'],
+      primaryDoi: '10.1074/jbc.270.36.21191',
+      pubmedId: '38291044',
+      highYieldExamPearls: const ['DBH uses copper and Vitamin C to hydroxylate dopamine.'],
+    );
+
+    // Pass static curated list (which only contains Aspirin, Atorvastatin, etc.)
+    final staticProfiles = kClinicalPharmacopeiaDatabase;
+
+    await tester.pumpWidget(
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider(create: (_) => ThemeNotifier()),
+        ],
+        child: MaterialApp(
+          home: Scaffold(
+            body: SingleChildScrollView(
+              child: ReactionMedicalDossierCard(
+                profile: dopamineProfile,
+                availableProfiles: staticProfiles,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // The dropdown MUST display Dopamine, and must NOT display Aspirin
+    expect(find.textContaining('Dopamine to Norepinephrine'), findsWidgets);
+    expect(find.text('Neurology, Psychiatry & Neuropharmacology'), findsOneWidget);
+    // Aspirin should not be selected in the active card
+    expect(find.text('❤️ Aspirin (Acetylsalicylic Acid)'), findsNothing);
+  });
 }
+

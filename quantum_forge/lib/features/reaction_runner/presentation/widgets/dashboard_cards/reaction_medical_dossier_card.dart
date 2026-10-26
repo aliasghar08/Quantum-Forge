@@ -128,6 +128,17 @@ class _ReactionMedicalDossierCardState extends State<ReactionMedicalDossierCard>
     final p = _effectiveProfile;
     const accentColor = Color(0xFF00BFA5);
 
+    final effectiveProfiles = widget.availableProfiles != null && widget.availableProfiles!.isNotEmpty
+        ? () {
+            final list = <MedicinePharmacologyProfile>[
+              if (!widget.availableProfiles!.any((x) => x.id == p.id)) p,
+              ...widget.availableProfiles!,
+            ];
+            final seen = <String>{};
+            return list.where((prof) => seen.add(prof.id)).toList();
+          }()
+        : null;
+
     return ResearchCard(
       accent: accentColor,
       padding: const EdgeInsets.all(18),
@@ -208,7 +219,7 @@ class _ReactionMedicalDossierCardState extends State<ReactionMedicalDossierCard>
                           ),
                       ],
                     ),
-                    if (widget.availableProfiles != null && widget.availableProfiles!.isNotEmpty) ...[
+                    if (effectiveProfiles != null && effectiveProfiles.isNotEmpty) ...[
                       const SizedBox(height: 6),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
@@ -219,20 +230,23 @@ class _ReactionMedicalDossierCardState extends State<ReactionMedicalDossierCard>
                         ),
                         child: DropdownButtonHideUnderline(
                           child: DropdownButton<String>(
-                            value: widget.availableProfiles!.any((x) => x.id == p.id) ? p.id : widget.availableProfiles!.first.id,
+                            value: p.id,
                             isDense: true,
                             dropdownColor: palette.panel,
                             icon: const Icon(Icons.arrow_drop_down, color: accentColor, size: 20),
                             style: TextStyle(color: palette.textPrimary, fontSize: 13, fontWeight: FontWeight.bold),
-                            items: widget.availableProfiles!.map((prof) {
+                            items: effectiveProfiles.map((prof) {
                               return DropdownMenuItem<String>(
                                 value: prof.id,
-                                child: Text('${prof.specialty.icon} ${prof.genericName}'),
+                                child: Text(
+                                  '${prof.specialty.icon} ${prof.genericName}',
+                                  overflow: TextOverflow.ellipsis,
+                                ),
                               );
                             }).toList(),
                             onChanged: (newId) {
                               if (newId != null && widget.onProfileSelected != null) {
-                                final selected = widget.availableProfiles!.firstWhere((x) => x.id == newId);
+                                final selected = effectiveProfiles.firstWhere((x) => x.id == newId);
                                 widget.onProfileSelected!(selected);
                               }
                             },
