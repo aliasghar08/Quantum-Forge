@@ -373,13 +373,13 @@ O      4.0075     0.3977     0.0000
 H      3.2329    -0.1844     0.0000
 H      4.7596    -0.2134     0.0000''',
     referenceEa: 16.7,
-    doi: '10.1074/jbc.270.36.21191',
-    journalRef: 'J. Biol. Chem. 1995, 270, 21191',
+    doi: '10.1074/jbc.270.36.21188',
+    journalRef: 'J. Biol. Chem. 1995, 270, 21188',
     tags: const ["MBBS", "Pharm-D", "Neurochemistry", "Dopamine", "Norepinephrine", "Catecholamine", "Parkinson"],
     defaultCatalystName: 'Cu(II) / Ascorbate Enzyme Complex',
     literatureBarrierKcalMol: 16.7,
     hasLiteratureCatalyst: true,
-    literatureDoi: '10.1074/jbc.270.36.21191',
+    literatureDoi: '10.1074/jbc.270.36.21188',
     catalystXyz: '''4
 Cu(II) Active Center
 Cu 0.0000 0.0000 0.0000

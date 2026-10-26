@@ -4,7 +4,6 @@ import 'package:quantum_forge/core/services/url_service.dart';
 class DoiVerificationService {
   /// Known DOIs that are inactive, pre-activation, or fail in the global doi.org registry.
   static const Set<String> _knownInactiveDois = {
-    '10.1074/jbc.270.36.21191',
     '10.1000/182',
     'placeholder',
     'none',
@@ -42,6 +41,7 @@ class DoiVerificationService {
     String? articleTitle,
     String? journalRef,
     String? pmid,
+    VoidCallback? onViewPublicationDetails,
   }) {
     final query = articleTitle ?? journalRef ?? doi;
     final scholarUrl = 'https://scholar.google.com/scholar?q=${Uri.encodeComponent(query)}';
@@ -129,6 +129,18 @@ class DoiVerificationService {
               runSpacing: 8,
               alignment: WrapAlignment.end,
               children: [
+                if (onViewPublicationDetails != null)
+                  FilledButton.icon(
+                    onPressed: () {
+                      Navigator.of(ctx).pop();
+                      onViewPublicationDetails();
+                    },
+                    icon: const Icon(Icons.menu_book_rounded, size: 14),
+                    label: const Text('View Publication Page', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                    style: FilledButton.styleFrom(
+                      backgroundColor: const Color(0xFF00B0FF),
+                    ),
+                  ),
                 OutlinedButton.icon(
                   onPressed: () {
                     Navigator.of(ctx).pop();

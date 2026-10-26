@@ -223,7 +223,7 @@ void main() {
       blackBoxWarning: '',
       antidoteAndRescue: 'Phentolamine IV',
       clinicalGuidelines: const ['Neuropharmacology Curriculum'],
-      primaryDoi: '10.1074/jbc.270.36.21191',
+      primaryDoi: '10.1074/jbc.270.36.21188',
       pubmedId: '38291044',
       highYieldExamPearls: const ['DBH uses copper and Vitamin C to hydroxylate dopamine.'],
     );

@@ -37,7 +37,7 @@ MEDICAL_CATALYSTS = {
     "med-dopamine-01": {
         "catalyst": "Cu(II) / Ascorbate Enzyme Complex",
         "barrier": 16.7,
-        "doi": "10.1074/jbc.270.36.21191",
+        "doi": "10.1074/jbc.270.36.21188",
         "xyz": "4\nCu(II) Active Center\nCu 0.0000 0.0000 0.0000\nN  1.9800 0.0000 0.0000\nN -0.9900 1.7100 0.0000\nO -0.9900 -1.7100 0.0000\n"
     },
     "med-epinephrine-01": {

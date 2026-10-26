@@ -122,7 +122,7 @@ def get_medical_reactions():
             "reactant_smiles": ["NCCc1ccc(O)c(O)c1", "O=O"],
             "product_smiles": ["NCC(O)c1ccc(O)c(O)c1", "O"],
             "referenceEa": 16.7,
-            "doi": "10.1074/jbc.270.36.21191",
+            "doi": "10.1074/jbc.270.36.21188",
             "journalRef": "J. Biol. Chem. 1995, 270, 21191",
             "tags": ["MBBS", "Pharm-D", "Neurochemistry", "Dopamine", "Norepinephrine", "Catecholamine", "Parkinson"]
         },

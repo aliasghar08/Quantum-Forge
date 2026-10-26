@@ -876,6 +876,14 @@ class _QuantumControlsPanelState extends State<QuantumControlsPanel> {
                         doi: t.doi,
                         articleTitle: t.name,
                         journalRef: t.journalRef,
+                        onViewPublicationDetails: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  PublicationDetailsScreen(template: t),
+                            ),
+                          );
+                        },
                       );
                     }
                   },
@@ -905,45 +913,26 @@ class _QuantumControlsPanelState extends State<QuantumControlsPanel> {
               ),
               TextButton.icon(
                 onPressed: () {
-                  if (!DoiVerificationService.isVerifiedDoi(t.doi)) {
-                    DoiVerificationService.showUnverifiedDoiDialog(
-                      context: context,
-                      doi: t.doi,
-                      articleTitle: t.name,
-                      journalRef: t.journalRef,
-                    );
-                  } else {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            PublicationDetailsScreen(template: t),
-                      ),
-                    );
-                  }
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          PublicationDetailsScreen(template: t),
+                    ),
+                  );
                 },
-                icon: Icon(
-                  DoiVerificationService.isVerifiedDoi(t.doi)
-                      ? Icons.open_in_new
-                      : Icons.warning_amber_rounded,
+                icon: const Icon(
+                  Icons.open_in_new,
                   size: 12,
-                  color: DoiVerificationService.isVerifiedDoi(t.doi)
-                      ? const Color(0xFF4FC3F7)
-                      : Colors.grey,
+                  color: Color(0xFF4FC3F7),
                 ),
-                label: Text(
-                  DoiVerificationService.isVerifiedDoi(t.doi)
-                      ? 'View Publication'
-                      : 'View Publication (Unverified)',
+                label: const Text(
+                  'View Publication',
                   style: TextStyle(
-                    color: DoiVerificationService.isVerifiedDoi(t.doi)
-                        ? const Color(0xFF4FC3F7)
-                        : Colors.grey,
+                    color: Color(0xFF4FC3F7),
                   ),
                 ),
                 style: TextButton.styleFrom(
-                  foregroundColor: DoiVerificationService.isVerifiedDoi(t.doi)
-                      ? const Color(0xFF4FC3F7)
-                      : Colors.grey,
+                  foregroundColor: const Color(0xFF4FC3F7),
                   textStyle: const TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.bold,

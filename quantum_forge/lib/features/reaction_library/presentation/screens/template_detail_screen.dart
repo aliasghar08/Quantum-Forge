@@ -767,6 +767,14 @@ class TemplateDetailScreen extends StatelessWidget {
                                 doi: template.doi,
                                 articleTitle: template.name,
                                 journalRef: template.journalRef,
+                                onViewPublicationDetails: () {
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          PublicationDetailsScreen(template: template),
+                                    ),
+                                  );
+                                },
                               );
                             }
                           },
