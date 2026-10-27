@@ -9,6 +9,8 @@ extension ReactionProviderSimulationExt on ReactionNotifier {
     String productXyz, [
     double? referenceEa,
     QuantumSettings? settings,
+    String? reactionName,
+    String? templateId,
   ]) async {
     // 1. Pending -> Optimizing
     await Future.delayed(const Duration(milliseconds: 400));
@@ -41,6 +43,8 @@ extension ReactionProviderSimulationExt on ReactionNotifier {
     await _repo.updateReaction(reactionId, {
       'state': ReactionState.completed.name,
       'message': 'TS Search Converged Successfully (Transformer-MP Engine).',
+      'template_name': ?reactionName,
+      'template_id': ?templateId,
       'progress': 1.0,
       'energy_profile': result.energyProfile,
       'energy_profile_ev': result.energyProfileEv,
@@ -53,6 +57,8 @@ extension ReactionProviderSimulationExt on ReactionNotifier {
       reactionId: reactionId,
       state: ReactionState.completed,
       message: 'TS Search Converged Successfully (Transformer-MP Engine).',
+      reactionName: reactionName,
+      templateId: templateId,
       progress: 1.0,
       energyProfile: result.energyProfile,
       energyProfileEv: result.energyProfileEv,

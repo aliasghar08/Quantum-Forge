@@ -127,6 +127,12 @@ class ReactionStatusResponse {
   /// tx1-fastapi). Useful when the backend falls back to another model.
   final String? modelUsed;
 
+  /// Custom or template-assigned reaction name (e.g. 'Aspirin Synthesis & COX Acetylation').
+  final String? reactionName;
+
+  /// ID of the template from which this reaction originated, if applicable.
+  final String? templateId;
+
   ReactionStatusResponse({
     required this.reactionId,
     required this.state,
@@ -142,6 +148,8 @@ class ReactionStatusResponse {
     this.dftAttachments = const [],
     this.fromBackend = false,
     this.modelUsed,
+    this.reactionName,
+    this.templateId,
   });
 
   factory ReactionStatusResponse.empty() {
@@ -190,6 +198,8 @@ class ReactionStatusResponse {
       fromBackend: json['from_backend'] as bool? ?? false,
       createdAt: json['created_at'] != null ? DateTime.tryParse(json['created_at'] as String) : null,
       modelUsed: json['model_used'] as String?,
+      reactionName: (json['template_name'] ?? json['reaction_name'] ?? json['name'] ?? json['title']) as String?,
+      templateId: (json['template_id'] ?? json['templateId']) as String?,
     );
   }
 
@@ -206,6 +216,8 @@ class ReactionStatusResponse {
       if (trajectoryFrames != null) 'trajectory_frames': trajectoryFrames,
       if (createdAt != null) 'created_at': createdAt!.toIso8601String(),
       if (modelUsed != null) 'model_used': modelUsed,
+      if (reactionName != null) 'template_name': reactionName,
+      if (templateId != null) 'template_id': templateId,
       if (fromBackend) 'from_backend': true,
       if (dftAttachments.isNotEmpty)
         'dft_attachments': dftAttachments

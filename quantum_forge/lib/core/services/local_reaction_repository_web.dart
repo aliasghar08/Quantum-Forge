@@ -113,6 +113,8 @@ class LocalReactionRepository implements ReactionRepository {
       state: stateEnum,
       progress: (data['progress'] as num?)?.toDouble() ?? 0.0,
       message: data['message'] as String?,
+      reactionName: (data['template_name'] ?? data['reaction_name'] ?? data['name'] ?? data['title']) as String?,
+      templateId: (data['template_id'] ?? data['templateId']) as String?,
       energyProfile: energyRaw?.map((e) => (e as num).toDouble()).toList(),
       trajectoryFrames: framesRaw?.map((e) => e.toString()).toList(),
       createdAt: data['created_at'] != null ? DateTime.tryParse(data['created_at']) : null,

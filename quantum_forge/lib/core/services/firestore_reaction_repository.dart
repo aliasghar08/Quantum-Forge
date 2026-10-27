@@ -244,6 +244,8 @@ class FirestoreReactionRepository implements ReactionRepository {
           : const [],
       fromBackend: data['from_backend'] as bool? ?? false,
       modelUsed: data['model_used'] as String?,
+      reactionName: (data['template_name'] ?? data['reaction_name'] ?? data['name'] ?? data['title']) as String?,
+      templateId: (data['template_id'] ?? data['templateId']) as String?,
       createdAt: createdAt,
     );
   }

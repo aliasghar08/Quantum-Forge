@@ -161,7 +161,15 @@ extension ReactionProviderDispatchExt on ReactionNotifier {
           : template.referenceEa;
 
       // Simulate backend processing
-      _simulateReactionProcessing(reactionId, template.reactantXyz, template.productXyz, effectiveEa, settings);
+      _simulateReactionProcessing(
+        reactionId,
+        template.reactantXyz,
+        template.productXyz,
+        effectiveEa,
+        settings,
+        template.name,
+        template.id,
+      );
     } catch (e) {
       _setError('Failed to dispatch template reaction: $e');
     }

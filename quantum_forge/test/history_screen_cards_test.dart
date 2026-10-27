@@ -17,10 +17,10 @@ void main() {
       bool deleteCalled = false;
 
       const template = ReactionTemplate(
-        id: 'sim-1729831920',
-        name: 'TS Search Converged Successfully (Transformer-MP Engine)',
+        id: 'med-aspirin-01',
+        name: 'Aspirin (Acetylsalicylic Acid) Synthesis & COX Acetylation',
         iupacName: 'Transformer-MP-TS • 12 frames',
-        description: 'Converged trajectory with 12 frames and activation barrier of 15.45 kcal/mol.',
+        description: 'Converged trajectory with 12 frames and activation barrier of 18.20 kcal/mol.',
         category: ReactionCategory.organometallic,
         reactantXyz: '',
         productXyz: '',
@@ -49,7 +49,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('TS Search Converged Successfully (Transformer-MP Engine)'), findsOneWidget);
+      expect(find.text('Aspirin (Acetylsalicylic Acid) Synthesis & COX Acetylation'), findsOneWidget);
       expect(find.textContaining('kcal·mol⁻¹'), findsOneWidget);
       expect(find.text('Load'), findsOneWidget);
       expect(find.byIcon(Icons.close_rounded), findsOneWidget);
