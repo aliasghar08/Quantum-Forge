@@ -182,6 +182,9 @@ class FirestoreReactionRepository implements ReactionRepository {
       'user_id': uid,
       'state': ReactionState.completed.name,
       'progress': 1.0,
+      'template_name': ?(response.reactionName ?? response.templateId),
+      'reaction_name': ?response.reactionName,
+      'template_id': ?response.templateId,
       'created_at': response.createdAt != null
           ? Timestamp.fromDate(response.createdAt!)
           : FieldValue.serverTimestamp(),

@@ -11,8 +11,10 @@ extension ReactionProviderBackendExt on ReactionNotifier {
   Future<bool> _dispatchToBackend(
     String reactantXyz,
     String productXyz,
-    QuantumSettings settings,
-  ) async {
+    QuantumSettings settings, [
+    String? reactionName,
+    String? templateId,
+  ]) async {
     final explicitOverride = (backendUrlProvider?.call() ?? '').trim();
     var url = explicitOverride.isNotEmpty
         ? explicitOverride
@@ -31,6 +33,8 @@ extension ReactionProviderBackendExt on ReactionNotifier {
         state: ReactionState.pending,
         progress: 0.0,
         message: 'Submitting to ${settings.mlipModel == 'tx1-fastapi' ? 'GNN (tx1)' : 'DMF'} compute node…',
+        reactionName: reactionName,
+        templateId: templateId,
       );
 
       // Fake progress during potentially long cold-start submit request
@@ -57,6 +61,8 @@ extension ReactionProviderBackendExt on ReactionNotifier {
               state: ReactionState.pending,
               progress: simulatedProgress,
               message: message,
+              reactionName: reactionName,
+              templateId: templateId,
             );
           }
         }
@@ -73,6 +79,8 @@ extension ReactionProviderBackendExt on ReactionNotifier {
         state: ReactionState.optimizing,
         progress: 0.05,
         message: '${settings.mlipModel == 'tx1-fastapi' ? 'GNN (tx1)' : 'Direct MaxFlux'} running (${settings.mlipModel})…',
+        reactionName: reactionName,
+        templateId: templateId,
       );
 
       await for (final result in _backend.poll(url, reactionId)) {
@@ -81,24 +89,24 @@ extension ReactionProviderBackendExt on ReactionNotifier {
           // "DMF optimisation failed." line.
           errorNotifier.value = result.error ?? result.message ?? 'Backend optimisation failed.';
         } else if (result.state == ReactionState.completed) {
-          final completed = result.createdAt == null
-              ? ReactionStatusResponse(
-                  reactionId: result.reactionId,
-                  state: result.state,
-                  progress: result.progress,
-                  message: result.message,
-                  error: result.error,
-                  energyProfile: result.energyProfile,
-                  energyProfileEv: result.energyProfileEv,
-                  trajectoryFrames: result.trajectoryFrames,
-                  vibrationalModes: result.vibrationalModes,
-                  maxEnergyIndex: result.maxEnergyIndex,
-                  createdAt: DateTime.now(),
-                  dftAttachments: result.dftAttachments,
-                  fromBackend: result.fromBackend,
-                  modelUsed: result.modelUsed,
-                )
-              : result;
+          final completed = ReactionStatusResponse(
+            reactionId: result.reactionId,
+            state: result.state,
+            progress: result.progress,
+            message: result.message,
+            error: result.error,
+            reactionName: reactionName ?? result.reactionName,
+            templateId: templateId ?? result.templateId,
+            energyProfile: result.energyProfile,
+            energyProfileEv: result.energyProfileEv,
+            trajectoryFrames: result.trajectoryFrames,
+            vibrationalModes: result.vibrationalModes,
+            maxEnergyIndex: result.maxEnergyIndex,
+            createdAt: result.createdAt ?? DateTime.now(),
+            dftAttachments: result.dftAttachments,
+            fromBackend: result.fromBackend,
+            modelUsed: result.modelUsed,
+          );
           value = completed;
           if (await _auth.isAuthenticated()) {
             final uid = await _auth.getUserId();
