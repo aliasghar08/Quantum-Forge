@@ -13,11 +13,17 @@ import 'package:quantum_forge/core/widgets/glass_container.dart';
 class ReactionCardWidget extends StatefulWidget {
   final ReactionTemplate template;
   final VoidCallback onLoad;
+  final VoidCallback? onDelete;
+  final VoidCallback? onTap;
+  final Widget? trailingBadge;
 
   const ReactionCardWidget({
     super.key,
     required this.template,
     required this.onLoad,
+    this.onDelete,
+    this.onTap,
+    this.trailingBadge,
   });
 
   static Color categoryColor(ReactionCategory c) {
@@ -98,6 +104,10 @@ class _ReactionCardWidgetState extends State<ReactionCardWidget> {
             child: InkWell(
               borderRadius: BorderRadius.circular(16),
               onTap: () {
+                if (widget.onTap != null) {
+                  widget.onTap!();
+                  return;
+                }
                 final user = FirebaseAuth.instance.currentUser;
                 if (user == null) {
                   Navigator.of(context).push(
@@ -165,25 +175,47 @@ class _ReactionCardWidgetState extends State<ReactionCardWidget> {
                           ),
                         ),
                         const SizedBox(width: 8),
-                        // Ea badge
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.06),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Row(mainAxisSize: MainAxisSize.min, children: [
-                            Icon(Icons.bolt, size: 12, color: Colors.amber.shade300),
-                            const SizedBox(width: 3),
-                            Text(
-                              '${template.effectiveLiteratureBarrier.toStringAsFixed(1)} kcal·mol⁻¹',
-                              style: TextStyle(
-                                  color: Colors.amber.shade200,
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w600),
+                        // Ea badge / trailing badge
+                        if (widget.trailingBadge != null)
+                          widget.trailingBadge!
+                        else if (template.effectiveLiteratureBarrier > 0)
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.06),
+                              borderRadius: BorderRadius.circular(20),
                             ),
-                          ]),
-                        ),
+                            child: Row(mainAxisSize: MainAxisSize.min, children: [
+                              Icon(Icons.bolt, size: 12, color: Colors.amber.shade300),
+                              const SizedBox(width: 3),
+                              Text(
+                                '${template.effectiveLiteratureBarrier.toStringAsFixed(1)} kcal·mol⁻¹',
+                                style: TextStyle(
+                                    color: Colors.amber.shade200,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w600),
+                              ),
+                            ]),
+                          )
+                        else
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.06),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Row(mainAxisSize: MainAxisSize.min, children: [
+                              Icon(Icons.cloud_outlined, size: 12, color: Colors.blue.shade300),
+                              const SizedBox(width: 3),
+                              Text(
+                                'CLOUD',
+                                style: TextStyle(
+                                    color: Colors.blue.shade200,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w600),
+                              ),
+                            ]),
+                          ),
                       ],
                     ),
                     SizedBox(height: isMobile ? 4 : 12),
@@ -316,6 +348,17 @@ class _ReactionCardWidgetState extends State<ReactionCardWidget> {
                           ),
                         ),
                         const SizedBox(width: 8),
+                        if (widget.onDelete != null) ...[
+                          IconButton(
+                            tooltip: 'Delete run',
+                            icon: const Icon(Icons.close_rounded, size: 18, color: Colors.white38),
+                            hoverColor: Colors.redAccent.withValues(alpha: 0.2),
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                            onPressed: widget.onDelete,
+                          ),
+                          const SizedBox(width: 4),
+                        ],
                         FilledButton.icon(
                           onPressed: widget.onLoad,
                           style: FilledButton.styleFrom(

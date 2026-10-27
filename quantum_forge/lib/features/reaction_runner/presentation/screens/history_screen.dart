@@ -9,6 +9,8 @@ import 'package:quantum_forge/core/services/auth_service.dart';
 import 'package:quantum_forge/core/theme/theme_provider.dart';
 import 'package:quantum_forge/features/auth/presentation/screens/auth_screen.dart';
 import 'package:quantum_forge/features/reaction_runner/data/models/reaction_models.dart';
+import 'package:quantum_forge/features/reaction_library/data/reaction_templates.dart';
+import 'package:quantum_forge/features/reaction_library/presentation/widgets/reaction_card_widget.dart';
 import 'package:quantum_forge/core/widgets/animations/staggered_animation_list_item.dart';
 import 'package:quantum_forge/core/widgets/adsense_banner_web.dart';
 
@@ -194,11 +196,11 @@ class _HistoryScreenState extends State<HistoryScreen> {
               _buildHeader(palette, isMobile),
               const SizedBox(height: 20),
 
-              // Empty State or List
+              // Empty State or Grid
               if (_reactions.isEmpty)
                 _buildEmptyState(palette, isMobile)
               else
-                _buildReactionList(palette, isMobile),
+                _buildReactionList(palette, isMobile, constraints.maxWidth),
 
               const SizedBox(height: 16),
               AdSenseBannerWeb(
@@ -438,193 +440,148 @@ class _HistoryScreenState extends State<HistoryScreen> {
     );
   }
 
-  Widget _buildReactionList(QuantumTheme palette, bool isMobile) {
+  ReactionTemplate _templateFromReaction(ReactionStatusResponse reaction) {
+    final barrier = _computeBarrier(reaction) ?? 0.0;
+    final frames = reaction.trajectoryFrames?.length ?? 0;
+    final dateStr = (reaction.createdAt ?? DateTime.now())
+        .toLocal()
+        .toString()
+        .split('.')[0];
+
+    // Check if there is an exact or partial match in curated kReactionTemplates
+    ReactionTemplate? matched;
+    final msgLower = (reaction.message ?? '').toLowerCase();
+    for (final t in kReactionTemplates) {
+      if (reaction.reactionId.contains(t.id) ||
+          (msgLower.isNotEmpty && msgLower.contains(t.name.toLowerCase()))) {
+        matched = t;
+        break;
+      }
+    }
+
+    // Name / Title
+    String name;
+    if (reaction.message != null && reaction.message!.trim().isNotEmpty) {
+      name = reaction.message!;
+    } else if (matched != null) {
+      name = matched.name;
+    } else {
+      name =
+          'Reaction ${reaction.reactionId.length > 8 ? reaction.reactionId.substring(0, 8) : reaction.reactionId}';
+    }
+
+    // Subtitle / IUPAC
+    String iupac;
+    if (matched != null && matched.iupacName.isNotEmpty) {
+      iupac = matched.iupacName;
+    } else if (reaction.modelUsed != null && reaction.modelUsed!.isNotEmpty) {
+      iupac = '${reaction.modelUsed} • $frames frames';
+    } else if (frames > 0) {
+      iupac = '$frames trajectory frames';
+    } else {
+      iupac = 'Calculated Mechanism';
+    }
+
+    // Description
+    String desc;
+    if (matched != null && matched.description.isNotEmpty) {
+      desc = matched.description;
+    } else {
+      final status = reaction.state == ReactionState.completed
+          ? 'Converged calculation'
+          : (reaction.state == ReactionState.error
+              ? 'Optimization error'
+              : 'In-progress run');
+      desc =
+          '$status with $frames trajectory frames and activation barrier of ${barrier.toStringAsFixed(2)} kcal/mol. Synced on $dateStr.';
+    }
+
+    // Category
+    ReactionCategory category;
+    if (matched != null) {
+      category = matched.category;
+    } else {
+      final m = (reaction.modelUsed ?? '').toLowerCase();
+      if (m.contains('transformer') || msgLower.contains('transformer')) {
+        category = ReactionCategory.organometallic;
+      } else if (msgLower.contains('diels') || msgLower.contains('pericyclic')) {
+        category = ReactionCategory.pericyclic;
+      } else if (msgLower.contains('radical')) {
+        category = ReactionCategory.radical;
+      } else if (msgLower.contains('polymer')) {
+        category = ReactionCategory.polymer;
+      } else if (msgLower.contains('pharma') ||
+          msgLower.contains('paracetamol') ||
+          msgLower.contains('aspirin')) {
+        category = ReactionCategory.pharmaceutical;
+      } else {
+        category = ReactionCategory.thermal;
+      }
+    }
+
+    final tags = <String>[
+      if (reaction.modelUsed != null && reaction.modelUsed!.isNotEmpty)
+        reaction.modelUsed!,
+      if (frames > 0) '$frames frames',
+      'cloud',
+      if (reaction.state == ReactionState.completed)
+        'converged'
+      else
+        reaction.state.name,
+    ];
+
+    return ReactionTemplate(
+      id: reaction.reactionId,
+      name: name,
+      iupacName: iupac,
+      description: desc,
+      category: category,
+      reactantXyz: matched?.reactantXyz ??
+          (frames > 0 ? reaction.trajectoryFrames!.first : ''),
+      productXyz: matched?.productXyz ??
+          (frames > 1 ? reaction.trajectoryFrames!.last : ''),
+      referenceEa: barrier,
+      literatureBarrierKcalMol: barrier > 0 ? barrier : null,
+      doi: matched?.doi ?? '',
+      journalRef:
+          matched?.journalRef.isNotEmpty == true ? matched!.journalRef : dateStr,
+      tags: tags,
+      defaultCatalystName: matched?.defaultCatalystName,
+    );
+  }
+
+  Widget _buildReactionList(
+      QuantumTheme palette, bool isMobile, double screenWidth) {
+    final columns = screenWidth >= 1200
+        ? 3
+        : screenWidth >= 820
+            ? 2
+            : 1;
+
     return AnimationLimiter(
-      child: ListView.separated(
+      child: GridView.builder(
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
+        padding: EdgeInsets.zero,
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: columns,
+          mainAxisSpacing: isMobile ? 14 : 20,
+          crossAxisSpacing: isMobile ? 14 : 20,
+          mainAxisExtent: isMobile ? 250 : 255,
+        ),
         itemCount: _reactions.length,
-        separatorBuilder: (context, index) => const SizedBox(height: 10),
         itemBuilder: (context, index) {
           final reaction = _reactions[index];
-          final isCompleted = reaction.state == ReactionState.completed;
-          final isFailed = reaction.state == ReactionState.error;
-          final barrier = _computeBarrier(reaction);
-          final framesCount = reaction.trajectoryFrames?.length ?? 0;
-
-          Color statusColor = Colors.blueAccent;
-          IconData statusIcon = Icons.sync_rounded;
-
-          if (isCompleted) {
-            statusColor = const Color(0xFF00E676);
-            statusIcon = Icons.check_circle_rounded;
-          } else if (isFailed) {
-            statusColor = Colors.redAccent;
-            statusIcon = Icons.error_rounded;
-          }
-
-          final dateStr = (reaction.createdAt ?? DateTime.now())
-              .toLocal()
-              .toString()
-              .split('.')[0];
+          final template = _templateFromReaction(reaction);
 
           return StaggeredAnimationListItem(
             index: index,
-            child: Material(
-              color: Colors.transparent,
-              child: InkWell(
-                borderRadius: BorderRadius.circular(12),
-                onTap: () => _selectReaction(reaction),
-                child: Container(
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    color: palette.panel,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: isCompleted
-                          ? palette.border
-                          : statusColor.withValues(alpha: 0.3),
-                    ),
-                  ),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      // Status Icon Badge
-                      Container(
-                        width: 42,
-                        height: 42,
-                        decoration: BoxDecoration(
-                          color: statusColor.withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: statusColor.withValues(alpha: 0.3)),
-                        ),
-                        child: Icon(statusIcon, color: statusColor, size: 22),
-                      ),
-                      const SizedBox(width: 14),
-
-                      // Content Details
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    reaction.message != null && reaction.message!.isNotEmpty
-                                        ? reaction.message!
-                                        : 'Reaction ${reaction.reactionId.length > 8 ? reaction.reactionId.substring(0, 8) : reaction.reactionId}',
-                                    style: TextStyle(
-                                      color: palette.textPrimary,
-                                      fontWeight: FontWeight.w700,
-                                      fontSize: 14.5,
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                  decoration: BoxDecoration(
-                                    color: palette.accent.withValues(alpha: 0.15),
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
-                                  child: Text(
-                                    'CLOUD',
-                                    style: TextStyle(
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.bold,
-                                      color: palette.accent,
-                                      letterSpacing: 0.5,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 6),
-
-                            // Badges (Barrier, Frames, Model, Timestamp)
-                            Wrap(
-                              spacing: 8,
-                              runSpacing: 4,
-                              crossAxisAlignment: WrapCrossAlignment.center,
-                              children: [
-                                if (barrier != null)
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFF00E676).withValues(alpha: 0.12),
-                                      borderRadius: BorderRadius.circular(6),
-                                      border: Border.all(
-                                        color: const Color(0xFF00E676).withValues(alpha: 0.3),
-                                      ),
-                                    ),
-                                    child: Text(
-                                      'ΔE‡ ${barrier.toStringAsFixed(2)} kcal/mol',
-                                      style: const TextStyle(
-                                        color: Color(0xFF00E676),
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 11.5,
-                                      ),
-                                    ),
-                                  ),
-                                if (framesCount > 0)
-                                  Text(
-                                    '$framesCount frames',
-                                    style: TextStyle(
-                                      color: palette.textSecondary,
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                if (reaction.modelUsed != null)
-                                  Text(
-                                    '• ${reaction.modelUsed}',
-                                    style: TextStyle(
-                                      color: palette.textSecondary,
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                Text(
-                                  '• $dateStr',
-                                  style: TextStyle(
-                                    color: palette.textSecondary.withValues(alpha: 0.7),
-                                    fontSize: 11.5,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-
-                      // Quick Action Buttons
-                      FilledButton.tonal(
-                        onPressed: () => _selectReaction(reaction),
-                        style: FilledButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                          visualDensity: VisualDensity.compact,
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Text('Load', style: TextStyle(fontSize: 12)),
-                            const SizedBox(width: 4),
-                            Icon(Icons.arrow_forward_rounded, size: 14, color: palette.accent),
-                          ],
-                        ),
-                      ),
-                      IconButton(
-                        tooltip: 'Delete run',
-                        icon: const Icon(Icons.close_rounded, size: 18, color: Colors.white38),
-                        hoverColor: Colors.redAccent.withValues(alpha: 0.2),
-                        onPressed: () => _deleteReaction(reaction.reactionId),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+            child: ReactionCardWidget(
+              key: ValueKey(reaction.reactionId),
+              template: template,
+              onLoad: () => _selectReaction(reaction),
+              onTap: () => _selectReaction(reaction),
+              onDelete: () => _deleteReaction(reaction.reactionId),
             ),
           );
         },
