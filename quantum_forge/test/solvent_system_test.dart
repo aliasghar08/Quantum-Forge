@@ -3,7 +3,7 @@ import 'package:quantum_forge/core/algorithms/solvent_properties.dart';
 import 'package:quantum_forge/core/algorithms/transformer_reaction_compressor.dart';
 import 'package:quantum_forge/features/reaction_runner/data/models/results_summary.dart';
 import 'package:quantum_forge/state/settings_provider.dart';
-import 'package:quantum_forge/viewmodels/reaction_workspace_viewmodel.dart';
+import 'package:quantum_forge/features/reaction_runner/presentation/views/reaction_workspace_viewmodel.dart';
 
 void main() {
   group('SolventProperties Model Tests', () {

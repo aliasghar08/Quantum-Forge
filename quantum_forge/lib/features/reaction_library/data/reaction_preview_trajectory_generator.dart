@@ -18,9 +18,9 @@ class ReactionPreviewTrajectoryGenerator {
   /// matched partner's position.
   static const double phantomEjectionDistance = 25.0;
 
-  /// Generates [previewFrames] XYZ documents interpolated between the reactant and
+  /// Generates [frameCount] XYZ documents interpolated between the reactant and
   /// product geometries with cosine easing and radial phantom atom padding.
-  static List<String> generateTrajectory(ReactionTemplate template) {
+  static List<String> generateTrajectory(ReactionTemplate template, {int frameCount = previewFrames}) {
     final reactant = XyzParser.parse(template.reactantXyz);
     final product = XyzParser.parse(template.productXyz);
 
@@ -41,14 +41,14 @@ class ReactionPreviewTrajectoryGenerator {
       unmatchedSource: reactant,
     );
 
-    return List<String>.generate(previewFrames, (frame) {
-      final double t = frame / (previewFrames - 1);
+    return List<String>.generate(frameCount, (frame) {
+      final double t = frameCount <= 1 ? 0.0 : frame / (frameCount - 1);
       final double s = 0.5 * (1.0 - math.cos(math.pi * t));
 
       final buffer = StringBuffer()
         ..writeln(rAtoms.length)
         ..writeln(
-          '${template.name} — frame ${frame + 1}/$previewFrames',
+          '${template.name} — frame ${frame + 1}/$frameCount',
         );
 
       for (var a = 0; a < rAtoms.length; a++) {
@@ -107,15 +107,15 @@ class ReactionPreviewTrajectoryGenerator {
   }
 
   /// Generates the analytic Eckart energy profile for a given activation energy.
-  static List<double> generateEnergyProfile(double ea) {
+  static List<double> generateEnergyProfile(double ea, {int frameCount = previewFrames}) {
     const double beta = 6.0;
     final double dH = -ea * 0.3;
 
     final double a = ea - dH / 2;
     final double b = dH / 2;
 
-    return List<double>.generate(previewFrames, (i) {
-      final double t = i / (previewFrames - 1);
+    return List<double>.generate(frameCount, (i) {
+      final double t = frameCount <= 1 ? 0.0 : i / (frameCount - 1);
       final double x = beta * (t - 0.5);
 
       final double ex = math.exp(x);

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:quantum_forge/models/curated_video.dart';
-import 'package:quantum_forge/services/youtube_curation_service.dart';
-import 'package:quantum_forge/widgets/curated_video_card.dart';
-import 'package:quantum_forge/views/publications/publication_videos_section.dart';
+import 'package:quantum_forge/features/reaction_library/data/models/curated_video.dart';
+import 'package:quantum_forge/features/reaction_library/data/services/youtube_curation_service.dart';
+import 'package:quantum_forge/features/reaction_library/presentation/widgets/curated_video_card.dart';
+import 'package:quantum_forge/features/reaction_library/presentation/widgets/publication/publication_videos_section.dart';
 
 void main() {
   group('CuratedVideo Model Tests', () {

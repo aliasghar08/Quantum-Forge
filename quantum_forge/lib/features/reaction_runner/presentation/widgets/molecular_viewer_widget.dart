@@ -36,7 +36,7 @@ class _MolecularViewerWidgetState extends State<MolecularViewerWidget> {
   DateTime? _lastCanvasTapTime;
   bool _electronCloudMode = false;
   bool _showBondData = false;
-  bool _showBondLabels = true;
+  bool _showBondLabels = false;
   List<Atom> _atoms = [];
   List<Atom> _baseAtoms = [];
   final List<Atom> _selectedAtoms = [];

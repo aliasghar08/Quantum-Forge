@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:quantum_forge/core/state/quantum_provider.dart';
-import 'package:quantum_forge/viewmodels/reaction_workspace_viewmodel.dart';
-import 'package:quantum_forge/views/reaction_workspace/reaction_workspace_screen.dart';
-import 'package:quantum_forge/views/reaction_workspace/mobile/reaction_workspace_mobile_view.dart';
-import 'package:quantum_forge/views/reaction_workspace/desktop/reaction_workspace_desktop_view.dart';
+import 'package:quantum_forge/features/reaction_runner/presentation/views/reaction_workspace_viewmodel.dart';
+import 'package:quantum_forge/screens/reaction_workspace_screen.dart';
+import 'package:quantum_forge/features/reaction_runner/presentation/views/reaction_workspace/mobile/reaction_workspace_mobile_view.dart';
+import 'package:quantum_forge/features/reaction_runner/presentation/views/reaction_workspace/desktop/reaction_workspace_desktop_view.dart';
 import 'package:quantum_forge/core/theme/theme_provider.dart';
 
 void main() {

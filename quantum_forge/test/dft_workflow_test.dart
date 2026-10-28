@@ -8,7 +8,7 @@
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:quantum_forge/features/reaction_runner/data/models/reaction_models.dart';
-import 'package:quantum_forge/features/reaction_runner/presentation/screens/method_validation_screen.dart';
+import 'package:quantum_forge/screens/method_validation_screen.dart';
 import 'package:quantum_forge/features/reaction_runner/presentation/widgets/dashboard_cards/dft_workflow_card.dart';
 
 /// Shaped from the real POST /reactions/{id}/attach-dft response.

@@ -1,0 +1,124 @@
+{
+  "total_evaluated": 200,
+  "barrier_mae_kcal": 2.2438,
+  "reaction_energy_mae_kcal": 13.7285,
+  "max_barrier_error_kcal": 8.8048,
+  "throughput_reactions_per_sec": 141.27,
+  "elapsed_seconds": 1.42,
+  "per_source_breakdown": {
+    "transition1x_variant": {
+      "count": 161,
+      "barrier_mae_kcal": 2.2242
+    },
+    "transition1x": {
+      "count": 37,
+      "barrier_mae_kcal": 2.3048
+    },
+    "clinical_milestone": {
+      "count": 2,
+      "barrier_mae_kcal": 2.6953
+    }
+  },
+  "worst_10_cases": [
+    {
+      "reaction_id": "retro_da_sub_8_Cl",
+      "source": "transition1x_variant",
+      "ref_barrier_kcal": 45.0,
+      "pred_barrier_kcal": 36.1952,
+      "barrier_error_kcal": 8.8048,
+      "ref_reaction_energy_kcal": 0.0,
+      "pred_reaction_energy_kcal": 7.9672,
+      "reaction_energy_error_kcal": 7.9672
+    },
+    {
+      "reaction_id": "gaba_congener_var_21823_sub_4_F",
+      "source": "transition1x_variant",
+      "ref_barrier_kcal": 23.0,
+      "pred_barrier_kcal": 14.707,
+      "barrier_error_kcal": 8.293,
+      "ref_reaction_energy_kcal": 0.0,
+      "pred_reaction_energy_kcal": 14.707,
+      "reaction_energy_error_kcal": 14.707
+    },
+    {
+      "reaction_id": "pd_ch_activation",
+      "source": "transition1x",
+      "ref_barrier_kcal": 23.4,
+      "pred_barrier_kcal": 15.2518,
+      "barrier_error_kcal": 8.1482,
+      "ref_reaction_energy_kcal": 0.0,
+      "pred_reaction_energy_kcal": -5.1016,
+      "reaction_energy_error_kcal": 5.1016
+    },
+    {
+      "reaction_id": "quinolone_var_21839_sub_4_Br",
+      "source": "transition1x_variant",
+      "ref_barrier_kcal": 24.4,
+      "pred_barrier_kcal": 16.473,
+      "barrier_error_kcal": 7.927,
+      "ref_reaction_energy_kcal": 0.0,
+      "pred_reaction_energy_kcal": 16.473,
+      "reaction_energy_error_kcal": 16.473
+    },
+    {
+      "reaction_id": "gaba_congener_var_21823_sub_4_Br",
+      "source": "transition1x_variant",
+      "ref_barrier_kcal": 23.7,
+      "pred_barrier_kcal": 16.4195,
+      "barrier_error_kcal": 7.2805,
+      "ref_reaction_energy_kcal": 0.0,
+      "pred_reaction_energy_kcal": 16.4195,
+      "reaction_energy_error_kcal": 16.4195
+    },
+    {
+      "reaction_id": "ace_inhibitor_var_21838_sub_4_Br",
+      "source": "transition1x_variant",
+      "ref_barrier_kcal": 23.7,
+      "pred_barrier_kcal": 16.4537,
+      "barrier_error_kcal": 7.2463,
+      "ref_reaction_energy_kcal": 0.0,
+      "pred_reaction_energy_kcal": 16.4537,
+      "reaction_energy_error_kcal": 16.4537
+    },
+    {
+      "reaction_id": "pd_ch_activation_sub_5_Cl",
+      "source": "transition1x_variant",
+      "ref_barrier_kcal": 24.2,
+      "pred_barrier_kcal": 17.0453,
+      "barrier_error_kcal": 7.1547,
+      "ref_reaction_energy_kcal": 0.0,
+      "pred_reaction_energy_kcal": -3.6747,
+      "reaction_energy_error_kcal": 3.6747
+    },
+    {
+      "reaction_id": "local_anesthetic_var_21822_sub_4_Cl",
+      "source": "transition1x_variant",
+      "ref_barrier_kcal": 22.7,
+      "pred_barrier_kcal": 15.7471,
+      "barrier_error_kcal": 6.9529,
+      "ref_reaction_energy_kcal": 0.0,
+      "pred_reaction_energy_kcal": 15.7471,
+      "reaction_energy_error_kcal": 15.7471
+    },
+    {
+      "reaction_id": "ester_hydrolysis_var_21820_sub_5_F",
+      "source": "transition1x_variant",
+      "ref_barrier_kcal": 20.9,
+      "pred_barrier_kcal": 13.9974,
+      "barrier_error_kcal": 6.9026,
+      "ref_reaction_energy_kcal": 0.0,
+      "pred_reaction_energy_kcal": 13.9974,
+      "reaction_energy_error_kcal": 13.9974
+    },
+    {
+      "reaction_id": "local_anesthetic_var_21822_sub_5_Cl",
+      "source": "transition1x_variant",
+      "ref_barrier_kcal": 22.7,
+      "pred_barrier_kcal": 15.9101,
+      "barrier_error_kcal": 6.7899,
+      "ref_reaction_energy_kcal": 0.0,
+      "pred_reaction_energy_kcal": 15.9101,
+      "reaction_energy_error_kcal": 15.9101
+    }
+  ]
+}

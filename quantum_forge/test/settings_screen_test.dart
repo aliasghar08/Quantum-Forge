@@ -20,7 +20,7 @@ import 'package:quantum_forge/core/services/app_storage.dart';
 import 'package:quantum_forge/core/settings/app_settings_provider.dart';
 import 'package:quantum_forge/core/theme/theme_provider.dart';
 import 'package:quantum_forge/state/settings_provider.dart';
-import 'package:quantum_forge/features/settings/presentation/screens/settings_screen.dart';
+import 'package:quantum_forge/screens/settings_screen.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();

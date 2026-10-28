@@ -5,9 +5,9 @@
 
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:quantum_forge/features/auth/presentation/screens/auth_screen.dart';
+import 'package:quantum_forge/screens/auth_screen.dart';
 import 'package:quantum_forge/features/reaction_library/data/reaction_templates.dart';
-import 'package:quantum_forge/features/reaction_library/presentation/screens/template_detail_screen.dart';
+import 'package:quantum_forge/screens/template_detail_screen.dart';
 import 'package:quantum_forge/core/widgets/glass_container.dart';
 
 class ReactionCardWidget extends StatefulWidget {

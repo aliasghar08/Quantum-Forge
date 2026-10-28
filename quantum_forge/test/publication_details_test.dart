@@ -12,7 +12,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:quantum_forge/core/state/quantum_provider.dart';
 import 'package:quantum_forge/core/theme/theme_provider.dart';
 import 'package:quantum_forge/features/reaction_library/data/reaction_templates.dart';
-import 'package:quantum_forge/features/reaction_library/presentation/screens/publication_details_screen.dart';
+import 'package:quantum_forge/screens/publication_details_screen.dart';
 
 void main() {
   testWidgets('falls back to bundled data when CrossRef metadata is unavailable',

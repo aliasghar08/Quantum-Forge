@@ -408,12 +408,12 @@ extension _ViewerControlsIntegration on _ReactionAnimationWidgetState {
       _radiusScale = kNglBallAndStickRadiusScale;
       _aspectRatio = kNglBallAndStickAspectRatio;
       _viewerBackground = _ViewerBackground.dark;
-      _autoRotate = false;
+      _autoRotate = true;
       _rotateSpeed = 0.5;
     });
     final viewer = _viewerKey.currentState;
     viewer?.applyStyle(_style);
     viewer?.setBackground('black');
-    viewer?.setAutoRotate(enabled: false, speed: 0.5);
+    viewer?.setAutoRotate(enabled: true, speed: 0.5);
   }
 }

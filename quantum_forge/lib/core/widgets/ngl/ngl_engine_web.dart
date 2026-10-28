@@ -149,6 +149,10 @@ class NglEngine {
   bool _lastLoadedAsTrajectory = false;
   int? _lastLoadedFrame;
 
+  /// Whether continuous spin around the Y axis is requested.
+  bool _autoRotate = true;
+  double _rotateSpeed = 0.5;
+
   /// Guards against scheduling two recoveries for one loss (both the `lost`
   /// event and a timeout can fire the same recovery).
   bool _recoveryScheduled = false;
@@ -286,6 +290,10 @@ class NglEngine {
     final queuedLabels = _queuedBondLabels;
     _queuedBondLabels = null;
     if (queuedLabels != null) setBondLabels(queuedLabels);
+
+    if (_autoRotate) {
+      setAutoRotate(enabled: true, speed: _rotateSpeed);
+    }
   }
 
   void _applySceneParameters(JSObject stage) {
@@ -799,6 +807,9 @@ class NglEngine {
     } else {
       _recordInitialCameraDistance();
     }
+    if (_autoRotate) {
+      setAutoRotate(enabled: true, speed: _rotateSpeed);
+    }
   }
 
   Future<JSObject?> _load(_PendingLoad request) async {
@@ -1063,6 +1074,8 @@ class NglEngine {
   /// Starts or stops the auto-rotate animation.
   void setAutoRotate({required bool enabled, double speed = 0.5}) {
     if (_disposed) return;
+    _autoRotate = enabled;
+    _rotateSpeed = speed;
     final stage = _stage;
     if (stage == null) return;
     try {

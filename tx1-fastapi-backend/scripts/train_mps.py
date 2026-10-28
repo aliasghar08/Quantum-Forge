@@ -72,7 +72,7 @@ def parse_xyz(xyz_str: str) -> tuple[list[str], list[list[float]]]:
 
 
 def generate_lst_frames(
-    r_pos: list[list[float]], p_pos: list[list[float]], n_frames: int = 11
+    r_pos: list[list[float]], p_pos: list[list[float]], n_frames: int = 15
 ) -> list[list[list[float]]]:
     frames = []
     for i in range(n_frames):
@@ -91,7 +91,7 @@ def generate_lst_frames(
 
 
 class ReactionDataset(Dataset):
-    def __init__(self, jsonl_path: Path, max_samples: int | None = None, n_frames: int = 11):
+    def __init__(self, jsonl_path: Path, max_samples: int | None = None, n_frames: int = 15):
         self.samples = []
         self.n_frames = n_frames
         if not jsonl_path.is_file():
@@ -173,6 +173,7 @@ def compute_reaction_energies(model, batch_z, batch_frames, batch_mask):
       pred_barriers_kcal: [B]
       pred_dE_kcal: [B]
       pred_energy_mean: scalar float tensor
+      smoothness: scalar float tensor (Laplacian second derivative penalty)
     """
     B, F_count, N, _ = batch_frames.shape
     # Flatten batch and frames: [B * F, N]
@@ -183,7 +184,7 @@ def compute_reaction_energies(model, batch_z, batch_frames, batch_mask):
     flat_energies_ev = model(flat_z, flat_pos, flat_mask)  # [B * F]
     energies_ev = flat_energies_ev.view(B, F_count)  # [B, F]
 
-    EV_TO_KCAL = 23.0605
+    EV_TO_KCAL = 23.060541945329334
     e_reactant = energies_ev[:, 0]
     e_max = torch.max(energies_ev, dim=1).values
     e_product = energies_ev[:, -1]
@@ -191,7 +192,14 @@ def compute_reaction_energies(model, batch_z, batch_frames, batch_mask):
     pred_barriers_kcal = (e_max - e_reactant) * EV_TO_KCAL
     pred_dE_kcal = (e_product - e_reactant) * EV_TO_KCAL
 
-    return pred_barriers_kcal, pred_dE_kcal, energies_ev.mean()
+    # Penalize unphysical zig-zags along reaction path
+    if F_count > 2:
+        laplacian = energies_ev[:, 2:] - 2.0 * energies_ev[:, 1:-1] + energies_ev[:, :-2]
+        smoothness = laplacian.abs().mean()
+    else:
+        smoothness = torch.tensor(0.0, device=energies_ev.device)
+
+    return pred_barriers_kcal, pred_dE_kcal, energies_ev.mean(), smoothness
 
 
 def build_model(architecture: str):
@@ -230,7 +238,8 @@ def main():
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--log-dir", type=str, default="data/runs/")
     parser.add_argument("--resume", type=str, default=None)
-    parser.add_argument("--frames", type=int, default=11)
+    parser.add_argument("--finetune", action="store_true", help="Warm-start weights from resume checkpoint but reset epoch counter and optimizer.")
+    parser.add_argument("--frames", type=int, default=15)
     args = parser.parse_args()
 
     # Seed
@@ -247,7 +256,12 @@ def main():
     print(f"Hyperparameters: epochs={args.epochs}, bs={args.batch_size}, accum={args.grad_accum}, lr={args.lr}, seed={args.seed}")
 
     data_dir = Path(args.data_dir)
+    if not (data_dir / "train.jsonl").is_file() and (BASE_DIR / args.data_dir / "train.jsonl").is_file():
+        data_dir = BASE_DIR / args.data_dir
+
     log_dir = Path(args.log_dir)
+    if not log_dir.is_dir() and (BASE_DIR / args.log_dir).is_dir():
+        log_dir = BASE_DIR / args.log_dir
     log_dir.mkdir(parents=True, exist_ok=True)
     timestamp = datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%d_%H%M%S")
     log_file = log_dir / f"{timestamp}_{args.architecture}.jsonl"
@@ -277,14 +291,19 @@ def main():
     if args.resume and Path(args.resume).is_file():
         ckpt = torch.load(args.resume, map_location="cpu", weights_only=False)
         model.load_state_dict(ckpt.get("model_state_dict", ckpt), strict=False)
-        if "optimizer_state_dict" in ckpt:
-            optimizer.load_state_dict(ckpt["optimizer_state_dict"])
-        start_epoch = ckpt.get("epoch", 0) + 1
-        print(f"Resumed from {args.resume} at epoch {start_epoch}")
+        if args.finetune:
+            print(f"Fine-tuning weights initialized from {args.resume} (fresh optimizer, start epoch 0).")
+        else:
+            if "optimizer_state_dict" in ckpt:
+                optimizer.load_state_dict(ckpt["optimizer_state_dict"])
+            start_epoch = ckpt.get("epoch", 0) + 1
+            print(f"Resumed from {args.resume} at epoch {start_epoch}")
 
-    # Section 11 weights: {"energy": 0.01, "barrier": 1.0}
+    # Training loss weights: joint barrier, reaction energy, and smoothness
     w_barrier = 1.0
-    w_energy = 0.01
+    w_dE = 0.20
+    w_smooth = 0.05
+    w_energy = 0.005
 
     best_val_mae = float("inf")
     patience = 30
@@ -307,17 +326,26 @@ def main():
             frames = batch["frames"].to(device)
             mask = batch["mask"].to(device)
             target_b = batch["target_barrier"].to(device)
+            target_dE = batch["target_dE"].to(device)
             weights = batch["weight"].to(device)
 
-            pred_b, pred_dE, pred_e_mean = compute_reaction_energies(model, z, frames, mask)
+            pred_b, pred_dE, pred_e_mean, smoothness = compute_reaction_energies(model, z, frames, mask)
 
-            # Huber loss with delta=1.0 kcal/mol
+            # Huber barrier loss
             b_loss = F.huber_loss(pred_b, target_b, delta=1.0, reduction="none")
             weighted_b_loss = (b_loss * weights).mean()
+
+            # Huber reaction energy (Delta E) loss
+            dE_loss = F.huber_loss(pred_dE, target_dE, delta=1.5, reduction="none")
+            weighted_dE_loss = (dE_loss * weights).mean()
+
+            # Smoothness penalty along LST trajectory
+            smooth_loss = smoothness * 23.0605
+
             # Small regularizing energy penalty
             e_loss = pred_e_mean.abs() * 0.001
 
-            loss = (w_barrier * weighted_b_loss + w_energy * e_loss) / args.grad_accum
+            loss = (w_barrier * weighted_b_loss + w_dE * weighted_dE_loss + w_smooth * smooth_loss + w_energy * e_loss) / args.grad_accum
             loss.backward()
 
             if (step + 1) % args.grad_accum == 0 or (step + 1) == len(train_loader):
@@ -340,6 +368,7 @@ def main():
         model.eval()
         val_loss_sum = 0.0
         val_mae_sum = 0.0
+        val_dE_mae_sum = 0.0
         val_count = 0
 
         with torch.no_grad():
@@ -348,16 +377,20 @@ def main():
                 frames = batch["frames"].to(device)
                 mask = batch["mask"].to(device)
                 target_b = batch["target_barrier"].to(device)
+                target_dE = batch["target_dE"].to(device)
                 weights = batch["weight"].to(device)
 
-                pred_b, _, pred_e_mean = compute_reaction_energies(model, z, frames, mask)
+                pred_b, pred_dE, pred_e_mean, _ = compute_reaction_energies(model, z, frames, mask)
                 b_loss = F.huber_loss(pred_b, target_b, delta=1.0, reduction="none")
+                dE_loss = F.huber_loss(pred_dE, target_dE, delta=1.5, reduction="none")
                 weighted_b_loss = (b_loss * weights).mean()
-                loss = w_barrier * weighted_b_loss + w_energy * pred_e_mean.abs() * 0.001
+                weighted_dE_loss = (dE_loss * weights).mean()
+                loss = w_barrier * weighted_b_loss + w_dE * weighted_dE_loss + w_energy * pred_e_mean.abs() * 0.001
 
                 bs = z.size(0)
                 val_loss_sum += loss.item() * bs
                 val_mae_sum += torch.abs(pred_b - target_b).sum().item()
+                val_dE_mae_sum += torch.abs(pred_dE - target_dE).sum().item()
                 val_count += bs
 
         if device.type == "mps":
@@ -369,6 +402,7 @@ def main():
         wall_time = time.time() - t_epoch_start
         val_loss = val_loss_sum / val_count if val_count else 0.0
         val_mae = val_mae_sum / val_count if val_count else 0.0
+        val_dE_mae = val_dE_mae_sum / val_count if val_count else 0.0
         samples_per_sec = sample_count / wall_time if wall_time > 0 else 0
 
         mps_mem_gb = 0.0
@@ -381,6 +415,7 @@ def main():
             "train_barrier_mae_kcal": round(train_mae, 4),
             "val_loss": round(val_loss, 4),
             "val_barrier_mae_kcal": round(val_mae, 4),
+            "val_dE_mae_kcal": round(val_dE_mae, 4),
             "lr": round(optimizer.param_groups[0]["lr"], 6),
             "wall_time_s": round(wall_time, 2),
             "mps_memory_allocated_gb": round(mps_mem_gb, 3),
@@ -390,7 +425,8 @@ def main():
 
         print(
             f"Epoch {epoch+1:3d} | Train Loss: {train_loss:.4f} | Train MAE: {train_mae:.2f} kcal/mol | "
-            f"Val MAE: {val_mae:.2f} kcal/mol | {samples_per_sec:.1f} samples/s ({wall_time:.1f}s)"
+            f"Val Barrier MAE: {val_mae:.2f} kcal/mol | Val dE MAE: {val_dE_mae:.2f} kcal/mol | "
+            f"{samples_per_sec:.1f} samples/s ({wall_time:.1f}s)"
         )
 
         with open(log_file, "a") as f:

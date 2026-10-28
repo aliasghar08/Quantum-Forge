@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:quantum_forge/core/utils/xyz_parser.dart';
 
 class TrajectoryInterpolator {
@@ -93,6 +94,97 @@ class TrajectoryInterpolator {
       final smoothFrac = frac * frac * (3.0 - 2.0 * frac);
 
       final val = energies[lowIdx] + (energies[highIdx] - energies[lowIdx]) * smoothFrac;
+      result.add(val);
+    }
+    return result;
+  }
+
+  /// Smoothly resamples or interpolates an XYZ trajectory to an exact [targetCount] frames
+  /// using Hermite cubic spline easing (3t^2 - 2t^3).
+  static List<String> interpolateToCount(
+    List<String> frames, {
+    required int targetCount,
+  }) {
+    if (frames.isEmpty) return frames;
+    if (frames.length == 1 || targetCount <= 1) return [frames.first];
+    if (frames.length == targetCount) return frames;
+
+    final parsedFrames = <List<Atom>>[];
+    for (final f in frames) {
+      final atoms = XyzParser.parse(f);
+      if (atoms.isNotEmpty) {
+        parsedFrames.add(atoms);
+      }
+    }
+
+    if (parsedFrames.length < 2) return frames;
+
+    final originalCount = parsedFrames.length;
+    final result = <String>[];
+
+    for (int k = 0; k < targetCount; k++) {
+      if (k == 0) {
+        result.add(frames.first);
+        continue;
+      }
+      if (k == targetCount - 1) {
+        result.add(frames.last);
+        continue;
+      }
+
+      final t = k / (targetCount - 1).toDouble();
+      final r = t * (originalCount - 1);
+      final lowIdx = r.floor().clamp(0, originalCount - 2);
+      final highIdx = lowIdx + 1;
+      final u = r - lowIdx;
+      // Hermite smoothstep easing
+      final s = u * u * (3.0 - 2.0 * u);
+
+      final fA = parsedFrames[lowIdx];
+      final fB = parsedFrames[highIdx];
+      final atomCount = math.min(fA.length, fB.length);
+
+      final sb = StringBuffer();
+      sb.writeln(atomCount);
+      sb.writeln('Interpolated Frame (${k + 1}/$targetCount)');
+
+      for (int a = 0; a < atomCount; a++) {
+        final atomA = fA[a];
+        final atomB = fB[a];
+        final x = atomA.x + (atomB.x - atomA.x) * s;
+        final y = atomA.y + (atomB.y - atomA.y) * s;
+        final z = atomA.z + (atomB.z - atomA.z) * s;
+        sb.writeln(
+          '${atomA.symbol} ${x.toStringAsFixed(5)} ${y.toStringAsFixed(5)} ${z.toStringAsFixed(5)}',
+        );
+      }
+      result.add(sb.toString());
+    }
+
+    return result;
+  }
+
+  /// Interpolates the energy profile to an exact [targetCount] points.
+  static List<double>? interpolateEnergiesToCount(
+    List<double>? energies, {
+    required int targetCount,
+  }) {
+    if (energies == null || energies.isEmpty) return energies;
+    if (energies.length == 1 || targetCount <= 1) return [energies.first];
+    if (energies.length == targetCount) return energies;
+
+    final result = <double>[];
+    final originalCount = energies.length;
+
+    for (int k = 0; k < targetCount; k++) {
+      final t = k / (targetCount - 1).toDouble();
+      final r = t * (originalCount - 1);
+      final lowIdx = r.floor().clamp(0, originalCount - 2);
+      final highIdx = (lowIdx + 1).clamp(0, originalCount - 1);
+      final u = r - lowIdx;
+      final s = u * u * (3.0 - 2.0 * u);
+
+      final val = energies[lowIdx] + (energies[highIdx] - energies[lowIdx]) * s;
       result.add(val);
     }
     return result;

@@ -153,6 +153,9 @@ extension _ReactionAnimationCoreExt on _ReactionAnimationWidgetState {
           resetView: shouldFrame,
         );
         viewer.setFrame(_frame);
+        if (_autoRotate) {
+          viewer.setAutoRotate(enabled: true, speed: _rotateSpeed);
+        }
         return;
       }
 
@@ -168,6 +171,9 @@ extension _ReactionAnimationCoreExt on _ReactionAnimationWidgetState {
           _style,
           resetView: shouldFrame,
         );
+        if (_autoRotate) {
+          viewer.setAutoRotate(enabled: true, speed: _rotateSpeed);
+        }
         return;
       }
 
@@ -176,6 +182,9 @@ extension _ReactionAnimationCoreExt on _ReactionAnimationWidgetState {
       _viewFramed = true;
       await viewer.loadTrajectory(trajectory, _style, resetView: shouldFrame);
       viewer.setFrame(_frame);
+      if (_autoRotate) {
+        viewer.setAutoRotate(enabled: true, speed: _rotateSpeed);
+      }
     });
   }
 

@@ -4,7 +4,7 @@ import 'package:quantum_forge/core/state/quantum_provider.dart';
 import 'package:quantum_forge/core/services/auth_service.dart';
 import 'package:quantum_forge/core/services/local_auth_service.dart';
 import 'package:quantum_forge/core/theme/theme_provider.dart';
-import 'package:quantum_forge/features/auth/presentation/screens/auth_screen.dart';
+import 'package:quantum_forge/screens/auth_screen.dart';
 
 void main() {
   testWidgets('AuthScreen renders AutofillGroup and Password Manager hints', (tester) async {

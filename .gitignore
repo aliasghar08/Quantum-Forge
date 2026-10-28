@@ -48,6 +48,7 @@ data/curated/
 data/processed/
 models/local_dev/
 models/production/
+data/runs/
 eval/results/*.json
 !eval/results/.gitkeep
 *.log

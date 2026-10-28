@@ -9,7 +9,7 @@ import 'package:quantum_forge/core/theme/theme_provider.dart';
 import 'package:quantum_forge/features/pharmacopeia/data/medicine_pharmacology_profile.dart';
 import 'package:quantum_forge/features/pharmacopeia/data/pharmacopeia_database.dart';
 import 'package:quantum_forge/features/pharmacopeia/data/pharmacopeia_repository.dart';
-import 'package:quantum_forge/features/pharmacopeia/presentation/screens/pharmacopeia_screen.dart';
+import 'package:quantum_forge/screens/pharmacopeia_screen.dart';
 
 void main() {
   group('Clinical & Veterinary Pharmacopeia Database Integrity', () {

@@ -174,7 +174,6 @@ extension _ReactionAnimationPlaybackExt on _ReactionAnimationWidgetState {
       ReactionAnimationWidget.minFrameRate,
       ReactionAnimationWidget.maxFrameRate,
     );
-    _fpsUserSet = true;
     if (clamped == _frameRate) return;
     setState(() => _frameRate = clamped);
     _restartTicker();

@@ -96,7 +96,8 @@ class ReactionAnimationWidget extends StatefulWidget {
     this.dwellAtEndpoints = false,
     this.displayType = AvogadroDisplayType.ballAndStick,
     this.dynamicBonding = true,
-    this.showBondNumbers = true,
+    this.showBondNumbers = false,
+    this.autoRotate = true,
     this.compactMode = false,
     this.pdbUrl,
     this.dcdUrl,
@@ -140,10 +141,15 @@ class ReactionAnimationWidget extends StatefulWidget {
 
   /// Whether to start with bond-number badges drawn on the structure.
   ///
-  /// Off by default: a figure usually wants the structure clean, and the numbers
-  /// are a working aid for cross-referencing a bond. Exposed so an embedding (and
-  /// the browser harness) can start with them on.
+  /// Off by default: provides a clean visual representation for MD simulations
+  /// and trajectories. Can be toggled on anytime via the viewer header.
   final bool showBondNumbers;
+
+  /// Whether the camera starts auto-rotating around the Y axis.
+  ///
+  /// On by default since all intensive MLIP/MD compute is handled by remote
+  /// Google Cloud servers, freeing client hardware for smooth 3D presentation.
+  final bool autoRotate;
 
   /// Optional remote PDB topology for MD.
   final String? pdbUrl;
@@ -230,7 +236,6 @@ class _ReactionAnimationWidgetState extends State<ReactionAnimationWidget> {
   double _playbackSpeed = 1.0;
   bool _dynamicBonding = true;
   bool _playing = true; // deviation: Avogadro starts stopped
-  bool _fpsUserSet = false;
 
   Timer? _ticker;
   int _direction = 1;
@@ -265,15 +270,17 @@ class _ReactionAnimationWidgetState extends State<ReactionAnimationWidget> {
   _ViewerBackground _viewerBackground = _ViewerBackground.dark;
 
   /// Whether the camera spins continuously around the Y axis.
-  bool _autoRotate = false;
+  ///
+  /// Enabled by default (processing is handled by remote Google Cloud servers).
+  bool _autoRotate = true;
 
   /// Spin speed when [_autoRotate] is on, in NGL's native units.
   double _rotateSpeed = 0.5;
 
   /// Whether numbered bond badges are drawn on the 3D structure.
   ///
-  /// Enabled by default for direct mechanism inspection and energy spectrum correlation.
-  bool _showBondNumbers = true;
+  /// Off by default in MD simulations and trajectories.
+  bool _showBondNumbers = false;
 
   /// Whether to show the bond energies panel.
   bool _showBondEnergies = true;
@@ -309,13 +316,13 @@ class _ReactionAnimationWidgetState extends State<ReactionAnimationWidget> {
     _displayType = widget.displayType;
     _dynamicBonding = widget.dynamicBonding;
     _showBondNumbers = widget.showBondNumbers;
+    _autoRotate = widget.autoRotate;
     _playbackSpeed = widget.initialPlaybackSpeed;
     if (widget.frameRateOverride != null) {
       _frameRate = widget.frameRateOverride!.clamp(
         ReactionAnimationWidget.minFrameRate,
         ReactionAnimationWidget.maxFrameRate,
       );
-      _fpsUserSet = true;
     }
     _load();
   }
@@ -349,9 +356,15 @@ class _ReactionAnimationWidgetState extends State<ReactionAnimationWidget> {
       return;
     }
 
+    if (old.showBondNumbers != widget.showBondNumbers) {
+      _setShowBondNumbers(widget.showBondNumbers);
+    }
+    if (old.autoRotate != widget.autoRotate) {
+      _setAutoRotate(widget.autoRotate);
+    }
+
     if (old.frameRateOverride != widget.frameRateOverride &&
-        widget.frameRateOverride != null &&
-        !_fpsUserSet) {
+        widget.frameRateOverride != null) {
       setState(() {
         _frameRate = widget.frameRateOverride!.clamp(
           ReactionAnimationWidget.minFrameRate,

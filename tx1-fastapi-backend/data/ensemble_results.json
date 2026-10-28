@@ -1,0 +1,124 @@
+{
+  "total_evaluated": 200,
+  "barrier_mae_kcal": 30.3717,
+  "reaction_energy_mae_kcal": 59.3027,
+  "max_barrier_error_kcal": 430.5712,
+  "throughput_reactions_per_sec": 49.37,
+  "elapsed_seconds": 4.05,
+  "per_source_breakdown": {
+    "transition1x_variant": {
+      "count": 161,
+      "barrier_mae_kcal": 29.9374
+    },
+    "transition1x": {
+      "count": 37,
+      "barrier_mae_kcal": 21.7311
+    },
+    "clinical_milestone": {
+      "count": 2,
+      "barrier_mae_kcal": 225.1856
+    }
+  },
+  "worst_10_cases": [
+    {
+      "reaction_id": "med-paracetamol-01",
+      "source": "clinical_milestone",
+      "ref_barrier_kcal": 14.5,
+      "pred_barrier_kcal": 445.0712,
+      "barrier_error_kcal": 430.5712,
+      "ref_reaction_energy_kcal": 0.0,
+      "pred_reaction_energy_kcal": 445.0712,
+      "reaction_energy_error_kcal": 445.0712
+    },
+    {
+      "reaction_id": "med-epinephrine-01_sub_14_F",
+      "source": "transition1x_variant",
+      "ref_barrier_kcal": 15.7,
+      "pred_barrier_kcal": 353.1326,
+      "barrier_error_kcal": 337.4326,
+      "ref_reaction_energy_kcal": 0.0,
+      "pred_reaction_energy_kcal": 353.1326,
+      "reaction_energy_error_kcal": 353.1326
+    },
+    {
+      "reaction_id": "fischer-01_sub_9_F",
+      "source": "transition1x_variant",
+      "ref_barrier_kcal": 22.4,
+      "pred_barrier_kcal": 287.6428,
+      "barrier_error_kcal": 265.2428,
+      "ref_reaction_energy_kcal": 0.0,
+      "pred_reaction_energy_kcal": 142.6924,
+      "reaction_energy_error_kcal": 142.6924
+    },
+    {
+      "reaction_id": "fischer-01_sub_7_F",
+      "source": "transition1x_variant",
+      "ref_barrier_kcal": 22.4,
+      "pred_barrier_kcal": 287.6428,
+      "barrier_error_kcal": 265.2428,
+      "ref_reaction_energy_kcal": 0.0,
+      "pred_reaction_energy_kcal": 142.6924,
+      "reaction_energy_error_kcal": 142.6924
+    },
+    {
+      "reaction_id": "fischer-01_sub_9_Cl",
+      "source": "transition1x_variant",
+      "ref_barrier_kcal": 22.8,
+      "pred_barrier_kcal": 283.013,
+      "barrier_error_kcal": 260.213,
+      "ref_reaction_energy_kcal": 0.0,
+      "pred_reaction_energy_kcal": 140.106,
+      "reaction_energy_error_kcal": 140.106
+    },
+    {
+      "reaction_id": "diels_alder",
+      "source": "transition1x",
+      "ref_barrier_kcal": 27.5,
+      "pred_barrier_kcal": 222.6642,
+      "barrier_error_kcal": 195.1642,
+      "ref_reaction_energy_kcal": 0.0,
+      "pred_reaction_energy_kcal": 222.6642,
+      "reaction_energy_error_kcal": 222.6642
+    },
+    {
+      "reaction_id": "pd_ch_activation_sub_5_Cl",
+      "source": "transition1x_variant",
+      "ref_barrier_kcal": 24.2,
+      "pred_barrier_kcal": 177.4789,
+      "barrier_error_kcal": 153.2789,
+      "ref_reaction_energy_kcal": 0.0,
+      "pred_reaction_energy_kcal": 177.4789,
+      "reaction_energy_error_kcal": 177.4789
+    },
+    {
+      "reaction_id": "pd_ch_activation_sub_5_Br",
+      "source": "transition1x_variant",
+      "ref_barrier_kcal": 24.5,
+      "pred_barrier_kcal": 160.5202,
+      "barrier_error_kcal": 136.0202,
+      "ref_reaction_energy_kcal": 0.0,
+      "pred_reaction_energy_kcal": 160.5202,
+      "reaction_energy_error_kcal": 160.5202
+    },
+    {
+      "reaction_id": "cope_sub_13_F",
+      "source": "transition1x_variant",
+      "ref_barrier_kcal": 34.0,
+      "pred_barrier_kcal": 169.7142,
+      "barrier_error_kcal": 135.7142,
+      "ref_reaction_energy_kcal": 0.0,
+      "pred_reaction_energy_kcal": -21.3008,
+      "reaction_energy_error_kcal": 21.3008
+    },
+    {
+      "reaction_id": "cope_sub_10_F",
+      "source": "transition1x_variant",
+      "ref_barrier_kcal": 34.0,
+      "pred_barrier_kcal": 151.097,
+      "barrier_error_kcal": 117.097,
+      "ref_reaction_energy_kcal": 0.0,
+      "pred_reaction_energy_kcal": -14.2344,
+      "reaction_energy_error_kcal": 14.2344
+    }
+  ]
+}

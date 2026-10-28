@@ -13,8 +13,8 @@ import 'package:quantum_forge/core/state/quantum_provider.dart';
 import 'package:quantum_forge/core/settings/app_settings_provider.dart';
 import 'package:quantum_forge/core/theme/theme_provider.dart';
 import 'package:quantum_forge/core/services/feedback_service.dart';
-import 'package:quantum_forge/features/auth/presentation/screens/auth_screen.dart';
-import 'package:quantum_forge/features/settings/presentation/screens/settings_screen.dart';
+import 'package:quantum_forge/screens/auth_screen.dart';
+import 'package:quantum_forge/screens/settings_screen.dart';
 import 'package:quantum_forge/core/widgets/quantum_forge_logo.dart';
 
 enum NavDestination { library, newReaction, editor, history, methodValidation }

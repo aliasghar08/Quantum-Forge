@@ -7,7 +7,7 @@
 // ============================================================================
 
 import 'package:flutter/material.dart';
-import 'package:quantum_forge/features/auth/presentation/screens/auth_screen.dart';
+import 'package:quantum_forge/screens/auth_screen.dart';
 
 class LockedAnimationPlaceholder extends StatelessWidget {
   final String title;

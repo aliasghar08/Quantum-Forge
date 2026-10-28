@@ -77,6 +77,21 @@ def load_model(checkpoint_path: Path, architecture: str, device: torch.device):
     elif architecture == "painn":
         from app.painn import PaiNNLite
         model = PaiNNLite()
+    elif architecture == "ensemble":
+        from app.ensemble import EnsemblePredictor
+        predictor = EnsemblePredictor(device=device)
+
+        class EnsembleWrapper(torch.nn.Module):
+            def __init__(self, p):
+                super().__init__()
+                self.p = p
+
+            def forward(self, z, pos, mask):
+                # Run through all models and average batch outputs
+                out_list = [m(z, pos, mask) for m in self.p.models]
+                return torch.stack(out_list, dim=0).mean(dim=0)
+
+        return EnsembleWrapper(predictor)
     else:
         raise ValueError(f"Unknown architecture: {architecture}")
 
@@ -204,7 +219,7 @@ def main():
     parser = argparse.ArgumentParser(description="Evaluate barrier MAE on held-out dataset.")
     parser.add_argument("--checkpoint", type=str, default=str(BASE_DIR / "t1x_model_checkpoint.pt"))
     parser.add_argument("--data", type=str, default=str(BASE_DIR / "data" / "test.jsonl"))
-    parser.add_argument("--architecture", type=str, default="legacy", choices=["legacy", "rbf_cutoff", "painn"])
+    parser.add_argument("--architecture", type=str, default="legacy", choices=["legacy", "rbf_cutoff", "painn", "ensemble"])
     parser.add_argument("--device", type=str, default="auto")
     parser.add_argument("--out", type=str, default=str(BASE_DIR / "data" / "baseline_results.json"))
     parser.add_argument("--frames", type=int, default=15)

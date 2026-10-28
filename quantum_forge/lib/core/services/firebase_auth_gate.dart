@@ -28,7 +28,7 @@ import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-import 'package:quantum_forge/features/reaction_runner/presentation/screens/dashboard_screen.dart';
+import 'package:quantum_forge/screens/dashboard_screen.dart';
 
 class AuthGate extends StatefulWidget {
   const AuthGate({super.key});

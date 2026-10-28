@@ -9,7 +9,7 @@ import 'package:quantum_forge/core/widgets/adsense_banner_web.dart';
 import 'package:quantum_forge/features/reaction_library/data/reaction_templates.dart';
 import 'package:quantum_forge/features/reaction_library/presentation/widgets/reaction_library_mobile_view.dart';
 import 'package:quantum_forge/features/reaction_runner/data/models/reaction_models.dart';
-import 'package:quantum_forge/features/reaction_runner/presentation/screens/history_screen.dart';
+import 'package:quantum_forge/screens/history_screen.dart';
 
 class _FakeReactionRepository implements ReactionRepository {
   @override
