@@ -68,7 +68,9 @@ import 'package:quantum_forge/core/services/chemical_resolver_service.dart';
 import 'package:quantum_forge/core/widgets/locked_animation_placeholder.dart';
 
 class DashboardScreen extends StatefulWidget {
-  const DashboardScreen({super.key});
+  final DashboardViewModel? viewModel;
+
+  const DashboardScreen({super.key, this.viewModel});
 
   @override
   State<DashboardScreen> createState() => _DashboardScreenState();
@@ -92,9 +94,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   void initState() {
     super.initState();
-    final sessionService = context.read<SessionStateService>();
-    _viewModel = DashboardViewModel(sessionService: sessionService);
-    _viewModel.loadState();
+    if (widget.viewModel != null) {
+      _viewModel = widget.viewModel!;
+    } else {
+      final sessionService = context.read<SessionStateService>();
+      _viewModel = DashboardViewModel(sessionService: sessionService);
+      _viewModel.loadState();
+    }
     _viewModel.addListener(_onViewModelChanged);
     try {
       _authSub = FirebaseAuth.instance.authStateChanges().listen((_) {
@@ -475,7 +481,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   void dispose() {
     _authSub?.cancel();
-    _viewModel.dispose();
+    _viewModel.removeListener(_onViewModelChanged);
+    if (widget.viewModel == null) {
+      _viewModel.dispose();
+    }
     super.dispose();
   }
 
@@ -1039,8 +1048,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
               );
             }
 
+            final isSmallMobile = constraints.maxWidth < 380;
             return SingleChildScrollView(
-              padding: EdgeInsets.all(isDesktop ? 24 : 16),
+              padding: EdgeInsets.all(isDesktop ? 24 : (isSmallMobile ? 10 : 16)),
               child: SizedBox(
                 width: double.infinity, // FIX: full-width when narrow layout
                 child: mainContent,
@@ -1560,20 +1570,30 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Widget _bottomNavItem(BuildContext context, IconData icon, String label, NavDestination dest, QuantumTheme palette) {
     final active = _viewModel.navDest == dest;
-    return GestureDetector(
-      onTap: () {
-        _viewModel.setNavDestination(dest);
-      },
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, color: active ? palette.accent : palette.textMuted, size: 22),
-            const SizedBox(height: 3),
-            Text(label, style: TextStyle(color: active ? palette.accent : palette.textMuted, fontSize: 10, fontWeight: active ? FontWeight.w700 : FontWeight.w400)),
-          ],
+    return Expanded(
+      child: InkWell(
+        onTap: () {
+          _viewModel.setNavDestination(dest);
+        },
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, color: active ? palette.accent : palette.textMuted, size: 21),
+              const SizedBox(height: 3),
+              Text(
+                label,
+                style: TextStyle(
+                  color: active ? palette.accent : palette.textMuted,
+                  fontSize: 10,
+                  fontWeight: active ? FontWeight.w700 : FontWeight.w500,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -1660,71 +1680,77 @@ class _DashboardScreenState extends State<DashboardScreen> {
           child: Icon(icon, color: accentColor, size: 17),
         ),
         const SizedBox(width: 9),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    color: Colors.white54,
-                    fontSize: 10,
-                    fontWeight: FontWeight.w600,
+        Flexible(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Flexible(
+                    child: Text(
+                      title,
+                      style: const TextStyle(
+                        color: Colors.white54,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
-                ),
-                if (isLive) ...[
-                  const SizedBox(width: 6),
+                  if (isLive) ...[
+                    const SizedBox(width: 6),
+                    Container(
+                      width: 6,
+                      height: 6,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: const Color(0xFF10B981),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFF10B981).withValues(alpha: 0.8),
+                            blurRadius: 4,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+              const SizedBox(height: 1.5),
+              Wrap(
+                crossAxisAlignment: WrapCrossAlignment.center,
+                spacing: 6,
+                runSpacing: 2,
+                children: [
+                  Text(
+                    value,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
                   Container(
-                    width: 6,
-                    height: 6,
+                    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
                     decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: const Color(0xFF10B981),
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xFF10B981).withValues(alpha: 0.8),
-                          blurRadius: 4,
-                        ),
-                      ],
+                      color: accentColor.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      badge,
+                      style: TextStyle(
+                        color: accentColor,
+                        fontSize: 9,
+                        fontWeight: FontWeight.w800,
+                      ),
                     ),
                   ),
                 ],
-              ],
-            ),
-            const SizedBox(height: 1.5),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  value,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const SizedBox(width: 6),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
-                  decoration: BoxDecoration(
-                    color: accentColor.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Text(
-                    badge,
-                    style: TextStyle(
-                      color: accentColor,
-                      fontSize: 9,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
+              ),
+            ],
+          ),
         ),
       ],
     );
@@ -1732,8 +1758,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Widget _buildHeaderTitle(QuantumTheme palette) {
     final hasTemplate = _viewModel.activeTemplate != null;
+    final isSmall = MediaQuery.of(context).size.width < 360;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: EdgeInsets.symmetric(horizontal: isSmall ? 10 : 16, vertical: 12),
       decoration: BoxDecoration(
         color: palette.panel.withValues(alpha: 0.7),
         borderRadius: BorderRadius.circular(14),
@@ -1771,9 +1798,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         children: [
                           Text(
                             _viewModel.activeTemplate?.name ?? 'Custom Reaction Setup',
-                            style: const TextStyle(
+                            style: TextStyle(
                               color: Colors.white,
-                              fontSize: 18,
+                              fontSize: isSmall ? 16 : 18,
                               fontWeight: FontWeight.w800,
                               letterSpacing: -0.3,
                             ),
@@ -1940,6 +1967,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final isRunning = isLoading ||
         status.state == ReactionState.optimizing ||
         status.state == ReactionState.pending;
+    final isSmall = MediaQuery.of(context).size.width < 360;
     return Tooltip(
       message: _isUserSignedIn
           ? 'Launch transition state search simulation'
@@ -1970,7 +1998,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             backgroundColor: _canDispatch ? Colors.transparent : Colors.white12,
             foregroundColor: _canDispatch ? Colors.black87 : Colors.white38,
             shadowColor: Colors.transparent,
-            padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 16),
+            padding: EdgeInsets.symmetric(horizontal: isSmall ? 14 : 22, vertical: 15),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
           ),
           icon: isRunning
@@ -1984,7 +2012,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
             isRunning
                 ? 'Optimizing Reaction...'
                 : (_isUserSignedIn ? 'Execute TS Search' : 'Execute TS Search (Sign In)'),
-            style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14, letterSpacing: 0.2),
+            style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13.5, letterSpacing: 0.2),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         ),
       ),
@@ -1994,57 +2024,321 @@ class _DashboardScreenState extends State<DashboardScreen> {
   // ── Setup card ─────────────────────────────────────────────────────────────
   Widget _buildSetupCard() {
     final isTemplate = _viewModel.activeTemplate != null;
+    final palette = context.watch<ThemeNotifier>().palette;
 
-    return GlassCard(
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isNarrow = constraints.maxWidth < 420;
+        final cardPadding = isNarrow ? const EdgeInsets.all(12) : const EdgeInsets.all(18);
+
+        return GlassCard(
+          child: Padding(
+            padding: cardPadding,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(
-                  isTemplate ? Icons.check_circle : Icons.science_outlined,
-                  color: isTemplate
-                      ? Colors.greenAccent.shade200
-                      : Colors.white54,
-                  size: 18,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  isTemplate ? 'Template Loaded' : 'System Coordinates',
-                  style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 15),
-                ),
-                const Spacer(),
-                if (isTemplate)
-                  TextButton.icon(
-                    onPressed: _viewModel.clearTemplate,
-                    icon: const Icon(Icons.close, size: 14),
-                    label: const Text('Use custom files'),
-                    style: TextButton.styleFrom(
-                      foregroundColor: Colors.white38,
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                Row(
+                  children: [
+                    Icon(
+                      isTemplate ? Icons.check_circle : Icons.science_outlined,
+                      color: isTemplate
+                          ? Colors.greenAccent.shade200
+                          : Colors.white54,
+                      size: 18,
                     ),
-                  ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        isTemplate ? 'Template Loaded' : 'System Coordinates',
+                        style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 15),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    if (isTemplate)
+                      TextButton.icon(
+                        onPressed: _viewModel.clearTemplate,
+                        icon: const Icon(Icons.close, size: 14),
+                        label: const Text('Use custom files'),
+                        style: TextButton.styleFrom(
+                          foregroundColor: Colors.white38,
+                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                        ),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 14),
+                if (isTemplate)
+                  _buildTemplateDisplay()
+                else ...[
+                  _buildSupportedFormatsBanner(palette, isNarrow),
+                  _buildFileUploadRow(),
+                  const SizedBox(height: 24),
+                  _buildQuickTemplates(),
+                ],
+                const SizedBox(height: 20),
+                QuantumOnScreenControlsCard(
+                  activeTemplate: _viewModel.activeTemplate,
+                ),
               ],
             ),
-            const SizedBox(height: 16),
-            if (isTemplate)
-              _buildTemplateDisplay()
-            else ...[
-              _buildFileUploadRow(),
-              const SizedBox(height: 24),
-              _buildQuickTemplates(),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildSupportedFormatsBanner(QuantumTheme palette, bool isCompact) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: EdgeInsets.symmetric(horizontal: isCompact ? 10 : 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: const Color(0xFF38BDF8).withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: const Color(0xFF38BDF8).withValues(alpha: 0.2)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.file_present_rounded, size: 16, color: Color(0xFF38BDF8)),
+              const SizedBox(width: 8),
+              const Expanded(
+                child: Text(
+                  'Supported File Formats & Chemical Inputs',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.2,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              InkWell(
+                onTap: () => _showSupportedFormatsDialog(context),
+                borderRadius: BorderRadius.circular(6),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.info_outline_rounded, size: 13, color: palette.accent),
+                      const SizedBox(width: 4),
+                      Text(
+                        'Details',
+                        style: TextStyle(color: palette.accent, fontSize: 11, fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ],
-            const SizedBox(height: 20),
-            QuantumOnScreenControlsCard(
-              activeTemplate: _viewModel.activeTemplate,
+          ),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            children: [
+              _formatBadge('.XYZ', 'Cartesian Coordinates', const Color(0xFF38BDF8)),
+              _formatBadge('.MOL / .SDF', 'MDL Bonded Molfile', const Color(0xFF34D399)),
+              _formatBadge('.PDB', 'Macromolecule Coordinates', const Color(0xFFFBBF24)),
+              _formatBadge('.CIF', 'Crystallography File', const Color(0xFFA78BFA)),
+              _formatBadge('.CJSON', 'Chemical JSON', const Color(0xFFF472B6)),
+              _formatBadge('SMILES', 'PubChem 3D Resolver', const Color(0xFF60A5FA)),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _formatBadge(String format, String desc, Color color) {
+    return Tooltip(
+      message: '$format — $desc',
+      child: InkWell(
+        onTap: () => _showSupportedFormatsDialog(context),
+        borderRadius: BorderRadius.circular(6),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.12),
+            borderRadius: BorderRadius.circular(6),
+            border: Border.all(color: color.withValues(alpha: 0.3)),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 5,
+                height: 5,
+                decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+              ),
+              const SizedBox(width: 5),
+              Text(
+                format,
+                style: TextStyle(
+                  color: color,
+                  fontSize: 10.5,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.2,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showSupportedFormatsDialog(BuildContext context) {
+    final palette = context.read<ThemeNotifier>().palette;
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: palette.drawer,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(color: palette.border),
+        ),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(7),
+              decoration: BoxDecoration(
+                color: palette.accent.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(Icons.file_present_rounded, color: palette.accent, size: 20),
+            ),
+            const SizedBox(width: 10),
+            const Expanded(
+              child: Text(
+                'Supported Molecular Formats',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+              ),
             ),
           ],
         ),
+        content: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 480),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Quantum Forge supports all leading computational chemistry & biomolecular structure formats. Uploaded files are automatically normalized for MLIP potential calculations & 3D visualization:',
+                  style: TextStyle(fontSize: 12, color: Colors.white70, height: 1.4),
+                ),
+                const SizedBox(height: 14),
+                _formatDetailItem(
+                  tag: '.XYZ',
+                  color: const Color(0xFF38BDF8),
+                  title: 'Cartesian Coordinate Document',
+                  description: 'Native geometry for Transition1x, MLIPs, and MD trajectories. Lists chemical element symbols and (X, Y, Z) coordinates in Ångströms.',
+                ),
+                _formatDetailItem(
+                  tag: '.MOL / .SDF',
+                  color: const Color(0xFF34D399),
+                  title: 'MDL Structure-Data File',
+                  description: 'Comprehensive chemical connection table with atom coordinates, explicit bond orders (single, double, aromatic), formal charges, and stereocenters.',
+                ),
+                _formatDetailItem(
+                  tag: '.PDB / .ENT',
+                  color: const Color(0xFFFBBF24),
+                  title: 'Protein Data Bank',
+                  description: 'Standard coordinate format for biological macromolecules, proteins, enzymes, and cofactor-bound ligand structures.',
+                ),
+                _formatDetailItem(
+                  tag: '.CIF / .mmCIF',
+                  color: const Color(0xFFA78BFA),
+                  title: 'Crystallographic Information File',
+                  description: 'IUCr international standard for crystals, minerals, MOFs, and periodic solid-state lattice geometries.',
+                ),
+                _formatDetailItem(
+                  tag: '.CJSON',
+                  color: const Color(0xFFF472B6),
+                  title: 'Avogadro 2 Chemical JSON',
+                  description: 'Hierarchical chemical data model encoding atoms, perceived bond connectivity, unit cell parameters, and simulation metadata.',
+                ),
+                _formatDetailItem(
+                  tag: 'SMILES / IUPAC',
+                  color: const Color(0xFF60A5FA),
+                  title: 'Direct PubChem 3D Resolver',
+                  description: 'Type plain chemical names (e.g. "aspirin", "caffeine") or SMILES strings (e.g. "CC(=O)O") to automatically fetch 3D coordinates from PubChem.',
+                ),
+              ],
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            style: TextButton.styleFrom(foregroundColor: palette.accent),
+            child: const Text('Close', style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _formatDetailItem({
+    required String tag,
+    required Color color,
+    required String title,
+    required String description,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(6),
+              border: Border.all(color: color.withValues(alpha: 0.35)),
+            ),
+            child: Text(
+              tag,
+              style: TextStyle(
+                color: color,
+                fontSize: 10,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  description,
+                  style: const TextStyle(
+                    color: Colors.white60,
+                    fontSize: 11,
+                    height: 1.35,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -2225,17 +2519,40 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget _buildFileUploadRow() {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final isCompact = constraints.maxWidth < 560;
+        final isCompact = constraints.maxWidth < 640;
 
         if (isCompact) {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               _buildMoleculeList(MoleculeRole.reactant),
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 10),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12),
                 child: Center(
-                  child: Icon(Icons.arrow_downward, color: Colors.white38, size: 22),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    decoration: BoxDecoration(
+                      color: Colors.amber.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: Colors.amber.withValues(alpha: 0.35)),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.arrow_downward_rounded, size: 14, color: Colors.amber.shade300),
+                        const SizedBox(width: 5),
+                        Text(
+                          'TRANSITION PATH',
+                          style: TextStyle(
+                            color: Colors.amber.shade300,
+                            fontWeight: FontWeight.w800,
+                            fontSize: 10,
+                            letterSpacing: 0.6,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ),
               _buildMoleculeList(MoleculeRole.product),
@@ -2259,9 +2576,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Expanded(child: _buildMoleculeList(MoleculeRole.reactant)),
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 24),
-                  child: Icon(Icons.arrow_forward, color: Colors.white24, size: 20),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 28),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.arrow_forward_rounded, color: Colors.amber.shade300, size: 22),
+                      const SizedBox(height: 4),
+                      Text(
+                        'TS PATH',
+                        style: TextStyle(
+                          color: Colors.amber.shade300,
+                          fontSize: 9.5,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
                 Expanded(child: _buildMoleculeList(MoleculeRole.product)),
               ],
@@ -2308,12 +2640,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
       children: [
         if (role == MoleculeRole.catalyst)
           Padding(
-            padding: const EdgeInsets.only(bottom: 12),
+            padding: const EdgeInsets.only(bottom: 10),
             child: Row(
               children: [
                 Icon(Icons.auto_awesome, color: Colors.amber.shade300, size: 16),
                 const SizedBox(width: 8),
-                Text('Catalysts (Optional)', style: TextStyle(color: Colors.amber.shade300, fontWeight: FontWeight.bold, fontSize: 13)),
+                Expanded(
+                  child: Text(
+                    'Catalysts (Optional)',
+                    style: TextStyle(color: Colors.amber.shade300, fontWeight: FontWeight.bold, fontSize: 13),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
               ],
             ),
           ),
@@ -2321,38 +2659,36 @@ class _DashboardScreenState extends State<DashboardScreen> {
           final i = e.key;
           final entry = e.value;
           return Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: Row(
-              children: [
-                Expanded(
-                  child: _moleculeInputCard('$label ${i + 1}', entry, role),
-                ),
-                if (list.length > 1) ...[
-                  const SizedBox(width: 8),
-                  IconButton(
-                    icon: const Icon(Icons.remove_circle_outline, color: Colors.white38),
-                    onPressed: () => _viewModel.removeMolecule(role, entry),
-                  ),
-                ],
-              ],
+            padding: const EdgeInsets.only(bottom: 10),
+            child: _moleculeInputCard(
+              '$label ${i + 1}',
+              entry,
+              role,
+              onRemove: list.length > 1 ? () => _viewModel.removeMolecule(role, entry) : null,
             ),
           );
         }),
         TextButton.icon(
           onPressed: () => _viewModel.addMolecule(role),
-          icon: const Icon(Icons.add, size: 16),
+          icon: const Icon(Icons.add_rounded, size: 16),
           label: Text('Add $label'),
           style: TextButton.styleFrom(
             foregroundColor: buttonColor,
-            textStyle: const TextStyle(fontSize: 12),
+            textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           ),
         ),
       ],
     );
   }
 
-  // ── Live-autocomplete molecule input ──────────────────────────────────────
-  Widget _moleculeInputCard(String label, MoleculeEntry entry, MoleculeRole role) {
+  // ── Live-autocomplete & file upload molecule card ──────────────────────────
+  Widget _moleculeInputCard(
+    String label,
+    MoleculeEntry entry,
+    MoleculeRole role, {
+    VoidCallback? onRemove,
+  }) {
     final uploaded = entry.resolved;
     final isResolving = entry.isResolving;
     final ctrl = entry.ctrl;
@@ -2379,20 +2715,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
         children: [
           // ── Status header ────────────────────────────────────────────
           Padding(
-            padding: const EdgeInsets.fromLTRB(14, 14, 8, 0),
+            padding: const EdgeInsets.fromLTRB(12, 10, 8, 4),
             child: Row(
               children: [
                 Icon(
-                  uploaded ? Icons.check_circle_rounded : Icons.science_outlined,
+                  uploaded ? Icons.check_circle_rounded : (role == MoleculeRole.catalyst ? Icons.auto_awesome : Icons.science_outlined),
                   color: uploaded
                       ? Colors.greenAccent.shade200
-                      : const Color(0xFF4FC3F7),
+                      : (role == MoleculeRole.catalyst ? Colors.amber.shade300 : const Color(0xFF4FC3F7)),
                   size: 18,
                 ),
-                const SizedBox(width: 10),
+                const SizedBox(width: 8),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
                         label,
@@ -2410,40 +2747,36 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             color: Colors.white,
                             fontSize: 13,
                             fontWeight: FontWeight.bold,
-                            overflow: TextOverflow.ellipsis,
                           ),
+                          overflow: TextOverflow.ellipsis,
                         ),
                     ],
                   ),
                 ),
                 if (uploaded) ...[
-                  // Source badge
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: Colors.greenAccent.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      '3D ready',
-                      style: TextStyle(
-                        color: Colors.greenAccent.shade200,
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                      ),
+                  // Change / Replace file button
+                  Tooltip(
+                    message: 'Upload different file',
+                    child: IconButton(
+                      icon: const Icon(Icons.drive_folder_upload_rounded, size: 16, color: Colors.white70),
+                      onPressed: () => _viewModel.pickFileForEntry(entry, context.read<FilePickerService>()),
+                      padding: const EdgeInsets.all(4),
+                      constraints: const BoxConstraints(),
                     ),
                   ),
                   const SizedBox(width: 4),
-                  IconButton(
-                    icon: const Icon(Icons.close_rounded, size: 15, color: Colors.white38),
-                    onPressed: () => _viewModel.clearEntry(entry),
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                    tooltip: 'Clear',
+                  Tooltip(
+                    message: 'Clear structure',
+                    child: IconButton(
+                      icon: const Icon(Icons.close_rounded, size: 16, color: Colors.white38),
+                      onPressed: () => _viewModel.clearEntry(entry),
+                      padding: const EdgeInsets.all(4),
+                      constraints: const BoxConstraints(),
+                    ),
                   ),
                 ] else if (isResolving)
                   const Padding(
-                    padding: EdgeInsets.only(right: 12),
+                    padding: EdgeInsets.only(right: 8),
                     child: SizedBox(
                       width: 14,
                       height: 14,
@@ -2452,18 +2785,89 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         color: Color(0xFF4FC3F7),
                       ),
                     ),
+                  )
+                else if (onRemove != null)
+                  Tooltip(
+                    message: 'Remove $label',
+                    child: IconButton(
+                      icon: const Icon(Icons.remove_circle_outline_rounded, size: 16, color: Colors.white38),
+                      onPressed: onRemove,
+                      padding: const EdgeInsets.all(4),
+                      constraints: const BoxConstraints(),
+                    ),
                   ),
               ],
             ),
           ),
 
+          // Badges for uploaded molecule (placed in responsive Wrap below title)
+          if (uploaded)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 0, 12, 6),
+              child: Wrap(
+                spacing: 6,
+                runSpacing: 4,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF38BDF8).withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(color: const Color(0xFF38BDF8).withValues(alpha: 0.3)),
+                    ),
+                    child: Text(
+                      entry.detectedFormat,
+                      style: const TextStyle(
+                        color: Color(0xFF38BDF8),
+                        fontSize: 9.5,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ),
+                  if (entry.calculatedAtomCount > 0)
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        '${entry.calculatedAtomCount} atoms',
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.8),
+                          fontSize: 9.5,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: Colors.greenAccent.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      '3D ready',
+                      style: TextStyle(
+                        color: Colors.greenAccent.shade200,
+                        fontSize: 9.5,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
           // ── 3D Viewer for Uploaded Molecule ──────────────────────
           if (uploaded && entry.file?.bytes != null)
             Container(
-              margin: const EdgeInsets.fromLTRB(14, 12, 14, 14),
-              height: 140, // small fixed height
+              margin: const EdgeInsets.fromLTRB(10, 4, 10, 10),
+              width: double.infinity,
+              height: 155, // Responsive full-width height
               decoration: BoxDecoration(
-                color: Colors.black.withValues(alpha: 0.2),
+                color: Colors.black.withValues(alpha: 0.25),
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
                   color: Colors.white.withValues(alpha: 0.08),
@@ -2471,86 +2875,160 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(8),
-                child: AspectRatio(
-                  aspectRatio: 1.2,
-                  child: _isUserSignedIn
-                      ? ReactionAnimationWidget(
-                          trajectoryFrames: [utf8.decode(entry.file!.bytes!)],
-                          showBondNumbers: false,
-                        )
-                      : LockedAnimationPlaceholder(
-                          compact: true,
-                          title: '3D Preview Locked',
-                          subtitle: 'Sign in to preview molecule structure.',
-                          onSignInRequested: () => _redirectToAuth(
-                            message: 'Sign in to view 3D molecular structures.',
-                          ),
-                          onSignInSuccess: () {
-                            if (mounted) setState(() {});
-                          },
+                child: _isUserSignedIn
+                    ? ReactionAnimationWidget(
+                        trajectoryFrames: [utf8.decode(entry.file!.bytes!)],
+                        showBondNumbers: false,
+                      )
+                    : LockedAnimationPlaceholder(
+                        compact: true,
+                        title: '3D Preview Locked',
+                        subtitle: 'Sign in to preview molecule structure.',
+                        onSignInRequested: () => _redirectToAuth(
+                          message: 'Sign in to view 3D molecular structures.',
                         ),
+                        onSignInSuccess: () {
+                          if (mounted) setState(() {});
+                        },
+                      ),
+              ),
+            ),
+
+          // ── Search input + upload options (when not uploaded) ────────
+          if (!uploaded) ...[
+            Padding(
+              padding: const EdgeInsets.fromLTRB(10, 4, 10, 0),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.04),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.white.withValues(alpha: 0.09)),
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+                child: Row(
+                  children: [
+                    const Icon(Icons.search_rounded, color: Color(0xFF4FC3F7), size: 16),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: TextField(
+                        controller: ctrl,
+                        focusNode: focus,
+                        style: const TextStyle(color: Colors.white, fontSize: 12.5),
+                        decoration: InputDecoration(
+                          hintText: '$label name or SMILES…',
+                          hintStyle: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.32),
+                            fontSize: 11.5,
+                          ),
+                          border: InputBorder.none,
+                          isDense: true,
+                          contentPadding: EdgeInsets.zero,
+                        ),
+                        onChanged: (val) => _viewModel.onSearchChanged(val, entry, context.read<ChemicalResolverService>()),
+                        onSubmitted: (val) {
+                          if (val.trim().isNotEmpty) {
+                            _viewModel.resolveChemical(entry, context.read<ChemicalResolverService>(), query: val.trim());
+                          }
+                        },
+                      ),
+                    ),
+                    if (ctrl.text.isNotEmpty)
+                      GestureDetector(
+                        onTap: () {
+                          ctrl.clear();
+                          _viewModel.onSearchChanged('', entry, context.read<ChemicalResolverService>());
+                        },
+                        child: const Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 4),
+                          child: Icon(Icons.close_rounded, size: 14, color: Colors.white38),
+                        ),
+                      ),
+                  ],
                 ),
               ),
             ),
 
-          // ── Search input + upload ──────────────────────────────────
-          if (!uploaded) ...[
+            // Dedicated File Upload Button & Supported Formats guidance
             Padding(
-              padding: const EdgeInsets.fromLTRB(10, 10, 10, 0),
-              child: Row(
-                children: [
-                  const Icon(Icons.search, color: Color(0xFF4FC3F7), size: 17),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: TextField(
-                      controller: ctrl,
-                      focusNode: focus,
-                      style: const TextStyle(color: Colors.white, fontSize: 13),
-                      decoration: InputDecoration(
-                        hintText: '$label name or SMILES…',
-                        hintStyle: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.28),
-                          fontSize: 12,
+              padding: const EdgeInsets.fromLTRB(10, 8, 10, 10),
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: () => _viewModel.pickFileForEntry(entry, context.read<FilePickerService>()),
+                  borderRadius: BorderRadius.circular(8),
+                  hoverColor: const Color(0xFF4FC3F7).withValues(alpha: 0.08),
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF4FC3F7).withValues(alpha: 0.05),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: const Color(0xFF4FC3F7).withValues(alpha: 0.25),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF4FC3F7).withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: const Icon(
+                            Icons.upload_file_rounded,
+                            size: 15,
+                            color: Color(0xFF4FC3F7),
+                          ),
                         ),
-                        border: InputBorder.none,
-                        isDense: true,
-                        contentPadding: EdgeInsets.zero,
-                      ),
-                      onChanged: (val) => _viewModel.onSearchChanged(val, entry, context.read<ChemicalResolverService>()),
-                      onSubmitted: (val) {
-                        if (val.trim().isNotEmpty) {
-                          _viewModel.resolveChemical(entry, context.read<ChemicalResolverService>(), query: val.trim());
-                        }
-                      },
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                'Upload Structure File',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                              const SizedBox(height: 1),
+                              Text(
+                                'Supported: .xyz, .mol, .sdf, .pdb, .cif, .cjson',
+                                style: TextStyle(
+                                  color: Colors.white.withValues(alpha: 0.5),
+                                  fontSize: 9.5,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF4FC3F7).withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: const Text(
+                            'Browse',
+                            style: TextStyle(
+                              color: Color(0xFF4FC3F7),
+                              fontSize: 9.5,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  // Divider
-                  Container(
-                    width: 1, height: 18,
-                    color: Colors.white12,
-                    margin: const EdgeInsets.symmetric(horizontal: 6),
-                  ),
-                  // Upload xyz fallback
-                  GestureDetector(
-                    onTap: () => _viewModel.pickFileForEntry(entry, context.read<FilePickerService>()),
-                    child: Tooltip(
-                      message: 'Upload .xyz file',
-                      child: Icon(
-                        Icons.upload_file_rounded,
-                        color: Colors.white.withValues(alpha: 0.35),
-                        size: 18,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 6),
-                ],
+                ),
               ),
-            ),
-            // Divider line
-            Container(
-              height: 1,
-              margin: const EdgeInsets.fromLTRB(10, 8, 10, 0),
-              color: Colors.white.withValues(alpha: 0.07),
             ),
           ],
 

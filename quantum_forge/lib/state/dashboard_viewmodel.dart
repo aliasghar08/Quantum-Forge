@@ -4,6 +4,7 @@ import 'package:quantum_forge/features/reaction_library/data/reaction_template_g
 import 'package:quantum_forge/features/reaction_library/data/reaction_templates.dart';
 import 'package:quantum_forge/core/services/file_picker_service.dart';
 import 'package:quantum_forge/core/utils/avogadro_codec.dart';
+import 'package:quantum_forge/core/utils/avogadro_interchange.dart';
 import 'package:quantum_forge/core/utils/avogadro_bridge.dart';
 import 'package:quantum_forge/features/reaction_runner/presentation/widgets/dashboard_cards/left_nav_rail.dart';
 import 'dart:convert';
@@ -22,6 +23,8 @@ class MoleculeEntry {
   bool suggestionsLoading;
   bool isResolving;
   Timer? debounce;
+  String? formatType;
+  int? atomCount;
 
   MoleculeEntry({required this.id})
       : ctrl = TextEditingController(),
@@ -31,7 +34,33 @@ class MoleculeEntry {
         isResolving = false;
 
   bool get resolved => file != null;
-  String get displayName => file?.name.replaceAll('.xyz', '') ?? '';
+  String get displayName => file?.name.replaceAll(RegExp(r'\.(xyz|mol|sdf|pdb|cif|cjson|cml|ent|mmcif)$', caseSensitive: false), '') ?? '';
+  String get fileName => file?.name ?? '';
+
+  int get calculatedAtomCount {
+    if (atomCount != null && atomCount! > 0) return atomCount!;
+    if (file?.bytes == null) return 0;
+    try {
+      final raw = utf8.decode(file!.bytes!, allowMalformed: true);
+      final firstLine = raw.trimLeft().split('\n').first.trim();
+      return int.tryParse(firstLine) ?? 0;
+    } catch (_) {
+      return 0;
+    }
+  }
+
+  String get detectedFormat {
+    if (formatType != null && formatType!.isNotEmpty) return formatType!;
+    final name = file?.name.toLowerCase() ?? '';
+    if (name.endsWith('.xyz')) return 'XYZ';
+    if (name.endsWith('.mol')) return 'MOL';
+    if (name.endsWith('.sdf')) return 'SDF';
+    if (name.endsWith('.pdb') || name.endsWith('.ent')) return 'PDB';
+    if (name.endsWith('.cif') || name.endsWith('.mmcif')) return 'CIF';
+    if (name.endsWith('.cjson') || name.endsWith('.json')) return 'CJSON';
+    if (name.endsWith('.cml') || name.endsWith('.xml')) return 'CML';
+    return '3D';
+  }
 
   void dispose() {
     ctrl.dispose();
@@ -327,25 +356,59 @@ class DashboardViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> pickFileForEntry(MoleculeEntry entry, FilePickerService picker) async {
-    final result = await picker.pickStructureFile();
-    if (result != null) {
-      entry.file = result;
-      entry.ctrl.text = result.name.replaceAll('.xyz', '');
-      entry.suggestions = [];
-      _activeTemplate = null;
-      _triggerAutoRun();
-      notifyListeners();
-    }
-  }
+  Future<void> applyStructureFile(MoleculeEntry entry, PickedFile result) async {
+    PickedFile processed = result;
+    String format = 'XYZ';
+    int? count;
 
-  void setManualFile(MoleculeEntry entry, PickedFile file) {
-    entry.file = file;
-    entry.ctrl.text = file.name.replaceAll('.xyz', '');
+    if (result.bytes != null && result.bytes!.isNotEmpty) {
+      try {
+        final text = utf8.decode(result.bytes!, allowMalformed: true);
+        final ext = result.name.contains('.') ? result.name.split('.').last.toLowerCase() : 'xyz';
+        format = ext.toUpperCase();
+
+        if (ext != 'xyz') {
+          final decoded = AvogadroCodec.decode(text, formatHint: ext);
+          final struct = decoded.toStructure();
+          count = struct.atoms.length;
+          final xyzText = AvogadroInterchange.toXyz(struct);
+          final xyzBytes = Uint8List.fromList(utf8.encode(xyzText));
+          processed = PickedFile(
+            name: result.name,
+            size: xyzBytes.length,
+            bytes: xyzBytes,
+          );
+        } else {
+          final lines = const LineSplitter().convert(text);
+          if (lines.isNotEmpty) {
+            count = int.tryParse(lines.first.trim());
+          }
+        }
+      } catch (e) {
+        debugPrint('Structure conversion exception: $e');
+        // Keep raw file
+      }
+    }
+
+    entry.file = processed;
+    entry.formatType = format;
+    entry.atomCount = count;
+    entry.ctrl.text = result.name.replaceAll(RegExp(r'\.[a-zA-Z0-9]+$'), '');
     entry.suggestions = [];
     _activeTemplate = null;
     _triggerAutoRun();
     notifyListeners();
+  }
+
+  Future<void> pickFileForEntry(MoleculeEntry entry, FilePickerService picker) async {
+    final result = await picker.pickStructureFile();
+    if (result != null) {
+      await applyStructureFile(entry, result);
+    }
+  }
+
+  void setManualFile(MoleculeEntry entry, PickedFile file) {
+    applyStructureFile(entry, file);
   }
 
   bool canDispatch(bool isLoading, bool isRunning) {
@@ -401,6 +464,11 @@ class DashboardViewModel extends ChangeNotifier {
           bytes: bytes,
         );
         entry.file = picked;
+        entry.formatType = 'PubChem 3D';
+        try {
+          final firstLine = xyzData.trimLeft().split('\n').first.trim();
+          entry.atomCount = int.tryParse(firstLine);
+        } catch (_) {}
         entry.suggestions = [];
         _activeTemplate = null;
         _triggerAutoRun();
@@ -451,6 +519,8 @@ class DashboardViewModel extends ChangeNotifier {
 
   void clearEntry(MoleculeEntry entry) {
     entry.file = null;
+    entry.formatType = null;
+    entry.atomCount = null;
     entry.ctrl.clear();
     entry.suggestions = [];
     notifyListeners();
@@ -499,6 +569,8 @@ class DashboardViewModel extends ChangeNotifier {
         'text': e.ctrl.text,
         'fileName': e.file?.name,
         'fileBytes': base64Bytes,
+        'formatType': e.formatType,
+        'atomCount': e.atomCount,
       };
     }).toList();
   }
@@ -557,6 +629,8 @@ class DashboardViewModel extends ChangeNotifier {
       final map = item as Map<String, dynamic>;
       final entry = MoleculeEntry(id: map['id'] ?? 'u${_entryCounter++}');
       entry.ctrl.text = map['text'] ?? '';
+      entry.formatType = map['formatType'] as String?;
+      entry.atomCount = map['atomCount'] as int?;
       if (map['fileName'] != null && map['fileBytes'] != null) {
         final bytes = base64Decode(map['fileBytes']);
         entry.file = PickedFile(name: map['fileName'], size: bytes.length, bytes: bytes);

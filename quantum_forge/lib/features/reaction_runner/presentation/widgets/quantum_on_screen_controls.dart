@@ -340,15 +340,19 @@ class _QuantumOnScreenControlsCardState extends State<QuantumOnScreenControlsCar
           children: [
             Icon(Icons.memory_rounded, size: 14, color: Color(0xFF38BDF8)),
             SizedBox(width: 6),
-            Text(
-              'Surrogate MLIP Potential',
-              style: TextStyle(color: Colors.white70, fontSize: 11.5, fontWeight: FontWeight.w600),
+            Expanded(
+              child: Text(
+                'Surrogate MLIP Potential',
+                style: TextStyle(color: Colors.white70, fontSize: 11.5, fontWeight: FontWeight.w600),
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
           ],
         ),
         const SizedBox(height: 6),
         DropdownButtonFormField<String>(
           key: ValueKey('mlip_${s.mlipModel}'),
+          isExpanded: true,
           initialValue: _mlipModels.contains(s.mlipModel) ? s.mlipModel : _mlipModels.first,
           dropdownColor: const Color(0xFF101E27),
           style: const TextStyle(color: Colors.white, fontSize: 12.5),
@@ -371,15 +375,19 @@ class _QuantumOnScreenControlsCardState extends State<QuantumOnScreenControlsCar
           children: [
             Icon(Icons.water_drop_outlined, size: 14, color: Color(0xFF34D399)),
             SizedBox(width: 6),
-            Text(
-              'Solvation Medium',
-              style: TextStyle(color: Colors.white70, fontSize: 11.5, fontWeight: FontWeight.w600),
+            Expanded(
+              child: Text(
+                'Solvation Medium',
+                style: TextStyle(color: Colors.white70, fontSize: 11.5, fontWeight: FontWeight.w600),
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
           ],
         ),
         const SizedBox(height: 6),
         DropdownButtonFormField<String>(
           key: ValueKey('solvent_${s.solventModel}'),
+          isExpanded: true,
           initialValue: _solventModels.contains(s.solventModel) ? s.solventModel : _solventModels.first,
           dropdownColor: const Color(0xFF101E27),
           style: const TextStyle(color: Colors.white, fontSize: 12.5),
@@ -485,19 +493,29 @@ class _QuantumOnScreenControlsCardState extends State<QuantumOnScreenControlsCar
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Row(
+          Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 6,
+            runSpacing: 4,
             children: [
-              const Icon(Icons.thermostat_rounded, size: 16, color: Color(0xFFFF7043)),
-              const SizedBox(width: 6),
-              const Expanded(
-                child: Text(
-                  'Thermal Kinetic Sweep:',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
+              const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.thermostat_rounded, size: 16, color: Color(0xFFFF7043)),
+                  SizedBox(width: 6),
+                  Flexible(
+                    child: Text(
+                      'Thermal Kinetic Sweep:',
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                   ),
-                ),
+                ],
               ),
               Text(
                 '${tK.toStringAsFixed(1)} K (${tC.toStringAsFixed(1)} °C)',
