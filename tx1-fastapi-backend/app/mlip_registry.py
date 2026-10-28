@@ -109,10 +109,11 @@ class ModelRegistry:
             "tx1-v2b": _file_digest(base_dir / "t1x_model_checkpoint_v2b.pt"),
         }
         ens_dir = base_dir / "models" / "ensemble_v2"
-        if ens_dir.is_dir():
+        if ens_dir.is_dir() and list(ens_dir.glob("member_*.pt")):
             members = sorted(ens_dir.glob("member_*.pt"))
-            if members:
-                digests["tx1-v2"] = f"ensemble_{len(members)}_members"
+            digests["tx1-v2"] = f"ensemble_{len(members)}_members"
+        else:
+            digests["tx1-v2"] = "fallback_v1_calibrated"
         return digests
 
     def status(self) -> dict[str, dict]:
