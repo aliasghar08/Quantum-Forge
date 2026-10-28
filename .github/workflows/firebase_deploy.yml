@@ -39,6 +39,7 @@ jobs:
         run: flutter build web --release --no-tree-shake-icons
 
       - name: Deploy to Firebase Hosting
+        if: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_QUANTOM_FORGE != '' }}
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: '${{ secrets.GITHUB_TOKEN }}'
@@ -46,3 +47,14 @@ jobs:
           channelId: live
           projectId: quantom-forge
           entryPoint: ./quantum_forge
+
+      - name: Deploy to Firebase Hosting (CLI Token Fallback)
+        if: ${{ secrets.FIREBASE_TOKEN != '' && secrets.FIREBASE_SERVICE_ACCOUNT_QUANTOM_FORGE == '' }}
+        run: |
+          npm install -g firebase-tools
+          firebase deploy --only hosting --token "${{ secrets.FIREBASE_TOKEN }}" --project quantom-forge
+
+      - name: Report Deployment Notice
+        if: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_QUANTOM_FORGE == '' && secrets.FIREBASE_TOKEN == '' }}
+        run: |
+          echo "::notice ::Web release built and tested successfully. Automatic CI deploy skipped because FIREBASE_SERVICE_ACCOUNT_QUANTOM_FORGE is not configured in GitHub Secrets. Deploy directly with 'firebase deploy --only hosting' or add the secret in GitHub Settings."
