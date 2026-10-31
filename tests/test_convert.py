@@ -1,8 +1,13 @@
+import os
+import pytest
 from ase.io import read
 import numpy as np
 
 def test_convert():
-    first = read("data/curated/t1x_hcno_stride50.extxyz", index=0)
+    path = "data/curated/t1x_hcno_stride50.extxyz"
+    if not os.path.exists(path):
+        pytest.skip(f"Dataset {path} not downloaded locally")
+    first = read(path, index=0)
     last = read("data/curated/t1x_hcno_stride50.extxyz", index=-1)
     for atoms in (first, last):
         assert abs(atoms.info["REF_energy"]) > 1e-3
