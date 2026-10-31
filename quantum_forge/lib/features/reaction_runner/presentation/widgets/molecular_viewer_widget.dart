@@ -300,6 +300,14 @@ class _MolecularViewerWidgetState extends State<MolecularViewerWidget> {
                           }
                         });
                       },
+                      onDoubleTap: () {
+                        setState(() {
+                          _scale = 60.0;
+                          _rotationX = 0;
+                          _rotationY = 0;
+                          _selectedAtoms.clear();
+                        });
+                      },
                       onTapUp: (details) {
                         final now = DateTime.now();
                         if (_lastCanvasTapTime != null &&

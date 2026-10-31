@@ -1022,8 +1022,12 @@ class NglEngine {
         return;
       }
 
-      // Record baseline on first valid measurement if not yet captured
-      _initialCameraDistance ??= dist;
+      // Record baseline on first valid measurement if not yet captured or invalid
+      if (_initialCameraDistance == null ||
+          _initialCameraDistance! <= 0 ||
+          _initialCameraDistance!.isNaN) {
+        _initialCameraDistance = dist;
+      }
 
       // Dampen per-frame delta to prevent huge jumps from high-velocity trackpad flicks
       final clampedDelta = delta.clamp(-120.0, 120.0);

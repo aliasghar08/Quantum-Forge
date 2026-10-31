@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>About Quantum Forge — Next-Gen Transition State MLIP & Reaction Dynamics</title>
+  <meta name="description" content="Learn about Quantum Forge, an AI-assisted quantum chemistry and reaction dynamics platform designed for researchers, pharmacologists, and medical students.">
+  <meta name="author" content="Ali Asghar">
+  <meta name="copyright" content="Copyright © 2026 Ali Asghar. All Rights Reserved.">
+  <link rel="icon" type="image/png" href="favicon.png">
+  <meta name="google-adsense-account" content="ca-pub-9402443776639153">
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9402443776639153" crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=AW-16732994716"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'AW-16732994716');
+  </script>
+  <style>
+    :root {
+      --bg: #090D16;
+      --card-bg: #111827;
+      --card-border: #1F2937;
+      --primary: #00E5FF;
+      --accent: #00BFA5;
+      --text: #F3F4F6;
+      --text-muted: #9CA3AF;
+      --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: var(--font-family);
+      line-height: 1.6;
+      padding: 0;
+    }
+    header {
+      background: rgba(17, 24, 39, 0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--card-border);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .logo-container {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      text-decoration: none;
+      color: var(--text);
+    }
+    .logo-badge {
+      background: linear-gradient(135deg, #00BFA5, #00E5FF);
+      color: #090D16;
+      font-weight: 800;
+      font-size: 1.1rem;
+      padding: 0.25rem 0.6rem;
+      border-radius: 6px;
+    }
+    .logo-title {
+      font-weight: 700;
+      font-size: 1.25rem;
+      letter-spacing: -0.025em;
+    }
+    nav {
+      display: flex;
+      gap: 1.5rem;
+      align-items: center;
+    }
+    nav a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.95rem;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+    nav a:hover, nav a.active {
+      color: var(--primary);
+    }
+    .container {
+      max-width: 1000px;
+      margin: 2rem auto;
+      padding: 0 1.5rem;
+    }
+    .hero {
+      text-align: center;
+      margin-bottom: 3rem;
+      padding: 2.5rem 1rem;
+    }
+    .hero h1 {
+      font-size: 2.5rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #FFFFFF 0%, #00E5FF 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 1rem;
+    }
+    .hero p {
+      font-size: 1.15rem;
+      color: var(--text-muted);
+      max-width: 760px;
+      margin: 0 auto;
+    }
+    .card {
+      background-color: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    }
+    .card h2 {
+      font-size: 1.6rem;
+      color: var(--primary);
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .card p {
+      color: #D1D5DB;
+      margin-bottom: 1rem;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+      margin-top: 1.5rem;
+    }
+    .grid-item {
+      background: rgba(31, 41, 55, 0.5);
+      border: 1px solid var(--card-border);
+      padding: 1.25rem;
+      border-radius: 8px;
+    }
+    .grid-item h3 {
+      font-size: 1.15rem;
+      color: var(--accent);
+      margin-bottom: 0.5rem;
+    }
+    .grid-item p {
+      font-size: 0.95rem;
+      color: var(--text-muted);
+    }
+    footer {
+      border-top: 1px solid var(--card-border);
+      padding: 2.5rem 1.5rem;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      margin-top: 4rem;
+      background: #060910;
+    }
+    footer a {
+      color: var(--accent);
+      text-decoration: none;
+      margin: 0 0.5rem;
+    }
+    footer a:hover {
+      text-decoration: underline;
+    }
+    @media (max-width: 768px) {
+      header { flex-direction: column; gap: 1rem; }
+      .hero h1 { font-size: 2rem; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <a href="/" class="logo-container">
+      <span class="logo-badge">QF</span>
+      <span class="logo-title">Quantum Forge</span>
+    </a>
+    <nav>
+      <a href="/">App</a>
+      <a href="about.html" class="active">About</a>
+      <a href="privacy.html">Privacy</a>
+      <a href="terms.html">Terms</a>
+      <a href="contact.html">Contact</a>
+    </nav>
+  </header>
+
+  <main class="container">
+    <div class="hero">
+      <h1>About Quantum Forge</h1>
+      <p>A unified web workstation for quantum chemistry, transition state optimization, machine learning interatomic potentials (MLIP), and comprehensive pharmacopeia curricula.</p>
+    </div>
+
+    <section class="card">
+      <h2>Platform Overview</h2>
+      <p>Quantum Forge is an advanced, zero-install computational chemistry research dashboard built with Flutter Web, WebGL, and state-of-the-art machine learning surrogates. Designed and developed by Ali Asghar, the platform provides seamless transition state finding, dynamic nudged elastic band (NEB) reaction trajectory visualization, force-field relaxation, and comprehensive multi-format chemical structure I/O with bidirectional parity to desktop Avogadro 2.</p>
+      <p>Unlike traditional desktop-bound quantum chemistry software, Quantum Forge runs directly in the browser across Windows, macOS, Linux, and ChromeOS, accelerating research and education worldwide.</p>
+    </section>
+
+    <section class="card">
+      <h2>Integrated Curricula & Clinical Pharmacopeia</h2>
+      <p>Quantum Forge serves as an educational benchmark compendium and computational laboratory for students and professionals across three rigorous disciplines:</p>
+      <div class="grid">
+        <div class="grid-item">
+          <h3>🩺 MBBS Curriculum</h3>
+          <p>Covers human medicine, clinical pharmacology, pharmacodynamics (PD), pharmacokinetics (ADME-Tox), and biochemical reaction energetics. Features high-yield benchmarks such as Aspirin Serine acetylation of COX-1/COX-2 and Paracetamol CYP2E1 metabolism into NAPQI.</p>
+        </div>
+        <div class="grid-item">
+          <h3>💊 Pharm-D Curriculum</h3>
+          <p>Focused on pharmaceutical sciences, organic drug synthesis, transition state activation barriers (&Delta;G&Dagger;, &Delta;H&Dagger;, &Delta;S&Dagger;), enantioselective synthesis, esterification kinetics, and beta-lactam antibacterial mechanisms.</p>
+        </div>
+        <div class="grid-item">
+          <h3>🐾 DVM Curriculum</h3>
+          <p>Addresses veterinary medicine, comparative pharmacokinetics across species (canine, feline, equine, bovine), feline glucuronidation deficiencies, species-specific drug toxicity, and antimicrobial resistance profiles.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Machine Learning Interatomic Potentials (MLIP)</h2>
+      <p>Quantum Forge integrates an ensemble of cutting-edge neural network interatomic potentials and quantum chemical calculators:</p>
+      <ul style="padding-left: 1.5rem; color: #D1D5DB; margin-bottom: 1rem;">
+        <li><strong>MACE:</strong> Higher-order equivariant message passing neural network potential for atomic systems with ab initio accuracy.</li>
+        <li><strong>CHGNet:</strong> Pretrained Crystal Hamiltonian Graph Neural Network for inorganic and organometallic crystal structures.</li>
+        <li><strong>ANI-2x:</strong> Deep neural network potential for universal organic and medicinal chemistry.</li>
+        <li><strong>GFN2-xTB:</strong> Robust semi-empirical quantum mechanical method with extended tight-binding Hamiltonian.</li>
+      </ul>
+      <p>Users can compute activation enthalpies, transition states, reaction free energies, and vibrational partition functions in milliseconds directly from their web browser.</p>
+    </section>
+  </main>
+
+  <footer>
+    <p>&copy; 2026 Ali Asghar. All Rights Reserved. DMCA Protected.</p>
+    <p style="margin-top: 0.5rem;">
+      <a href="/">Launch Workstation</a> |
+      <a href="about.html">About</a> |
+      <a href="privacy.html">Privacy Policy</a> |
+      <a href="terms.html">Terms of Service</a> |
+      <a href="contact.html">Contact Us</a>
+    </p>
+  </footer>
+</body>
+</html>

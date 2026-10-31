@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 export 'animation_limiter.dart';
+export 'package:quantum_forge/core/animations/fade_in_slide_animation.dart';
 
 /// Pure Flutter self-contained staggered animation item replacing flutter_staggered_animations.
 class StaggeredAnimationListItem extends StatefulWidget {
