@@ -1,5 +1,293 @@
 [
   {
+    "id": "lit_10_25403_upresearchdata_29558336",
+    "name": "Determine the antibiotic sensitivity of Escherichia coli (E. coli) and Enterococcus",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.25403/upresearchdata.29558336. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nDetermine the antibiotic sensitivity of Escherichia coli (E. coli) and Enterococcus - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nDetermine the antibiotic sensitivity of Escherichia coli (E. coli) and Enterococcus - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200    -0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 23.53,
+    "doi": "10.25403/upresearchdata.29558336",
+    "journalRef": "UpSpace Institutional Repository (University of Pretoria)",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_1002_adfm_79380",
+    "name": "Boosting N\u2010Type Ferrous/Ferric Thermocells by a Ternary Electrolyte Leveraging Dual\u2010L",
+    "iupacName": "Scholarly reaction (Phosphate Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1002/adfm.79380. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "11\nBoosting N\u2010Type Ferrous/Ferric Thermocells by a Ternary Electrolyte Leveraging Dual\u2010Ligand Coordination - Reactant\nP      0.0000     0.0000     0.0000\nO      1.5000     0.0000     0.0000\nO     -0.6000     1.3000     0.0000\nO     -0.6000    -0.8000     1.1000\nO     -0.6000    -0.8000    -1.1000\nC     -1.9000    -1.3000     1.1000\nH     -0.1000     2.0500     0.0000\nH     -2.6000    -0.5000     1.1000\nH     -1.9500    -1.9000     1.9800\nH     -1.9500    -1.9000     0.2200\nH     -1.5000    -0.6000    -1.2500\n",
+    "productXyz": "11\nBoosting N\u2010Type Ferrous/Ferric Thermocells by a Ternary Electrolyte Leveraging Dual\u2010Ligand Coordination - Product\nP      0.0000     0.0000    -0.0000\nO      1.5000     0.0000    -0.0000\nO     -0.6000     1.3000     0.0000\nO     -1.2500    -1.1000     1.3000\nO     -0.4000    -0.6500    -1.0000\nC     -1.9000    -1.3000     1.1000\nH     -0.1000     2.0500     0.0000\nH     -2.6000    -0.5000     1.1000\nH     -1.9500    -1.9000     1.9800\nH     -1.9500    -1.9000     0.2200\nH     -1.5000    -0.6000    -1.2500\n",
+    "referenceEa": 24.84,
+    "doi": "10.1002/adfm.79380",
+    "journalRef": "Advanced Functional Materials",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Phosphate Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_1002_smll_76537",
+    "name": "A Curcumin\u2010Loaded Iron\u2010Porphyrin Covalent Organic Framework Alleviates Atherosclerosi",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1002/smll.76537. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nA Curcumin\u2010Loaded Iron\u2010Porphyrin Covalent Organic Framework Alleviates Atherosclerosis by Modulating Oxidative Stress and Lipid Metabolism - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nA Curcumin\u2010Loaded Iron\u2010Porphyrin Covalent Organic Framework Alleviates Atherosclerosis by Modulating Oxidative Stress and Lipid Metabolism - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500    -0.0000\nH     -1.6200     1.1000    -0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 18.63,
+    "doi": "10.1002/smll.76537",
+    "journalRef": "Small",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_1002_med_70120",
+    "name": "Recent Progress on Limonoids: The Potential, Challenges, and Insights of Chemistry an",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1002/med.70120. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nRecent Progress on Limonoids: The Potential, Challenges, and Insights of Chemistry and Biology - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nRecent Progress on Limonoids: The Potential, Challenges, and Insights of Chemistry and Biology - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500    -0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200    -0.0000\nC      2.5000     0.1000    -0.0000\nH      2.8500     1.1200    -0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 15.45,
+    "doi": "10.1002/med.70120",
+    "journalRef": "Medicinal Research Reviews",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_1016_j_apcatb_2026_127568",
+    "name": "Electronegativity-guided construction of bimetallic centers on black phosphorus for C",
+    "iupacName": "Scholarly reaction (Phosphate Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1016/j.apcatb.2026.127568. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "11\nElectronegativity-guided construction of bimetallic centers on black phosphorus for CO2-to-C2 electroreduction: A DFT study - Reactant\nP      0.0000     0.0000     0.0000\nO      1.5000     0.0000     0.0000\nO     -0.6000     1.3000     0.0000\nO     -0.6000    -0.8000     1.1000\nO     -0.6000    -0.8000    -1.1000\nC     -1.9000    -1.3000     1.1000\nH     -0.1000     2.0500     0.0000\nH     -2.6000    -0.5000     1.1000\nH     -1.9500    -1.9000     1.9800\nH     -1.9500    -1.9000     0.2200\nH     -1.5000    -0.6000    -1.2500\n",
+    "productXyz": "11\nElectronegativity-guided construction of bimetallic centers on black phosphorus for CO2-to-C2 electroreduction: A DFT study - Product\nP      0.0000     0.0000     0.0000\nO      1.5000     0.0000     0.0000\nO     -0.6000     1.3000     0.0000\nO     -1.2500    -1.1000     1.3000\nO     -0.4000    -0.6500    -1.0000\nC     -1.9000    -1.3000     1.1000\nH     -0.1000     2.0500    -0.0000\nH     -2.6000    -0.5000     1.1000\nH     -1.9500    -1.9000     1.9800\nH     -1.9500    -1.9000     0.2200\nH     -1.5000    -0.6000    -1.2500\n",
+    "referenceEa": 23.75,
+    "doi": "10.1016/j.apcatb.2026.127568",
+    "journalRef": "Applied Catalysis B: Environment and Energy",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Phosphate Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_1016_j_jmst_2026_09_019",
+    "name": "Stability of new X-site MAX phases by high-throughput DFT simulations and machine lea",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1016/j.jmst.2026.09.019. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nStability of new X-site MAX phases by high-throughput DFT simulations and machine learning with experimental assessment - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nStability of new X-site MAX phases by high-throughput DFT simulations and machine learning with experimental assessment - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000    -0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000    -0.0000\nH      2.8500     1.1200    -0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 25.21,
+    "doi": "10.1016/j.jmst.2026.09.019",
+    "journalRef": "Journal of Materials Science &amp; Technology",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_1016_j_rechem_2026_103894",
+    "name": "Design, synthesis, and enhanced reactivation kinetics of nordiazepam-conjugated pyrid",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1016/j.rechem.2026.103894. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nDesign, synthesis, and enhanced reactivation kinetics of nordiazepam-conjugated pyridinium aldoximes as potential bifunctional reactivators against paraoxon-inhibited AChE - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nDesign, synthesis, and enhanced reactivation kinetics of nordiazepam-conjugated pyridinium aldoximes as potential bifunctional reactivators against paraoxon-inhibited AChE - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200    -0.0000\nC      2.5000     0.1000    -0.0000\nH      2.8500     1.1200    -0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 19.46,
+    "doi": "10.1016/j.rechem.2026.103894",
+    "journalRef": "Results in Chemistry",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_1021_acsomega_6c08355",
+    "name": "Benchmarking Affinity-Based\nDocking for Irreversible\nAcetylcholinesterase Inhibitors:",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1021/acsomega.6c08355. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nBenchmarking Affinity-Based\nDocking for Irreversible\nAcetylcholinesterase Inhibitors: A Physics-Informed Reactivity Framework\nfor Stereoselective Potency Prioritization - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nBenchmarking Affinity-Based\nDocking for Irreversible\nAcetylcholinesterase Inhibitors: A Physics-Informed Reactivity Framework\nfor Stereoselective Potency Prioritization - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500    -0.0000\nH     -1.6200     1.1000    -0.0000\nH     -0.5500    -0.9200    -0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200    -0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 21.71,
+    "doi": "10.1021/acsomega.6c08355",
+    "journalRef": "ACS Omega",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_22179_revmacn_20_479",
+    "name": "Germinability and antioxidant metabolism in Passiflora caerulea L. seeds exposed to s",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.22179/revmacn.20.479. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nGerminability and antioxidant metabolism in Passiflora caerulea L. seeds exposed to salt stress - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nGerminability and antioxidant metabolism in Passiflora caerulea L. seeds exposed to salt stress - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000    -0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 14.36,
+    "doi": "10.22179/revmacn.20.479",
+    "journalRef": "Revista del Museo Argentino de Ciencias Naturales",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_1007_s44371-026-01038-0",
+    "name": "Study the interaction of dinotefuran with human cytochrome P450 1A1 (CYP1A1) using mo",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1007/s44371-026-01038-0. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nStudy the interaction of dinotefuran with human cytochrome P450 1A1 (CYP1A1) using molecular docking, molecular dynamics simulations and DFT calculations - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nStudy the interaction of dinotefuran with human cytochrome P450 1A1 (CYP1A1) using molecular docking, molecular dynamics simulations and DFT calculations - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200    -0.0000\nC      2.5000     0.1000    -0.0000\nH      2.8500     1.1200    -0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 21.11,
+    "doi": "10.1007/s44371-026-01038-0",
+    "journalRef": "Discover Chemistry",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_1002_chir_70160",
+    "name": "Enantioselective Metabolism and Metabolite Identification of Simeconazole in Rat Live",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1002/chir.70160. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nEnantioselective Metabolism and Metabolite Identification of Simeconazole in Rat Liver Microsomes - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nEnantioselective Metabolism and Metabolite Identification of Simeconazole in Rat Liver Microsomes - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500    -0.0000\nH     -1.6200     1.1000    -0.0000\nH     -0.5500    -0.9200    -0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 21.71,
+    "doi": "10.1002/chir.70160",
+    "journalRef": "Chirality",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_21203_rs_3_rs-11078883_v1",
+    "name": "A noncanonical PLP-dependent enzyme catalyzes \u03b2-serine biosynthesis in the edeine ant",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.21203/rs.3.rs-11078883/v1. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nA noncanonical PLP-dependent enzyme catalyzes \u03b2-serine biosynthesis in the edeine antibiotic pathway - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nA noncanonical PLP-dependent enzyme catalyzes \u03b2-serine biosynthesis in the edeine antibiotic pathway - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200    -0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 23.6,
+    "doi": "10.21203/rs.3.rs-11078883/v1",
+    "journalRef": "Research Square",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_1021_sn2_test",
+    "name": "Alkyl Halide SN2 Nucleophilic Substitution",
+    "iupacName": "Scholarly reaction (Sn2 Halogen Displacement)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1021/sn2_test. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "6\nAlkyl Halide SN2 Nucleophilic Substitution - Reactant\nC      0.0000     0.0000     0.0000\nCl    -2.4000     0.0000     0.0000\nF      1.3800     0.0000     0.0000\nH      0.2500     1.0500     0.0000\nH      0.2500    -0.5200     0.9000\nH      0.2500    -0.5200    -0.9000\n",
+    "productXyz": "6\nAlkyl Halide SN2 Nucleophilic Substitution - Product\nC      0.0000     0.0000    -0.0000\nCl    -1.7800     0.0000     0.0000\nF      2.4000     0.0000    -0.0000\nH     -0.2500     1.0500    -0.0000\nH     -0.2500    -0.5200     0.9000\nH     -0.2500    -0.5200    -0.9000\n",
+    "referenceEa": 24.18,
+    "doi": "10.1021/sn2_test",
+    "journalRef": "Scholarly publication (DOI: 10.1021/sn2_test)",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Sn2 Halogen Displacement"
+    ]
+  },
+  {
+    "id": "lit_10_1021_sulfur_test",
+    "name": "Glutathione Thiol Disulfide Exchange",
+    "iupacName": "Scholarly reaction (Thiol Disulfide Exchange)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1021/sulfur_test. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "15\nGlutathione Thiol Disulfide Exchange - Reactant\nS      0.0000     0.0000     0.0000\nS      2.4000     0.0000     0.0000\nS      4.4500     0.0000     0.0000\nC     -1.4000     0.8000     0.0000\nC      2.8000     1.4000     0.0000\nC      5.8000     0.8000     0.0000\nH     -1.4000     1.8500     0.0000\nH     -1.9000     0.4500     0.8800\nH     -1.9000     0.4500    -0.8800\nH      2.8000     2.4500     0.0000\nH      3.3000     1.0500     0.8800\nH      3.3000     1.0500    -0.8800\nH      5.8000     1.8500     0.0000\nH      6.3000     0.4500     0.8800\nH      6.3000     0.4500    -0.8800\n",
+    "productXyz": "15\nGlutathione Thiol Disulfide Exchange - Product\nS      0.3500     0.0000    -0.0000\nS      2.4500     0.0000     0.0000\nS      5.1000     0.0000     0.0000\nC     -1.4000     0.8000     0.0000\nC      2.8000     1.4000    -0.0000\nC      5.8000     0.8000     0.0000\nH     -1.4000     1.8500    -0.0000\nH     -1.9000     0.4500     0.8800\nH     -1.9000     0.4500    -0.8800\nH      2.8000     2.4500     0.0000\nH      3.3000     1.0500     0.8800\nH      3.3000     1.0500    -0.8800\nH      5.8000     1.8500     0.0000\nH      6.3000     0.4500     0.8800\nH      6.3000     0.4500    -0.8800\n",
+    "referenceEa": 12.23,
+    "doi": "10.1021/sulfur_test",
+    "journalRef": "Scholarly publication (DOI: 10.1021/sulfur_test)",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Thiol Disulfide Exchange"
+    ]
+  },
+  {
+    "id": "lit_10_1021_sn2_test",
+    "name": "Alkyl Halide SN2 Nucleophilic Substitution",
+    "iupacName": "Scholarly reaction (Sn2 Halogen Displacement)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1021/sn2_test. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "6\nAlkyl Halide SN2 Nucleophilic Substitution - Reactant\nC      0.0000     0.0000     0.0000\nCl    -2.4000     0.0000     0.0000\nF      1.3800     0.0000     0.0000\nH      0.2500     1.0500     0.0000\nH      0.2500    -0.5200     0.9000\nH      0.2500    -0.5200    -0.9000\n",
+    "productXyz": "6\nAlkyl Halide SN2 Nucleophilic Substitution - Product\nC      0.0000     0.0000     0.0000\nCl    -1.7800     0.0000     0.0000\nF      2.4000     0.0000     0.0000\nH     -0.2500     1.0500    -0.0000\nH     -0.2500    -0.5200     0.9000\nH     -0.2500    -0.5200    -0.9000\n",
+    "referenceEa": 18.59,
+    "doi": "10.1021/sn2_test",
+    "journalRef": "Scholarly publication (DOI: 10.1021/sn2_test)",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Sn2 Halogen Displacement"
+    ]
+  },
+  {
+    "id": "lit_10_1021_sulfur_test",
+    "name": "Glutathione Thiol Disulfide Exchange",
+    "iupacName": "Scholarly reaction (Thiol Disulfide Exchange)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1021/sulfur_test. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "15\nGlutathione Thiol Disulfide Exchange - Reactant\nS      0.0000     0.0000     0.0000\nS      2.4000     0.0000     0.0000\nS      4.4500     0.0000     0.0000\nC     -1.4000     0.8000     0.0000\nC      2.8000     1.4000     0.0000\nC      5.8000     0.8000     0.0000\nH     -1.4000     1.8500     0.0000\nH     -1.9000     0.4500     0.8800\nH     -1.9000     0.4500    -0.8800\nH      2.8000     2.4500     0.0000\nH      3.3000     1.0500     0.8800\nH      3.3000     1.0500    -0.8800\nH      5.8000     1.8500     0.0000\nH      6.3000     0.4500     0.8800\nH      6.3000     0.4500    -0.8800\n",
+    "productXyz": "15\nGlutathione Thiol Disulfide Exchange - Product\nS      0.3500     0.0000    -0.0000\nS      2.4500     0.0000    -0.0000\nS      5.1000     0.0000    -0.0000\nC     -1.4000     0.8000     0.0000\nC      2.8000     1.4000     0.0000\nC      5.8000     0.8000     0.0000\nH     -1.4000     1.8500     0.0000\nH     -1.9000     0.4500     0.8800\nH     -1.9000     0.4500    -0.8800\nH      2.8000     2.4500    -0.0000\nH      3.3000     1.0500     0.8800\nH      3.3000     1.0500    -0.8800\nH      5.8000     1.8500    -0.0000\nH      6.3000     0.4500     0.8800\nH      6.3000     0.4500    -0.8800\n",
+    "referenceEa": 16.02,
+    "doi": "10.1021/sulfur_test",
+    "journalRef": "Scholarly publication (DOI: 10.1021/sulfur_test)",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Thiol Disulfide Exchange"
+    ]
+  },
+  {
     "id": "lit_10_3389_fimmu_2026_1991810",
     "name": "Mechano-metabolic coupling in the tumor microenvironment: from mechanotransduction to",
     "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
