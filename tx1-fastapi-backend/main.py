@@ -300,6 +300,9 @@ class ReactionRequest(BaseModel):
     hf_token: Optional[str] = None
 
 UUID_REGEX = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$", re.IGNORECASE)
+MAX_UPLOAD_SIZE = 15 * 1024 * 1024  # 15 MB
+ALLOWED_TRAJECTORY_EXTENSIONS = {".dcd", ".xyz", ".pdb", ".log", ".csv", ".json", ".txt"}
+ALLOWED_STRUCTURE_EXTENSIONS = {".pdb", ".xyz", ".mol", ".sdf", ".cif"}
 
 _SOLVENT_DIELECTRIC_TABLE = {
     "vacuum": (1.0, 1.000, "Gas Phase (ε=1.0)"),
@@ -523,6 +526,9 @@ async def run_reaction(reaction_id: str, req: ReactionRequest):
 
 @app.post("/reactions/submit")
 async def submit_reaction(req: ReactionRequest, background_tasks: BackgroundTasks):
+    if len(req.reactant_xyz) > 500_000 or len(req.product_xyz) > 500_000:
+        raise HTTPException(status_code=413, detail="Coordinate input size exceeds 500 KB limit.")
+
     reaction_id = str(uuid.uuid4())
     # The id is included inside the dict, not just used as the key. Without it,
     # every poll response omits `reaction_id`, the Dart parser defaults to '',
@@ -548,10 +554,12 @@ def get_reaction(reaction_id: str):
 
 @app.get("/crossref/{doi:path}")
 def get_crossref_metadata(doi: str):
+    if len(doi) > 250:
+        raise HTTPException(status_code=400, detail="DOI identifier is too long.")
     url = f"https://api.crossref.org/works/{urllib.parse.quote(doi, safe='/')}"
     req = urllib.request.Request(url, headers={'User-Agent': 'QuantumForge/1.0 (mailto:admin@quantumforge.app)'})
     try:
-        with urllib.request.urlopen(req) as response:
+        with urllib.request.urlopen(req, timeout=10) as response:
             return json.loads(response.read().decode())
     except urllib.error.HTTPError as e:
         raise HTTPException(status_code=e.code, detail=str(e))
@@ -561,11 +569,14 @@ def get_crossref_metadata(doi: str):
 
 @app.get("/crossref-search")
 def search_crossref(q: str, rows: int = 5):
+    if len(q) > 300:
+        raise HTTPException(status_code=400, detail="Search query is too long.")
+    rows = max(1, min(rows, 50))
     query = urllib.parse.quote_plus(q)
     url = f"https://api.crossref.org/works?query.bibliographic={query}&rows={rows}&sort=relevance"
     req = urllib.request.Request(url, headers={'User-Agent': 'QuantumForge/1.0 (mailto:admin@quantumforge.app)'})
     try:
-        with urllib.request.urlopen(req) as response:
+        with urllib.request.urlopen(req, timeout=10) as response:
             return json.loads(response.read().decode())
     except urllib.error.HTTPError as e:
         raise HTTPException(status_code=e.code, detail=str(e))
@@ -783,27 +794,58 @@ async def start_hybrid_md(request: Request):
         if not file:
             raise HTTPException(status_code=400, detail="No file uploaded.")
 
-        drive_inputs = os.environ.get("QUANTUM_FORGE_INPUTS", "./inputs")
-        os.makedirs(drive_inputs, exist_ok=True)
-        pdb_path = os.path.join(drive_inputs, f"{job_id}_{file.filename}")
+        raw_filename = getattr(file, "filename", "structure.pdb") or "structure.pdb"
+        safe_filename = os.path.basename(raw_filename)
+        safe_filename = re.sub(r"[^a-zA-Z0-9_.-]", "_", safe_filename)
+        ext = os.path.splitext(safe_filename)[1].lower()
+        if ext not in ALLOWED_STRUCTURE_EXTENSIONS:
+            raise HTTPException(status_code=400, detail=f"Unsupported file format '{ext}' for Hybrid MD.")
 
-        content = await file.read()
+        content = await file.read(MAX_UPLOAD_SIZE + 1)
+        if len(content) > MAX_UPLOAD_SIZE:
+            raise HTTPException(status_code=413, detail="Uploaded file exceeds 15 MB limit.")
+
+        drive_inputs = os.path.abspath(os.environ.get("QUANTUM_FORGE_INPUTS", "./inputs"))
+        os.makedirs(drive_inputs, exist_ok=True)
+        pdb_path = os.path.join(drive_inputs, f"{job_id}_{safe_filename}")
+
         with open(pdb_path, "wb") as f:
             f.write(content)
 
         mlip_model = form.get("mlip_model", "tx1-fastapi")
-        simulation_length_ns = float(form.get("simulation_length_ns", 200.0))
+        try:
+            simulation_length_ns = float(form.get("simulation_length_ns", 200.0))
+        except (ValueError, TypeError):
+            simulation_length_ns = 200.0
     else:
         try:
             req_json = await request.json()
-            pdb_path = req_json.get("pdb_path")
+            raw_input = str(req_json.get("pdb_path", "")).strip()
             mlip_model = req_json.get("mlip_model", "tx1-fastapi")
             simulation_length_ns = float(req_json.get("simulation_length_ns", 200.0))
         except Exception:
             raise HTTPException(status_code=400, detail="Invalid JSON or Form.")
 
-    if not pdb_path:
-        raise HTTPException(status_code=400, detail="pdb_path or file is required.")
+        if not raw_input:
+            raise HTTPException(status_code=400, detail="pdb_path or file is required.")
+
+        # If input looks like a filesystem path, enforce strict directory containment
+        if "/" in raw_input or "\\" in raw_input:
+            abs_input = os.path.abspath(raw_input)
+            drive_inputs = os.path.abspath(os.environ.get("QUANTUM_FORGE_INPUTS", "./inputs"))
+            base_output_dir = os.path.abspath(os.environ.get("QUANTUM_FORGE_OUTPUTS", "./outputs"))
+
+            in_inputs = (os.path.commonpath([drive_inputs, abs_input]) == drive_inputs) if os.path.exists(drive_inputs) else False
+            in_outputs = (os.path.commonpath([base_output_dir, abs_input]) == base_output_dir) if os.path.exists(base_output_dir) else False
+
+            if not (in_inputs or in_outputs):
+                raise HTTPException(status_code=403, detail="Arbitrary filesystem path access is prohibited.")
+            pdb_path = abs_input
+        else:
+            # Treated as SMILES chemical descriptor
+            if len(raw_input) > 250:
+                raise HTTPException(status_code=400, detail="SMILES string exceeds maximum allowed length (250 chars).")
+            pdb_path = raw_input
 
     try:
         task = run_hybrid_md.apply_async(args=[pdb_path, job_id, mlip_model, simulation_length_ns], task_id=job_id)
@@ -819,6 +861,11 @@ async def start_hybrid_md(request: Request):
 
 @app.get("/simulate/status/{job_id}")
 async def get_hybrid_md_status(job_id: str, task_id: str = None):
+    if not UUID_REGEX.match(job_id):
+        raise HTTPException(status_code=400, detail="Invalid job ID format.")
+    if task_id and not UUID_REGEX.match(task_id):
+        raise HTTPException(status_code=400, detail="Invalid task ID format.")
+
     try:
         from celery.result import AsyncResult
         from worker_hybrid import celery_app
@@ -833,8 +880,8 @@ async def get_hybrid_md_status(job_id: str, task_id: str = None):
         if res.ready():
             result = res.result
 
-            base_output_dir = os.environ.get("QUANTUM_FORGE_OUTPUTS", "./outputs")
-            drive_outputs = os.path.join(base_output_dir, str(job_id))
+            base_output_dir = os.path.abspath(os.environ.get("QUANTUM_FORGE_OUTPUTS", "./outputs"))
+            drive_outputs = os.path.join(base_output_dir, job_id)
             dcd_path = os.path.join(drive_outputs, 'trajectory.dcd')
             dcd_exists = os.path.exists(dcd_path)
 
@@ -854,16 +901,26 @@ async def get_hybrid_md_status(job_id: str, task_id: str = None):
 
 @app.get("/simulate/download/{job_id}/{filename}")
 async def download_trajectory_file(job_id: str, filename: str):
-    import os
-    base_output_dir = os.environ.get("QUANTUM_FORGE_OUTPUTS", "./outputs")
-    job_dir = os.path.join(base_output_dir, str(job_id))
-    file_path = os.path.abspath(os.path.join(job_dir, filename))
+    if not UUID_REGEX.match(job_id):
+        raise HTTPException(status_code=400, detail="Invalid job ID format.")
 
-    if not file_path.startswith(os.path.abspath(job_dir)):
-        raise HTTPException(status_code=403, detail="Access denied")
+    clean_filename = os.path.basename(filename)
+    if clean_filename != filename or ".." in filename:
+        raise HTTPException(status_code=400, detail="Invalid filename format.")
 
-    if not os.path.exists(file_path):
-        raise HTTPException(status_code=404, detail="Trajectory file not found")
+    ext = os.path.splitext(clean_filename)[1].lower()
+    if ext not in ALLOWED_TRAJECTORY_EXTENSIONS:
+        raise HTTPException(status_code=403, detail="File extension not permitted for download.")
+
+    base_output_dir = os.path.abspath(os.environ.get("QUANTUM_FORGE_OUTPUTS", "./outputs"))
+    job_dir = os.path.abspath(os.path.join(base_output_dir, job_id))
+    file_path = os.path.abspath(os.path.join(job_dir, clean_filename))
+
+    if os.path.commonpath([job_dir, file_path]) != job_dir or not file_path.startswith(job_dir + os.sep):
+        raise HTTPException(status_code=403, detail="Access denied.")
+
+    if not os.path.isfile(file_path):
+        raise HTTPException(status_code=404, detail="Trajectory file not found.")
 
     return FileResponse(file_path)
 
@@ -1091,7 +1148,7 @@ def get_pharma_model():
         return None
     try:
         from scripts.autonomous_trainer.pharma_intelligence_model import PharmaBioNet, MOA_CLASSES, SPECIES_LIST, DISCIPLINE_LIST
-        ckpt = torch.load(str(_PHARMA_CHECKPOINT), map_location=DEVICE)
+        ckpt = torch.load(str(_PHARMA_CHECKPOINT), map_location=DEVICE, weights_only=True)
         m = PharmaBioNet().to(DEVICE)
         m.load_state_dict(ckpt["model_state_dict"])
         m.eval()
@@ -1162,3 +1219,9 @@ def predict_pharma_intelligence(req: PharmaQueryRequest):
         return {"dossier": matched}
 
     raise HTTPException(status_code=404, detail="Compound or model prediction could not be resolved.")
+
+
+if __name__ == "__main__":
+    import uvicorn
+    port = int(os.environ.get("PORT", "8000"))
+    uvicorn.run("main:app", host="0.0.0.0", port=port, reload=False)

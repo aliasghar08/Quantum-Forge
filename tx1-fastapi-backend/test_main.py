@@ -314,6 +314,46 @@ def test_predict_batch_returns_list_of_predictions_with_uncertainty():
     assert data["strategy"] == "tx1-v2"
 
 
+# ── Security tests ───────────────────────────────────────────────────────────
+
+def test_security_download_trajectory_rejects_path_traversal():
+    """Verify trajectory download blocks path traversal and forbidden extensions."""
+    # 1. Invalid job_id (directory traversal attempt)
+    res = client().get("/simulate/download/../../etc/passwd")
+    assert res.status_code in (400, 404, 422)
+
+    # 2. Path traversal in filename with valid UUID
+    valid_uuid = "12345678-1234-1234-1234-123456789abc"
+    res = client().get(f"/simulate/download/{valid_uuid}/../../etc/passwd")
+    assert res.status_code in (400, 403, 404)
+
+    # 3. Disallowed extension
+    res = client().get(f"/simulate/download/{valid_uuid}/malicious.sh")
+    assert res.status_code in (400, 403)
+
+
+def test_security_status_rejects_invalid_uuid():
+    """Verify status endpoint rejects non-UUID parameters."""
+    res = client().get("/simulate/status/not-a-valid-uuid")
+    assert res.status_code == 400
+    assert "Invalid job ID format" in res.json().get("detail", "")
+
+
+def test_security_hybrid_md_rejects_arbitrary_system_paths():
+    """Verify hybrid-md rejects arbitrary filesystem access in JSON."""
+    res = client().post("/simulate/hybrid-md", json={"pdb_path": "/etc/passwd"})
+    assert res.status_code in (400, 403, 503)
+
+
+def test_security_submit_reaction_rejects_oversized_payload():
+    """Verify submit_reaction rejects massive coordinate inputs exceeding 500KB."""
+    huge_str = "H 0.0 0.0 0.0\n" * 40000
+    res = client().post("/reactions/submit", json={
+        "reactant_xyz": huge_str,
+        "product_xyz": "1\n\nH 0.0 0.0 0.0\n",
+    })
+    assert res.status_code == 413
+
 
 # ── Standalone runner ────────────────────────────────────────────────────────
 

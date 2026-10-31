@@ -88,18 +88,29 @@ class SharedReactionService {
       };
     }
 
+    final currentUser = FirebaseAuth.instance.currentUser;
+    final authorId = currentUser?.uid ?? 'anonymous';
+
     final data = <String, dynamic>{
       'id': shareId,
       'reaction_name': reactionName,
+      'title': reactionName,
       'template_id': ?templateId,
       'reference_ea': ?referenceEa,
       'reactants': reactantsData,
       'products': productsData,
       'catalysts': catalystsData,
+      'reactantXyz': reactantsData.isNotEmpty
+          ? reactantsData.map((e) => e['xyz'] as String).join('\n')
+          : '',
+      'productXyz': productsData.isNotEmpty
+          ? productsData.map((e) => e['xyz'] as String).join('\n')
+          : '',
       'settings': ?settingsMap,
       'status': ?status?.toJson(),
       'created_at': FieldValue.serverTimestamp(),
-      'created_by': FirebaseAuth.instance.currentUser?.uid ?? 'guest',
+      'created_by': authorId,
+      'authorId': authorId,
     };
 
     await _firestore.collection('shared_reactions').doc(shareId).set(data);

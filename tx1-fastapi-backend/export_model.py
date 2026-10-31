@@ -50,7 +50,7 @@ def export_model(peptide_pdb_path=None, output_path=None, total_atoms=None, pept
     model = MolecularGraphNetwork()
     ckpt = os.environ.get("QUANTUM_FORGE_MODEL_CHECKPOINT", "./t1x_model_checkpoint.pt")
     if os.path.exists(ckpt):
-        state = torch.load(ckpt, map_location="cpu")
+        state = torch.load(ckpt, map_location="cpu", weights_only=True)
         if isinstance(state, dict) and "model_state_dict" in state:
             state = state["model_state_dict"]
             

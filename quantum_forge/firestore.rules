@@ -1,32 +1,216 @@
 rules_version = '2';
 
+// ===============================================================
+// Assumed Data Model
+// ===============================================================
+//
+// Collection: users/{userId}
+// Document ID: Firebase Auth UID
+// Description: User profile, settings, and personal computation history.
+// Fields:
+//   - uid: string (required) - Firebase Auth UID matching document ID
+//   - email: string (optional) - User's email address
+//   - displayName: string (optional) - User's display name
+//   - emailVerified: bool (optional) - Verification state
+//   - lastSeen: timestamp (optional) - Last activity timestamp
+//   - createdAt: timestamp (optional, immutable) - Account creation timestamp
+// Subcollections:
+//   - reactions/{reactionId}: Private reaction computations and progress states
+//
+// Collection: library/{templateId}
+// Document ID: Unique template identifier (e.g. 'diels_alder_classic', 'med-aspirin-01')
+// Description: Curated library and user-contributed reaction templates.
+// Fields:
+//   - name: string (required, 1-200 chars) - Human-readable reaction title
+//   - reactantXyz: string (required, 1-500,000 chars) - 3D coordinates for reactants
+//   - productXyz: string (required, 1-500,000 chars) - 3D coordinates for products
+//   - iupacName: string (optional, max 500 chars) - IUPAC reaction nomenclature
+//   - description: string (optional, max 5000 chars) - Detailed chemical description
+//   - category: string (optional, max 100 chars) - Reaction class/category
+//   - referenceEa: number (optional) - Reference activation barrier in kcal/mol
+//   - reference_ea: number (optional) - Alternate field name for reference barrier
+//   - doi: string (optional, max 300 chars) - Literature reference DOI
+//   - journalRef: string (optional, max 500 chars) - Journal citation text
+//   - tags: list of strings (optional, max 100 items) - Search and curriculum tags
+//   - defaults: map (optional) - Quantum calculation solver defaults
+//   - isDerived: bool (optional) - Indicates combinatorial variant vs curated
+//   - derivedFrom: string (optional, max 200 chars) - Parent template ID
+//   - defaultCatalystName: string (optional, max 200 chars) - Recommended catalyst
+//   - catalystXyz: string (optional, max 500,000 chars) - 3D coordinates for catalyst
+//   - literatureBarrierKcalMol: number (optional) - Published experimental barrier
+//   - hasLiteratureCatalyst: bool (optional) - Flag for catalyzed variant
+//   - literatureDoi: string (optional, max 300 chars) - Secondary literature DOI
+//   - id: string (optional, max 100 chars) - Template identifier
+//   - created_at: timestamp (optional) - Timestamp of contribution
+//   - created_by: string (optional, max 100 chars) - Creator UID
+//   - authorId: string (optional, max 100 chars) - Creator UID
+//
+// Collection: shared_reactions/{shareId}
+// Document ID: Alphanumeric share snapshot token (e.g. 12-char ID)
+// Description: Public snapshots of reaction calculations and trajectories.
+// Fields:
+//   - title: string (required, 1-500,000 chars) - Reaction title or name
+//   - reactantXyz: string (required, max 500,000 chars) - Reactant Cartesian coordinates
+//   - productXyz: string (required, max 500,000 chars) - Product Cartesian coordinates
+//   - authorId: string (required, max 100 chars) - Creator UID or 'anonymous' (immutable)
+//   - id: string (optional, max 100 chars) - Share ID matching document ID
+//   - reaction_name: string (optional, max 500,000 chars) - Display name
+//   - template_id: string (optional, max 200 chars) - Source template ID
+//   - reference_ea: number (optional) - Reference energy barrier
+//   - reactants: list of maps (optional, max 100 items) - Parsed reactant molecules
+//   - products: list of maps (optional, max 100 items) - Parsed product molecules
+//   - catalysts: list of maps (optional, max 100 items) - Parsed catalyst molecules
+//   - settings: map (optional) - Computational quantum chemistry settings
+//   - status: map (optional) - Calculation output and trajectory status
+//   - created_at: timestamp (optional, immutable) - Creation timestamp
+//   - created_by: string (optional, max 100 chars) - Creator UID or 'anonymous'
+//
+// ===============================================================
+
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // The user's own profile document. Every signed-in user owns exactly one.
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+
+    // Check if the request is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Check if the user is an administrator via custom claims on the verified Auth token
+    function isAdmin() {
+      return isAuthenticated() &&
+        (('admin' in request.auth.token && request.auth.token.admin == true) ||
+         ('isAdmin' in request.auth.token && request.auth.token.isAdmin == true));
+    }
+
+    // Check if user owns the resource based on path parameter
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // Check if user owns the shared reaction document
+    function isSharedReactionAuthor() {
+      return isAuthenticated() && (
+        (resource.data.authorId == request.auth.uid) ||
+        (('created_by' in resource.data) && resource.data.created_by == request.auth.uid)
+      );
+    }
+
+    // ===============================================================
+    // Domain Validators
+    // ===============================================================
+
+    // Validates shared reaction document structure, field bounds, and ownership
+    function isValidSharedReaction(data) {
+      return data.keys().hasAll(['title', 'reactantXyz', 'productXyz', 'authorId']) &&
+        data.keys().hasOnly([
+          'title', 'reactantXyz', 'productXyz', 'authorId',
+          'id', 'reaction_name', 'template_id', 'reference_ea',
+          'reactants', 'products', 'catalysts', 'settings',
+          'status', 'created_at', 'created_by'
+        ]) &&
+        data.title is string && data.title.size() > 0 && data.title.size() <= 500000 &&
+        data.reactantXyz is string && data.reactantXyz.size() <= 500000 &&
+        data.productXyz is string && data.productXyz.size() <= 500000 &&
+        data.authorId is string &&
+        ((isAuthenticated() && data.authorId == request.auth.uid) || data.authorId == 'anonymous') &&
+        (!('id' in data) || (data.id is string && data.id.size() <= 100)) &&
+        (!('reaction_name' in data) || (data.reaction_name is string && data.reaction_name.size() <= 500000)) &&
+        (!('template_id' in data) || (data.template_id is string && data.template_id.size() <= 200)) &&
+        (!('reference_ea' in data) || data.reference_ea is number) &&
+        (!('reactants' in data) || (data.reactants is list && data.reactants.size() <= 100)) &&
+        (!('products' in data) || (data.products is list && data.products.size() <= 100)) &&
+        (!('catalysts' in data) || (data.catalysts is list && data.catalysts.size() <= 100)) &&
+        (!('settings' in data) || data.settings is map) &&
+        (!('status' in data) || data.status is map) &&
+        (!('created_at' in data) || data.created_at is timestamp) &&
+        (!('created_by' in data) || (data.created_by is string && data.created_by.size() <= 100));
+    }
+
+    // Validates reaction library template structure, constraints, and bounds
+    function isValidTemplate(data) {
+      return data.keys().hasAll(['name', 'reactantXyz', 'productXyz']) &&
+        data.keys().hasOnly([
+          'name', 'reactantXyz', 'productXyz', 'iupacName', 'description',
+          'category', 'referenceEa', 'reference_ea', 'doi', 'journalRef',
+          'tags', 'defaults', 'isDerived', 'derivedFrom', 'defaultCatalystName',
+          'catalystXyz', 'literatureBarrierKcalMol', 'hasLiteratureCatalyst',
+          'literatureDoi', 'id', 'created_at', 'created_by', 'authorId',
+          'spectroscopy', 'conformerEnsemble', 'calibratedBarrier', 'status'
+        ]) &&
+        data.name is string && data.name.size() > 0 && data.name.size() <= 200 &&
+        data.reactantXyz is string && data.reactantXyz.size() > 0 && data.reactantXyz.size() <= 500000 &&
+        data.productXyz is string && data.productXyz.size() > 0 && data.productXyz.size() <= 500000 &&
+        (!('iupacName' in data) || (data.iupacName is string && data.iupacName.size() <= 500)) &&
+        (!('description' in data) || (data.description is string && data.description.size() <= 5000)) &&
+        (!('category' in data) || (data.category is string && data.category.size() <= 100)) &&
+        (!('referenceEa' in data) || data.referenceEa is number) &&
+        (!('reference_ea' in data) || data.reference_ea is number) &&
+        (!('doi' in data) || (data.doi is string && data.doi.size() <= 300)) &&
+        (!('journalRef' in data) || (data.journalRef is string && data.journalRef.size() <= 500)) &&
+        (!('tags' in data) || (data.tags is list && data.tags.size() <= 100)) &&
+        (!('defaults' in data) || data.defaults is map) &&
+        (!('isDerived' in data) || data.isDerived is bool) &&
+        (!('derivedFrom' in data) || (data.derivedFrom is string && data.derivedFrom.size() <= 200)) &&
+        (!('defaultCatalystName' in data) || (data.defaultCatalystName is string && data.defaultCatalystName.size() <= 200)) &&
+        (!('catalystXyz' in data) || (data.catalystXyz is string && data.catalystXyz.size() <= 500000)) &&
+        (!('literatureBarrierKcalMol' in data) || data.literatureBarrierKcalMol is number) &&
+        (!('hasLiteratureCatalyst' in data) || data.hasLiteratureCatalyst is bool) &&
+        (!('literatureDoi' in data) || (data.literatureDoi is string && data.literatureDoi.size() <= 300)) &&
+        (!('id' in data) || (data.id is string && data.id.size() <= 100)) &&
+        (!('created_at' in data) || data.created_at is timestamp) &&
+        (!('created_by' in data) || (data.created_by is string && data.created_by.size() <= 100)) &&
+        (!('authorId' in data) || (data.authorId is string && data.authorId.size() <= 100)) &&
+        (!('spectroscopy' in data) || data.spectroscopy is map) &&
+        (!('conformerEnsemble' in data) || data.conformerEnsemble is list) &&
+        (!('calibratedBarrier' in data) || data.calibratedBarrier is number) &&
+        (!('status' in data) || data.status is map);
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    // The user's personal profile and private subcollections.
+    // Strictly restricted to the authenticated document owner.
     match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read, write: if isOwner(userId);
 
       match /{document=**} {
-        allow read, write: if request.auth != null && request.auth.uid == userId;
+        allow read, write: if isOwner(userId);
       }
     }
 
-    // Public reaction-template library: readable and extensible by everyone.
-    // Anyone can contribute and add new reactions without authentication blocks.
-    // Deletions remain strictly restricted to administrators.
+    // Public reaction-template library.
+    // Readable by everyone.
+    // Official templates are protected against vandalism: modifications and deletions
+    // are strictly restricted to administrators. Authenticated users may contribute
+    // new templates provided they do not overwrite existing documents.
     match /library/{templateId} {
       allow read: if true;
-      allow create, update: if true;
-      allow delete: if request.auth != null && request.auth.token.admin == true;
+      allow create: if (isAdmin() || (isAuthenticated() && !exists(/databases/$(database)/documents/library/$(templateId)))) &&
+                       isValidTemplate(request.resource.data);
+      allow update: if isAdmin() && isValidTemplate(request.resource.data);
+      allow delete: if isAdmin();
     }
 
-    // Public shared reactions: readable by anyone (including guests).
-    // Anyone can generate/save a public share snapshot.
+    // Public shared reactions.
+    // Snapshots are readable by anyone (including unauthenticated guests).
+    // On create: validated schema, bounds (< 500KB), and authorId integrity.
+    // On update/delete: restricted to the original author or an administrator,
+    // closing the IDOR vulnerability and enforcing field immutability on update.
     match /shared_reactions/{shareId} {
       allow read: if true;
-      allow create: if true;
-      allow update, delete: if request.auth != null;
+      allow create: if isValidSharedReaction(request.resource.data);
+      allow update: if (isSharedReactionAuthor() || isAdmin()) &&
+                       isValidSharedReaction(request.resource.data) &&
+                       request.resource.data.authorId == resource.data.authorId &&
+                       (!('id' in resource.data) || !('id' in request.resource.data) || request.resource.data.id == resource.data.id) &&
+                       (!('created_at' in resource.data) || !('created_at' in request.resource.data) || request.resource.data.created_at == resource.data.created_at);
+      allow delete: if isSharedReactionAuthor() || isAdmin();
     }
   }
 }
