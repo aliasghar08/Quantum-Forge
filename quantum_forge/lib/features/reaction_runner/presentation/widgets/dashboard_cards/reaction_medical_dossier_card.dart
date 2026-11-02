@@ -459,6 +459,16 @@ class _ReactionMedicalDossierCardState extends State<ReactionMedicalDossierCard>
               ),
               child: _buildActiveTabContent(palette, p),
             ),
+            const SizedBox(height: 10),
+            Text(
+              'Trademarks & Nominative Fair Use: Commercial drug brand names cited herein are property of their respective trademark owners and used solely for academic identification under nominative fair use. Educational in-silico simulation only — not for medical diagnosis, prescribing, or clinical care.',
+              style: TextStyle(
+                color: palette.textMuted.withValues(alpha: 0.7),
+                fontSize: 9.5,
+                fontStyle: FontStyle.italic,
+                height: 1.35,
+              ),
+            ),
           ],
         ],
       ),
