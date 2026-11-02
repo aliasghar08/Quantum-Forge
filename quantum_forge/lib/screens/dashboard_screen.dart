@@ -1099,6 +1099,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         child: SingleChildScrollView(
                           child: QuantumControlsPanel(
                             activeTemplate: _viewModel.activeTemplate,
+                            activeMedicineProfile: _resolveCurrentMedicineProfile(status),
                           ),
                         ),
                       ),

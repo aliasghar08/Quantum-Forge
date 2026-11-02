@@ -12,11 +12,13 @@ import 'package:quantum_forge/core/theme/theme_provider.dart';
 import 'package:quantum_forge/features/osce/data/osce_scenarios.dart';
 
 class OsceSandboxScreen extends StatefulWidget {
-  const OsceSandboxScreen({super.key});
+  final String? initialScenarioId;
 
-  static Route<void> route() {
+  const OsceSandboxScreen({super.key, this.initialScenarioId});
+
+  static Route<void> route({String? initialScenarioId}) {
     return MaterialPageRoute<void>(
-      builder: (_) => const OsceSandboxScreen(),
+      builder: (_) => OsceSandboxScreen(initialScenarioId: initialScenarioId),
     );
   }
 
@@ -39,6 +41,12 @@ class _OsceSandboxScreenState extends State<OsceSandboxScreen> {
   @override
   void initState() {
     super.initState();
+    if (widget.initialScenarioId != null) {
+      final idx = kOscePresetScenarios.indexWhere((s) => s.id == widget.initialScenarioId);
+      if (idx != -1) {
+        _activeScenarioIndex = idx;
+      }
+    }
     _initScenario();
   }
 

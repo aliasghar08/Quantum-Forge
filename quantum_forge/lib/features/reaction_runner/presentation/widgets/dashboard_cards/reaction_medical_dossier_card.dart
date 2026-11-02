@@ -11,6 +11,13 @@ import 'package:flutter/material.dart';
 import 'package:quantum_forge/core/services/url_service.dart';
 import 'package:quantum_forge/core/theme/theme_provider.dart';
 import 'package:quantum_forge/features/pharmacopeia/data/medicine_pharmacology_profile.dart';
+import 'package:quantum_forge/features/pharmacogenomics/presentation/widgets/pharmacogenomics_mutator.dart';
+import 'package:quantum_forge/screens/pharmacogenomics_screen.dart';
+import 'package:quantum_forge/features/osce/data/osce_scenarios.dart';
+import 'package:quantum_forge/screens/osce_sandbox_screen.dart';
+import 'package:quantum_forge/features/ddi/presentation/widgets/split_molecular_viewer.dart';
+import 'package:quantum_forge/screens/ddi_split_screen.dart';
+import 'package:quantum_forge/core/widgets/ngl/ngl_engine.dart';
 import 'medical_dossier_diagrams.dart';
 import 'research_ui.dart';
 
@@ -844,6 +851,10 @@ class _ReactionMedicalDossierCardState extends State<ReactionMedicalDossierCard>
           ),
           palette: palette,
         ),
+        const SizedBox(height: 18),
+        _sectionLabel('Antimicrobial Resistance (AMR) & Split-Screen DDI Sandbox', Icons.splitscreen_rounded),
+        const SizedBox(height: 8),
+        _buildSplitScreenDdiSection(palette, p),
       ],
     );
   }
@@ -977,6 +988,10 @@ class _ReactionMedicalDossierCardState extends State<ReactionMedicalDossierCard>
             ],
           ),
         ),
+        const SizedBox(height: 18),
+        _sectionLabel('Interactive Pharmacogenomics Mutator & Barrier Shift', Icons.biotech_rounded),
+        const SizedBox(height: 8),
+        _buildPharmacogenomicsSection(palette, p),
       ],
     );
   }
@@ -1156,6 +1171,10 @@ class _ReactionMedicalDossierCardState extends State<ReactionMedicalDossierCard>
           ),
           palette: palette,
         ),
+        const SizedBox(height: 18),
+        _sectionLabel('WebXR Immersive Anatomy (VR)', Icons.vrpano_rounded),
+        const SizedBox(height: 8),
+        _buildWebXrSection(palette),
       ],
     );
   }
@@ -1260,6 +1279,10 @@ class _ReactionMedicalDossierCardState extends State<ReactionMedicalDossierCard>
           ),
           palette: palette,
         ),
+        const SizedBox(height: 18),
+        _sectionLabel('Interactive OSCE Emergency Simulation & Antidote Rescue', Icons.emergency_rounded),
+        const SizedBox(height: 8),
+        _buildOsceRescueSection(palette, p),
       ],
     );
   }
@@ -2079,5 +2102,405 @@ class _ReactionMedicalDossierCardState extends State<ReactionMedicalDossierCard>
         ),
       ),
     );
+  }
+
+  // ── Synced Clinical Decision & Education Engine Integrations ───────────────
+
+  Widget _buildSplitScreenDdiSection(dynamic palette, MedicinePharmacologyProfile p) {
+    final presetIdx = _resolveDdiPresetForProfile(p);
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: palette.panel,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: palette.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Row(
+                  children: [
+                    const Icon(Icons.splitscreen_rounded, color: Color(0xFF00E5FF), size: 18),
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: Text(
+                        'ANTIMICROBIAL RESISTANCE (AMR) & DDI SANDBOX',
+                        style: TextStyle(
+                          color: palette.textPrimary,
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 0.5,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              OutlinedButton.icon(
+                icon: const Icon(Icons.open_in_new_rounded, size: 13),
+                label: const Text('Fullscreen Sandbox', style: TextStyle(fontSize: 11)),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: const Color(0xFF00E5FF),
+                  side: const BorderSide(color: Color(0xFF00E5FF)),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  minimumSize: Size.zero,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const DdiSplitScreen()),
+                  );
+                },
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          SplitMolecularViewerWidget(initialPresetIndex: presetIdx),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPharmacogenomicsSection(dynamic palette, MedicinePharmacologyProfile p) {
+    final enzyme = _resolveEnzymeForProfile(p);
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: palette.panel,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: palette.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Row(
+                  children: [
+                    const Icon(Icons.biotech_rounded, color: Color(0xFF69F0AE), size: 18),
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: Text(
+                        'PHARMACOGENOMIC MUTATOR & CLEARANCE CURVE',
+                        style: TextStyle(
+                          color: palette.textPrimary,
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 0.5,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              OutlinedButton.icon(
+                icon: const Icon(Icons.open_in_new_rounded, size: 13),
+                label: const Text('Dedicated Module', style: TextStyle(fontSize: 11)),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: const Color(0xFF69F0AE),
+                  side: const BorderSide(color: Color(0xFF69F0AE)),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  minimumSize: Size.zero,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const PharmacogenomicsScreen()),
+                  );
+                },
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          PharmacogenomicsMutatorWidget(
+            initialEnzyme: enzyme,
+            autoPromptLiability: false,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildWebXrSection(dynamic palette) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: palette.panel,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: palette.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.vrpano_rounded, color: Color(0xFF00E5FF), size: 20),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'WebXR Immersive Transition State Anatomy (VR)',
+                  style: TextStyle(
+                    color: palette.textPrimary,
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Experience 6DoF stereoscopic headset walkthrough of active transition states, catalytic binding pockets, and covalent bond distances in virtual reality.',
+            style: TextStyle(color: palette.textSecondary, fontSize: 12, height: 1.4),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              ElevatedButton.icon(
+                icon: const Icon(Icons.view_in_ar_rounded, size: 16),
+                label: const Text('Enter WebXR Immersive VR Session'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF00E5FF),
+                  foregroundColor: Colors.black,
+                  textStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                ),
+                onPressed: () async {
+                  final success = await NglEngine.forView(0)?.requestWebXRSession() ?? false;
+                  if (!success && mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('WebXR VR session requires a WebXR-compatible VR headset or browser (e.g. Meta Quest, Apple Vision Pro, or Chrome WebXR emulator).'),
+                        duration: Duration(seconds: 4),
+                      ),
+                    );
+                  }
+                },
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildOsceRescueSection(dynamic palette, MedicinePharmacologyProfile p) {
+    final scenarioId = _resolveOsceScenarioForProfile(p);
+    final scenario = kOscePresetScenarios.firstWhere(
+      (s) => s.id == scenarioId,
+      orElse: () => kOscePresetScenarios.first,
+    );
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: palette.panel,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFFF5252).withValues(alpha: 0.35)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Row(
+                  children: [
+                    const Icon(Icons.emergency_rounded, color: Color(0xFFFF5252), size: 18),
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: Text(
+                        scenario.title.toUpperCase(),
+                        style: const TextStyle(
+                          color: Color(0xFFFF5252),
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 0.5,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              ElevatedButton.icon(
+                icon: const Icon(Icons.play_arrow_rounded, size: 15),
+                label: const Text('Start 3D OSCE', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFFF5252),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  minimumSize: Size.zero,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => OsceSandboxScreen(initialScenarioId: scenario.id),
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: palette.scaffold,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: palette.border),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'CLINICAL PRESENTATION & VITALS:',
+                  style: TextStyle(
+                    color: palette.textMuted,
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 0.8,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  scenario.patientBrief,
+                  style: TextStyle(color: palette.textPrimary, fontSize: 12, height: 1.4),
+                ),
+                const SizedBox(height: 6),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFF5252).withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    scenario.clinicalVitals,
+                    style: const TextStyle(
+                      color: Color(0xFFFF5252),
+                      fontSize: 11,
+                      fontFamily: 'monospace',
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 10),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Icon(Icons.check_circle_rounded, color: Color(0xFF00E676), size: 16),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  'First-Line Antidote: ${scenario.correctRescueAgentName}',
+                  style: TextStyle(
+                    color: palette.textPrimary,
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Padding(
+            padding: const EdgeInsets.only(left: 22),
+            child: Text(
+              scenario.mechanismOfRescue,
+              style: TextStyle(color: palette.textSecondary, fontSize: 11.5, height: 1.4),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _resolveEnzymeForProfile(MedicinePharmacologyProfile p) {
+    final lowerName = p.genericName.toLowerCase();
+    final lowerMeta = p.metabolismAndElimination.toLowerCase();
+    final lowerComp = p.comparativeSpeciesPharmacology.toLowerCase();
+
+    if (lowerName.contains('acetaminophen') ||
+        lowerName.contains('paracetamol') ||
+        p.id.contains('paracetamol') ||
+        lowerMeta.contains('cyp2e1')) {
+      return 'CYP2E1';
+    }
+    if (lowerName.contains('warfarin') || lowerMeta.contains('cyp2c9')) {
+      return 'CYP2C9';
+    }
+    if (lowerName.contains('codeine') || lowerMeta.contains('cyp2d6')) {
+      return 'CYP2D6';
+    }
+    if (lowerName.contains('aspirin') ||
+        lowerComp.contains('feline') ||
+        lowerComp.contains('cat') ||
+        lowerMeta.contains('ugt1a6')) {
+      return 'UGT1A6';
+    }
+    if (lowerName.contains('statin') ||
+        lowerName.contains('cyclosporine') ||
+        lowerMeta.contains('cyp3a4')) {
+      return 'CYP3A4';
+    }
+    return 'CYP2E1';
+  }
+
+  String _resolveOsceScenarioForProfile(MedicinePharmacologyProfile p) {
+    final lowerName = p.genericName.toLowerCase();
+    final lowerComp = p.comparativeSpeciesPharmacology.toLowerCase();
+    final lowerRescue = p.antidoteAndRescue.toLowerCase();
+    final lowerTarget = p.molecularTarget.toLowerCase();
+
+    if (lowerComp.contains('feline') || lowerComp.contains('cat')) {
+      return 'osce_feline_methemoglobinemia';
+    }
+    if (lowerRescue.contains('atropine') ||
+        lowerTarget.contains('acetylcholinesterase') ||
+        lowerName.contains('organophosphate')) {
+      return 'osce_organophosphate_crisis';
+    }
+    if (lowerRescue.contains('dantrolene') ||
+        lowerTarget.contains('ryanodine') ||
+        lowerName.contains('sevoflurane')) {
+      return 'osce_malignant_hyperthermia';
+    }
+    return 'osce_apap_hepatic_necrosis';
+  }
+
+  int _resolveDdiPresetForProfile(MedicinePharmacologyProfile p) {
+    final lowerName = p.genericName.toLowerCase();
+    final lowerTarget = p.molecularTarget.toLowerCase();
+
+    if (lowerName.contains('amoxicillin') ||
+        lowerName.contains('methicillin') ||
+        lowerTarget.contains('transpeptidase') ||
+        lowerTarget.contains('pbp')) {
+      return 0; // MRSA PBP2a
+    }
+    if (lowerName.contains('cephalosporin') ||
+        lowerName.contains('cefotaxime') ||
+        lowerTarget.contains('tem')) {
+      return 1; // TEM-52 ESBL
+    }
+    if (lowerName.contains('carbapenem') ||
+        lowerName.contains('meropenem') ||
+        lowerTarget.contains('kpc')) {
+      return 2; // KPC-2 Carbapenemase
+    }
+    return 0;
   }
 }

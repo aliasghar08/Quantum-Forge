@@ -9,40 +9,29 @@ import 'package:quantum_forge/core/state/quantum_provider.dart';
 import 'package:quantum_forge/features/reaction_library/data/reaction_templates.dart';
 
 import 'package:quantum_forge/screens/publication_details_screen.dart';
-import 'package:quantum_forge/core/algorithms/solvent_properties.dart';
 import 'package:quantum_forge/core/services/doi_verification_service.dart';
 import 'package:quantum_forge/core/services/url_service.dart';
+import 'package:quantum_forge/screens/pharmacogenomics_screen.dart';
+import 'package:quantum_forge/screens/osce_sandbox_screen.dart';
+import 'package:quantum_forge/screens/ddi_split_screen.dart';
+import 'package:quantum_forge/features/pharmacopeia/data/pharmacopeia_database.dart';
+import 'package:quantum_forge/features/pharmacopeia/data/medicine_pharmacology_profile.dart';
 
 class QuantumControlsPanel extends StatefulWidget {
   final ReactionTemplate? activeTemplate;
+  final MedicinePharmacologyProfile? activeMedicineProfile;
 
-  const QuantumControlsPanel({super.key, this.activeTemplate});
+  const QuantumControlsPanel({
+    super.key,
+    this.activeTemplate,
+    this.activeMedicineProfile,
+  });
 
   @override
   State<QuantumControlsPanel> createState() => _QuantumControlsPanelState();
 }
 
 class _QuantumControlsPanelState extends State<QuantumControlsPanel> {
-  static const _mlipModels = [
-    'tx1-fastapi',
-    'MACE-MP-0',
-    'CHGNet',
-    'GFN2-xTB',
-  ];
-  static const _solventModels = [
-    'Vacuum',
-    'PCM (H₂O)',
-    'PCM (EtOH)',
-    'PCM (MeOH)',
-    'PCM (DMSO)',
-    'PCM (THF)',
-    'PCM (DCM)',
-    'PCM (Toluene)',
-    'PCM (Hexane)',
-    'Onsager (ε=78.4)',
-    'SMD (H₂O)',
-    'SMD (DMSO)',
-  ];
   static const _algorithms = [
     'NEB-CI',
     'Growing String Method',
@@ -52,20 +41,6 @@ class _QuantumControlsPanelState extends State<QuantumControlsPanel> {
   static const _convergences = ['Loose', 'Normal', 'Tight', 'Very Tight'];
   static const _exportFormats = ['XYZ', 'PDB', 'JSON'];
 
-  TextEditingController? _customCatalystController;
-
-  @override
-  void initState() {
-    super.initState();
-    _customCatalystController = TextEditingController();
-  }
-
-  @override
-  void dispose() {
-    _customCatalystController?.dispose();
-    super.dispose();
-  }
-
   @override
   Widget build(BuildContext context) {
     final notifier = context.read<QuantumSettingsNotifier>();
@@ -73,11 +48,6 @@ class _QuantumControlsPanelState extends State<QuantumControlsPanel> {
     return ValueListenableBuilder<QuantumSettings>(
       valueListenable: notifier,
       builder: (context, settings, _) {
-        // FIX: Use Material instead of Container(BoxDecoration) so that
-        // ExpansionTile/ListTile ink splashes and tile backgrounds paint
-        // on a real Material surface. The previous DecoratedBox hid them
-        // and triggered the "ListTile background color or ink splashes may
-        // be invisible" assertion.
         return Material(
           color: Colors.black.withValues(alpha: 0.2),
           child: Column(
@@ -86,25 +56,24 @@ class _QuantumControlsPanelState extends State<QuantumControlsPanel> {
               Column(
                 children: [
                   _buildExpansionTile(
-                    title: 'SYSTEM PARAMETERS',
-                    icon: Icons.memory,
+                    title: 'CLINICAL & PHARMACOLOGY SYNC',
+                    icon: Icons.local_hospital_outlined,
                     initiallyExpanded: true,
-                    children: _buildSystemContent(settings, notifier),
+                    children: _buildClinicalSyncContent(context),
                   ),
                   _buildExpansionTile(
-                    title: 'CATALYST CONFIGURATION',
-                    icon: Icons.science_outlined,
-                    initiallyExpanded:
-                        widget.activeTemplate?.hasLiteratureCatalyst == true,
-                    children: _buildCatalystContent(settings, notifier),
+                    title: 'COMPUTE & CREDENTIALS',
+                    icon: Icons.cloud_done_outlined,
+                    initiallyExpanded: true,
+                    children: _buildCredentialsContent(settings, notifier),
                   ),
                   _buildExpansionTile(
-                    title: 'QUANTUM THEORY',
+                    title: 'QUANTUM THEORY & CONVERGENCE',
                     icon: Icons.functions,
                     children: _buildOptimizerContent(settings, notifier),
                   ),
                   _buildExpansionTile(
-                    title: 'POST-TS ANALYSIS',
+                    title: 'POST-TS ANALYSIS & SPECTROSCOPY',
                     icon: Icons.analytics_outlined,
                     children: _buildAnalysisContent(settings, notifier),
                   ),
@@ -189,393 +158,292 @@ class _QuantumControlsPanelState extends State<QuantumControlsPanel> {
   }
 
   // ---------------------------------------------------------------------------
-  // SYSTEM CONTENT
+  // CLINICAL & PHARMACOLOGY SYNC
   // ---------------------------------------------------------------------------
-  List<Widget> _buildSystemContent(
-    QuantumSettings s,
-    QuantumSettingsNotifier n,
-  ) {
-    return [
-      _sectionLabel('Electronic Structure'),
-      const SizedBox(height: 12),
-
-      // Charge spinner
-      _labeledRow(
-        'Charge',
-        Row(
-          children: [
-            _iconButton(Icons.remove, () {
-              if (s.charge > -5) {
-                n.update((q) => q.copyWith(charge: q.charge - 1));
-              }
-            }),
-            Container(
-              width: 48,
-              alignment: Alignment.center,
-              child: Text(
-                '${s.charge >= 0 ? '+' : ''}${s.charge}',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                ),
-              ),
-            ),
-            _iconButton(Icons.add, () {
-              if (s.charge < 5) {
-                n.update((q) => q.copyWith(charge: q.charge + 1));
-              }
-            }),
-          ],
-        ),
-      ),
-      const SizedBox(height: 12),
-
-      // Spin multiplicity
-      _labeledRow(
-        'Spin Mult.',
-        Row(
-          children: [
-            _iconButton(Icons.remove, () {
-              if (s.spinMultiplicity > 1) {
-                n.update(
-                  (q) => q.copyWith(spinMultiplicity: q.spinMultiplicity - 1),
-                );
-              }
-            }),
-            Container(
-              width: 48,
-              alignment: Alignment.center,
-              child: Text(
-                '${s.spinMultiplicity}',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                ),
-              ),
-            ),
-            _iconButton(Icons.add, () {
-              if (s.spinMultiplicity < 7) {
-                n.update(
-                  (q) => q.copyWith(spinMultiplicity: q.spinMultiplicity + 1),
-                );
-              }
-            }),
-          ],
-        ),
-      ),
-      const SizedBox(height: 16),
-      _sectionLabel('ML Potential'),
-      const SizedBox(height: 12),
-
-      // MLIP model dropdown
-      _dropdownField(
-        label: 'MLIP Model',
-        value: s.mlipModel,
-        items: _mlipModels,
-        onChanged: (v) => n.update((q) => q.copyWith(mlipModel: v)),
-      ),
-      const SizedBox(height: 16),
-      _sectionLabel('Environment'),
-      const SizedBox(height: 12),
-
-      // Solvent
-      _dropdownField(
-        label: 'Solvent',
-        value: s.solventModel,
-        items: _solventModels,
-        tooltip:
-            'The implicit solvation model used to simulate solvent effects on the reaction.',
-        onChanged: (v) => n.update((q) => q.copyWith(solventModel: v)),
-      ),
-      const SizedBox(height: 6),
-      Builder(builder: (context) {
-        final solventData = SolventProperties.lookup(s.solventModel);
-        return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-          decoration: BoxDecoration(
-            color: const Color(0xFF101E27),
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(
-              color: solventData.isSolvated
-                  ? const Color(0xFF38BDF8).withValues(alpha: 0.25)
-                  : Colors.white12,
-            ),
-          ),
-          child: Row(
-            children: [
-              Icon(
-                solventData.isSolvated ? Icons.water_drop_outlined : Icons.air,
-                size: 14,
-                color: solventData.isSolvated
-                    ? const Color(0xFF38BDF8)
-                    : Colors.white54,
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  solventData.description,
-                  style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.75),
-                    fontSize: 11,
-                  ),
-                ),
-              ),
-              if (solventData.isSolvated)
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF38BDF8).withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Text(
-                    'ε = ${solventData.dielectricConstant}',
-                    style: const TextStyle(
-                      color: Color(0xFF38BDF8),
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-            ],
-          ),
-        );
-      }),
-      const SizedBox(height: 16),
-
-      // Temperature slider
-      _labeledWidget(
-        'Temperature',
-        '${s.temperatureK.toStringAsFixed(1)} K (${(s.temperatureK - 273.15).toStringAsFixed(1)} °C)',
-        Slider(
-          value: s.temperatureK.clamp(100.0, 1000.0),
-          min: 100.0,
-          max: 1000.0,
-          activeColor: const Color(0xFF4FC3F7),
-          inactiveColor: Colors.white12,
-          onChanged: (v) => n.update((q) => q.copyWith(temperatureK: v)),
-        ),
-      ),
-      const SizedBox(height: 16),
-      _sectionLabel('Credentials'),
-      const SizedBox(height: 8),
-      TextFormField(
-        initialValue: s.hfToken,
-        style: const TextStyle(color: Colors.white, fontSize: 13),
-        obscureText: true,
-        decoration: _inputDecoration('Hugging Face API Token'),
-        onChanged: (v) => n.update((q) => q.copyWith(hfToken: v)),
-      ),
-    ];
-  }
-
-  // ---------------------------------------------------------------------------
-  // CATALYST CONTENT
-  // ---------------------------------------------------------------------------
-  List<Widget> _buildCatalystContent(
-    QuantumSettings s,
-    QuantumSettingsNotifier n,
-  ) {
-    final template = widget.activeTemplate;
-    final hasLiteratureCat = template?.hasLiteratureCatalyst == true;
-    final litCatName = template?.defaultCatalystName ?? 'None';
-
-    final catalystModes = [
-      if (hasLiteratureCat) 'Literature Default',
-      'None (Gas-Phase / Intrinsic)',
-      'Custom Catalyst',
-    ];
-
-    String selectedMode;
-    if (!s.applyLiteratureCatalyst ||
-        s.catalyst == 'None' ||
-        s.catalyst == 'None (Gas-Phase / Intrinsic)') {
-      selectedMode = 'None (Gas-Phase / Intrinsic)';
-    } else if (s.catalyst == 'Custom Catalyst' ||
-        (s.customCatalyst.isNotEmpty && s.catalyst == s.customCatalyst)) {
-      selectedMode = 'Custom Catalyst';
-    } else if (hasLiteratureCat &&
-        (s.catalyst == 'Literature Default' || s.catalyst == litCatName)) {
-      selectedMode = 'Literature Default';
-    } else {
-      selectedMode = hasLiteratureCat
-          ? 'Literature Default'
-          : 'None (Gas-Phase / Intrinsic)';
+  List<Widget> _buildClinicalSyncContent(BuildContext context) {
+    MedicinePharmacologyProfile? med = widget.activeMedicineProfile;
+    if (med == null && widget.activeTemplate != null) {
+      med = PharmacopeiaDatabase.findByReactionId(widget.activeTemplate!.id);
+      if (med == null) {
+        final matches = PharmacopeiaDatabase.getAllCuratedProfiles().where((p) {
+          final key = p.genericName.toLowerCase().split(' ').first;
+          return key.length > 3 && widget.activeTemplate!.name.toLowerCase().contains(key);
+        });
+        if (matches.isNotEmpty) med = matches.first;
+      }
     }
 
-    if (_customCatalystController != null &&
-        _customCatalystController!.text != s.customCatalyst) {
-      _customCatalystController!.text = s.customCatalyst;
-    }
+    if (med != null) {
+      String metabolizingEnzyme = 'CYP2E1';
+      final name = med.genericName.toLowerCase();
+      if (name.contains('paracetamol') || name.contains('acetaminophen')) {
+        metabolizingEnzyme = 'CYP2E1 / UGT1A6';
+      } else if (name.contains('warfarin')) {
+        metabolizingEnzyme = 'CYP2C9';
+      } else if (name.contains('codeine')) {
+        metabolizingEnzyme = 'CYP2D6';
+      } else if (name.contains('aspirin')) {
+        metabolizingEnzyme = 'UGT1A6';
+      } else if (name.contains('statin') || name.contains('atorvastatin')) {
+        metabolizingEnzyme = 'CYP3A4';
+      }
 
-    return [
-      if (hasLiteratureCat) ...[
-        _switchRow(
-          'Apply Literature Catalyst ($litCatName)',
-          s.applyLiteratureCatalyst,
-          (val) {
-            n.update((q) => q.copyWith(
-              applyLiteratureCatalyst: val,
-              catalyst: val ? litCatName : 'None (Gas-Phase / Intrinsic)',
-            ));
-          },
-          tooltip:
-              'When enabled, applies the literature-defined catalyst ($litCatName) to match published experimental barriers.',
-        ),
-        const SizedBox(height: 12),
-      ] else ...[
+      return [
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+          padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.04),
-            borderRadius: BorderRadius.circular(6),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
-          ),
-          child: Row(
-            children: [
-              const Icon(Icons.info_outline, size: 14, color: Colors.white38),
-              const SizedBox(width: 8),
-              const Expanded(
-                child: Text(
-                  'Gas-phase reaction (no literature catalyst specified)',
-                  style: TextStyle(color: Colors.white38, fontSize: 11),
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 12),
-      ],
-
-      _dropdownField(
-        label: 'Catalyst Mode / Override',
-        value: selectedMode,
-        items: catalystModes,
-        tooltip:
-            'Select whether to use the literature catalyst, simulate purely intrinsic gas-phase kinetics, or specify a custom catalyst environment.',
-        onChanged: (mode) {
-          if (mode == 'Literature Default') {
-            n.update((q) => q.copyWith(
-              applyLiteratureCatalyst: true,
-              catalyst: litCatName,
-            ));
-          } else if (mode == 'None (Gas-Phase / Intrinsic)') {
-            n.update((q) => q.copyWith(
-              applyLiteratureCatalyst: false,
-              catalyst: 'None (Gas-Phase / Intrinsic)',
-            ));
-          } else if (mode == 'Custom Catalyst') {
-            final customVal =
-                s.customCatalyst.isNotEmpty ? s.customCatalyst : 'Custom Catalyst';
-            n.update((q) => q.copyWith(
-              applyLiteratureCatalyst: true,
-              catalyst: customVal,
-            ));
-          }
-        },
-      ),
-
-      if (selectedMode == 'Custom Catalyst') ...[
-        const SizedBox(height: 12),
-        TextFormField(
-          controller: _customCatalystController,
-          style: const TextStyle(color: Colors.white, fontSize: 13),
-          decoration: _inputDecoration('Custom Catalyst Formula / Name'),
-          onChanged: (val) {
-            n.update((q) => q.copyWith(
-              customCatalyst: val,
-              catalyst: val.isNotEmpty ? val : 'Custom Catalyst',
-            ));
-          },
-        ),
-      ],
-
-      if (hasLiteratureCat && s.applyLiteratureCatalyst) ...[
-        const SizedBox(height: 12),
-        Container(
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            color: const Color(0xFF4FC3F7).withValues(alpha: 0.06),
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(
-              color: const Color(0xFF4FC3F7).withValues(alpha: 0.2),
-            ),
+            color: const Color(0xFF00E5FF).withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: const Color(0xFF00E5FF).withValues(alpha: 0.3)),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 children: [
-                  const Icon(
-                    Icons.auto_awesome,
-                    size: 13,
-                    color: Color(0xFF4FC3F7),
+                  Container(
+                    width: 7,
+                    height: 7,
+                    decoration: const BoxDecoration(
+                      color: Color(0xFF00E676),
+                      shape: BoxShape.circle,
+                    ),
                   ),
-                  const SizedBox(width: 6),
-                  Text(
-                    'Active: $litCatName',
-                    style: const TextStyle(
-                      color: Color(0xFF4FC3F7),
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'SYNCED: ${med.genericName.toUpperCase()}',
+                      style: const TextStyle(
+                        color: Color(0xFF00E5FF),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0.5,
+                      ),
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 ],
               ),
-              if (template?.literatureBarrierKcalMol != null) ...[
-                const SizedBox(height: 4),
-                Text(
-                  'Literature Barrier: ${template!.literatureBarrierKcalMol!.toStringAsFixed(1)} kcal/mol',
-                  style: const TextStyle(color: Colors.white70, fontSize: 10),
-                ),
-              ],
-              if (template?.literatureDoi != null) ...[
-                Builder(
-                  builder: (context) {
-                    final tmpl = template!;
-                    final litDoi = tmpl.literatureDoi!;
-                    final isVerified = DoiVerificationService.isVerifiedDoi(litDoi);
-                    return InkWell(
-                      onTap: () {
-                        if (isVerified) {
-                          UrlService.launch('https://doi.org/$litDoi');
-                        } else {
-                          DoiVerificationService.showUnverifiedDoiDialog(
-                            context: context,
-                            doi: litDoi,
-                            articleTitle: tmpl.name,
-                            journalRef: tmpl.journalRef,
-                          );
-                        }
-                      },
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            'DOI: $litDoi',
-                            style: TextStyle(
-                              color: isVerified
-                                  ? const Color(0xFF4FC3F7)
-                                  : Colors.grey.withValues(alpha: 0.6),
-                              fontSize: 9,
-                              decoration: TextDecoration.underline,
-                            ),
-                          ),
-                          if (!isVerified) ...[
-                            const SizedBox(width: 4),
-                            const Icon(Icons.help_outline_rounded, size: 10, color: Colors.amber),
-                          ],
-                        ],
-                      ),
-                    );
-                  },
-                ),
-              ],
+              const SizedBox(height: 6),
+              Text(
+                'Target: ${med.molecularTarget}',
+                style: const TextStyle(color: Colors.white70, fontSize: 11),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                'Metabolizing Allele: $metabolizingEnzyme',
+                style: const TextStyle(color: Color(0xFFFFB300), fontSize: 11, fontWeight: FontWeight.bold),
+              ),
             ],
           ),
         ),
-      ],
+        const SizedBox(height: 12),
+        _sectionLabel('Clinical Pharmacology Workstations'),
+        const SizedBox(height: 8),
+        _clinicalActionPill(
+          icon: Icons.biotech_rounded,
+          color: const Color(0xFF00E5FF),
+          label: 'Pharmacogenomics Mutator',
+          subtitle: 'CYP450 / UGT allele kinetics ($metabolizingEnzyme)',
+          onTap: () => Navigator.of(context).push(PharmacogenomicsScreen.route()),
+        ),
+        const SizedBox(height: 8),
+        _clinicalActionPill(
+          icon: Icons.emergency_rounded,
+          color: const Color(0xFFFFB300),
+          label: 'OSCE Emergency Sandbox',
+          subtitle: 'Timed emergency antidote dispatch (120s)',
+          onTap: () => Navigator.of(context).push(OsceSandboxScreen.route()),
+        ),
+        const SizedBox(height: 8),
+        _clinicalActionPill(
+          icon: Icons.splitscreen_rounded,
+          color: const Color(0xFF00E676),
+          label: 'Split-Screen DDI & AMR',
+          subtitle: 'MRSA / TEM-52 steric clash analysis',
+          onTap: () => Navigator.of(context).push(DdiSplitScreen.route()),
+        ),
+      ];
+    }
+
+    return [
+      Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.04),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: Colors.white12),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.science_outlined, size: 14, color: Color(0xFF4FC3F7)),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    widget.activeTemplate?.name ?? 'Intrinsic Chemical Coordinate',
+                    style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Select a pharmaceutical or veterinary reaction from the Library to sync live MBBS/Pharm-D pharmacology engines.',
+              style: TextStyle(color: Colors.white.withValues(alpha: 0.6), fontSize: 11, height: 1.3),
+            ),
+          ],
+        ),
+      ),
+      const SizedBox(height: 12),
+      _sectionLabel('Quick Medical Explorations'),
+      const SizedBox(height: 8),
+      _clinicalActionPill(
+        icon: Icons.biotech_rounded,
+        color: const Color(0xFF00E5FF),
+        label: 'Pharmacogenomics Mutator',
+        subtitle: 'Model CYP2C9, CYP2D6, CYP2E1, UGT1A6',
+        onTap: () => Navigator.of(context).push(PharmacogenomicsScreen.route()),
+      ),
+      const SizedBox(height: 8),
+      _clinicalActionPill(
+        icon: Icons.emergency_rounded,
+        color: const Color(0xFFFFB300),
+        label: 'OSCE Clinical Sandbox',
+        subtitle: 'Timed emergencies & antidote rescue',
+        onTap: () => Navigator.of(context).push(OsceSandboxScreen.route()),
+      ),
+      const SizedBox(height: 8),
+      _clinicalActionPill(
+        icon: Icons.splitscreen_rounded,
+        color: const Color(0xFF00E676),
+        label: 'Split-Screen DDI & AMR',
+        subtitle: 'Superbug bacterial resistance visualizer',
+        onTap: () => Navigator.of(context).push(DdiSplitScreen.route()),
+      ),
+    ];
+  }
+
+  Widget _clinicalActionPill({
+    required IconData icon,
+    required Color color,
+    required String label,
+    required String subtitle,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: color.withValues(alpha: 0.3)),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, color: color, size: 18),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label,
+                    style: TextStyle(
+                      color: color,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.6),
+                      fontSize: 10,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              Icons.arrow_forward_ios_rounded,
+              size: 11,
+              color: color.withValues(alpha: 0.6),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // COMPUTE & CREDENTIALS
+  // ---------------------------------------------------------------------------
+  List<Widget> _buildCredentialsContent(
+    QuantumSettings s,
+    QuantumSettingsNotifier n,
+  ) {
+    return [
+      Container(
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: const Color(0xFF101E27),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: Colors.greenAccent.withValues(alpha: 0.3)),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 8,
+              height: 8,
+              decoration: const BoxDecoration(
+                color: Colors.greenAccent,
+                shape: BoxShape.circle,
+              ),
+            ),
+            const SizedBox(width: 8),
+            const Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Cloud Run: us-central1 (Online v2)',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  SizedBox(height: 2),
+                  Text(
+                    'MLIP PyTorch 2.6 • Eyring & ADME Pipeline',
+                    style: TextStyle(color: Colors.white54, fontSize: 10),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+      const SizedBox(height: 14),
+      _sectionLabel(
+        'Hugging Face API Token',
+        tooltip: 'Authentication token for accessing gated MLIP checkpoints.',
+      ),
+      const SizedBox(height: 6),
+      TextFormField(
+        initialValue: s.hfToken,
+        style: const TextStyle(color: Colors.white, fontSize: 12.5),
+        obscureText: true,
+        decoration: _inputDecoration('Enter API Token (hf_...)'),
+        onChanged: (v) => n.update((q) => q.copyWith(hfToken: v)),
+      ),
     ];
   }
 
@@ -987,28 +855,6 @@ class _QuantumControlsPanelState extends State<QuantumControlsPanel> {
     ],
   );
 
-  Widget _labeledRow(String label, Widget trailing, {String? tooltip}) => Row(
-    children: [
-      Expanded(
-        child: Row(
-          children: [
-            Flexible(
-              child: Text(
-                label,
-                style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.7),
-                  fontSize: 13,
-                ),
-              ),
-            ),
-            if (tooltip != null) _infoTooltip(tooltip),
-          ],
-        ),
-      ),
-      trailing,
-    ],
-  );
-
   Widget _labeledWidget(
     String label,
     String value,
@@ -1122,20 +968,6 @@ class _QuantumControlsPanelState extends State<QuantumControlsPanel> {
         },
       ),
     ],
-  );
-
-  Widget _iconButton(IconData icon, VoidCallback onPressed) => InkWell(
-    onTap: onPressed,
-    borderRadius: BorderRadius.circular(6),
-    child: Container(
-      width: 32,
-      height: 32,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
-      ),
-      child: Icon(icon, size: 16, color: Colors.white70),
-    ),
   );
 
   InputDecoration _inputDecoration(String label) => InputDecoration(

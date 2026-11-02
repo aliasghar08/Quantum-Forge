@@ -101,7 +101,14 @@ const List<PharmacogenomicsEnzymeProfile> kPresetEnzymes = [
 ];
 
 class PharmacogenomicsMutatorWidget extends StatefulWidget {
-  const PharmacogenomicsMutatorWidget({super.key});
+  final String? initialEnzyme;
+  final bool autoPromptLiability;
+
+  const PharmacogenomicsMutatorWidget({
+    super.key,
+    this.initialEnzyme,
+    this.autoPromptLiability = true,
+  });
 
   @override
   State<PharmacogenomicsMutatorWidget> createState() =>
@@ -130,11 +137,36 @@ class _PharmacogenomicsMutatorWidgetState
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!_hasSeenLiabilityLock && mounted) {
-        _showLiabilityLockModal();
-      }
-    });
+    _syncInitialEnzyme();
+    if (widget.autoPromptLiability) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!_hasSeenLiabilityLock && mounted) {
+          _showLiabilityLockModal();
+        }
+      });
+    } else {
+      _hasSeenLiabilityLock = true;
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant PharmacogenomicsMutatorWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.initialEnzyme != null && widget.initialEnzyme != oldWidget.initialEnzyme) {
+      _syncInitialEnzyme();
+    }
+  }
+
+  void _syncInitialEnzyme() {
+    if (widget.initialEnzyme == null) return;
+    final target = widget.initialEnzyme!.toUpperCase().trim();
+    final idx = kPresetEnzymes.indexWhere((e) =>
+        e.enzymeName.toUpperCase() == target ||
+        target.contains(e.enzymeName.toUpperCase()) ||
+        e.primarySubstrate.toUpperCase().contains(target));
+    if (idx != -1) {
+      setState(() => _selectedEnzymeIndex = idx);
+    }
   }
 
   void _showLiabilityLockModal() {

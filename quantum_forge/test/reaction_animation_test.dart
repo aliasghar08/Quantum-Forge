@@ -198,7 +198,12 @@ void main() {
     expect(find.text('0.00 kcal·mol⁻¹'), findsOneWidget);
     expect(find.text('0.0%'), findsOneWidget);
 
-    expect(tester.takeException(), isNull);
+    final err = tester.takeException();
+    if (err is FlutterError) {
+      // ignore: avoid_print
+      print(err.toStringDeep());
+    }
+    expect(err, isNull);
     await tester.pumpWidget(const SizedBox.shrink());
   });
 
@@ -228,7 +233,12 @@ void main() {
     await tester.pump();
     expect(shownFrame(tester), 3);
 
-    expect(tester.takeException(), isNull);
+    final err = tester.takeException();
+    if (err is FlutterError) {
+      // ignore: avoid_print
+      print(err.toStringDeep());
+    }
+    expect(err, isNull);
     await tester.pumpWidget(const SizedBox.shrink());
   });
 
@@ -246,7 +256,12 @@ void main() {
     await setSpin(tester, 'qf-frame-spinbox', 99);
     expect(shownFrame(tester), 3);
 
-    expect(tester.takeException(), isNull);
+    final err = tester.takeException();
+    if (err is FlutterError) {
+      // ignore: avoid_print
+      print(err.toStringDeep());
+    }
+    expect(err, isNull);
     await tester.pumpWidget(const SizedBox.shrink());
   });
 
@@ -277,7 +292,12 @@ void main() {
     // Cycle is span / FPS, so a one-frame range is one frame long.
     expect(find.text('0.2 s'), findsOneWidget);
 
-    expect(tester.takeException(), isNull);
+    final err = tester.takeException();
+    if (err is FlutterError) {
+      // ignore: avoid_print
+      print(err.toStringDeep());
+    }
+    expect(err, isNull);
     await tester.pumpWidget(const SizedBox.shrink());
   });
 
@@ -295,7 +315,12 @@ void main() {
     expect(find.text('5 FPS'), findsOneWidget);
     expect(find.text('0.6 s'), findsOneWidget);
 
-    expect(tester.takeException(), isNull);
+    final err = tester.takeException();
+    if (err is FlutterError) {
+      // ignore: avoid_print
+      print(err.toStringDeep());
+    }
+    expect(err, isNull);
     await tester.pumpWidget(const SizedBox.shrink());
   });
 
@@ -412,7 +437,12 @@ void main() {
     await tester.pump();
     expect(find.text('Play'), findsOneWidget);
 
-    expect(tester.takeException(), isNull);
+    final err = tester.takeException();
+    if (err is FlutterError) {
+      // ignore: avoid_print
+      print(err.toStringDeep());
+    }
+    expect(err, isNull);
     await tester.pumpWidget(const SizedBox.shrink());
   });
 
@@ -426,7 +456,12 @@ void main() {
     expect(find.text('TS frame: '), findsOneWidget);
     expect(find.text('3 / 3'), findsWidgets);
 
-    expect(tester.takeException(), isNull);
+    final err = tester.takeException();
+    if (err is FlutterError) {
+      // ignore: avoid_print
+      print(err.toStringDeep());
+    }
+    expect(err, isNull);
     await tester.pumpWidget(const SizedBox.shrink());
   });
 
@@ -437,7 +472,12 @@ void main() {
     // _energies peaks at index 1 -> frame 2.
     expect(find.text('2 / 3'), findsWidgets);
 
-    expect(tester.takeException(), isNull);
+    final err = tester.takeException();
+    if (err is FlutterError) {
+      // ignore: avoid_print
+      print(err.toStringDeep());
+    }
+    expect(err, isNull);
     await tester.pumpWidget(const SizedBox.shrink());
   });
 
@@ -446,7 +486,12 @@ void main() {
   ) async {
     await pumpAnimation(tester, frames: const <String>[]);
     expect(find.text('No trajectory frames to animate'), findsOneWidget);
-    expect(tester.takeException(), isNull);
+    final err = tester.takeException();
+    if (err is FlutterError) {
+      // ignore: avoid_print
+      print(err.toStringDeep());
+    }
+    expect(err, isNull);
     await tester.pumpWidget(const SizedBox.shrink());
   });
 
@@ -457,7 +502,12 @@ void main() {
     // 3 frames at 1 FPS.
     expect(find.text('3.0 s'), findsOneWidget);
 
-    expect(tester.takeException(), isNull);
+    final err = tester.takeException();
+    if (err is FlutterError) {
+      // ignore: avoid_print
+      print(err.toStringDeep());
+    }
+    expect(err, isNull);
     await tester.pumpWidget(const SizedBox.shrink());
   });
 
@@ -475,7 +525,12 @@ void main() {
     expect(find.byType(CustomPaint), findsWidgets);
     expect(shownFrame(tester), equals(1));
 
-    expect(tester.takeException(), isNull);
+    final err = tester.takeException();
+    if (err is FlutterError) {
+      // ignore: avoid_print
+      print(err.toStringDeep());
+    }
+    expect(err, isNull);
     await tester.pumpWidget(const SizedBox.shrink());
   });
 
@@ -525,7 +580,12 @@ void main() {
     await tester.pump();
     expect(find.text('SCALING'), findsNothing);
 
-    expect(tester.takeException(), isNull);
+    final err = tester.takeException();
+    if (err is FlutterError) {
+      // ignore: avoid_print
+      print(err.toStringDeep());
+    }
+    expect(err, isNull);
     await tester.pumpWidget(const SizedBox.shrink());
   });
 
@@ -551,7 +611,12 @@ void main() {
     // Dwell and playback operate smoothly without crashing
     await tester.pump(const Duration(milliseconds: 500));
 
-    expect(tester.takeException(), isNull);
+    final err = tester.takeException();
+    if (err is FlutterError) {
+      // ignore: avoid_print
+      print(err.toStringDeep());
+    }
+    expect(err, isNull);
     await tester.pumpWidget(const SizedBox.shrink());
   });
 
@@ -591,7 +656,12 @@ void main() {
     await tester.tap(bondChip);
     await tester.pump();
 
-    expect(tester.takeException(), isNull);
+    final err = tester.takeException();
+    if (err is FlutterError) {
+      // ignore: avoid_print
+      print(err.toStringDeep());
+    }
+    expect(err, isNull);
     await tester.pumpWidget(const SizedBox.shrink());
   });
 
@@ -614,7 +684,12 @@ void main() {
     await tester.pump();
     expect(find.text('BOND SPECTRUM INDEX'), findsNothing);
 
-    expect(tester.takeException(), isNull);
+    final err = tester.takeException();
+    if (err is FlutterError) {
+      // ignore: avoid_print
+      print(err.toStringDeep());
+    }
+    expect(err, isNull);
     await tester.pumpWidget(const SizedBox.shrink());
   });
 
@@ -666,7 +741,12 @@ void main() {
     await tester.tap(canvasFinder);
     await tester.pump(const Duration(milliseconds: 100));
 
-    expect(tester.takeException(), isNull);
+    final err = tester.takeException();
+    if (err is FlutterError) {
+      // ignore: avoid_print
+      print(err.toStringDeep());
+    }
+    expect(err, isNull);
     await tester.pumpWidget(const SizedBox.shrink());
   });
 
@@ -730,7 +810,12 @@ void main() {
     await tester.tap(canvasFinder);
     await tester.pump(const Duration(milliseconds: 100));
 
-    expect(tester.takeException(), isNull);
+    final err = tester.takeException();
+    if (err is FlutterError) {
+      // ignore: avoid_print
+      print(err.toStringDeep());
+    }
+    expect(err, isNull);
     await tester.pumpWidget(const SizedBox.shrink());
   });
 

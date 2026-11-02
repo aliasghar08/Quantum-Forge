@@ -152,3 +152,4 @@ class DdiSplitScreen extends StatelessWidget {
     );
   }
 }
+

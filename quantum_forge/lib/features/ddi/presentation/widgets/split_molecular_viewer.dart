@@ -54,7 +54,12 @@ const List<BacterialMutationPocket> kSuperbugPresets = [
 ];
 
 class SplitMolecularViewerWidget extends StatefulWidget {
-  const SplitMolecularViewerWidget({super.key});
+  final int initialPresetIndex;
+
+  const SplitMolecularViewerWidget({
+    super.key,
+    this.initialPresetIndex = 0,
+  });
 
   @override
   State<SplitMolecularViewerWidget> createState() =>
@@ -62,8 +67,24 @@ class SplitMolecularViewerWidget extends StatefulWidget {
 }
 
 class _SplitMolecularViewerWidgetState extends State<SplitMolecularViewerWidget> {
-  int _selectedPresetIndex = 0;
+  late int _selectedPresetIndex;
   bool _isMutated = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedPresetIndex = widget.initialPresetIndex.clamp(0, kSuperbugPresets.length - 1);
+  }
+
+  @override
+  void didUpdateWidget(covariant SplitMolecularViewerWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.initialPresetIndex != oldWidget.initialPresetIndex) {
+      setState(() {
+        _selectedPresetIndex = widget.initialPresetIndex.clamp(0, kSuperbugPresets.length - 1);
+      });
+    }
+  }
 
   BacterialMutationPocket get _activePreset =>
       kSuperbugPresets[_selectedPresetIndex];
