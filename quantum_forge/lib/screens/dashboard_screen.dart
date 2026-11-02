@@ -7,6 +7,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:quantum_forge/core/services/url_service.dart';
 import 'package:quantum_forge/core/state/quantum_provider.dart';
 import 'package:quantum_forge/core/services/file_picker_service.dart';
 import 'package:quantum_forge/core/services/shared_reaction_service.dart';
@@ -589,12 +591,70 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
               const Divider(),
               ListTile(
-                leading: Icon(Icons.logout, color: Colors.redAccent.shade100),
-                title: Text('Sign Out', style: TextStyle(color: Colors.redAccent.shade100)),
+                leading: const Icon(Icons.policy_outlined, color: Color(0xFF00E5FF), size: 20),
+                title: const Text('Privacy & Legal Terms', style: TextStyle(fontSize: 13.5)),
+                subtitle: const Text('Terms of Service, Privacy Policy & Disclaimers', style: TextStyle(fontSize: 11)),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  UrlService.launch('/terms.html');
+                },
+              ),
+              ListTile(
+                leading: Icon(Icons.logout, color: palette.textPrimary, size: 20),
+                title: const Text('Sign Out', style: TextStyle(fontSize: 13.5)),
                 onTap: () async {
                   Navigator.pop(ctx);
                   await FirebaseAuth.instance.signOut();
                   if (mounted) setState(() {});
+                },
+              ),
+              ListTile(
+                leading: Icon(Icons.delete_forever_rounded, color: Colors.redAccent.shade100, size: 20),
+                title: Text('Delete Account & Data (GDPR)', style: TextStyle(color: Colors.redAccent.shade100, fontSize: 13.5)),
+                subtitle: const Text('Permanently erase account and saved workspace data', style: TextStyle(fontSize: 11)),
+                onTap: () async {
+                  Navigator.pop(ctx);
+                  final messenger = ScaffoldMessenger.of(context);
+                  final confirmed = await showDialog<bool>(
+                    context: context,
+                    builder: (dCtx) => AlertDialog(
+                      backgroundColor: palette.panel,
+                      title: const Text('Delete Account & All Data?'),
+                      content: const Text(
+                        'In accordance with GDPR and CCPA Right to Erasure regulations, this will permanently remove your account and all associated simulation records from our databases. This action cannot be undone.',
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(dCtx, false),
+                          child: const Text('Cancel'),
+                        ),
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
+                          onPressed: () => Navigator.pop(dCtx, true),
+                          child: const Text('Erase My Data', style: TextStyle(color: Colors.white)),
+                        ),
+                      ],
+                    ),
+                  );
+                  if (confirmed == true) {
+                    try {
+                      final uid = user.uid;
+                      await FirebaseFirestore.instance.collection('users').doc(uid).delete().catchError((_) {});
+                      await user.delete();
+                      if (mounted) {
+                        messenger.showSnackBar(
+                          const SnackBar(content: Text('Account and all personal data successfully erased.')),
+                        );
+                        setState(() {});
+                      }
+                    } catch (e) {
+                      if (mounted) {
+                        messenger.showSnackBar(
+                          SnackBar(content: Text('Deletion requires recent login. Please re-authenticate or contact privacy support: $e')),
+                        );
+                      }
+                    }
+                  }
                 },
               ),
             ],

@@ -6,6 +6,7 @@ import 'package:quantum_forge/core/services/auth_service.dart';
 import 'package:quantum_forge/core/services/passkey_service.dart';
 import 'package:quantum_forge/core/theme/theme_provider.dart';
 import 'package:quantum_forge/core/widgets/quantum_forge_logo.dart';
+import 'package:quantum_forge/core/services/url_service.dart';
 
 class AuthScreen extends StatefulWidget {
   final VoidCallback onLoginSuccess;
@@ -973,6 +974,57 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
                         letterSpacing: 0.3,
                       ),
                     ),
+            ),
+          ),
+
+          const SizedBox(height: 12),
+          Center(
+            child: Text.rich(
+              TextSpan(
+                style: TextStyle(
+                  color: palette.textMuted,
+                  fontSize: 11,
+                  height: 1.4,
+                ),
+                children: [
+                  const TextSpan(text: 'By continuing, you agree to our '),
+                  WidgetSpan(
+                    alignment: PlaceholderAlignment.middle,
+                    child: InkWell(
+                      onTap: () => UrlService.launch('/terms.html'),
+                      child: Text(
+                        'Terms of Service',
+                        style: TextStyle(
+                          color: palette.accent,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          decoration: TextDecoration.underline,
+                          decorationColor: palette.accent,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const TextSpan(text: ' and '),
+                  WidgetSpan(
+                    alignment: PlaceholderAlignment.middle,
+                    child: InkWell(
+                      onTap: () => UrlService.launch('/privacy.html'),
+                      child: Text(
+                        'Privacy Policy',
+                        style: TextStyle(
+                          color: palette.accent,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          decoration: TextDecoration.underline,
+                          decorationColor: palette.accent,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const TextSpan(text: '.'),
+                ],
+              ),
+              textAlign: TextAlign.center,
             ),
           ),
 
