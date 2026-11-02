@@ -183,6 +183,52 @@ class _ViewerSettingsPanel extends StatelessWidget {
                     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   ),
                 ),
+                const SizedBox(height: 10),
+                Divider(color: Colors.white.withValues(alpha: 0.08), height: 1),
+                const SizedBox(height: 10),
+                const _SectionLabel('WEBXR IMMERSIVE ANATOMY'),
+                const SizedBox(height: 6),
+                InkWell(
+                  onTap: () async {
+                    final scaffold = ScaffoldMessenger.maybeOf(context);
+                    final success = await NglEngine.forView(0)?.requestWebXRSession() ?? false;
+                    if (!success && scaffold != null) {
+                      scaffold.showSnackBar(
+                        const SnackBar(
+                          content: Text('WebXR VR session requires a WebXR-compatible VR headset or browser (e.g. Meta Quest, Apple Vision Pro, or Chrome WebXR emulator).'),
+                          duration: Duration(seconds: 4),
+                        ),
+                      );
+                    }
+                  },
+                  borderRadius: BorderRadius.circular(6),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF00E5FF).withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(color: const Color(0xFF00E5FF).withValues(alpha: 0.4)),
+                    ),
+                    child: const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.vrpano_rounded, color: Color(0xFF00E5FF), size: 16),
+                        SizedBox(width: 8),
+                        Flexible(
+                          child: Text(
+                            'Enter WebXR Immersive VR',
+                            style: TextStyle(
+                              color: Color(0xFF00E5FF),
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               ],
             ),
           ),

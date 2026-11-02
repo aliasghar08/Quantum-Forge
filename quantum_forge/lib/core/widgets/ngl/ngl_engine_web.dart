@@ -1172,6 +1172,33 @@ class NglEngine {
     }
   }
 
+  /// Enters or requests a WebXR immersive-vr session for the active NGL Stage.
+  /// Enables students to walk through transition state trajectories with 6DoF head tracking.
+  Future<bool> requestWebXRSession() async {
+    if (_disposed) return false;
+    final stage = _stage;
+    final glue = _glue;
+    if (stage == null || glue == null) return false;
+    try {
+      if (glue.hasProperty('requestWebXRSession'.toJS).toDart) {
+        final promise = glue.callMethod('requestWebXRSession'.toJS, stage);
+        if (promise != null) {
+          final res = await (promise as JSPromise).toDart;
+          if (res != null && (res as JSObject).hasProperty('active'.toJS).toDart) {
+            return (res.getProperty('active'.toJS) as JSBoolean).toDart;
+          }
+        }
+      }
+    } catch (e) {
+      assert(() {
+        // ignore: avoid_print
+        print('Quantum Forge: WebXR session failed: $e');
+        return true;
+      }());
+    }
+    return false;
+  }
+
   // ── Teardown ──────────────────────────────────────────────────────────────
 
   void dispose() {

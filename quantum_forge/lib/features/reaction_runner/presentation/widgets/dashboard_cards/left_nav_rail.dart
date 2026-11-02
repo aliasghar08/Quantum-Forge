@@ -15,6 +15,9 @@ import 'package:quantum_forge/core/theme/theme_provider.dart';
 import 'package:quantum_forge/core/services/feedback_service.dart';
 import 'package:quantum_forge/screens/auth_screen.dart';
 import 'package:quantum_forge/screens/settings_screen.dart';
+import 'package:quantum_forge/screens/pharmacogenomics_screen.dart';
+import 'package:quantum_forge/screens/osce_sandbox_screen.dart';
+import 'package:quantum_forge/screens/ddi_split_screen.dart';
 import 'package:quantum_forge/core/widgets/quantum_forge_logo.dart';
 import 'package:quantum_forge/core/services/url_service.dart';
 
@@ -149,6 +152,46 @@ class ProfessionalDrawer extends StatelessWidget {
             _navItem(context, Icons.verified_outlined, 'Method validation',
                 NavDestination.methodValidation, showTooltips,
                 'MLIP barriers against known literature values — the table a reviewer asks for.'),
+
+            SizedBox(height: gap(12)),
+
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 24, vertical: gap(6)),
+              child: Text(
+                'CLINICAL & PHARMACOLOGY (MBBS / PHARM-D)',
+                style: TextStyle(
+                  color: palette.textMuted,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 1.2,
+                ),
+              ),
+            ),
+
+            _routeItem(
+              context,
+              Icons.biotech_rounded,
+              'Pharmacogenomics',
+              () => Navigator.of(context).push(PharmacogenomicsScreen.route()),
+              showTooltips,
+              'Model CYP450 / UGT mutations, activation barrier shifts and plasma accumulation.',
+            ),
+            _routeItem(
+              context,
+              Icons.medical_services_outlined,
+              'OSCE Clinical Sandbox',
+              () => Navigator.of(context).push(OsceSandboxScreen.route()),
+              showTooltips,
+              'Timed emergency simulation and 3D molecular antidote rescue.',
+            ),
+            _routeItem(
+              context,
+              Icons.splitscreen_rounded,
+              'Split-Screen DDI & AMR',
+              () => Navigator.of(context).push(DdiSplitScreen.route()),
+              showTooltips,
+              'Comparative drug-drug interactions and superbug steric resistance sandbox.',
+            ),
 
             SizedBox(height: gap(12)),
 
@@ -574,6 +617,65 @@ class ProfessionalDrawer extends StatelessWidget {
             Icon(
               Icons.open_in_new_rounded,
               size: 13,
+              color: palette.textMuted.withValues(alpha: 0.4),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    return showTooltips ? Tooltip(message: hint, child: tile) : tile;
+  }
+
+  Widget _routeItem(
+    BuildContext context,
+    IconData icon,
+    String label,
+    VoidCallback onPush,
+    bool showTooltips,
+    String hint,
+  ) {
+    final palette = context.watch<ThemeNotifier>().palette;
+    final settings = context.watch<AppSettingsNotifier>().settings;
+
+    final tile = InkWell(
+      onTap: () {
+        Navigator.pop(context); // close drawer
+        onPush();
+      },
+      borderRadius: BorderRadius.circular(10),
+      child: Container(
+        margin: EdgeInsets.symmetric(
+          horizontal: settings.gap(16),
+          vertical: settings.gap(2),
+        ),
+        padding: EdgeInsets.symmetric(
+          horizontal: settings.gap(16),
+          vertical: settings.gap(9),
+        ),
+        decoration: BoxDecoration(
+          color: Colors.transparent,
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, color: const Color(0xFF00E5FF), size: 18),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Text(
+                label,
+                style: TextStyle(
+                  color: palette.textPrimary,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 13.5,
+                  letterSpacing: 0.2,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            Icon(
+              Icons.arrow_forward_ios_rounded,
+              size: 11,
               color: palette.textMuted.withValues(alpha: 0.4),
             ),
           ],

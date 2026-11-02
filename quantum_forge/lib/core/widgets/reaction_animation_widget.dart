@@ -59,6 +59,7 @@ import 'package:quantum_forge/core/algorithms/solvent_properties.dart';
 import 'ngl/avogadro_geometry.dart';
 import 'ngl/avogadro_sdf.dart';
 import 'ngl/ngl_bond_label.dart';
+import 'ngl/ngl_engine.dart';
 import 'ngl/ngl_style.dart';
 import 'ngl/ngl_viewer.dart';
 import 'visualizations/bond_energy_spectrum_widget.dart';

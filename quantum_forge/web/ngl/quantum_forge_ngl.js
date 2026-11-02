@@ -405,6 +405,42 @@
     }
   }
 
+  /**
+   * Initializes or requests an immersive-vr WebXR session for the active NGL Stage.
+   * Enables students to walk through transition state trajectories with 6DoF head tracking.
+   */
+  async function requestWebXRSession(stage) {
+    if (typeof navigator === 'undefined' || !navigator.xr) {
+      console.warn("WebXR is not supported by this browser or operating environment.");
+      return { supported: false, active: false, reason: "navigator.xr unavailable" };
+    }
+    var targetStage = stage || lastStage;
+    if (!targetStage || !targetStage.viewer || !targetStage.viewer.renderer) {
+      return { supported: false, active: false, reason: "No active WebGL stage" };
+    }
+    var renderer = targetStage.viewer.renderer;
+    try {
+      var isSupported = await navigator.xr.isSessionSupported('immersive-vr');
+      if (!isSupported) {
+        return { supported: false, active: false, reason: "immersive-vr not supported on device" };
+      }
+      if (renderer.xr) {
+        renderer.xr.enabled = true;
+      }
+      var session = await navigator.xr.requestSession('immersive-vr', {
+        optionalFeatures: ['local-floor', 'bounded-floor', 'hand-tracking']
+      });
+      if (renderer.xr && typeof renderer.xr.setSession === 'function') {
+        await renderer.xr.setSession(session);
+      }
+      console.log("✨ WebXR Immersive Anatomy Session Started successfully!");
+      return { supported: true, active: true, session: session };
+    } catch (err) {
+      console.warn("Failed to initiate WebXR session:", err);
+      return { supported: true, active: false, error: String(err) };
+    }
+  }
+
   window.QuantumForgeNgl = {
     available: typeof window.NGL !== 'undefined',
     version: (window.NGL && window.NGL.version) ? window.NGL.version : null,
@@ -416,6 +452,10 @@
     setBondLabels: setBondLabels,
     removeComponent: removeComponent,
     cameraOrientation: cameraOrientation,
+    requestWebXRSession: requestWebXRSession,
+    isWebXRSupported: function () {
+      return typeof navigator !== 'undefined' && !!navigator.xr;
+    },
     addRepresentation: function (component, settings) {
       try {
         return addRepresentation(component, settings || {});

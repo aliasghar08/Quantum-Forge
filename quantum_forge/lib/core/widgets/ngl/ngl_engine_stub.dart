@@ -85,5 +85,8 @@ class NglEngine {
   /// The viewer orientation matrix, for the axes triad. Always null here.
   List<double>? cameraOrientation() => null;
 
+  /// Enters or requests a WebXR immersive-vr session. No-op on non-web.
+  Future<bool> requestWebXRSession() async => false;
+
   void dispose() {}
 }
