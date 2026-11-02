@@ -157,7 +157,7 @@ class LiteratureHarvester:
                 "published_date": pub_date,
                 "source": "OpenAlex",
                 "url": landing_url,
-                "abstract": item.get("abstract") or "",
+                "abstract": "",  # Storing uncopyrightable scientific metadata only
                 "data_links": json.dumps(data_links),
             })
         return discovered
@@ -195,7 +195,7 @@ class LiteratureHarvester:
                 "published_date": pub_date,
                 "source": "CrossRef",
                 "url": url_landing,
-                "abstract": item.get("abstract") or "",
+                "abstract": "",  # Storing uncopyrightable scientific metadata only
                 "data_links": json.dumps(data_links),
             })
         return discovered
@@ -329,7 +329,7 @@ class LiteratureHarvester:
                         cand["published_date"],
                         cand["source"],
                         cand["url"],
-                        cand.get("abstract", ""),
+                        "",  # Strictly factual/bibliographic metadata; no copyrighted abstracts
                         cand.get("data_links", "[]"),
                         now,
                         now,

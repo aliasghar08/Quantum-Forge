@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Privacy Policy — Quantum Forge</title>
-  <meta name="description" content="Privacy Policy for Quantum Forge computational chemistry platform and associated web applications.">
+  <meta name="description" content="Privacy Policy, cookie disclosures, AdSense compliance, and data handling practices for Quantum Forge.">
   <meta name="author" content="Ali Asghar">
   <meta name="copyright" content="Copyright © 2026 Ali Asghar. All Rights Reserved.">
   <link rel="icon" type="image/png" href="favicon.png">
@@ -34,7 +34,7 @@
       background-color: var(--bg);
       color: var(--text);
       font-family: var(--font-family);
-      line-height: 1.7;
+      line-height: 1.75;
     }
     header {
       background: rgba(17, 24, 39, 0.85);
@@ -84,7 +84,7 @@
       color: var(--primary);
     }
     .container {
-      max-width: 900px;
+      max-width: 920px;
       margin: 2.5rem auto;
       padding: 0 1.5rem;
     }
@@ -108,22 +108,25 @@
       display: block;
     }
     h2 {
-      font-size: 1.4rem;
+      font-size: 1.35rem;
       color: var(--accent);
-      margin-top: 1.8rem;
+      margin-top: 2rem;
       margin-bottom: 0.75rem;
       border-bottom: 1px solid #1F2937;
-      padding-bottom: 0.3rem;
+      padding-bottom: 0.35rem;
     }
-    p, ul {
+    p, ul, ol {
       color: #D1D5DB;
       margin-bottom: 1rem;
     }
-    ul {
+    ul, ol {
       padding-left: 1.75rem;
     }
     li {
       margin-bottom: 0.5rem;
+    }
+    strong {
+      color: #FFFFFF;
     }
     a {
       color: var(--primary);
@@ -170,50 +173,61 @@
   <main class="container">
     <div class="card">
       <h1>Privacy Policy</h1>
-      <span class="effective-date">Last Updated: October 30, 2026</span>
+      <span class="effective-date">Last Updated & Effective Date: November 2, 2026</span>
 
-      <p>This Privacy Policy outlines the policies and procedures of Quantum Forge ("we", "our", or "the Platform"), founded and maintained by Ali Asghar (aliasgharinnocent@yahoo.com), regarding the collection, use, and disclosure of personal and technical data when you use our web application at <a href="https://quantom-forge.web.app">quantom-forge.web.app</a>.</p>
+      <p>This Privacy Policy explains how Quantum Forge ("we", "our", or "the Platform"), authored and operated by Ali Asghar (<a href="mailto:aliasgharinnocent@yahoo.com">aliasgharinnocent@yahoo.com</a>), collects, uses, and safeguards information when you visit or interact with our web applications and computational services at <a href="https://quantumforgeapp.com">quantumforgeapp.com</a> and <a href="https://quantom-forge.web.app">quantom-forge.web.app</a>.</p>
 
-      <h2>1. Information We Collect</h2>
-      <p>We believe in data minimization. When you interact with Quantum Forge:</p>
+      <h2>1. Core Principle: Privacy by Design & Data Minimization</h2>
+      <p>Quantum Forge is engineered for computational science and educational exploration. We do not sell your personal data, monetize patient health records, or engage in invasive tracking. All chemical calculations, 3D molecular renders, and simulation workflows execute directly on your local device or on our secure computational backend.</p>
+
+      <h2>2. Categories of Information We Collect</h2>
       <ul>
-        <li><strong>Account Data:</strong> If you choose to sign in using Firebase Authentication or Passkey/WebAuthn, we securely process your email address and authentication credentials. Quantum Forge does not store plain-text passwords.</li>
-        <li><strong>Simulation & Research Data:</strong> Chemical structures, XYZ/CJSON coordinates, and reaction simulations are computed locally in your browser memory or synced to your private Cloud Firestore account if you choose to save them.</li>
-        <li><strong>Local Storage:</strong> We use your browser's <code>localStorage</code> to persist user interface settings (e.g., dark theme selection, active force-field options, animation speed) locally on your device.</li>
+        <li><strong>Account & Authentication Information:</strong> If you register or authenticate via Firebase Authentication (email/password or WebAuthn/Passkey via Apple Keychain, Windows Hello, or Google Password Manager), we store your account identifier (UID), email address, and timestamp metadata. Passwords are never stored in plain text.</li>
+        <li><strong>User-Generated Research Data:</strong> If you choose to save reactions or calculations to your private workspace, your molecular coordinate data (XYZ/CJSON/PDB), reaction configurations, and transition state results are stored in your authenticated, private Cloud Firestore document (protected by database security rules).</li>
+        <li><strong>Local Browser Storage:</strong> We use HTML5 <code>localStorage</code> purely to remember your preferences (such as dark/light theme, active potential model, animation frame rate, and bridge preferences) across page refreshes.</li>
+        <li><strong>Server & Network Logs:</strong> Standard web server logs may automatically record client IP addresses, browser user-agent strings, referral URLs, and request timestamps solely for security monitoring, fraud prevention, and performance diagnostics.</li>
       </ul>
 
-      <h2>2. Advertising & Analytics (Google AdSense & Google Ads)</h2>
-      <p>We use Google AdSense (Publisher ID: <code>pub-9402443776639153</code>) and Google Ads Conversion Tracking (Tag: <code>AW-16732994716</code>) to support the ongoing development and hosting of this computational platform.</p>
+      <h2>3. Advertising & Cookies (Google AdSense & Google Analytics)</h2>
+      <p>We partner with Google AdSense (Publisher ID: <code>ca-pub-9402443776639153</code>) and Google tag services (Tag: <code>AW-16732994716</code>) to serve context-relevant advertisements and analyze traffic, which funds free public access to our educational chemical simulations.</p>
       <ul>
-        <li>Google and third-party vendors use cookies to serve ads based on prior visits to this website or other websites.</li>
-        <li>Google's use of advertising cookies enables it and its partners to serve ads to users based on their visits to this site and/or other sites on the Internet.</li>
-        <li>Users may opt out of personalized advertising by visiting <a href="https://www.google.com/settings/ads" target="_blank" rel="noopener">Google Ads Settings</a> or through the Network Advertising Initiative opt-out page at <a href="https://optout.networkadvertising.org/" target="_blank" rel="noopener">optout.networkadvertising.org</a>.</li>
+        <li>Google, as a third-party vendor, uses cookies to serve ads on Quantum Forge.</li>
+        <li>Google's use of advertising cookies enables it and its partners to serve ads based on your visit to Quantum Forge and/or other sites on the Internet.</li>
+        <li>Users may opt out of personalized advertising by visiting <a href="https://myadcenter.google.com/" target="_blank" rel="noopener">Google My Ad Center</a> or by utilizing the Network Advertising Initiative opt-out tool at <a href="https://optout.networkadvertising.org/" target="_blank" rel="noopener">optout.networkadvertising.org</a>.</li>
+        <li>You can also configure your web browser to refuse all cookies or alert you when cookies are being placed. Note that disabling cookies will not impair core computational simulation capabilities.</li>
       </ul>
 
-      <h2>3. Third-Party Services</h2>
-      <p>Quantum Forge utilizes trusted third-party cloud infrastructure providers:</p>
+      <h2>4. Third-Party Infrastructure Providers</h2>
+      <p>We host and secure our infrastructure with industry-standard cloud providers adhering to strict security standards:</p>
       <ul>
-        <li><strong>Google Firebase:</strong> Used for secure web hosting, Cloud Firestore databases, and Firebase Authentication. Firebase complies with rigorous privacy standards, SOC certifications, and ISO/IEC 27001 compliance.</li>
-        <li><strong>NGL & WebGL:</strong> Molecular rendering runs entirely client-side on your local hardware acceleration graphics card. No molecular coordinate data is transmitted to external unauthorized third parties.</li>
+        <li><strong>Google Firebase / Google Cloud Platform:</strong> Cloud hosting, encrypted database storage (Cloud Firestore), and identity services compliant with ISO 27001, SOC 1/2/3, and GDPR.</li>
+        <li><strong>NGL Viewer & Client-Side WebGL:</strong> All 3D molecular graphics run client-side on your device's GPU via WebGL; structural coordinates are rendered in memory without unauthorized third-party telemetry.</li>
+        <li><strong>Crossref & OpenAlex APIs:</strong> Scholarly citation lookups fetch purely public academic bibliographic metadata (DOIs, journal names, publication years, citation counts).</li>
       </ul>
 
-      <h2>4. User Rights & Data Deletion</h2>
-      <p>Under GDPR, CCPA, and global privacy frameworks, you have the right to:</p>
+      <h2>5. User Rights Under GDPR, CCPA, and Global Privacy Laws</h2>
+      <p>Depending on your location, you hold statutory privacy rights regarding your personal information:</p>
       <ul>
-        <li>Access any personal data associated with your account.</li>
-        <li>Request immediate deletion of your account and saved simulation templates.</li>
-        <li>Clear your local browser cache and <code>localStorage</code> at any time through your browser settings.</li>
+        <li><strong>Right to Access:</strong> You may request a copy of the personal information associated with your account.</li>
+        <li><strong>Right to Rectification:</strong> You may correct or update your profile information at any time.</li>
+        <li><strong>Right to Erasure ("Right to be Forgotten"):</strong> You may request complete deletion of your account, saved reactions, and profile data from our databases.</li>
+        <li><strong>Right to Restrict or Object:</strong> You may opt out of non-essential cookie tracking or direct marketing communications.</li>
+        <li><strong>California Privacy Rights (CCPA / CPRA):</strong> We do not "sell" or "share" personal information for monetary or other valuable consideration.</li>
       </ul>
-      <p>To request complete account or data deletion, contact us directly at <a href="mailto:aliasgharinnocent@yahoo.com">aliasgharinnocent@yahoo.com</a>.</p>
+      <p>To exercise any of these rights, email us at <a href="mailto:aliasgharinnocent@yahoo.com">aliasgharinnocent@yahoo.com</a> with the subject line <em>"Privacy Rights Request"</em>. Requests are processed within 30 days free of charge.</p>
 
-      <h2>5. Changes to this Privacy Policy</h2>
-      <p>We may update this Privacy Policy from time to time. Updates will be reflected on this page with an updated revision date.</p>
+      <h2>6. Children's Online Privacy Protection (COPPA)</h2>
+      <p>Quantum Forge is an educational and professional chemistry workstation not directed to children under 13. We do not knowingly collect personal information from children under 13.</p>
 
-      <h2>6. Contact Us</h2>
-      <p>If you have any questions about this Privacy Policy, please contact:</p>
+      <h2>7. Revisions to this Privacy Policy</h2>
+      <p>We may update this Privacy Policy periodically. Any revisions will be published on this page with an updated effective date. Continued use of the platform after updates indicates your acceptance.</p>
+
+      <h2>8. Contact & Data Controller Information</h2>
+      <p>For questions, data access requests, or privacy compliance inquiries, contact:</p>
       <p><strong>Ali Asghar</strong><br>
+      Data Controller, Quantum Forge<br>
       Email: <a href="mailto:aliasgharinnocent@yahoo.com">aliasgharinnocent@yahoo.com</a><br>
-      Website: <a href="https://quantom-forge.web.app">https://quantom-forge.web.app</a></p>
+      Website: <a href="https://quantumforgeapp.com">https://quantumforgeapp.com</a></p>
     </div>
   </main>
 

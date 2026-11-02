@@ -1,5 +1,203 @@
 [
   {
+    "id": "lit_10_1186_s40164-026-00854-5",
+    "name": "Glioblastoma as a dynamic tumor ecosystem: from molecular alterations to therapeutic ",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1186/s40164-026-00854-5. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nGlioblastoma as a dynamic tumor ecosystem: from molecular alterations to therapeutic translation - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nGlioblastoma as a dynamic tumor ecosystem: from molecular alterations to therapeutic translation - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200    -0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 21.72,
+    "doi": "10.1186/s40164-026-00854-5",
+    "journalRef": "Experimental Hematology &amp; Oncology",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_1111_jcmm_71397",
+    "name": "<scp>PTGS1</scp>\n                    Regulates Macrophage Polarization Through\n      ",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1111/jcmm.71397. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\n<scp>PTGS1</scp>\n                    Regulates Macrophage Polarization Through\n                    <scp>PPAR\u03b3</scp>\n                    Nuclear Translocation to Affect Oxidative Stress Injury in Chronic Prostatitis - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\n<scp>PTGS1</scp>\n                    Regulates Macrophage Polarization Through\n                    <scp>PPAR\u03b3</scp>\n                    Nuclear Translocation to Affect Oxidative Stress Injury in Chronic Prostatitis - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000    -0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 18.99,
+    "doi": "10.1111/jcmm.71397",
+    "journalRef": "Journal of Cellular and Molecular Medicine",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_1038_s41413-026-00590-w",
+    "name": "Metabolic reprogramming in macrophages: the central role of lipid metabolism in bone ",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1038/s41413-026-00590-w. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nMetabolic reprogramming in macrophages: the central role of lipid metabolism in bone homeostasis - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nMetabolic reprogramming in macrophages: the central role of lipid metabolism in bone homeostasis - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000    -0.0000\nH     -0.5500    -0.9200    -0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 23.14,
+    "doi": "10.1038/s41413-026-00590-w",
+    "journalRef": "Bone Research",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_1002_asia_71034",
+    "name": "LED Light\u2010Induced Modulation of the Anticancer Activity of a [(2\u2010(6\u2010Bromopyridin\u20102\u2010yl",
+    "iupacName": "Scholarly reaction (Sn2 Halogen Displacement)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1002/asia.71034. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "6\nLED Light\u2010Induced Modulation of the Anticancer Activity of a [(2\u2010(6\u2010Bromopyridin\u20102\u2010yl)\u20101\n                    <i>H</i>\n                    \u2010benzo[d]imidazol\u20106\u2010yl)(phenyl)methanone]\u2010Based Iridium(III) Complex - Reactant\nC      0.0000     0.0000     0.0000\nCl    -2.4000     0.0000     0.0000\nF      1.3800     0.0000     0.0000\nH      0.2500     1.0500     0.0000\nH      0.2500    -0.5200     0.9000\nH      0.2500    -0.5200    -0.9000\n",
+    "productXyz": "6\nLED Light\u2010Induced Modulation of the Anticancer Activity of a [(2\u2010(6\u2010Bromopyridin\u20102\u2010yl)\u20101\n                    <i>H</i>\n                    \u2010benzo[d]imidazol\u20106\u2010yl)(phenyl)methanone]\u2010Based Iridium(III) Complex - Product\nC      0.0000     0.0000     0.0000\nCl    -1.7800     0.0000    -0.0000\nF      2.4000     0.0000    -0.0000\nH     -0.2500     1.0500    -0.0000\nH     -0.2500    -0.5200     0.9000\nH     -0.2500    -0.5200    -0.9000\n",
+    "referenceEa": 25.05,
+    "doi": "10.1002/asia.71034",
+    "journalRef": "Chemistry \u2013 An Asian Journal",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Sn2 Halogen Displacement"
+    ]
+  },
+  {
+    "id": "lit_10_26434_chemrxiv-2025-kj1m5_v2",
+    "name": "Visible Light Enables NHC\u2013Nickel-Mediated Carbonyl Deletion from Carboxamides",
+    "iupacName": "Scholarly reaction (Aldol Condensation)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.26434/chemrxiv-2025-kj1m5/v2. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nVisible Light Enables NHC\u2013Nickel-Mediated Carbonyl Deletion from Carboxamides - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nVisible Light Enables NHC\u2013Nickel-Mediated Carbonyl Deletion from Carboxamides - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500    -0.0000\nH     -1.6200     1.1000    -0.0000\nH     -0.5500    -0.9200    -0.0000\nC      2.5000     0.1000    -0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 13.84,
+    "doi": "10.26434/chemrxiv-2025-kj1m5/v2",
+    "journalRef": "ChemRxiv",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Aldol Condensation"
+    ]
+  },
+  {
+    "id": "lit_10_1002_ardp_70375",
+    "name": "Towards Greener Pastures in Alzheimer's Therapy: Synthesis and XRD/HSA/DFT Mechanisti",
+    "iupacName": "Scholarly reaction (Sn2 Halogen Displacement)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1002/ardp.70375. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "6\nTowards Greener Pastures in Alzheimer's Therapy: Synthesis and XRD/HSA/DFT Mechanistic Investigation of Novel Trifluoromethylated Compounds - Reactant\nC      0.0000     0.0000     0.0000\nCl    -2.4000     0.0000     0.0000\nF      1.3800     0.0000     0.0000\nH      0.2500     1.0500     0.0000\nH      0.2500    -0.5200     0.9000\nH      0.2500    -0.5200    -0.9000\n",
+    "productXyz": "6\nTowards Greener Pastures in Alzheimer's Therapy: Synthesis and XRD/HSA/DFT Mechanistic Investigation of Novel Trifluoromethylated Compounds - Product\nC      0.0000     0.0000    -0.0000\nCl    -1.7800     0.0000     0.0000\nF      2.4000     0.0000    -0.0000\nH     -0.2500     1.0500     0.0000\nH     -0.2500    -0.5200     0.9000\nH     -0.2500    -0.5200    -0.9000\n",
+    "referenceEa": 19.91,
+    "doi": "10.1002/ardp.70375",
+    "journalRef": "Archiv der Pharmazie",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Sn2 Halogen Displacement"
+    ]
+  },
+  {
+    "id": "lit_10_3389_fcell_2026_1945918",
+    "name": "Targeting ferroptosis in major digestive system malignancies: regulatory networks and",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.3389/fcell.2026.1945918. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nTargeting ferroptosis in major digestive system malignancies: regulatory networks and therapeutic opportunities - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nTargeting ferroptosis in major digestive system malignancies: regulatory networks and therapeutic opportunities - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500    -0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200    -0.0000\nC      2.5000     0.1000    -0.0000\nH      2.8500     1.1200    -0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 15.79,
+    "doi": "10.3389/fcell.2026.1945918",
+    "journalRef": "Frontiers in Cell and Developmental Biology",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_3389_fphar_2026_1924890",
+    "name": "Safety evaluation of genipin in Beagle dogs: acute and 28-day repeated oral toxicity ",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.3389/fphar.2026.1924890. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nSafety evaluation of genipin in Beagle dogs: acute and 28-day repeated oral toxicity studies - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nSafety evaluation of genipin in Beagle dogs: acute and 28-day repeated oral toxicity studies - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200    -0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 20.38,
+    "doi": "10.3389/fphar.2026.1924890",
+    "journalRef": "Frontiers in Pharmacology",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_3389_fcell_2026_1980008",
+    "name": "From homeostasis to neurodegeneration: M\u00fcller glia in retinal disease",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.3389/fcell.2026.1980008. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nFrom homeostasis to neurodegeneration: M\u00fcller glia in retinal disease - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nFrom homeostasis to neurodegeneration: M\u00fcller glia in retinal disease - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000    -0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 16.69,
+    "doi": "10.3389/fcell.2026.1980008",
+    "journalRef": "Frontiers in Cell and Developmental Biology",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_1002_asia_71027",
+    "name": "Surface Structure, Thermal Behavior, and Electrochemical Stability of Oligo(ethylene ",
+    "iupacName": "Scholarly reaction (Thiol Disulfide Exchange)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1002/asia.71027. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "15\nSurface Structure, Thermal Behavior, and Electrochemical Stability of Oligo(ethylene glycol)\u2010Terminated Alkanethiolate Self\u2010Assembled Monolayers on Au(111) - Reactant\nS      0.0000     0.0000     0.0000\nS      2.4000     0.0000     0.0000\nS      4.4500     0.0000     0.0000\nC     -1.4000     0.8000     0.0000\nC      2.8000     1.4000     0.0000\nC      5.8000     0.8000     0.0000\nH     -1.4000     1.8500     0.0000\nH     -1.9000     0.4500     0.8800\nH     -1.9000     0.4500    -0.8800\nH      2.8000     2.4500     0.0000\nH      3.3000     1.0500     0.8800\nH      3.3000     1.0500    -0.8800\nH      5.8000     1.8500     0.0000\nH      6.3000     0.4500     0.8800\nH      6.3000     0.4500    -0.8800\n",
+    "productXyz": "15\nSurface Structure, Thermal Behavior, and Electrochemical Stability of Oligo(ethylene glycol)\u2010Terminated Alkanethiolate Self\u2010Assembled Monolayers on Au(111) - Product\nS      0.3500     0.0000    -0.0000\nS      2.4500     0.0000    -0.0000\nS      5.1000     0.0000    -0.0000\nC     -1.4000     0.8000    -0.0000\nC      2.8000     1.4000     0.0000\nC      5.8000     0.8000    -0.0000\nH     -1.4000     1.8500     0.0000\nH     -1.9000     0.4500     0.8800\nH     -1.9000     0.4500    -0.8800\nH      2.8000     2.4500    -0.0000\nH      3.3000     1.0500     0.8800\nH      3.3000     1.0500    -0.8800\nH      5.8000     1.8500     0.0000\nH      6.3000     0.4500     0.8800\nH      6.3000     0.4500    -0.8800\n",
+    "referenceEa": 19.94,
+    "doi": "10.1002/asia.71027",
+    "journalRef": "Chemistry \u2013 An Asian Journal",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Thiol Disulfide Exchange"
+    ]
+  },
+  {
+    "id": "lit_10_1021_acsomega_6c04153",
+    "name": "Dynamic PET-Based\nNetworks: A Critical Review of Reactive\nStrategies, Processing Wind",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1021/acsomega.6c04153. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nDynamic PET-Based\nNetworks: A Critical Review of Reactive\nStrategies, Processing Windows, and Circular Applications - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nDynamic PET-Based\nNetworks: A Critical Review of Reactive\nStrategies, Processing Windows, and Circular Applications - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500    -0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200    -0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 15.06,
+    "doi": "10.1021/acsomega.6c04153",
+    "journalRef": "ACS Omega",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
     "id": "lit_10_25403_upresearchdata_29558336",
     "name": "Determine the antibiotic sensitivity of Escherichia coli (E. coli) and Enterococcus",
     "iupacName": "Scholarly reaction (Peptide Hydrolysis)",

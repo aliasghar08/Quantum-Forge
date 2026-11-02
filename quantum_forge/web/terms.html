@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Terms of Service — Quantum Forge</title>
-  <meta name="description" content="Terms of Service and legal disclaimer for Quantum Forge computational chemistry and reaction dynamics platform.">
+  <title>Terms of Service & Medical Disclaimer — Quantum Forge</title>
+  <meta name="description" content="Terms of Service, scientific and medical disclaimers, limitation of liability, and DMCA copyright notice for Quantum Forge.">
   <meta name="author" content="Ali Asghar">
   <meta name="copyright" content="Copyright © 2026 Ali Asghar. All Rights Reserved.">
   <link rel="icon" type="image/png" href="favicon.png">
@@ -25,6 +25,8 @@
       --card-border: #1F2937;
       --primary: #00E5FF;
       --accent: #00BFA5;
+      --warning: #FFB300;
+      --danger: #EF4444;
       --text: #F3F4F6;
       --text-muted: #9CA3AF;
       --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -34,7 +36,7 @@
       background-color: var(--bg);
       color: var(--text);
       font-family: var(--font-family);
-      line-height: 1.7;
+      line-height: 1.75;
     }
     header {
       background: rgba(17, 24, 39, 0.85);
@@ -84,7 +86,7 @@
       color: var(--primary);
     }
     .container {
-      max-width: 900px;
+      max-width: 920px;
       margin: 2.5rem auto;
       padding: 0 1.5rem;
     }
@@ -95,6 +97,21 @@
       padding: 2.5rem;
       margin-bottom: 2rem;
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    }
+    .alert-box {
+      background: rgba(255, 179, 0, 0.1);
+      border: 1px solid var(--warning);
+      border-radius: 8px;
+      padding: 1.25rem;
+      margin: 1.5rem 0;
+    }
+    .alert-box h3 {
+      color: var(--warning);
+      font-size: 1.1rem;
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
     }
     h1 {
       font-size: 2.25rem;
@@ -108,22 +125,25 @@
       display: block;
     }
     h2 {
-      font-size: 1.4rem;
+      font-size: 1.35rem;
       color: var(--accent);
-      margin-top: 1.8rem;
+      margin-top: 2rem;
       margin-bottom: 0.75rem;
       border-bottom: 1px solid #1F2937;
-      padding-bottom: 0.3rem;
+      padding-bottom: 0.35rem;
     }
-    p, ul {
+    p, ul, ol {
       color: #D1D5DB;
       margin-bottom: 1rem;
     }
-    ul {
+    ul, ol {
       padding-left: 1.75rem;
     }
     li {
       margin-bottom: 0.5rem;
+    }
+    strong {
+      color: #FFFFFF;
     }
     a {
       color: var(--primary);
@@ -131,6 +151,12 @@
     }
     a:hover {
       text-decoration: underline;
+    }
+    .uppercase-clause {
+      text-transform: uppercase;
+      font-size: 0.92rem;
+      letter-spacing: 0.02em;
+      color: #E5E7EB;
     }
     footer {
       border-top: 1px solid var(--card-border);
@@ -169,33 +195,77 @@
 
   <main class="container">
     <div class="card">
-      <h1>Terms of Service</h1>
-      <span class="effective-date">Last Updated: October 30, 2026</span>
+      <h1>Terms of Service & Disclaimer</h1>
+      <span class="effective-date">Last Updated & Effective Date: November 2, 2026</span>
 
-      <p>Welcome to Quantum Forge. By accessing or using our computational chemistry workstation and educational portal located at <a href="https://quantom-forge.web.app">quantom-forge.web.app</a>, you agree to be bound by these Terms of Service.</p>
+      <div class="alert-box">
+        <h3>⚠️ Mandatory Educational & Scientific Notice</h3>
+        <p><strong>Quantum Forge is solely an educational simulation, visualization, and theoretical computational modeling platform.</strong> It is NOT a medical device, is NOT a Clinical Decision Support (CDS) system, and does NOT provide veterinary or human medical care, prescribing, or clinical diagnostic recommendations. Never use simulated kinetic trajectories, activation barriers, or pharmacopeial summaries for patient care or animal rescue.</p>
+      </div>
 
-      <h2>1. Permitted Use & Scientific Purpose</h2>
-      <p>Quantum Forge is designed solely for scientific research, educational modeling, academic inquiry, and professional computational chemistry. You agree to use the platform in compliance with all applicable local, national, and international laws and regulations.</p>
+      <p>Welcome to Quantum Forge (accessible via <a href="https://quantumforgeapp.com">quantumforgeapp.com</a> and <a href="https://quantom-forge.web.app">quantom-forge.web.app</a>). By accessing, viewing, running simulations, or otherwise using this platform, you expressly agree to be bound by these Terms of Service. If you do not agree to these terms, you must not access or use the application.</p>
 
-      <h2>2. Intellectual Property & Copyright Protection</h2>
-      <p>All software architectures, user interface designs, custom state management engines, rendering algorithms, and benchmark curricula within Quantum Forge are the proprietary intellectual property of Ali Asghar.</p>
-      <p><strong>DMCA Notice:</strong> Unauthorized scraping, copying, rehosting, or reverse engineering of proprietary algorithms or data stores constitutes copyright infringement subject to immediate DMCA takedown procedures and legal action.</p>
-
-      <h2>3. Disclaimer of Scientific & Medical Warranties</h2>
-      <p>Quantum Forge provides predictive machine learning potentials, semi-empirical simulations, and educational dossiers for MBBS, Pharm-D, and DVM curricula. While benchmarked rigorously against published literature and DFT ground truths:</p>
+      <h2>1. Scope of the Platform</h2>
+      <p>Quantum Forge provides an advanced scientific workstation integrating machine learning interatomic potentials (MLIP), semi-empirical and quantum chemistry models, Nudged Elastic Band (NEB) transition state pathfinding, and educational dossiers. The platform is designed strictly for:</p>
       <ul>
-        <li>Results are simulated computational models and do not replace physical wet-lab validation or certified clinical trial standards.</li>
-        <li>The medical and pharmacological dossiers are educational reference materials and do not constitute formal medical diagnosis or prescribing advice.</li>
+        <li>Theoretical chemistry research and computational education.</li>
+        <li>Academic coursework across undergraduate, graduate, MBBS, Pharm-D, and DVM curricula.</li>
+        <li>In-silico visualization of chemical reaction mechanisms and 3D molecular trajectories.</li>
       </ul>
 
-      <h2>4. User Accounts & Security</h2>
-      <p>You are responsible for maintaining the confidentiality of any sign-in credentials. Quantum Forge reserves the right to suspend or terminate accounts that engage in automated denial-of-service, abuse of API quotas, or security exploits.</p>
+      <h2>2. Explicit Scientific, Medical, & Veterinary Disclaimer</h2>
+      <p><strong>2.1 Not a Medical Device or CDS System:</strong> Quantum Forge is not certified, cleared, or approved by the United States Food and Drug Administration (FDA), European Medicines Agency (EMA), or any other regulatory body as a medical device or Software as a Medical Device (SaMD). It does not qualify as a Clinical Decision Support (CDS) system under section 520(o) of the Federal Food, Drug, and Cosmetic Act.</p>
+      <p><strong>2.2 No Clinical or Prescribing Use:</strong> All data, outputs, kinetic barriers, activation energies (&Delta;G&Dagger;, &Delta;H&Dagger;, &Delta;S&Dagger;), rate constants, spectroscopy simulations, and pharmacological dossiers (including human and veterinary ADME profiles, cat/dog species-specific toxicities, and overdose rescue summaries) are <em>purely theoretical and educational approximations</em>. They must <strong>NEVER</strong> be relied upon for:</p>
+      <ul>
+        <li>Medical or veterinary clinical diagnosis, treatment planning, or patient triage.</li>
+        <li>Dosing calculation, drug administration, or prescription generation.</li>
+        <li>Emergency veterinary interventions, toxicological antidote administration, or clinical patient management.</li>
+      </ul>
+      <p>Always seek the counsel of a licensed physician, clinical pharmacist, or veterinary doctor for any health or medical concern.</p>
 
-      <h2>5. Termination & Modifications</h2>
-      <p>We reserve the right to modify these terms at any time. Continued use of the platform after updates constitutes acceptance of the modified Terms of Service.</p>
+      <h2>3. "AS IS" Warranty Disclaimer</h2>
+      <p class="uppercase-clause">To the maximum extent permitted by applicable law, Quantum Forge, its software, APIs, models, data dossiers, and calculations are provided on an <strong>"AS IS"</strong> and <strong>"AS AVAILABLE"</strong> basis, <strong>"WITH ALL FAULTS"</strong> and without warranties of any kind, whether express, implied, statutory, or otherwise.</p>
+      <p class="uppercase-clause">The author and operators expressly disclaim all warranties of merchantability, fitness for a particular purpose, scientific accuracy, completeness, non-infringement, quiet enjoyment, and freedom from computer viruses or errors. Theoretical and machine-learned estimates may contain inaccuracies, approximations, or model hallucinations.</p>
 
-      <h2>6. Governing Law & Contact</h2>
-      <p>These terms shall be governed by applicable commercial laws. For inquiries regarding licensing or terms of service, contact <a href="mailto:aliasgharinnocent@yahoo.com">aliasgharinnocent@yahoo.com</a>.</p>
+      <h2>4. Limitation of Liability</h2>
+      <p class="uppercase-clause">In no event shall Ali Asghar, Quantum Forge, its developers, contributors, or service providers be liable for any direct, indirect, incidental, special, consequential, punitive, or exemplary damages whatsoever, including without limitation damages for personal injury, wrongful death, loss of profits, loss of data, loss of goodwill, equipment failure, business interruption, or wet-lab experimental failures arising out of or related to your use of or inability to use this platform, even if advised of the possibility of such damages.</p>
+      <p>Your sole and exclusive remedy for dissatisfaction with the software or services is to cease using the platform.</p>
+
+      <h2>5. Intellectual Property & Acceptable Use</h2>
+      <p>The Quantum Forge software architecture, custom reactive state engines, Flutter client implementations, WebGL/NGL shaders, and educational compilations are copyrighted works owned by Ali Asghar. You agree not to:</p>
+      <ul>
+        <li>Engage in automated scraping, bulk exfiltration, or denial-of-service attacks against the APIs.</li>
+        <li>Attempt to inject malicious payloads into public Firestore collections or backend endpoints.</li>
+        <li>Remove, alter, or obscure any copyright notices, watermarks, or license headers.</li>
+      </ul>
+
+      <h2>6. Open-Source Component Credits & Boundaries</h2>
+      <p>Quantum Forge incorporates and communicates with open-source scientific software through clean, standard boundaries (e.g., GFN2-xTB under LGPL v3, Avogadro 2 interop scripts under GPL v2/v3, MACE under MIT, CHGNet and RDKit under BSD-3-Clause). Full attribution, licenses, and boundary details are set forth in our <a href="https://github.com/aliasghar08/Quantum-Forge/blob/main/THIRD_PARTY_LICENSES.md" target="_blank" rel="noopener">THIRD_PARTY_LICENSES.md</a> file.</p>
+
+      <h2>7. DMCA & Academic Publisher Notice Procedure</h2>
+      <p>Quantum Forge respects the intellectual property rights of academic publishers, researchers, and rights holders. The platform's automated literature references store strictly factual, non-copyrightable bibliographic metadata (DOI links, titles, citation counts, and physical 3D Cartesian coordinates). Raw article bodies and copyrighted figures are never hosted or redistributed.</p>
+      <p>If you believe that any material residing on or accessible through Quantum Forge infringes your copyright, please notify our designated DMCA Agent with the following information required by 17 U.S.C. § 512(c)(3):</p>
+      <ol>
+        <li>A physical or electronic signature of a person authorized to act on behalf of the owner of an exclusive right that is allegedly infringed.</li>
+        <li>Identification of the copyrighted work claimed to have been infringed.</li>
+        <li>Identification of the material that is claimed to be infringing and information reasonably sufficient to permit us to locate the material (e.g., specific URL or DOI reference).</li>
+        <li>Your contact information (name, address, telephone number, and email address).</li>
+        <li>A statement that you have a good faith belief that use of the material in the manner complained of is not authorized by the copyright owner, its agent, or the law.</li>
+        <li>A statement that the information in the notification is accurate, and under penalty of perjury, that you are authorized to act on behalf of the copyright owner.</li>
+      </ol>
+      <p><strong>Designated DMCA Agent:</strong><br>
+      Ali Asghar<br>
+      Email: <a href="mailto:aliasgharinnocent@yahoo.com">aliasgharinnocent@yahoo.com</a><br>
+      Subject: DMCA Notice of Claimed Infringement — Quantum Forge</p>
+
+      <h2>8. Governing Law & Dispute Resolution</h2>
+      <p>These Terms shall be governed by and construed in accordance with the laws of the jurisdiction of the author, without giving effect to any principles of conflicts of law. Any legal proceeding arising out of or relating to these Terms shall be instituted exclusively in competent courts of competent jurisdiction.</p>
+
+      <h2>9. Contact Information</h2>
+      <p>For questions or formal legal notices regarding these Terms, contact:</p>
+      <p><strong>Ali Asghar</strong><br>
+      Email: <a href="mailto:aliasgharinnocent@yahoo.com">aliasgharinnocent@yahoo.com</a><br>
+      Portal: <a href="https://quantumforgeapp.com">https://quantumforgeapp.com</a></p>
     </div>
   </main>
 

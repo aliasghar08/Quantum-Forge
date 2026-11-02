@@ -394,6 +394,10 @@ class _ReactionMedicalDossierCardState extends State<ReactionMedicalDossierCard>
             const Divider(color: Colors.white12, height: 1),
             const SizedBox(height: 12),
 
+            // ── In-App Educational & Medical Disclaimer Banner ───────────────────
+            _buildClinicalDisclaimerBanner(palette),
+            const SizedBox(height: 10),
+
             // ── Verified Data Provenance Status Bar ───────────────────────────────
             _buildProvenanceStatusBar(context, p),
             const SizedBox(height: 14),
@@ -1786,6 +1790,45 @@ class _ReactionMedicalDossierCardState extends State<ReactionMedicalDossierCard>
         color: palette.textPrimary,
         fontSize: 12,
         height: 1.45,
+      ),
+    );
+  }
+
+  // ── In-App Educational & Medical Disclaimer Banner ─────────────────────────
+  Widget _buildClinicalDisclaimerBanner(dynamic palette) {
+    const amberColor = Color(0xFFFFB300);
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: amberColor.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: amberColor.withValues(alpha: 0.4),
+          width: 1.0,
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          const Icon(
+            Icons.info_outline_rounded,
+            color: amberColor,
+            size: 16,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              'Educational Simulation Only — Not for Clinical Diagnosis, Prescribing, or Patient Care.',
+              style: TextStyle(
+                color: amberColor.withValues(alpha: 0.95),
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 0.1,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
