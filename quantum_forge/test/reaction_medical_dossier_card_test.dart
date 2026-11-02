@@ -100,6 +100,7 @@ void main() {
     // Collapse toggle test
     final collapseBtn = find.byTooltip('Collapse Medical Section');
     expect(collapseBtn, findsOneWidget);
+    await tester.ensureVisible(collapseBtn);
     await tester.tap(collapseBtn);
     await tester.pumpAndSettle();
 

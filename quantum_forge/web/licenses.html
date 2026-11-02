@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Third-Party Licenses & Open-Source Notices — Quantum Forge</title>
+  <meta name="description" content="Third-party open-source software licenses, computational engine credits, and boundary architecture notes for Quantum Forge.">
+  <meta name="author" content="Ali Asghar">
+  <meta name="copyright" content="Copyright © 2026 Ali Asghar. All Rights Reserved.">
+  <link rel="icon" type="image/png" href="favicon.png">
+  <meta name="google-adsense-account" content="ca-pub-9402443776639153">
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9402443776639153" crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=AW-16732994716"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'AW-16732994716');
+  </script>
+  <style>
+    :root {
+      --bg: #090D16;
+      --card-bg: #111827;
+      --card-border: #1F2937;
+      --primary: #00E5FF;
+      --accent: #00BFA5;
+      --text: #F3F4F6;
+      --text-muted: #9CA3AF;
+      --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: var(--font-family);
+      line-height: 1.75;
+    }
+    header {
+      background: rgba(17, 24, 39, 0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--card-border);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .logo-container {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      text-decoration: none;
+    }
+    .logo-badge {
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      color: #000;
+      font-weight: 900;
+      font-size: 1.1rem;
+      padding: 0.25rem 0.6rem;
+      border-radius: 6px;
+    }
+    .logo-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #FFF;
+      letter-spacing: -0.5px;
+    }
+    nav a {
+      color: var(--text-muted);
+      text-decoration: none;
+      margin-left: 1.5rem;
+      font-size: 0.95rem;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+    nav a:hover, nav a.active {
+      color: var(--primary);
+    }
+    .container {
+      max-width: 920px;
+      margin: 2.5rem auto;
+      padding: 0 1.5rem;
+    }
+    .card {
+      background-color: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 2.5rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    }
+    h1 {
+      font-size: 2.25rem;
+      color: var(--primary);
+      margin-bottom: 0.5rem;
+    }
+    .effective-date {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      margin-bottom: 2rem;
+      display: block;
+    }
+    h2 {
+      font-size: 1.35rem;
+      color: var(--accent);
+      margin-top: 2rem;
+      margin-bottom: 0.75rem;
+      border-bottom: 1px solid #1F2937;
+      padding-bottom: 0.35rem;
+    }
+    p, ul, ol {
+      color: #D1D5DB;
+      margin-bottom: 1rem;
+    }
+    ul, ol {
+      padding-left: 1.75rem;
+    }
+    li {
+      margin-bottom: 0.5rem;
+    }
+    strong {
+      color: #FFFFFF;
+    }
+    code {
+      background: #1F2937;
+      padding: 0.2rem 0.4rem;
+      border-radius: 4px;
+      font-size: 0.88rem;
+      color: var(--primary);
+    }
+    a {
+      color: var(--primary);
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+    .license-block {
+      background: #0B111E;
+      border: 1px solid #1E293B;
+      border-radius: 8px;
+      padding: 1.25rem;
+      margin-bottom: 1.5rem;
+    }
+    footer {
+      border-top: 1px solid var(--card-border);
+      padding: 2.5rem 1.5rem;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      margin-top: 4rem;
+      background: #060910;
+    }
+    footer a {
+      color: var(--accent);
+      text-decoration: none;
+      margin: 0 0.5rem;
+    }
+    @media (max-width: 768px) {
+      header { flex-direction: column; gap: 1rem; }
+      .card { padding: 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <a href="/" class="logo-container">
+      <span class="logo-badge">QF</span>
+      <span class="logo-title">Quantum Forge</span>
+    </a>
+    <nav>
+      <a href="/">App</a>
+      <a href="about.html">About</a>
+      <a href="privacy.html">Privacy</a>
+      <a href="terms.html">Terms</a>
+      <a href="licenses.html" class="active">Licenses</a>
+      <a href="contact.html">Contact</a>
+    </nav>
+  </header>
+
+  <main class="container">
+    <div class="card">
+      <h1>Third-Party Open-Source Software Licenses</h1>
+      <span class="effective-date">Last Updated: November 2, 2026</span>
+
+      <p>Quantum Forge incorporates, interfaces with, and builds upon open-source software, scientific computational engines, and libraries. This page provides licensing disclosures and attribution in compliance with LGPL v3, GPL v2/v3, MIT, BSD, and Apache-2.0 requirements.</p>
+
+      <h2>Architecture & Modular Licensing Boundaries</h2>
+      <p>To respect copyleft licensing obligations and preserve modularity:</p>
+      <ul>
+        <li><strong>GFN2-xTB</strong> operates strictly as an independent microservice container over standard REST/CLI network boundaries.</li>
+        <li><strong>Avogadro Bridge</strong> export scripts in <code>avogadro_plugin/</code> are provided as open-source scripts adhering to GPL v2/v3 and communicate via decoupled JSON-RPC file passing.</li>
+        <li><strong>MLIP Potentials</strong> (MACE, TorchANI/ANI-2x, CHGNet) are executed within separate Python workers.</li>
+      </ul>
+
+      <h2>1. GFN2-xTB (Extended Tight-Binding)</h2>
+      <div class="license-block">
+        <p><strong>Package:</strong> <code>xtb</code> (Extended Tight-Binding Semi-empirical Program Package)</p>
+        <p><strong>License:</strong> GNU Lesser General Public License v3.0 (LGPL v3)</p>
+        <p><strong>Copyright:</strong> &copy; 2017-2024 Stefan Grimme, Mulliken Center for Theoretical Chemistry, University of Bonn</p>
+        <p><strong>Source Code:</strong> <a href="https://github.com/grimme-lab/xtb" target="_blank" rel="noopener">github.com/grimme-lab/xtb</a></p>
+      </div>
+
+      <h2>2. Avogadro 2 Bridge Scripts</h2>
+      <div class="license-block">
+        <p><strong>Package:</strong> Avogadro 2 Molecular Editor Plugins & Export Generators</p>
+        <p><strong>License:</strong> GNU General Public License v2.0 or later (GPL v2+) / BSD-3-Clause</p>
+        <p><strong>Copyright:</strong> &copy; 2006-2024 Marcus D. Hanwell, Geoff M. Hutchison, and the Avogadro Project Team</p>
+        <p><strong>Source Code:</strong> <a href="https://github.com/openchemistry/avogadrolibs" target="_blank" rel="noopener">github.com/openchemistry/avogadrolibs</a></p>
+      </div>
+
+      <h2>3. MACE (Equivariant MLIP)</h2>
+      <div class="license-block">
+        <p><strong>Package:</strong> MACE (Molecular Agnostic Coordinate Engine)</p>
+        <p><strong>License:</strong> MIT License</p>
+        <p><strong>Copyright:</strong> &copy; 2022-2024 Ilyes Batatia, David P. Kovacs, Gabor Csanyi, Christoph Ortner</p>
+        <p><strong>Source Code:</strong> <a href="https://github.com/ACEsuit/mace" target="_blank" rel="noopener">github.com/ACEsuit/mace</a></p>
+      </div>
+
+      <h2>4. TorchANI & ANI-2x Potential</h2>
+      <div class="license-block">
+        <p><strong>Package:</strong> TorchANI & ANI-2x Neural Network Potentials</p>
+        <p><strong>License:</strong> MIT License</p>
+        <p><strong>Copyright:</strong> &copy; 2018-2024 Xiang Gao, University of Florida / Roitberg Group / Isayev Group</p>
+        <p><strong>Source Code:</strong> <a href="https://github.com/aiqm/torchani" target="_blank" rel="noopener">github.com/aiqm/torchani</a></p>
+      </div>
+
+      <h2>5. CHGNet Neural Network Potential</h2>
+      <div class="license-block">
+        <p><strong>Package:</strong> Crystal Hamiltonian Graph Neural Network (CHGNet)</p>
+        <p><strong>License:</strong> BSD 3-Clause License</p>
+        <p><strong>Copyright:</strong> &copy; 2023 Materials Virtual Lab / Bowen Deng, Peichen Zhong, Shyue Ping Ong</p>
+        <p><strong>Source Code:</strong> <a href="https://github.com/CederGroupHub/chgnet" target="_blank" rel="noopener">github.com/CederGroupHub/chgnet</a></p>
+      </div>
+
+      <h2>6. RDKit Cheminformatics Toolkit</h2>
+      <div class="license-block">
+        <p><strong>Package:</strong> RDKit: Open-Source Cheminformatics and Machine Learning</p>
+        <p><strong>License:</strong> BSD 3-Clause License</p>
+        <p><strong>Copyright:</strong> &copy; 2006-2024 Greg Landrum and RDKit contributors</p>
+        <p><strong>Source Code:</strong> <a href="https://github.com/rdkit/rdkit" target="_blank" rel="noopener">github.com/rdkit/rdkit</a></p>
+      </div>
+
+      <h2>7. WebGL Molecular Viewers (NGL & 3Dmol.js)</h2>
+      <div class="license-block">
+        <p><strong>Package:</strong> NGL Viewer (ngl.js) & 3Dmol.js</p>
+        <p><strong>License:</strong> MIT License / LGPL v3</p>
+        <p><strong>Copyright:</strong> NGL &copy; 2014-2024 Alexander Rose; 3Dmol.js &copy; 2014-2024 Nicholas Rego and David Koes</p>
+      </div>
+
+      <h2>8. Frameworks & SDKs</h2>
+      <ul>
+        <li><strong>Flutter Web & Dart SDK:</strong> BSD 3-Clause License &copy; The Flutter Authors and Dart Authors.</li>
+        <li><strong>Firebase JavaScript SDK:</strong> Apache License 2.0 &copy; Google LLC.</li>
+        <li><strong>FastAPI / Starlette / Uvicorn:</strong> MIT & BSD-3-Clause &copy; Sebasti&aacute;n Ram&iacute;rez and Encode.</li>
+        <li><strong>PyTorch:</strong> BSD-style License &copy; Meta Platforms, Inc. and contributors.</li>
+      </ul>
+
+      <h2>Raw Markdown Notice</h2>
+      <p>The raw text version of this document is available directly at <a href="THIRD_PARTY_LICENSES.md">THIRD_PARTY_LICENSES.md</a>.</p>
+    </div>
+  </main>
+
+  <footer>
+    <p>&copy; 2026 Ali Asghar. All Rights Reserved. DMCA Protected.</p>
+    <p style="margin-top: 0.5rem;">
+      <a href="/">Launch Workstation</a> |
+      <a href="about.html">About</a> |
+      <a href="privacy.html">Privacy Policy</a> |
+      <a href="terms.html">Terms of Service</a> |
+      <a href="licenses.html">Licenses</a> |
+      <a href="contact.html">Contact Us</a>
+    </p>
+  </footer>
+</body>
+</html>

@@ -16,6 +16,7 @@ import 'package:quantum_forge/core/services/feedback_service.dart';
 import 'package:quantum_forge/screens/auth_screen.dart';
 import 'package:quantum_forge/screens/settings_screen.dart';
 import 'package:quantum_forge/core/widgets/quantum_forge_logo.dart';
+import 'package:quantum_forge/core/services/url_service.dart';
 
 enum NavDestination { library, newReaction, editor, history, methodValidation }
 
@@ -148,6 +149,62 @@ class ProfessionalDrawer extends StatelessWidget {
             _navItem(context, Icons.verified_outlined, 'Method validation',
                 NavDestination.methodValidation, showTooltips,
                 'MLIP barriers against known literature values — the table a reviewer asks for.'),
+
+            SizedBox(height: gap(12)),
+
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 24, vertical: gap(6)),
+              child: Text(
+                'LEGAL & DEVELOPER',
+                style: TextStyle(
+                  color: palette.textMuted,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 1.2,
+                ),
+              ),
+            ),
+
+            _externalLinkItem(
+              context,
+              Icons.info_outline_rounded,
+              'About & Architecture',
+              '/about.html',
+              showTooltips,
+              'Architectural design, MLIP potential integrations & developer profile.',
+            ),
+            _externalLinkItem(
+              context,
+              Icons.gavel_rounded,
+              'Terms of Service',
+              '/terms.html',
+              showTooltips,
+              'Terms of service, scientific disclaimers & acceptable use.',
+            ),
+            _externalLinkItem(
+              context,
+              Icons.privacy_tip_outlined,
+              'Privacy Policy',
+              '/privacy.html',
+              showTooltips,
+              'GDPR, CCPA, cookie disclosures & user privacy rights.',
+            ),
+            _externalLinkItem(
+              context,
+              Icons.policy_outlined,
+              'Third-Party Licenses',
+              '/licenses.html',
+              showTooltips,
+              'Open-source notices for GFN2-xTB, Avogadro, MACE, CHGNet & RDKit.',
+            ),
+            _externalLinkItem(
+              context,
+              Icons.alternate_email_rounded,
+              'Contact & Inquiries',
+              '/contact.html',
+              showTooltips,
+              'Academic collaboration, developer contact & DMCA notices.',
+            ),
 
             const Spacer(),
 
@@ -459,6 +516,65 @@ class ProfessionalDrawer extends StatelessWidget {
                 fontSize: 14,
                 letterSpacing: 0.3,
               ),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    return showTooltips ? Tooltip(message: hint, child: tile) : tile;
+  }
+
+  Widget _externalLinkItem(
+    BuildContext context,
+    IconData icon,
+    String label,
+    String url,
+    bool showTooltips,
+    String hint,
+  ) {
+    final palette = context.watch<ThemeNotifier>().palette;
+    final settings = context.watch<AppSettingsNotifier>().settings;
+
+    final tile = InkWell(
+      onTap: () {
+        Navigator.pop(context); // close the drawer
+        UrlService.launch(url);
+      },
+      borderRadius: BorderRadius.circular(10),
+      child: Container(
+        margin: EdgeInsets.symmetric(
+          horizontal: settings.gap(16),
+          vertical: settings.gap(2),
+        ),
+        padding: EdgeInsets.symmetric(
+          horizontal: settings.gap(16),
+          vertical: settings.gap(9),
+        ),
+        decoration: BoxDecoration(
+          color: Colors.transparent,
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, color: palette.textMuted, size: 17),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Text(
+                label,
+                style: TextStyle(
+                  color: palette.textSecondary,
+                  fontWeight: FontWeight.w500,
+                  fontSize: 13,
+                  letterSpacing: 0.2,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            Icon(
+              Icons.open_in_new_rounded,
+              size: 13,
+              color: palette.textMuted.withValues(alpha: 0.4),
             ),
           ],
         ),
