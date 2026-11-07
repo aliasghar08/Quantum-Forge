@@ -455,6 +455,13 @@ class ContinualTrainer:
                 ),
             )
 
+        # Clean up Metal Performance Shaders unified memory cache
+        if torch.backends.mps.is_available():
+            try:
+                torch.mps.empty_cache()
+            except Exception:
+                pass
+
         return {
             "status": "success",
             "device": str(self.device),

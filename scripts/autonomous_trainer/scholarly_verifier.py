@@ -13,6 +13,8 @@ import logging
 import os
 import re
 import subprocess
+import time
+import urllib.error
 import urllib.parse
 import urllib.request
 from pathlib import Path
@@ -408,12 +410,7 @@ def publish_reaction_to_firebase(
     reaction_data: dict[str, Any],
     project_id: str = "quantom-forge",
 ) -> bool:
-    """Publishes a verified reaction into the Firestore /library collection."""
-    token = get_gcloud_auth_token()
-    if not token:
-        logger.warning("No auth token available for Firestore publishing.")
-        return False
-
+    """Publishes a verified reaction into the Firestore /library collection with 24/7 token refresh and backoff."""
     reaction_id = reaction_data["id"]
     url = f"https://firestore.googleapis.com/v1/projects/{project_id}/databases/(default)/documents/library/{reaction_id}"
 
@@ -436,22 +433,43 @@ def publish_reaction_to_firebase(
 
     tags = reaction_data.get("tags", ["MBBS", "Pharm-D", "Verified-DOI"])
     fields["tags"] = {"arrayValue": {"values": [{"stringValue": str(t)} for t in tags]}}
+    body = json.dumps({"fields": fields}).encode("utf-8")
 
-    try:
-        body = json.dumps({"fields": fields}).encode("utf-8")
-        req = urllib.request.Request(
-            url,
-            data=body,
-            headers={
-                "Authorization": f"Bearer {token}",
-                "Content-Type": "application/json",
-            },
-            method="PATCH",
-        )
-        with urllib.request.urlopen(req, timeout=10) as resp:
-            if resp.status in (200, 201):
-                logger.info("🎉 Published authentic reaction '%s' to Firestore /library!", reaction_id)
-                return True
-    except Exception as exc:
-        logger.error("Failed to publish reaction %s to Firestore: %s", reaction_id, exc)
+    max_retries = 3
+    for attempt in range(max_retries):
+        token = get_gcloud_auth_token()
+        if not token:
+            logger.warning("No auth token available for Firestore publishing.")
+            return False
+
+        try:
+            req = urllib.request.Request(
+                url,
+                data=body,
+                headers={
+                    "Authorization": f"Bearer {token}",
+                    "Content-Type": "application/json",
+                },
+                method="PATCH",
+            )
+            with urllib.request.urlopen(req, timeout=12) as resp:
+                if resp.status in (200, 201):
+                    logger.info("🎉 Published authentic reaction '%s' to Firestore /library!", reaction_id)
+                    return True
+        except urllib.error.HTTPError as http_err:
+            if http_err.code == 401:
+                logger.warning("OAuth token expired (HTTP 401). Refreshing token for attempt %d/%d...", attempt + 1, max_retries)
+                time.sleep(1.0)
+                continue
+            elif http_err.code == 429:
+                wait_time = (2 ** attempt) * 2.0
+                logger.warning("Rate limit hit (HTTP 429). Backing off for %.1fs...", wait_time)
+                time.sleep(wait_time)
+                continue
+            else:
+                logger.error("HTTP error %d publishing reaction %s: %s", http_err.code, reaction_id, http_err)
+                break
+        except Exception as exc:
+            logger.error("Failed to publish reaction %s to Firestore: %s", reaction_id, exc)
+            time.sleep(1.0)
     return False

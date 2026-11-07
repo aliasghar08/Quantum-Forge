@@ -35,10 +35,28 @@ LAUNCHAGENT_NAME = "com.quantumforge.autotrainer"
 LAUNCHAGENT_PLIST = Path.home() / f"Library/LaunchAgents/{LAUNCHAGENT_NAME}.plist"
 
 
+def rotate_logs_if_needed(max_size_mb: float = 50.0) -> None:
+    """Rotates stdout and stderr logs if they exceed max_size_mb to maintain 24/7 filesystem hygiene."""
+    max_bytes = int(max_size_mb * 1024 * 1024)
+    for log_name in ("autotrainer_stdout.log", "autotrainer_stderr.log"):
+        log_file = LOG_DIR / log_name
+        if log_file.exists():
+            try:
+                if log_file.stat().st_size > max_bytes:
+                    backup = LOG_DIR / f"{log_name}.1"
+                    if backup.exists():
+                        backup.unlink()
+                    log_file.rename(backup)
+                    log_file.touch()
+                    logger.info("Rotated log %s (exceeded %.1f MB)", log_name, max_size_mb)
+            except Exception as exc:
+                logger.warning("Log rotation exception for %s: %s", log_name, exc)
+
+
 class AutonomousDaemon:
     """End-to-end autonomous research discovery and training supervisor."""
 
-    def __init__(self, poll_interval_hours: float = 6.0):
+    def __init__(self, poll_interval_hours: float = 0.05):
         self.poll_interval_seconds = max(60, int(poll_interval_hours * 3600))
         self.harvester = LiteratureHarvester()
         self.ingester = DataIngester()
@@ -149,7 +167,11 @@ class AutonomousDaemon:
 
     def start_loop(self) -> None:
         """Runs the daemon loop 24/7."""
-        logger.info("Starting 24/7 autonomous background daemon (polling every %.1f hours)...", self.poll_interval_seconds / 3600)
+        logger.info(
+            "Starting 24/7 autonomous background daemon (polling every %d seconds / ~%.2f minutes)...",
+            self.poll_interval_seconds,
+            self.poll_interval_seconds / 60,
+        )
         try:
             while True:
                 try:
@@ -157,7 +179,12 @@ class AutonomousDaemon:
                 except Exception as exc:
                     logger.error("Error in autonomous cycle: %s", exc, exc_info=True)
 
-                logger.info("Cycle finished. Next check in %d seconds (~%.1f hours).", self.poll_interval_seconds, self.poll_interval_seconds / 3600)
+                rotate_logs_if_needed(max_size_mb=50.0)
+                logger.info(
+                    "Cycle finished. Next check in %d seconds (~%.2f minutes).",
+                    self.poll_interval_seconds,
+                    self.poll_interval_seconds / 60,
+                )
                 time.sleep(self.poll_interval_seconds)
         except KeyboardInterrupt:
             logger.info("Daemon stopped by user.")
@@ -202,7 +229,7 @@ def print_status() -> None:
     print("=======================================================\n")
 
 
-def install_launchd_service() -> None:
+def install_launchd_service(interval: float = 0.05) -> None:
     """Installs a macOS launchd agent to ensure this runs 24/7 in the background across reboots."""
     script_path = Path(__file__).resolve()
     repo_dir = script_path.parent.parent.parent.resolve()
@@ -217,7 +244,7 @@ def install_launchd_service() -> None:
             str(script_path),
             "--daemon",
             "--interval",
-            "6.0",
+            str(interval),
         ],
         "WorkingDirectory": str(repo_dir),
         "KeepAlive": True,
@@ -235,7 +262,7 @@ def install_launchd_service() -> None:
     with open(LAUNCHAGENT_PLIST, "wb") as f:
         plistlib.dump(plist_data, f)
 
-    logger.info("Created LaunchAgent plist at %s", LAUNCHAGENT_PLIST)
+    logger.info("Created LaunchAgent plist at %s (interval: %s hrs)", LAUNCHAGENT_PLIST, interval)
     # Load the agent
     subprocess.run(["launchctl", "unload", str(LAUNCHAGENT_PLIST)], capture_output=True)
     res = subprocess.run(["launchctl", "load", "-w", str(LAUNCHAGENT_PLIST)], capture_output=True, text=True)
@@ -260,7 +287,7 @@ def main():
     parser = argparse.ArgumentParser(description="Quantum Forge 24/7 Autonomous Trainer Daemon")
     parser.add_argument("--run-once", action="store_true", help="Execute an immediate research discovery and training cycle")
     parser.add_argument("--daemon", action="store_true", help="Run continuously in the background")
-    parser.add_argument("--interval", type=float, default=6.0, help="Polling interval in hours (default: 6.0)")
+    parser.add_argument("--interval", type=float, default=0.05, help="Polling interval in hours (default: 0.05 = 3 minutes)")
     parser.add_argument("--ingest-doi", type=str, help="Ingest a specific paper DOI and train immediately")
     parser.add_argument("--status", action="store_true", help="Print ledger status and training history")
     parser.add_argument("--install-service", action="store_true", help="Install macOS launchd 24/7 background service")
@@ -272,7 +299,7 @@ def main():
     if args.status:
         print_status()
     elif args.install_service:
-        install_launchd_service()
+        install_launchd_service(interval=args.interval)
     elif args.uninstall_service:
         uninstall_launchd_service()
     elif args.ingest_doi:
