@@ -326,6 +326,28 @@ void main() {
 
       expect(find.text('LAD'), findsWidgets);
       expect(find.text('Catheter / Stent'), findsOneWidget);
+
+      // Switch to Ischemia Map Mode
+      final ischemiaTab = find.text('Ischemia Map');
+      expect(ischemiaTab, findsOneWidget);
+      await tester.ensureVisible(ischemiaTab);
+      await tester.pump();
+      await tester.tap(ischemiaTab);
+      await tester.pump();
+
+      expect(find.text('Perfused (FFR ≥ 0.85, WSS Normal)'), findsOneWidget);
+      expect(find.text('Ischemic Culprit (FFR < 0.75, Hypoxic)'), findsOneWidget);
+
+      // Switch to Color Doppler Mode
+      final dopplerTab = find.text('Color Doppler');
+      expect(dopplerTab, findsOneWidget);
+      await tester.ensureVisible(dopplerTab);
+      await tester.pump();
+      await tester.tap(dopplerTab);
+      await tester.pump();
+
+      expect(find.text('Mitral Inflow (Toward Apex — BART Red)'), findsOneWidget);
+      expect(find.text('Aortic Ejection (Away from Apex — BART Blue)'), findsOneWidget);
     });
 
     testWidgets('Interventional Suite: toggles Virtual IVUS/OCT, PressureWire X FFR, and Rotablator',

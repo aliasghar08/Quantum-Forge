@@ -30,7 +30,9 @@ enum HeartViewMode {
   chambers('Chambers'),
   bloodFlow('Blood Flow'),
   conduction('Conduction'),
-  coronaries('Vessels');
+  coronaries('Vessels'),
+  ischemiaMap('Ischemia Map'),
+  colorDoppler('Color Doppler');
 
   final String label;
   const HeartViewMode(this.label);
@@ -423,7 +425,11 @@ class _Cardiac3DAnatomicalHeartViewportState
         return [
           _legendItem(const Color(0xFFFF1744), 'Oxygenated (LA/LV/Aorta)'),
           _legendItem(const Color(0xFF00E5FF), 'Deoxygenated (RA/RV/PA)'),
-          _legendItem(const Color(0xFFFDE047), 'Valves (Dynamic)'),
+          _legendItem(const Color(0xFF00E5FF), 'Venous Inflow (SVC/IVC -> RA)'),
+          _legendItem(const Color(0xFFFF2A6D), 'Pulmonary Inflow (4 PVs -> LA)'),
+          _legendItem(const Color(0xFFFF0044), 'Aortic Outflow (LV -> Aorta)'),
+          _legendItem(const Color(0xFF0284C7), 'Pulmonary Outflow (RV -> PA)'),
+          _legendItem(const Color(0xFFFF385C), 'Coronary Perfusion'),
         ];
       case HeartViewMode.conduction:
         return [
@@ -437,6 +443,18 @@ class _Cardiac3DAnatomicalHeartViewportState
           _legendItem(const Color(0xFFFF9800), 'LCx'),
           _legendItem(const Color(0xFF00E5FF), 'RCA'),
           _legendItem(const Color(0xFFFFEB3B), 'Catheter / Stent'),
+        ];
+      case HeartViewMode.ischemiaMap:
+        return [
+          _legendItem(const Color(0xFF10B981), 'Perfused (FFR ≥ 0.85, WSS Normal)'),
+          _legendItem(const Color(0xFFF59E0B), 'Border Zone (FFR 0.80 - 0.84)'),
+          _legendItem(const Color(0xFF4A044E), 'Ischemic Culprit (FFR < 0.75, Hypoxic)'),
+        ];
+      case HeartViewMode.colorDoppler:
+        return [
+          _legendItem(const Color(0xFFFF3D00), 'Mitral Inflow (Toward Apex — BART Red)'),
+          _legendItem(const Color(0xFF00B0FF), 'Aortic Ejection (Away from Apex — BART Blue)'),
+          _legendItem(const Color(0xFFFFEA00), 'Turbulent Mosaic (Aliasing Vortex)'),
         ];
     }
   }
@@ -685,6 +703,35 @@ class _AnatomicalHeart3DPainter extends CustomPainter {
           sinX,
         );
       }
+    }
+
+    // ── 7B. AHA 17-Segment Perfusion & Bullseye Heatmap ─────────────────────
+    if (viewMode == HeartViewMode.ischemiaMap) {
+      _drawIschemiaBullseyeMap(
+        canvas,
+        cx,
+        cy,
+        currentScale,
+        cosY,
+        sinY,
+        cosX,
+        sinX,
+      );
+    }
+
+    // ── 7C. Color Doppler Echocardiography Beam & Velocity Jets ────────────
+    if (viewMode == HeartViewMode.colorDoppler) {
+      _drawColorDopplerCones(
+        canvas,
+        cx,
+        cy,
+        currentScale,
+        cosY,
+        sinY,
+        cosX,
+        sinX,
+        isSystole,
+      );
     }
 
     // ── 8. Depth-Sorted Anatomical Labels & Leader Lines ────────────────────
@@ -1239,7 +1286,7 @@ class _AnatomicalHeart3DPainter extends CustomPainter {
   }
 
   // ─────────────────────────────────────────────────────────────────────────
-  // 5. Blood Flow Dynamics & Valve Leaflet Mechanics
+  // 5. Blood Flow Dynamics & Valve Leaflet Mechanics (Dual-Circulation)
   // ─────────────────────────────────────────────────────────────────────────
   void _drawBloodFlowDynamics(
     Canvas canvas,
@@ -1252,10 +1299,74 @@ class _AnatomicalHeart3DPainter extends CustomPainter {
     double sinX,
     bool isSystole,
   ) {
-    // 1. Oxygenated Systemic Stream (Red particles moving LV -> Aorta -> Body)
+    // 1. INCOMING SYSTEMIC VENOUS INFLOW (SVC & IVC -> RA -> Tricuspid -> RV) [Cyan-Blue]
+    final svcInflowPts = [
+      const _Vec3(-26, 88, 2),
+      const _Vec3(-24, 60, 4),
+      const _Vec3(-20, 36, 8),
+    ];
+    final ivcInflowPts = [
+      const _Vec3(-22, -42, -4),
+      const _Vec3(-20, -12, 2),
+      const _Vec3(-18, 16, 8),
+    ];
+    final transTricuspidPts = [
+      const _Vec3(-18, 22, 8),
+      const _Vec3(-14, 4, 14),
+      const _Vec3(-8, -14, 16),
+    ];
+    for (final stream in [svcInflowPts, ivcInflowPts, transTricuspidPts]) {
+      _drawFlowPulseParticles(
+        canvas,
+        stream,
+        const Color(0xFF00E5FF),
+        cx,
+        cy,
+        s,
+        cosY,
+        sinY,
+        cosX,
+        sinX,
+        !isSystole, // Filling during diastole
+      );
+    }
+
+    // 2. INCOMING PULMONARY VENOUS INFLOW (4 PVs -> LA -> Mitral -> LV) [Coral-Red]
+    final pulmVeinsLeftPts = [
+      const _Vec3(26, 62, -12),
+      const _Vec3(16, 44, -6),
+      const _Vec3(8, 28, 4),
+    ];
+    final pulmVeinsRightPts = [
+      const _Vec3(-20, 60, -12),
+      const _Vec3(-10, 42, -6),
+      const _Vec3(2, 26, 4),
+    ];
+    final transMitralPts = [
+      const _Vec3(6, 28, 4),
+      const _Vec3(10, 8, 8),
+      const _Vec3(12, -18, 10),
+    ];
+    for (final stream in [pulmVeinsLeftPts, pulmVeinsRightPts, transMitralPts]) {
+      _drawFlowPulseParticles(
+        canvas,
+        stream,
+        const Color(0xFFFF2A6D),
+        cx,
+        cy,
+        s,
+        cosY,
+        sinY,
+        cosX,
+        sinX,
+        !isSystole, // Filling during diastole
+      );
+    }
+
+    // 3. OUTGOING SYSTEMIC ARTERIAL OUTFLOW (LV -> Aorta -> Body) [Ruby-Red]
     final arterialStreamPts = [
-      const _Vec3(8, -12, 10),
-      const _Vec3(10, 16, 12),
+      const _Vec3(10, -14, 10),
+      const _Vec3(8, 16, 12),
       const _Vec3(4, 46, 12),
       const _Vec3(4, 72, 14),
       const _Vec3(-2, 96, 16),
@@ -1264,7 +1375,7 @@ class _AnatomicalHeart3DPainter extends CustomPainter {
     _drawFlowPulseParticles(
       canvas,
       arterialStreamPts,
-      const Color(0xFFFF1744),
+      const Color(0xFFFF0044),
       cx,
       cy,
       s,
@@ -1272,21 +1383,21 @@ class _AnatomicalHeart3DPainter extends CustomPainter {
       sinY,
       cosX,
       sinX,
-      isSystole,
+      isSystole, // Ejection during systole
     );
 
-    // 2. Deoxygenated Venous Stream (Blue particles moving SVC/IVC -> RA -> RV -> PA)
-    final venousStreamPts = [
-      const _Vec3(-26, 80, 2),
-      const _Vec3(-22, 48, 8),
-      const _Vec3(-12, 20, 16),
-      const _Vec3(-6, 44, 24),
+    // 4. OUTGOING PULMONARY ARTERIAL OUTFLOW (RV -> Pulmonic -> PA Trunk) [Azure-Blue]
+    final pulmOutflowPts = [
+      const _Vec3(-8, -14, 16),
+      const _Vec3(-6, 22, 20),
+      const _Vec3(0, 50, 22),
       const _Vec3(0, 78, 18),
+      const _Vec3(22, 82, -2),
     ];
     _drawFlowPulseParticles(
       canvas,
-      venousStreamPts,
-      const Color(0xFF00E5FF),
+      pulmOutflowPts,
+      const Color(0xFF0284C7),
       cx,
       cy,
       s,
@@ -1294,10 +1405,10 @@ class _AnatomicalHeart3DPainter extends CustomPainter {
       sinY,
       cosX,
       sinX,
-      isSystole,
+      isSystole, // Ejection during systole
     );
 
-    // 3. Heart Valve Annulus & Dynamic Leaflets (Aortic Semilunar Valve)
+    // 5. Heart Valve Annulus & Dynamic Leaflets (Aortic Semilunar Valve)
     final aorticValvePos = const _Vec3(4, 46, 12);
     final av = _project(aorticValvePos, cx, cy, s, cosY, sinY, cosX, sinX);
 
@@ -1321,6 +1432,148 @@ class _AnatomicalHeart3DPainter extends CustomPainter {
         Offset(av.x + avRadius * math.cos(angle), av.y + avRadius * math.sin(angle)),
         leafletPaint,
       );
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // 5B. AHA 17-Segment Perfusion & Bullseye Heatmap
+  // ─────────────────────────────────────────────────────────────────────────
+  void _drawIschemiaBullseyeMap(
+    Canvas canvas,
+    double cx,
+    double cy,
+    double s,
+    double cosY,
+    double sinY,
+    double cosX,
+    double sinX,
+  ) {
+    final segments = [
+      (id: 1, name: 'Basal Ant', pos: const _Vec3(-6, 20, 28), isIschemic: !isRevascularized),
+      (id: 2, name: 'Basal AntSep', pos: const _Vec3(2, 20, 24), isIschemic: !isRevascularized),
+      (id: 3, name: 'Basal InfSep', pos: const _Vec3(4, 18, -14), isIschemic: false),
+      (id: 4, name: 'Basal Inf', pos: const _Vec3(-6, 18, -20), isIschemic: false),
+      (id: 5, name: 'Basal InfLat', pos: const _Vec3(-22, 18, -14), isIschemic: false),
+      (id: 6, name: 'Basal AntLat', pos: const _Vec3(-20, 18, 18), isIschemic: false),
+      (id: 7, name: 'Mid Ant', pos: const _Vec3(-6, -4, 30), isIschemic: !isRevascularized),
+      (id: 8, name: 'Mid AntSep', pos: const _Vec3(2, -4, 24), isIschemic: !isRevascularized),
+      (id: 9, name: 'Mid InfSep', pos: const _Vec3(3, -4, -14), isIschemic: false),
+      (id: 10, name: 'Mid Inf', pos: const _Vec3(-8, -4, -22), isIschemic: false),
+      (id: 11, name: 'Mid InfLat', pos: const _Vec3(-24, -4, -14), isIschemic: false),
+      (id: 12, name: 'Mid AntLat', pos: const _Vec3(-22, -4, 18), isIschemic: false),
+      (id: 13, name: 'Apical Ant', pos: const _Vec3(-6, -24, 22), isIschemic: !isRevascularized),
+      (id: 14, name: 'Apical Sep', pos: const _Vec3(1, -24, 14), isIschemic: !isRevascularized),
+      (id: 15, name: 'Apical Inf', pos: const _Vec3(-6, -24, -14), isIschemic: false),
+      (id: 16, name: 'Apical Lat', pos: const _Vec3(-20, -24, 10), isIschemic: false),
+      (id: 17, name: 'Apex', pos: const _Vec3(-10, -42, 8), isIschemic: !isRevascularized),
+    ];
+
+    for (final seg in segments) {
+      final p = _project(seg.pos, cx, cy, s, cosY, sinY, cosX, sinX);
+      if (p.z < -45.0) continue;
+
+      final color = seg.isIschemic ? const Color(0xFF4A044E) : const Color(0xFF10B981);
+      final border = seg.isIschemic ? const Color(0xFFEF4444) : const Color(0xFF34D399);
+
+      final badgePaint = Paint()
+        ..color = color.withValues(alpha: 0.90)
+        ..style = PaintingStyle.fill;
+      final borderPaint = Paint()
+        ..color = border
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.6;
+
+      final radius = 7.5 * s;
+      canvas.drawCircle(Offset(p.x, p.y), radius, badgePaint);
+      canvas.drawCircle(Offset(p.x, p.y), radius, borderPaint);
+
+      final tp = TextPainter(
+        text: TextSpan(
+          text: '${seg.id}',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 7.5 * s,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        textDirection: TextDirection.ltr,
+      )..layout();
+      tp.paint(canvas, Offset(p.x - tp.width / 2, p.y - tp.height / 2));
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // 5C. Color Doppler Echocardiography Beam & Velocity Jets
+  // ─────────────────────────────────────────────────────────────────────────
+  void _drawColorDopplerCones(
+    Canvas canvas,
+    double cx,
+    double cy,
+    double s,
+    double cosY,
+    double sinY,
+    double cosX,
+    double sinX,
+    bool isSystole,
+  ) {
+    // 1. Transthoracic Ultrasound Sector Beam Fan (Acoustic Cone)
+    final apexPt = _project(const _Vec3(-10, -46, 8), cx, cy, s, cosY, sinY, cosX, sinX);
+    final baseLeft = _project(const _Vec3(-45, 60, 20), cx, cy, s, cosY, sinY, cosX, sinX);
+    final baseRight = _project(const _Vec3(35, 60, 20), cx, cy, s, cosY, sinY, cosX, sinX);
+
+    final sectorPath = Path()
+      ..moveTo(apexPt.x, apexPt.y)
+      ..lineTo(baseLeft.x, baseLeft.y)
+      ..quadraticBezierTo(cx, cy - 80 * s, baseRight.x, baseRight.y)
+      ..close();
+
+    final sectorPaint = Paint()
+      ..color = const Color(0xFF00E5FF).withValues(alpha: 0.08)
+      ..style = PaintingStyle.fill;
+    canvas.drawPath(sectorPath, sectorPaint);
+
+    final sectorBorder = Paint()
+      ..color = const Color(0xFF00E5FF).withValues(alpha: 0.25)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.2;
+    canvas.drawPath(sectorPath, sectorBorder);
+
+    // 2. Trans-Mitral Inflow Jet (BART Red/Orange towards apex during diastole)
+    if (!isSystole) {
+      final mOrigin = _project(const _Vec3(8, 22, 6), cx, cy, s, cosY, sinY, cosX, sinX);
+      final mTarget = _project(const _Vec3(6, -20, 10), cx, cy, s, cosY, sinY, cosX, sinX);
+
+      final jetPaint = Paint()
+        ..shader = LinearGradient(
+          colors: [
+            const Color(0xFFFF3D00).withValues(alpha: 0.85),
+            const Color(0xFFFF9100).withValues(alpha: 0.20),
+          ],
+        ).createShader(Rect.fromPoints(Offset(mOrigin.x, mOrigin.y), Offset(mTarget.x, mTarget.y)))
+        ..style = PaintingStyle.stroke
+        ..strokeCap = StrokeCap.round
+        ..strokeWidth = 14.0 * s;
+
+      canvas.drawLine(Offset(mOrigin.x, mOrigin.y), Offset(mTarget.x, mTarget.y), jetPaint);
+    }
+
+    // 3. Trans-Aortic Ejection Jet (BART Blue/Cyan away from apex during systole)
+    if (isSystole) {
+      final aOrigin = _project(const _Vec3(4, 42, 12), cx, cy, s, cosY, sinY, cosX, sinX);
+      final aTarget = _project(const _Vec3(-6, 95, 16), cx, cy, s, cosY, sinY, cosX, sinX);
+
+      final jetPaint = Paint()
+        ..shader = LinearGradient(
+          colors: [
+            const Color(0xFF00B0FF).withValues(alpha: 0.90),
+            const Color(0xFF00E5FF).withValues(alpha: 0.25),
+          ],
+        ).createShader(Rect.fromPoints(Offset(aOrigin.x, aOrigin.y), Offset(aTarget.x, aTarget.y)))
+        ..style = PaintingStyle.stroke
+        ..strokeCap = StrokeCap.round
+        ..strokeWidth = 16.0 * s;
+
+      canvas.drawLine(Offset(aOrigin.x, aOrigin.y), Offset(aTarget.x, aTarget.y), jetPaint);
     }
   }
 
@@ -2122,6 +2375,19 @@ class _AnatomicalHeart3DPainter extends CustomPainter {
         (title: 'LCx', pos: const _Vec3(46, 12, -18), color: const Color(0xFFFF9800)),
         (title: 'RCA', pos: const _Vec3(-44, 5, 20), color: const Color(0xFF00E5FF)),
         (title: 'Catheter Ostium', pos: const _Vec3(10, 52, 18), color: const Color(0xFFFFEB3B)),
+      ]);
+    } else if (viewMode == HeartViewMode.ischemiaMap) {
+      labels.addAll([
+        (title: 'AHA Seg 13,14,17: Ischemia', pos: const _Vec3(-10, -42, 8), color: const Color(0xFFEF4444)),
+        (title: 'AHA Seg 7,8: Mid Ant/Sep', pos: const _Vec3(-6, -4, 30), color: const Color(0xFFF59E0B)),
+        (title: 'AHA Seg 3,4,9,10: RCA Perfused', pos: const _Vec3(4, 18, -14), color: const Color(0xFF10B981)),
+        (title: 'AHA Seg 5,6,11,12: LCx Perfused', pos: const _Vec3(-22, 18, -14), color: const Color(0xFF10B981)),
+      ]);
+    } else if (viewMode == HeartViewMode.colorDoppler) {
+      labels.addAll([
+        (title: 'Mitral Inflow (E/A BART Red)', pos: const _Vec3(8, 22, 6), color: const Color(0xFFFF3D00)),
+        (title: 'Aortic Ejection (BART Blue)', pos: const _Vec3(4, 42, 12), color: const Color(0xFF00B0FF)),
+        (title: 'Transthoracic Sector Scan', pos: const _Vec3(-10, -46, 8), color: const Color(0xFF00E5FF)),
       ]);
     } else {
       labels.addAll([

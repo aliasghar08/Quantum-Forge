@@ -359,64 +359,100 @@ class _CardioCathScreenState extends State<CardioCathScreen>
     final safeLimit = 3.0 * _patientEgfr;
     final isExcessContrast = _contrastVolumeMl > safeLimit;
     final ffr = _hemoResult.ffr;
+    final ifr = _hemoResult.ifr;
+    final wss = _hemoResult.peakWssDynes;
 
     showDialog<void>(
       context: context,
       builder: (ctx) {
         return AlertDialog(
           backgroundColor: const Color(0xFF0F1722),
-          title: const Row(
+          title: Row(
             children: [
-              Icon(Icons.psychology_rounded, color: Color(0xFF00E5FF), size: 22),
-              SizedBox(width: 10),
-              Text(
-                'AI Interventional Attending Proctor',
-                style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+              const Icon(Icons.psychology_rounded, color: Color(0xFF00E5FF), size: 24),
+              const SizedBox(width: 10),
+              const Expanded(
+                child: Text(
+                  'AI Interventional Attending Proctor',
+                  style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF10B981).withValues(alpha: 0.18),
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(color: const Color(0xFF10B981).withValues(alpha: 0.5)),
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.bolt_rounded, color: Color(0xFF10B981), size: 12),
+                    SizedBox(width: 3),
+                    Text(
+                      'Apple M1 Pro MPS Active',
+                      style: TextStyle(color: Color(0xFF10B981), fontSize: 9.5, fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
-          content: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF131B26),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: const Color(0xFF00E5FF).withValues(alpha: 0.5)),
+          content: SizedBox(
+            width: 580,
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF131B26),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: const Color(0xFF00E5FF).withValues(alpha: 0.5)),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        _proctorMetric('Attending Score', _isRevascularized ? '98 / 100' : '88 / 100', const Color(0xFF10B981)),
+                        _proctorMetric('FFR (Pd/Pa)', ffr.toStringAsFixed(2), ffr >= 0.85 ? const Color(0xFF10B981) : const Color(0xFFEF4444)),
+                        _proctorMetric('iFR (Wave-Free)', ifr.toStringAsFixed(2), ifr >= 0.89 ? const Color(0xFF10B981) : const Color(0xFFFFB300)),
+                        _proctorMetric('WSS', '${wss.round()} dyn/cm²', const Color(0xFF38BDF8)),
+                      ],
+                    ),
                   ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      _proctorMetric('Attending Score', '92 / 100', const Color(0xFF10B981)),
-                      _proctorMetric('Post-PCI FFR', ffr.toStringAsFixed(2), ffr >= 0.90 ? const Color(0xFF10B981) : const Color(0xFFFFB300)),
-                      _proctorMetric('ALARA Dose', '${_airKermaMgy.round()} mGy', const Color(0xFF38BDF8)),
-                    ],
+                  const SizedBox(height: 14),
+                  const Text('AHA 17-SEGMENT PERFUSION & CLINICAL EVALUATION:',
+                      style: TextStyle(color: Color(0xFFFFD600), fontSize: 11, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 8),
+                  _critiqueTile(
+                    icon: _isRevascularized ? Icons.check_circle_rounded : Icons.warning_amber_rounded,
+                    color: _isRevascularized ? const Color(0xFF10B981) : const Color(0xFFEF4444),
+                    text: _isRevascularized
+                        ? '17-Segment Bullseye Restored: Complete reperfusion across Segments 1, 7, 8, 13, 14, 17. Anterior and apical hypokinesis resolved with TIMI 3 flow.'
+                        : 'AHA Culprit Territory Ischemia: LAD mid-stenosis causes critical hypoperfusion in Basal Anterior (1), Mid Anterior/Septal (7, 8), Apical (13, 14), and Apex (17). ST-segment elevation present.',
                   ),
-                ),
-                const SizedBox(height: 14),
-                const Text('FACULTY CLINICAL CRITIQUES:', style: TextStyle(color: Color(0xFFFFD600), fontSize: 11, fontWeight: FontWeight.bold)),
-                const SizedBox(height: 8),
-                _critiqueTile(
-                  icon: Icons.check_circle_rounded,
-                  color: const Color(0xFF10B981),
-                  text: 'Catheter Selection (${_catheterType.name.toUpperCase()}): Coaxial alignment confirmed without ostial damping.',
-                ),
-                const SizedBox(height: 6),
-                _critiqueTile(
-                  icon: isExcessContrast ? Icons.warning_amber_rounded : Icons.check_circle_rounded,
-                  color: isExcessContrast ? const Color(0xFFEF4444) : const Color(0xFF10B981),
-                  text: 'Contrast Stewardship: ${_contrastVolumeMl.round()} mL used vs safe threshold of ${safeLimit.round()} mL (eGFR: ${_patientEgfr.round()}).',
-                ),
-                const SizedBox(height: 6),
-                _critiqueTile(
-                  icon: Icons.medical_services_rounded,
-                  color: const Color(0xFF00E5FF),
-                  text: 'Physiologic Lesion Assessment: Live FFR wire confirmed trans-stenotic gradient (${ffr.toStringAsFixed(2)}).',
-                ),
-              ],
+                  const SizedBox(height: 6),
+                  _critiqueTile(
+                    icon: Icons.check_circle_rounded,
+                    color: const Color(0xFF10B981),
+                    text: 'Catheter Selection (${_catheterType.name.toUpperCase()}): Coaxial ostial engagement with stable coronary backup support.',
+                  ),
+                  const SizedBox(height: 6),
+                  _critiqueTile(
+                    icon: isExcessContrast ? Icons.warning_amber_rounded : Icons.check_circle_rounded,
+                    color: isExcessContrast ? const Color(0xFFEF4444) : const Color(0xFF10B981),
+                    text: 'Contrast Stewardship: ${_contrastVolumeMl.round()} mL used vs safe threshold of ${safeLimit.round()} mL (eGFR: ${_patientEgfr.round()}). ALARA radiation dose: ${_airKermaMgy.round()} mGy.',
+                  ),
+                  const SizedBox(height: 6),
+                  _critiqueTile(
+                    icon: Icons.medication_rounded,
+                    color: const Color(0xFF00E5FF),
+                    text: 'Interventional Pharmacotherapy: DAPT (Aspirin 300 mg loading + Ticagrelor 180 mg loading) + IV Unfractionated Heparin (70-100 U/kg, target ACT 250-300 s). High-intensity Atorvastatin 80 mg indicated.',
+                  ),
+                ],
+              ),
             ),
           ),
           actions: [
