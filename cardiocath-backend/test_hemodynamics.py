@@ -121,3 +121,4 @@ def test_proctor_evaluation_endpoint():
     res = response.json()
     assert res["score"] >= 80
     assert res["grade"] == "Distinction"
+

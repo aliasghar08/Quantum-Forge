@@ -34,8 +34,12 @@ DEFAULT_DB_PATH = Path("data/autonomous_training/literature_ledger.sqlite")
 def get_db(db_path: Path = DEFAULT_DB_PATH) -> sqlite3.Connection:
     """Initialize SQLite database with schema if not exists."""
     db_path.parent.mkdir(parents=True, exist_ok=True)
-    conn = sqlite3.connect(str(db_path))
+    conn = sqlite3.connect(str(db_path), timeout=60.0)
     conn.row_factory = sqlite3.Row
+    try:
+        conn.execute("PRAGMA journal_mode=WAL;")
+    except Exception:
+        pass
     with conn:
         conn.executescript(
             """
@@ -262,30 +266,55 @@ class LiteratureHarvester:
         """
         now = datetime.datetime.now(datetime.timezone.utc).isoformat()
         
-        # High-yield search queries targeted for MBBS, Pharm-D, and Polymer curricula:
+        # High-yield search queries targeted for MBBS & Pharm-D clinical curricula:
         search_topics = [
-            # MBBS & Clinical Pharmacology
-            "medicinal chemistry reaction barrier transition state DFT",
-            "cytochrome P450 drug metabolism oxidation mechanism DFT",
-            "beta-lactamase antibiotic resistance hydrolysis barrier",
-            "acetylcholinesterase organophosphate reactivation DFT",
-            "prodrug activation esterase hydrolysis transition state",
-            "kinase inhibitor phosphorylation reaction barrier DFT",
-            "anticancer DNA alkylation crosslinking transition state",
-            "glutamate GABA decarboxylase PLP mechanism DFT",
-            "cyclooxygenase arachidonic acid prostaglandin barrier",
-            "angiotensin converting enzyme inhibitor catalytic triad",
-            # D Pharmacy (Pharm-D)
-            "pharmaceutical formulation active drug stability degradation barrier",
-            "glutathione S-transferase detoxification transition state",
-            "thiol disulfide exchange transition state DFT",
-            "phosphate hydrolysis reaction barrier DFT",
-            # Polymer Chemistry (from previous days commits)
-            "ring opening metathesis polymerization transition state barrier DFT",
-            "atom transfer radical polymerization ATRP mechanism DFT",
-            "reversible addition fragmentation chain transfer RAFT barrier",
-            "polyurethane isocyanate polyol reaction transition state",
-            "polyamide nylon condensation polymerization barrier DFT",
+            # ── 1. Cardiology & Hemodynamics (Core Priority) ──
+            "angiotensin receptor neprilysin inhibitor sacubitril valsartan kinetics",
+            "SGLT2 inhibitor dapagliflozin cardiovascular renal mechanism DFT",
+            "beta adrenergic blocker metoprolol receptor binding transition state",
+            "calcium channel blocker amlodipine dihydropyridine smooth muscle",
+            "nitroglycerin organic nitrate ALDH-2 mitochondrial bioactivation DFT",
+            "amiodarone potassium channel hERG block arrhythmia transition state",
+            "clopidogrel P2Y12 receptor active thiol metabolite disulfide formation",
+            "digoxin cardiac glycoside Na-K-ATPase inhibition mechanism",
+            "adenosine A1 purinergic receptor AV nodal conduction kinetics",
+            "HMG-CoA reductase statin mevaldyl intermediate transition state",
+            "PCSK9 inhibitor LDL receptor recycling kinetics",
+            "angiotensin converting enzyme ACE inhibitor catalytic zinc mechanism",
+            
+            # ── 2. Nephrology & Renal Pharmacokinetics (Core Priority) ──
+            "mineralocorticoid receptor antagonist spironolactone eplerenone",
+            "loop diuretic furosemide NKCC2 cotransporter renal kinetics",
+            "thiazide diuretic NCCT sodium chloride cotransporter mechanism",
+            "carbonic anhydrase inhibitor acetazolamide zinc coordination DFT",
+            "calcineurin inhibitor tacrolimus FKBP12 NFAT dephosphorylation",
+            "phosphate binder sevelamer amine binding equilibrium CKD",
+            "calcimimetic cinacalcet calcium sensing receptor parathyroid",
+            "vasopressin V2 receptor antagonist tolvaptan aquaresis mechanism",
+            "tubuloglomerular feedback macula densa adenosine afferent arteriole",
+            "renal proximal tubule organic anion transporter OAT1 clearance",
+            
+            # ── 3. Critical Care, Emergency & Toxicology ──
+            "naloxone mu opioid receptor competitive antagonism kinetics",
+            "atropine muscarinic acetylcholine receptor M2 antagonism",
+            "pralidoxime acetylcholinesterase oxime reactivation transition state",
+            "N-acetylcysteine paracetamol NAPQI glutathione conjugation",
+            "organophosphate sarin soman acetylcholinesterase phosphorylation",
+            
+            # ── 4. Antimicrobial Resistance & Infectious Diseases ──
+            "vancomycin D-alanyl-D-alanine cell wall transpeptidase barrier",
+            "beta-lactamase antibiotic resistance hydrolysis transition state",
+            "fluoroquinolone ciprofloxacin bacterial DNA gyrase cleavage complex",
+            "cephalosporin ceftriaxone penicillin binding protein acylation",
+            "carbapenem metallo-beta-lactamase NDM-1 zinc hydrolysis barrier",
+            
+            # ── 5. Neurology, Endocrinology & Metabolism ──
+            "cytochrome P450 CYP2D6 CYP2C9 drug metabolism oxidation mechanism DFT",
+            "GLP-1 receptor agonist semaglutide incretin degradation DPP-4",
+            "levetiracetam synaptic vesicle protein SV2A binding kinetics",
+            "levodopa aromatic L-amino acid decarboxylase PLP mechanism DFT",
+            "donepezil central acetylcholinesterase inhibition crystal structure",
+            "metformin mitochondrial complex I AMP-activated protein kinase",
         ]
         
         # Pick 3 topics per cycle (round-robin / randomized)

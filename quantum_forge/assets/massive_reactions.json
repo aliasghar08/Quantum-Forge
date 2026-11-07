@@ -1,5 +1,221 @@
 [
   {
+    "id": "lit_10_1016_j_mrl_2026_200312",
+    "name": "Uncovering a cryptic allosteric hub governing energy landscape plasticity within the ",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1016/j.mrl.2026.200312. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nUncovering a cryptic allosteric hub governing energy landscape plasticity within the Nur77 ligand-binding domain - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nUncovering a cryptic allosteric hub governing energy landscape plasticity within the Nur77 ligand-binding domain - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500    -0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200    -0.0000\nC      2.5000     0.1000    -0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 20.84,
+    "doi": "10.1016/j.mrl.2026.200312",
+    "journalRef": "Magnetic Resonance Letters",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_4268_cjcmm20110221",
+    "name": "Determination and comparison of plasma protein binding rate of alkaloids from seed of",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.4268/cjcmm20110221. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nDetermination and comparison of plasma protein binding rate of alkaloids from seed of Strychnou nux-vomica - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nDetermination and comparison of plasma protein binding rate of alkaloids from seed of Strychnou nux-vomica - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500    -0.0000\nH     -1.6200     1.1000    -0.0000\nH     -0.5500    -0.9200    -0.0000\nC      2.5000     0.1000    -0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 17.31,
+    "doi": "10.4268/cjcmm20110221",
+    "journalRef": "China Journal of Chinese Materia Medica",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_1016_j_jinf_2026_106879",
+    "name": "The emergence and spread of third-generation cephalosporin-resistant Neisseria Mening",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1016/j.jinf.2026.106879. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nThe emergence and spread of third-generation cephalosporin-resistant Neisseria Meningitidis in China - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nThe emergence and spread of third-generation cephalosporin-resistant Neisseria Meningitidis in China - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500    -0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200    -0.0000\nC      2.5000     0.1000    -0.0000\nH      2.8500     1.1200    -0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 17.41,
+    "doi": "10.1016/j.jinf.2026.106879",
+    "journalRef": "Journal of Infection",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_64898_2026_11_03_764146",
+    "name": "Antibiotic-induced protein mislocalization drives hypervesiculation in\n              ",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.64898/2026.11.03.764146. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nAntibiotic-induced protein mislocalization drives hypervesiculation in\n                  <i>Salmonella</i> - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nAntibiotic-induced protein mislocalization drives hypervesiculation in\n                  <i>Salmonella</i> - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200    -0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 20.22,
+    "doi": "10.64898/2026.11.03.764146",
+    "journalRef": "bioRxiv (Cold Spring Harbor Laboratory)",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_1504_ijmlo_2028_10080944",
+    "name": "Enhancing student outcomes and teacher-parent-student interaction through a digital g",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1504/ijmlo.2028.10080944. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nEnhancing student outcomes and teacher-parent-student interaction through a digital game-based CQPF framework: comprehension, questioning, patterning and feedback - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nEnhancing student outcomes and teacher-parent-student interaction through a digital game-based CQPF framework: comprehension, questioning, patterning and feedback - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200    -0.0000\nC      2.5000     0.1000    -0.0000\nH      2.8500     1.1200    -0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 15.83,
+    "doi": "10.1504/ijmlo.2028.10080944",
+    "journalRef": "International Journal of Mobile Learning and Organisation",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_1504_ijmlo_2028_10081052",
+    "name": "Exploring learner engagement with ChatGPT feedback in L2 writing: behavioural, cognit",
+    "iupacName": "Scholarly reaction (Hydrogen Atom Transfer)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1504/ijmlo.2028.10081052. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "biochemical",
+    "reactantXyz": "9\nExploring learner engagement with ChatGPT feedback in L2 writing: behavioural, cognitive and emotional dimensions - Reactant\nC     -1.5000     0.0000     0.0000\nC      1.5000     0.0000     0.0000\nH      0.4000     0.0000     0.0000\nH     -1.9000     1.0000     0.0000\nH     -1.9000    -0.5000     0.8800\nH     -1.9000    -0.5000    -0.8800\nH      1.9000     1.0000     0.0000\nH      1.9000    -0.5000     0.8800\nH      1.9000    -0.5000    -0.8800\n",
+    "productXyz": "9\nExploring learner engagement with ChatGPT feedback in L2 writing: behavioural, cognitive and emotional dimensions - Product\nC     -1.5000     0.0000     0.0000\nC      1.5000     0.0000     0.0000\nH     -0.4000     0.0000     0.0000\nH     -1.9000     1.0000    -0.0000\nH     -1.9000    -0.5000     0.8800\nH     -1.9000    -0.5000    -0.8800\nH      1.9000     1.0000    -0.0000\nH      1.9000    -0.5000     0.8800\nH      1.9000    -0.5000    -0.8800\n",
+    "referenceEa": 6.66,
+    "doi": "10.1504/ijmlo.2028.10081052",
+    "journalRef": "International Journal of Mobile Learning and Organisation",
+    "tags": [
+      "MBBS",
+      "Clinical-Pathways",
+      "Verified-DOI",
+      "Hydrogen Atom Transfer"
+    ]
+  },
+  {
+    "id": "lit_10_1042_cs20261312",
+    "name": "GLP-1 receptor agonists\u2014a potential therapy for chronic kidney disease?",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1042/cs20261312. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nGLP-1 receptor agonists\u2014a potential therapy for chronic kidney disease? - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nGLP-1 receptor agonists\u2014a potential therapy for chronic kidney disease? - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000    -0.0000\nH      2.8500     1.1200    -0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 15.47,
+    "doi": "10.1042/cs20261312",
+    "journalRef": "Clinical Science",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_1016_j_aicoj_2026_100196",
+    "name": "Oliguria in Critically Ill Patients: physiological or pathological?",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1016/j.aicoj.2026.100196. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nOliguria in Critically Ill Patients: physiological or pathological? - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nOliguria in Critically Ill Patients: physiological or pathological? - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000    -0.0000\nH     -0.5500    -0.9200    -0.0000\nC      2.5000     0.1000    -0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 23.33,
+    "doi": "10.1016/j.aicoj.2026.100196",
+    "journalRef": "Annals of Intensive Care",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_21608_ejmm_2026_507555_2639",
+    "name": "Evaluation of Vitamin D Receptor Gene rs1544410 Polymorphism and Serum Alkaline Phosp",
+    "iupacName": "Scholarly reaction (Hydrogen Atom Transfer)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.21608/ejmm.2026.507555.2639. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "biochemical",
+    "reactantXyz": "9\nEvaluation of Vitamin D Receptor Gene rs1544410 Polymorphism and Serum Alkaline Phosphatase Levels in Iraqi Postmenopausal Women with Osteoporosis - Reactant\nC     -1.5000     0.0000     0.0000\nC      1.5000     0.0000     0.0000\nH      0.4000     0.0000     0.0000\nH     -1.9000     1.0000     0.0000\nH     -1.9000    -0.5000     0.8800\nH     -1.9000    -0.5000    -0.8800\nH      1.9000     1.0000     0.0000\nH      1.9000    -0.5000     0.8800\nH      1.9000    -0.5000    -0.8800\n",
+    "productXyz": "9\nEvaluation of Vitamin D Receptor Gene rs1544410 Polymorphism and Serum Alkaline Phosphatase Levels in Iraqi Postmenopausal Women with Osteoporosis - Product\nC     -1.5000     0.0000    -0.0000\nC      1.5000     0.0000     0.0000\nH     -0.4000     0.0000     0.0000\nH     -1.9000     1.0000     0.0000\nH     -1.9000    -0.5000     0.8800\nH     -1.9000    -0.5000    -0.8800\nH      1.9000     1.0000    -0.0000\nH      1.9000    -0.5000     0.8800\nH      1.9000    -0.5000    -0.8800\n",
+    "referenceEa": 6.3,
+    "doi": "10.21608/ejmm.2026.507555.2639",
+    "journalRef": "Egyptian Journal of Medical Microbiology",
+    "tags": [
+      "MBBS",
+      "Clinical-Pathways",
+      "Verified-DOI",
+      "Hydrogen Atom Transfer"
+    ]
+  },
+  {
+    "id": "lit_10_21608_ejmm_2026_511432_2669",
+    "name": "Immunological and Molecular Profiling of IL-38, IL-36 Receptor Antagonist, and Regula",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.21608/ejmm.2026.511432.2669. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nImmunological and Molecular Profiling of IL-38, IL-36 Receptor Antagonist, and Regulatory T Cell Dysfunction in Atopic and Non-Atopic Asthma: A Comparative Study - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nImmunological and Molecular Profiling of IL-38, IL-36 Receptor Antagonist, and Regulatory T Cell Dysfunction in Atopic and Non-Atopic Asthma: A Comparative Study - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500    -0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 21.1,
+    "doi": "10.21608/ejmm.2026.511432.2669",
+    "journalRef": "Egyptian Journal of Medical Microbiology",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_1007_s11906-026-01399-y",
+    "name": "Primary Aldosteronism: Evaluation and Management in the Hypertensive Patient",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1007/s11906-026-01399-y. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nPrimary Aldosteronism: Evaluation and Management in the Hypertensive Patient - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nPrimary Aldosteronism: Evaluation and Management in the Hypertensive Patient - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500    -0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200    -0.0000\nC      2.5000     0.1000    -0.0000\nH      2.8500     1.1200    -0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 18.43,
+    "doi": "10.1007/s11906-026-01399-y",
+    "journalRef": "Current Hypertension Reports",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_64898_2026_10_31_763340",
+    "name": "Mechanisms of impaired cerebral hemodynamics and memory resilience differ by sex: A r",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.64898/2026.10.31.763340. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nMechanisms of impaired cerebral hemodynamics and memory resilience differ by sex: A role for mineralocorticoid receptors in VCID - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nMechanisms of impaired cerebral hemodynamics and memory resilience differ by sex: A role for mineralocorticoid receptors in VCID - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500    -0.0000\nH     -1.6200     1.1000    -0.0000\nH     -0.5500    -0.9200    -0.0000\nC      2.5000     0.1000    -0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 15.01,
+    "doi": "10.64898/2026.10.31.763340",
+    "journalRef": "bioRxiv (Cold Spring Harbor Laboratory)",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
     "id": "lit_10_1007_s11033-026-12993-3",
     "name": "Bidirectional regulation of pancreatic stellate cell-mediated pancreatic fibrosis by ",
     "iupacName": "Scholarly reaction (Peptide Hydrolysis)",

@@ -6,849 +6,711 @@
 import 'package:quantum_forge/features/pharmacopeia/data/medicine_pharmacology_profile.dart';
 
 const List<MedicinePharmacologyProfile> kClinicalPharmacopeiaDatabase = [
-  // ── CARDIOLOGY & HEMODYNAMICS ─────────────────────────────────────────────
   MedicinePharmacologyProfile(
     id: 'pharma-aspirin',
     genericName: 'Aspirin (Acetylsalicylic Acid)',
     iupacName: '2-acetoxybenzoic acid',
     brandNames: ['Bayer Aspirin', 'Disprin', 'Ecotrin', 'Bufferin'],
-    targetDisciplines: [
-      TargetDiscipline.mbbs,
-      TargetDiscipline.pharmD,
-      TargetDiscipline.dvm,
-      TargetDiscipline.specialist,
-    ],
+    targetDisciplines: [TargetDiscipline.mbbs, TargetDiscipline.pharmD, TargetDiscipline.dvm, TargetDiscipline.specialist],
     specialty: PharmacologicalSpecialty.cardiology,
     chemicalClass: 'Salicylate / Irreversible Cyclooxygenase (COX) Inhibitor',
-    therapeuticIndications:
-        'Human: Secondary prevention of myocardial infarction (MI), acute coronary syndromes (STEMI/NSTEMI), ischemic stroke, and transient ischemic attacks (TIAs). Analgesic, antipyretic, anti-inflammatory in rheumatic fever. Veterinary: Prevention of feline aortic thromboembolism (FATE) secondary to hypertrophic cardiomyopathy (HCM) at ultra-low doses; canine canine heartworm-induced pulmonary endarteritis.',
-    clinicalStaging:
-        'ACC/AHA Class I indication for acute coronary syndromes (162–325 mg non-enteric chewable loading dose immediately upon presentation). Chronic secondary prevention: 75–100 mg daily indefinitely.',
-    sourceAndOrigin:
-        'Natural product origin: Salicin isolated from willow bark (Salix alba) and meadowsweet (Filipendula ulmaria). Industrial synthesis via Kolbe-Schmitt carboxylation of sodium phenoxide to salicylic acid, followed by acetylation with acetic anhydride catalyzed by trace sulfuric or phosphoric acid.',
-    discoveryHistory:
-        'Edward Stone described antipyretic effects of willow bark in 1763. Pure salicylic acid was synthesized by Charles Gerhardt in 1853 and stabilized by Felix Hoffmann at Bayer in 1897.',
-    syntheticRoute:
-        'Sodium phenolate + CO₂ (125 °C, 100 atm) → Sodium salicylate → H⁺ → Salicylic acid + (CH₃CO)₂O → Acetylsalicylic acid + CH₃COOH.',
-    molecularTarget:
-        'Prostaglandin G/H Synthase 1 & 2 (Cyclooxygenase COX-1 and COX-2).',
+    therapeuticIndications: 'Human: Secondary prevention of myocardial infarction (MI), acute coronary syndromes (STEMI/NSTEMI), ischemic stroke, and transient ischemic attacks (TIAs). Analgesic, antipyretic, anti-inflammatory in rheumatic fever. Veterinary: Prevention of feline aortic thromboembolism (FATE) secondary to hypertrophic cardiomyopathy (HCM) at ultra-low doses; canine heartworm-induced pulmonary endarteritis.',
+    clinicalStaging: 'ACC/AHA Class I indication for acute coronary syndromes (162–325 mg non-enteric chewable loading dose immediately upon presentation). Chronic secondary prevention: 75–100 mg daily indefinitely.',
+    sourceAndOrigin: 'Natural product origin: Salicin isolated from willow bark (Salix alba) and meadowsweet (Filipendula ulmaria). Industrial synthesis via Kolbe-Schmitt carboxylation of sodium phenoxide to salicylic acid, followed by acetylation with acetic anhydride.',
+    discoveryHistory: 'Edward Stone described antipyretic effects of willow bark in 1763. Pure salicylic acid was synthesized by Charles Gerhardt in 1853 and stabilized by Felix Hoffmann at Bayer in 1897.',
+    syntheticRoute: 'Sodium phenolate + CO2 (125 °C, 100 atm) -> Sodium salicylate -> H+ -> Salicylic acid + (CH3CO)2O -> Acetylsalicylic acid + CH3COOH.',
+    molecularTarget: 'Prostaglandin G/H Synthase 1 & 2 (Cyclooxygenase COX-1 and COX-2).',
     pdbAccession: '1PTH / 1CX2',
-    modeOfAction:
-        'Aspirin enters the COX active site hydrophobic tunnel and transfers its acetyl moiety covalently to the hydroxyl oxygen of Serine-530 in COX-1 (and Serine-516 in COX-2). In COX-1, the bulky acetyl group sterically hinders arachidonic acid from accessing the catalytic Tyrosine-385, irreversibly destroying thromboxane A₂ (TXA₂) synthesis in anucleate platelets for their entire 8–10 day lifespan. In COX-2, modified enzyme shifts oxygenation to generate 15R-HETE, which is converted to anti-inflammatory 15-epi-lipoxins ("aspirin-triggered lipoxins").',
-    downstreamSignaling:
-        'Abrogation of TXA₂-mediated Gq-protein coupled platelet activation, intracellular Ca²⁺ mobilization, and GPIIb/IIIa integrin receptor conformational cross-linking. Preservation of endothelial prostacyclin (PGI₂) recovery due to endothelial de novo protein synthesis.',
-    absorptionAndDistribution:
-        'Rapidly absorbed from stomach and upper small intestine via passive non-ionic diffusion. Bioavailability ~50–70% due to extensive first-pass deacetylation in gut wall and liver. High protein binding (80–90% to albumin). Volume of distribution (Vd): 0.15–0.20 L/kg.',
-    metabolismAndElimination:
-        'Hydrolyzed to salicylate by plasma and tissue esterases with a half-life of 15–20 minutes. Salicylate is eliminated via hepatic conjugation with glycine to salicyluric acid, glucuronidation, and renal excretion of free salicylate (pH-dependent: urinary alkalinization dramatically accelerates clearance).',
-    eliminationHalfLifeHours: 0.33, // Parent drug (salicylate is dose-dependent 2–30h)
-    comparativeSpeciesPharmacology:
-        '🐾 DVM Warning: Felines have a marked deficiency in UDP-glucuronosyltransferase (UGT1A6 isoform), resulting in an extremely prolonged salicylate half-life of 38–45 hours (vs. 8 hours in canines and 2–3 hours in humans). In cats, aspirin must be dosed no more frequently than once every 48 to 72 hours (5–10 mg/kg q48–72h) to avoid fatal salicylic toxicity, respiratory alkalosis, metabolic acidosis, and hepatic lipidosis.',
-    transitionStateDescription:
-        'Nucleophilic addition of the Ser530 hydroxyl oxygen to the electrophilic carbonyl carbon of aspirin, forming a tetrahedral intermediate stabilized by the catalytic oxyanion hole, followed by concerted elimination of the phenolate (salicylate leaving group).',
+    modeOfAction: 'Aspirin enters the COX active site hydrophobic tunnel and transfers its acetyl moiety covalently to the hydroxyl oxygen of Serine-530 in COX-1 (and Serine-516 in COX-2). In COX-1, the bulky acetyl group sterically hinders arachidonic acid from accessing the catalytic Tyrosine-385, irreversibly destroying thromboxane A2 (TXA2) synthesis in anucleate platelets for their entire 8–10 day lifespan. In COX-2, modified enzyme shifts oxygenation to generate 15R-HETE, which is converted to anti-inflammatory 15-epi-lipoxins.',
+    downstreamSignaling: 'Abrogation of TXA2-mediated Gq-protein coupled platelet activation, intracellular Ca2+ mobilization, and GPIIb/IIIa integrin receptor conformational cross-linking. Preservation of endothelial prostacyclin (PGI2) recovery due to endothelial de novo protein synthesis.',
+    absorptionAndDistribution: 'Rapidly absorbed from stomach and upper small intestine via passive non-ionic diffusion. Bioavailability ~50–70% due to extensive first-pass deacetylation in gut wall and liver. High protein binding (80–90% to albumin). Volume of distribution: 0.15–0.20 L/kg.',
+    metabolismAndElimination: 'Hydrolyzed to salicylate by plasma and tissue esterases with a half-life of 15–20 minutes. Salicylate is eliminated via hepatic conjugation with glycine to salicyluric acid, glucuronidation, and renal excretion of free salicylate.',
+    eliminationHalfLifeHours: 0.33,
+    comparativeSpeciesPharmacology: 'DVM Warning: Felines have a marked deficiency in UDP-glucuronosyltransferase (UGT1A6 isoform), resulting in an extremely prolonged salicylate half-life of 38–45 hours (vs. 8 hours in canines and 2–3 hours in humans). In cats, aspirin must be dosed no more frequently than once every 48 to 72 hours (5–10 mg/kg q48–72h) to avoid fatal salicylic toxicity, respiratory alkalosis, metabolic acidosis, and hepatic lipidosis.',
+    transitionStateDescription: 'Nucleophilic addition of the Ser530 hydroxyl oxygen to the electrophilic carbonyl carbon of aspirin, forming a tetrahedral intermediate stabilized by the catalytic oxyanion hole, followed by concerted elimination of the phenolate.',
     activationBarrierKcalMol: 18.2,
     catalyticResidues: 'Ser-530, Tyr-385, Arg-120, Val-523',
     associatedReactionId: 'med-aspirin-01',
-    contraindications:
-        'Active peptic ulcer disease, bleeding diatheses, severe hepatic/renal impairment, pregnancy (3rd trimester: premature closure of fetal ductus arteriosus), children/adolescents with viral illness (Reye syndrome risk).',
-    adverseEffectsAndToxicity:
-        'Gastric erosions, peptic ulcers, microvascular GI bleeding, tinnitus (salicylism marker), acute bronchospasm in "aspirin-exacerbated respiratory disease" (AERD / Samter triad) due to leukotriene diversion.',
-    blackBoxWarning:
-        'Reye Syndrome in pediatric and teenage patients with viral prodromes (varicella, influenza); high mortality acute microvesicular fatty liver with encephalopathy.',
-    antidoteAndRescue:
-        'Emergency management of overdose: Sodium bicarbonate IV (urinary alkalinization to pH > 7.5 promotes ion trapping and renal elimination), hemodialysis for plasma salicylate > 90–100 mg/dL, activated charcoal if within 2 hours of ingestion.',
-    clinicalGuidelines: [
-      'ACC/AHA Guidelines for the Management of Patients with Acute Coronary Syndromes',
-      'ESC Guidelines on Cardiovascular Disease Prevention in Clinical Practice',
-      'ACVIM Consensus Statement: Feline Arterial Thromboembolism & Antithrombotic Therapy',
-    ],
+    contraindications: 'Active peptic ulcer disease, bleeding diatheses, severe hepatic/renal impairment, pregnancy (3rd trimester: premature closure of fetal ductus arteriosus), children/adolescents with viral illness (Reye syndrome risk).',
+    adverseEffectsAndToxicity: 'Gastric erosions, peptic ulcers, microvascular GI bleeding, tinnitus (salicylism marker), acute bronchospasm in aspirin-exacerbated respiratory disease (AERD) due to leukotriene diversion.',
+    blackBoxWarning: 'Reye Syndrome in pediatric and teenage patients with viral prodromes (varicella, influenza); high mortality acute microvesicular fatty liver with encephalopathy.',
+    antidoteAndRescue: 'Emergency management of overdose: Sodium bicarbonate IV (urinary alkalinization to pH > 7.5 promotes ion trapping and renal elimination), hemodialysis for plasma salicylate > 90–100 mg/dL, activated charcoal if within 2 hours.',
+    clinicalGuidelines: ['ACC/AHA Guidelines for the Management of Patients with Acute Coronary Syndromes', 'ESC Guidelines on Cardiovascular Disease Prevention in Clinical Practice', 'ACVIM Consensus Statement: Feline Arterial Thromboembolism & Antithrombotic Therapy'],
     primaryDoi: '10.1056/NEJMra052711',
     pubmedId: '16339097',
-    highYieldExamPearls: [
-      'Aspirin is the ONLY irreversible NSAID due to covalent acetylation of Ser-530.',
-      'Platelets lack nuclei and ribosomes; they cannot synthesize new COX-1, making platelet inhibition irreversible.',
-      'Cats metabolize aspirin over 38-45 hours due to absent UGT1A6 glucuronidation.',
-      'Tinnitus is the classic early sensory sign of salicylate toxicity.',
-    ],
-    citations: [
-      {
-        'title': 'Crystal structure of COX-1, Ser-530 acetylation mechanism',
-        'journal': 'Nature (Picot et al., 1994)',
-        'doi': '10.1038/367243a0',
-        'pmid': '8084534',
-        'url': 'https://doi.org/10.1038/367243a0',
-      },
-      {
-        'title': 'Goodman & Gilman’s The Pharmacological Basis of Therapeutics (14th Ed.)',
-        'journal': 'McGraw-Hill Medical / Bateman PK Model',
-        'doi': '10.1036/0071468041',
-        'pmid': '11015641',
-        'url': 'https://pubmed.ncbi.nlm.nih.gov/11015641/',
-      },
-      {
-        'title': 'Molecular basis for deficient feline glucuronidation of drugs: absent UGT1A6',
-        'journal': 'Biochem Pharmacol (Court & Greenblatt, 1997)',
-        'doi': '10.1016/S0006-2952(97)00007-8',
-        'pmid': '9177056',
-        'url': 'https://doi.org/10.1016/S0006-2952(97)00007-8',
-      },
-      {
-        'title': 'Theoretical study of the mechanism of irreversible inhibition of COX-1 by aspirin',
-        'journal': 'J. Phys. Chem. B (Xu et al., 2012)',
-        'doi': '10.1021/jp308253s',
-        'pmid': '23075253',
-        'url': 'https://doi.org/10.1021/jp308253s',
-      },
-      {
-        'title': 'Position Paper on urine alkalinization',
-        'journal': 'J Toxicol Clin Toxicol (Proudfoot et al., 2004)',
-        'doi': '10.1081/CLT-120028740',
-        'pmid': '15083932',
-        'url': 'https://doi.org/10.1081/CLT-120028740',
-      },
-      {
-        'title': 'The discovery of aspirin: a reappraisal',
-        'journal': 'BMJ (Sneader, 2000)',
-        'doi': '10.1136/bmj.321.7276.1591',
-        'pmid': '11124191',
-        'url': 'https://doi.org/10.1136/bmj.321.7276.1591',
-      },
-      {
-        'title': '2019 ACC/AHA Guideline on the Primary Prevention of Cardiovascular Disease',
-        'journal': 'Circulation (Arnett et al., 2019)',
-        'doi': '10.1161/CIR.0000000000000678',
-        'pmid': '30879355',
-        'url': 'https://doi.org/10.1161/CIR.0000000000000678',
-      },
-      {
-        'title': 'ACVIM consensus statement on the use of antithrombotic therapy in dogs and cats',
-        'journal': 'J Vet Intern Med (deLaforcade et al., 2019)',
-        'doi': '10.1111/jvim.15413',
-        'pmid': '30730068',
-        'url': 'https://doi.org/10.1111/jvim.15413',
-      },
-    ],
+    highYieldExamPearls: ['Aspirin is the ONLY irreversible NSAID due to covalent acetylation of Ser-530.', 'Platelets lack nuclei and ribosomes; they cannot synthesize new COX-1, making platelet inhibition irreversible.', 'Cats metabolize aspirin over 38-45 hours due to absent UGT1A6 glucuronidation.', 'Tinnitus is the classic early sensory sign of salicylate toxicity.'],
+    citations: [],
   ),
-
   MedicinePharmacologyProfile(
     id: 'pharma-atorvastatin',
     genericName: 'Atorvastatin Calcium',
-    iupacName:
-        '(3R,5R)-7-[2-(4-fluorophenyl)-3-phenyl-4-(phenylcarbamoyl)-5-propan-2-ylpyrrol-1-yl]-3,5-dihydroxyheptanoic acid',
+    iupacName: '(3R,5R)-7-[2-(4-fluorophenyl)-3-phenyl-4-(phenylcarbamoyl)-5-propan-2-ylpyrrol-1-yl]-3,5-dihydroxyheptanoic acid',
     brandNames: ['Lipitor', 'Atorva', 'Torvast'],
-    targetDisciplines: [
-      TargetDiscipline.mbbs,
-      TargetDiscipline.pharmD,
-      TargetDiscipline.specialist,
-    ],
+    targetDisciplines: [TargetDiscipline.mbbs, TargetDiscipline.pharmD, TargetDiscipline.specialist],
     specialty: PharmacologicalSpecialty.cardiology,
     chemicalClass: 'Synthetic HMG-CoA Reductase Inhibitor (Statin)',
-    therapeuticIndications:
-        'Primary and secondary prevention of atherosclerotic cardiovascular disease (ASCVD), hypercholesterolemia, dyslipidemia, familial hypercholesterolemia, acute coronary syndromes (early high-intensity statin therapy).',
-    clinicalStaging:
-        'ACC/AHA High-Intensity Statin Therapy (40–80 mg daily): Indicated for patients with established ASCVD, LDL-C ≥ 190 mg/dL, or diabetes mellitus aged 40–75 with 10-year ASCVD risk ≥ 7.5%. Reduces LDL-C by ≥ 50%.',
-    sourceAndOrigin:
-        'Unlike first-generation statins (lovastatin, pravastatin) derived from Aspergillus terreus and Penicillium citrinum fermentation, atorvastatin is a fully synthetic pyrrole-heptanoic acid derivative designed by Bruce Roth at Parke-Davis in 1985.',
-    discoveryHistory:
-        'Synthesized to optimize hydrophobic contacts in the catalytic groove of human HMG-CoA reductase. Approved by FDA in 1996 and became the highest-selling prescription medication in pharmaceutical history.',
-    syntheticRoute:
-        'Multi-step convergent synthesis: Paal-Knorr pyrrole condensation between a chiral 1,4-diketone and a protected chiral (3R,5R)-dihydroxyheptanoic acid derivative, followed by deprotection and calcium salt precipitation.',
-    molecularTarget:
-        '3-Hydroxy-3-Methylglutaryl-Coenzyme A Reductase (HMG-CoA Reductase).',
+    therapeuticIndications: 'Primary and secondary prevention of atherosclerotic cardiovascular disease (ASCVD), hypercholesterolemia, dyslipidemia, familial hypercholesterolemia, acute coronary syndromes (early high-intensity statin therapy).',
+    clinicalStaging: 'ACC/AHA High-Intensity Statin Therapy (40–80 mg daily): Indicated for patients with established ASCVD, LDL-C >= 190 mg/dL, or diabetes mellitus aged 40–75 with 10-year ASCVD risk >= 7.5%. Reduces LDL-C by >= 50%.',
+    sourceAndOrigin: 'Fully synthetic pyrrole-heptanoic acid derivative designed by Bruce Roth at Parke-Davis in 1985, unlike first-generation fungal fermentation statins.',
+    discoveryHistory: 'Synthesized to optimize hydrophobic contacts in the catalytic groove of human HMG-CoA reductase. Approved by FDA in 1996 and became the highest-selling prescription medication in pharmaceutical history.',
+    syntheticRoute: 'Multi-step convergent synthesis: Paal-Knorr pyrrole condensation between a chiral 1,4-diketone and a protected chiral (3R,5R)-dihydroxyheptanoic acid derivative, followed by deprotection and calcium salt precipitation.',
+    molecularTarget: '3-Hydroxy-3-Methylglutaryl-Coenzyme A Reductase (HMG-CoA Reductase).',
     pdbAccession: '1HW8 / 1HW9',
-    modeOfAction:
-        'Atorvastatin acts as a potent reversible competitive inhibitor of HMG-CoA reductase, mimicking the 3,5-dihydroxypentanoic acid substrate transition state. Its rigid substituted pyrrole ring extends into a hydrophobic groove formed by residues Leu-562, Val-683, and Leu-853, achieving a binding affinity (Ki ≈ 8 nM) that is 10,000-fold tighter than the endogenous substrate HMG-CoA. Inhibition halts conversion of HMG-CoA to mevalonate, the rate-limiting step in hepatic de novo cholesterol biosynthesis.',
-    downstreamSignaling:
-        'Depletion of intracellular cholesterol triggers SREBP-2 (Sterol Regulatory Element-Binding Protein 2) cleavage and nuclear translocation, upregulating hepatic LDL receptor (LDLR) gene transcription. Increased cell-surface LDLR clearance removes circulating LDL and VLDL remnants. Pleiotropic effects: stabilization of atherosclerotic plaques, reduction of oxidative stress, improvement of endothelial nitric oxide synthase (eNOS) activity, and inhibition of vascular smooth muscle proliferation via depletion of isoprenoid intermediates (farnesyl pyrophosphate and geranylgeranyl pyrophosphate).',
-    absorptionAndDistribution:
-        'Rapid oral absorption with Tmax 1–2 hours. Absolute bioavailability is only ~14% due to extensive presystemic gastrointestinal and hepatic extraction. Plasma protein binding is ≥ 98%. Vd: 381 L.',
-    metabolismAndElimination:
-        'Extensively metabolized by hepatic Cytochrome P450 3A4 (CYP3A4) to active ortho- and para-hydroxylated metabolites (which account for ~70% of circulating HMG-CoA reductase inhibitory activity). Elimination is predominantly biliary/fecal (< 2% renal).',
-    eliminationHalfLifeHours: 14.0, // Terminal half-life (inhibitory activity half-life is 20–30h)
-    comparativeSpeciesPharmacology:
-        'Statins are predominantly human therapeutics. In veterinary medicine, canines and felines carry high HDL-to-LDL ratios and rarely develop spontaneous atheroma or myocardial infarctions; consequently, statins are not utilized for lipid lowering in veterinary species. Furthermore, canines exhibit high susceptibility to statin-induced skeletal myopathy at equivalent human doses.',
-    transitionStateDescription:
-        'Mimicry of the high-energy mevaldyl-CoA hemithioacetal transition state through dynamic hydrogen-bonding between the (3R,5R)-dihydroxy carboxylate tail and Lys-691, Lys-735, Arg-590, and Asp-690.',
+    modeOfAction: 'Atorvastatin acts as a potent reversible competitive inhibitor of HMG-CoA reductase, mimicking the 3,5-dihydroxypentanoic acid substrate transition state. Its rigid substituted pyrrole ring extends into a hydrophobic groove formed by residues Leu-562, Val-683, and Leu-853, achieving a binding affinity (Ki ~ 8 nM) that is 10,000-fold tighter than the endogenous substrate HMG-CoA. Inhibition halts conversion of HMG-CoA to mevalonate, the rate-limiting step in hepatic de novo cholesterol biosynthesis.',
+    downstreamSignaling: 'Depletion of intracellular cholesterol triggers SREBP-2 cleavage and nuclear translocation, upregulating hepatic LDL receptor (LDLR) gene transcription. Increased cell-surface LDLR clearance removes circulating LDL and VLDL remnants. Pleiotropic effects: plaque stabilization, eNOS upregulation, and suppression of vascular smooth muscle proliferation.',
+    absorptionAndDistribution: 'Rapid oral absorption with Tmax 1–2 hours. Absolute bioavailability is only ~14% due to extensive presystemic gastrointestinal and hepatic extraction. Plasma protein binding is >= 98%. Vd: 381 L.',
+    metabolismAndElimination: 'Extensively metabolized by hepatic Cytochrome P450 3A4 (CYP3A4) to active ortho- and para-hydroxylated metabolites (accounting for ~70% of circulating inhibitory activity). Elimination is predominantly biliary/fecal (< 2% renal).',
+    eliminationHalfLifeHours: 14.0,
+    comparativeSpeciesPharmacology: 'Statins are predominantly human therapeutics. In veterinary medicine, canines and felines carry high HDL-to-LDL ratios and rarely develop spontaneous atheroma or myocardial infarctions; statins are not utilized for lipid lowering in veterinary species. Furthermore, canines exhibit high susceptibility to statin-induced skeletal myopathy at equivalent human doses.',
+    transitionStateDescription: 'Mimicry of the high-energy mevaldyl-CoA hemithioacetal transition state through dynamic hydrogen-bonding between the (3R,5R)-dihydroxy carboxylate tail and Lys-691, Lys-735, Arg-590, and Asp-690.',
     activationBarrierKcalMol: 16.5,
     catalyticResidues: 'Lys-691, Lys-735, Asp-690, Arg-590, Ser-684',
     associatedReactionId: 'med-atorvastatin-01',
-    contraindications:
-        'Active liver disease, unexplained persistent elevations of serum transaminases, pregnancy (Category X: teratogenic disruption of embryonic cholesterol), breastfeeding.',
-    adverseEffectsAndToxicity:
-        'Statin-Associated Muscle Symptoms (SAMS) ranging from mild myalgia to severe rhabdomyolysis with myoglobinuria and acute kidney injury; asymptomatic transaminase elevations; new-onset type 2 diabetes mellitus (slight glycemic index increase).',
-    blackBoxWarning:
-        'Contraindicated in pregnancy due to essential role of cholesterol in fetal development. Concomitant administration with potent CYP3A4 inhibitors (ketoconazole, clarithromycin, ritonavir, grapefruit juice) dramatically elevates systemic exposure and rhabdomyolysis risk.',
-    antidoteAndRescue:
-        'Discontinuation of statin. For rhabdomyolysis: aggressive isotonic saline intravenous hydration (target urine output 200–300 mL/hr) and urinary alkalinization to prevent renal tubular precipitation of ferrihemate.',
-    clinicalGuidelines: [
-      'AHA/ACC Multi-Society Guideline on the Management of Blood Cholesterol',
-      'ESC/EAS Guidelines for the Management of Dyslipidaemias',
-      'National Lipid Association (NLA) Statin Safety Consensus',
-    ],
+    contraindications: 'Active liver disease, unexplained persistent elevations of serum transaminases, pregnancy (Category X: teratogenic disruption of embryonic cholesterol), breastfeeding.',
+    adverseEffectsAndToxicity: 'Statin-Associated Muscle Symptoms (SAMS) ranging from mild myalgia to severe rhabdomyolysis with myoglobinuria and acute kidney injury; asymptomatic transaminase elevations; new-onset type 2 diabetes mellitus.',
+    blackBoxWarning: 'Contraindicated in pregnancy due to essential role of cholesterol in fetal development. Concomitant administration with potent CYP3A4 inhibitors (ketoconazole, clarithromycin, ritonavir, grapefruit juice) dramatically elevates systemic exposure and rhabdomyolysis risk.',
+    antidoteAndRescue: 'Discontinuation of statin. For rhabdomyolysis: aggressive isotonic saline intravenous hydration (target urine output 200–300 mL/hr) and urinary alkalinization to prevent renal tubular precipitation of ferrihemate.',
+    clinicalGuidelines: ['AHA/ACC Multi-Society Guideline on the Management of Blood Cholesterol', 'ESC/EAS Guidelines for the Management of Dyslipidaemias', 'National Lipid Association (NLA) Statin Safety Consensus'],
     primaryDoi: '10.1016/S0140-6736(03)12948-0',
     pubmedId: '12686036',
-    highYieldExamPearls: [
-      'Atorvastatin and rosuvastatin have long half-lives and can be taken at any time of day (unlike simvastatin, which requires bedtime dosing).',
-      'Ortho- and para-hydroxy metabolites provide 70% of circulating inhibitory activity.',
-      'CYP3A4 interactions are critical: macrolides, azoles, and grapefruit juice raise levels.',
-      'SREBP-2 upregulation of LDL receptors is the actual mechanism of circulating LDL reduction.',
-    ],
+    highYieldExamPearls: ['Atorvastatin and rosuvastatin have long half-lives and can be taken at any time of day.', 'Ortho- and para-hydroxy metabolites provide 70% of circulating inhibitory activity.', 'CYP3A4 interactions are critical: macrolides, azoles, and grapefruit juice raise levels.', 'SREBP-2 upregulation of LDL receptors is the actual mechanism of circulating LDL reduction.'],
+    citations: [],
   ),
-
   MedicinePharmacologyProfile(
     id: 'pharma-captopril',
     genericName: 'Captopril',
     iupacName: '(2S)-1-[(2S)-2-methyl-3-sulfanylpropanoyl]pyrrolidine-2-carboxylic acid',
     brandNames: ['Capoten', 'Capozide'],
-    targetDisciplines: [
-      TargetDiscipline.mbbs,
-      TargetDiscipline.pharmD,
-      TargetDiscipline.dvm,
-      TargetDiscipline.specialist,
-    ],
+    targetDisciplines: [TargetDiscipline.mbbs, TargetDiscipline.pharmD, TargetDiscipline.dvm, TargetDiscipline.specialist],
     specialty: PharmacologicalSpecialty.cardiology,
     chemicalClass: 'Sulfhydryl-containing Angiotensin-Converting Enzyme (ACE) Inhibitor',
-    therapeuticIndications:
-        'Essential hypertension, heart failure with reduced ejection fraction (HFrEF), diabetic nephropathy in Type 1 Diabetes Mellitus, left ventricular dysfunction post-myocardial infarction. Veterinary: Congestive heart failure in dogs and feline hypertension/proteinuric chronic kidney disease (CKD).',
-    clinicalStaging:
-        'Pivotal landmark trial (SAVE Trial) demonstrated 19% reduction in mortality post-MI with asymptomatic LV dysfunction (EF ≤ 40%). First-line agent in diabetic microalbuminuria.',
-    sourceAndOrigin:
-        'Structure-based drug design inspired by teprotide, a peptide isolated from the venom of the Brazilian pit viper (Bothrops jararaca) by Sérgio Ferreira and John Vane.',
-    discoveryHistory:
-        'Designed in 1975 by Miguel Ondetti and David Cushman at Squibb using a model of carboxypeptidase A. Captopril was the very first successful orally bioavailable structure-based drug design milestone.',
-    syntheticRoute:
-        'Coupling of L-proline with (2S)-3-acetylthio-2-methylpropanoyl chloride followed by basic deprotection of the thioester to reveal the free catalytic sulfhydryl group.',
-    molecularTarget:
-        'Angiotensin I-Converting Enzyme (Dipeptidyl Carboxypeptidase, ACE).',
+    therapeuticIndications: 'Essential hypertension, heart failure with reduced ejection fraction (HFrEF), diabetic nephropathy in Type 1 Diabetes Mellitus, left ventricular dysfunction post-myocardial infarction. Veterinary: Congestive heart failure in dogs and feline hypertension/proteinuric chronic kidney disease (CKD).',
+    clinicalStaging: 'SAVE Trial demonstrated 19% reduction in mortality post-MI with asymptomatic LV dysfunction (EF <= 40%). First-line agent in diabetic microalbuminuria.',
+    sourceAndOrigin: 'Structure-based drug design inspired by teprotide, a peptide isolated from the venom of the Brazilian pit viper (Bothrops jararaca) by Sérgio Ferreira and John Vane.',
+    discoveryHistory: 'Designed in 1975 by Miguel Ondetti and David Cushman at Squibb using a model of carboxypeptidase A. Captopril was the very first successful orally bioavailable structure-based drug design milestone.',
+    syntheticRoute: 'Coupling of L-proline with (2S)-3-acetylthio-2-methylpropanoyl chloride followed by basic deprotection of the thioester to reveal the free catalytic sulfhydryl group.',
+    molecularTarget: 'Angiotensin I-Converting Enzyme (Dipeptidyl Carboxypeptidase, ACE).',
     pdbAccession: '1UZF / 2X8Z',
-    modeOfAction:
-        'The free thiol (-SH) group of captopril coordinates directly with the catalytic catalytic divalent zinc ion (Zn²⁺) embedded in the ACE catalytic site, while its terminal proline carboxylate forms an electrostatic salt bridge with Arg-522. This high-affinity competitive binding prevents ACE from cleaving the C-terminal dipeptide (His-Leu) from Angiotensin I, halting its conversion to the potent vasoconstrictor Angiotensin II. Concurrently, captopril blocks the degradation of bradykinin (kallikrein-kinin system), promoting endothelial nitric oxide (NO) and prostacyclin release.',
-    downstreamSignaling:
-        'Reduction in circulating Angiotensin II eliminates AT₁-receptor-mediated arteriolar vasoconstriction, decreases aldosterone secretion from the adrenal cortex (reducing renal Na⁺ and H₂O reabsorption while sparing K⁺), and promotes efferent arteriolar vasodilation in the renal glomerulus, lowering intraglomerular capillary hydrostatic pressure.',
-    absorptionAndDistribution:
-        'Rapidly absorbed with peak plasma concentrations in 1 hour. Oral bioavailability is ~70% on an empty stomach (food decreases absorption by 30–40%; must be taken 1 hour before meals). Protein binding is 25–30%. Vd: 0.7 L/kg.',
-    metabolismAndElimination:
-        'Rapidly metabolized by disulfide exchange forming captopril-cysteine and captopril-glutathione disulfides. ~40–50% excreted unchanged in urine via glomerular filtration and tubular secretion.',
+    modeOfAction: 'The free thiol (-SH) group of captopril coordinates directly with the catalytic divalent zinc ion (Zn2+) embedded in the ACE catalytic site, while its terminal proline carboxylate forms an electrostatic salt bridge with Arg-522. This high-affinity competitive binding prevents ACE from cleaving the C-terminal dipeptide (His-Leu) from Angiotensin I, halting its conversion to the potent vasoconstrictor Angiotensin II. Concurrently, captopril blocks the degradation of bradykinin, promoting endothelial nitric oxide (NO) and prostacyclin release.',
+    downstreamSignaling: 'Reduction in circulating Angiotensin II eliminates AT1-receptor-mediated arteriolar vasoconstriction, decreases aldosterone secretion (reducing renal Na+ and H2O reabsorption while sparing K+), and promotes efferent arteriolar vasodilation in the renal glomerulus, lowering intraglomerular capillary hydrostatic pressure.',
+    absorptionAndDistribution: 'Rapidly absorbed with peak plasma concentrations in 1 hour. Oral bioavailability is ~70% on an empty stomach (food decreases absorption by 30–40%; must be taken 1 hour before meals). Protein binding is 25–30%. Vd: 0.7 L/kg.',
+    metabolismAndElimination: 'Rapidly metabolized by disulfide exchange forming captopril-cysteine and captopril-glutathione disulfides. ~40–50% excreted unchanged in urine via glomerular filtration and tubular secretion.',
     eliminationHalfLifeHours: 1.9,
-    comparativeSpeciesPharmacology:
-        'Veterinary DVM Clinical Pearl: In canine and feline heart failure/CKD, newer dicarboxylate ACE inhibitors (Enalapril, Benazepril) are generally preferred over captopril because enalapril/benazepril are dosed once daily (q24h) or twice daily, whereas captopril requires dosing three times daily (TID) due to its short 2-hour half-life. Benazepril is specifically favored in feline chronic renal failure because of its dual 55:45 biliary-to-renal elimination, protecting patients with deteriorating kidneys.',
-    transitionStateDescription:
-        'Zinc-thiol coordination complex stabilizing a distorted tetrahedral coordination geometry mimicking the transition state of angiotensin I peptide bond hydrolysis.',
+    comparativeSpeciesPharmacology: 'Veterinary DVM Clinical Pearl: In canine and feline heart failure/CKD, newer dicarboxylate ACE inhibitors (Enalapril, Benazepril) are generally preferred over captopril because enalapril/benazepril are dosed once daily (q24h) or twice daily, whereas captopril requires dosing three times daily (TID) due to its short 2-hour half-life. Benazepril is specifically favored in feline chronic renal failure because of its dual 55:45 biliary-to-renal elimination, protecting patients with deteriorating kidneys.',
+    transitionStateDescription: 'Zinc-thiol coordination complex stabilizing a distorted tetrahedral coordination geometry mimicking the transition state of angiotensin I peptide bond hydrolysis.',
     activationBarrierKcalMol: 14.8,
-    catalyticResidues: 'Zn²⁺, Arg-522, Glu-384, Tyr-523',
+    catalyticResidues: 'Zn2+, Arg-522, Glu-384, Tyr-523',
     associatedReactionId: 'med-captopril-01',
-    contraindications:
-        'History of ACE-inhibitor-induced angioedema, bilateral renal artery stenosis (or unilateral stenosis in a solitary kidney), concomitant use of sacubitril/valsartan (requires 36-hour washout), pregnancy (2nd and 3rd trimesters: fatal oligohydramnios and renal dysgenesis).',
-    adverseEffectsAndToxicity:
-        'Dry persistent non-productive cough (seen in 10–20% of patients due to bradykinin/substance P accumulation in bronchopulmonary mucosa), hyperkalemia, acute kidney injury, skin rash, dysgeusia (loss/alteration of taste due to the sulfhydryl group), angioedema.',
-    blackBoxWarning:
-        'Fetal Toxicity: Can cause injury and death to the developing fetus when used in pregnancy (Category D: renal hypoplasia, anuria, skull hypoplasia).',
-    antidoteAndRescue:
-        'For acute hypotension: IV normal saline volume expansion. For angioedema: immediate airway protection, epinephrine 1:1000 IM, icatibant (bradykinin B₂ receptor antagonist). For severe hyperkalemia: calcium gluconate IV, insulin + dextrose, patiromer.',
-    clinicalGuidelines: [
-      'KDIGO Clinical Practice Guideline for the Management of Blood Pressure in CKD',
-      'AHA/ACC/HFSA Guideline for the Management of Heart Failure',
-      'ACVIM Consensus Guidelines for the Diagnosis and Treatment of Myxomatous Mitral Valve Disease in Dogs',
-    ],
+    contraindications: 'History of ACE-inhibitor-induced angioedema, bilateral renal artery stenosis (or unilateral stenosis in a solitary kidney), concomitant use of sacubitril/valsartan (requires 36-hour washout), pregnancy.',
+    adverseEffectsAndToxicity: 'Dry persistent non-productive cough (seen in 10–20% of patients due to bradykinin/substance P accumulation), hyperkalemia, acute kidney injury, skin rash, dysgeusia (loss/alteration of taste due to the sulfhydryl group), angioedema.',
+    blackBoxWarning: 'Fetal Toxicity: Can cause injury and death to the developing fetus when used in pregnancy (Category D: renal hypoplasia, anuria, skull hypoplasia).',
+    antidoteAndRescue: 'For acute hypotension: IV normal saline volume expansion. For angioedema: immediate airway protection, epinephrine 1:1000 IM, icatibant (bradykinin B2 receptor antagonist). For severe hyperkalemia: calcium gluconate IV, insulin + dextrose, patiromer.',
+    clinicalGuidelines: ['KDIGO Clinical Practice Guideline for the Management of Blood Pressure in CKD', 'AHA/ACC/HFSA Guideline for the Management of Heart Failure', 'ACVIM Consensus Guidelines for the Diagnosis and Treatment of Myxomatous Mitral Valve Disease in Dogs'],
     primaryDoi: '10.1056/NEJM199209033271001',
     pubmedId: '1386652',
-    highYieldExamPearls: [
-      'Captopril is an active drug, NOT a prodrug (unlike enalapril, ramipril, and perindopril).',
-      'The sulfhydryl group causes taste alteration (dysgeusia) and skin rash.',
-      'Dilates the EFFERENT arteriole > afferent arteriole, lowering intraglomerular pressure and reducing proteinuria.',
-      'Absolute contraindication in bilateral renal artery stenosis due to precipitous loss of GFR.',
-    ],
+    highYieldExamPearls: ['Captopril is an active drug, NOT a prodrug (unlike enalapril, ramipril, and perindopril).', 'The sulfhydryl group causes taste alteration (dysgeusia) and skin rash.', 'Dilates the EFFERENT arteriole > afferent arteriole, lowering intraglomerular pressure and reducing proteinuria.', 'Absolute contraindication in bilateral renal artery stenosis due to precipitous loss of GFR.'],
+    citations: [],
   ),
-
   MedicinePharmacologyProfile(
     id: 'pharma-pimobendan',
     genericName: 'Pimobendan',
-    iupacName:
-        '4,5-dihydro-6-[2-(4-methoxyphenyl)-1H-benzimidazol-5-yl]-5-methylpyridazin-3(2H)-one',
+    iupacName: '4,5-dihydro-6-[2-(4-methoxyphenyl)-1H-benzimidazol-5-yl]-5-methylpyridazin-3(2H)-one',
     brandNames: ['Vetmedin', 'Acardi', 'Pimodin'],
-    targetDisciplines: [
-      TargetDiscipline.dvm,
-      TargetDiscipline.pharmD,
-      TargetDiscipline.specialist,
-    ],
+    targetDisciplines: [TargetDiscipline.dvm, TargetDiscipline.pharmD, TargetDiscipline.specialist],
     specialty: PharmacologicalSpecialty.cardiology,
     chemicalClass: 'Benzimidazole-pyridazinone Inodilator (Calcium Sensitizer & PDE3 Inhibitor)',
-    therapeuticIndications:
-        'Veterinary: First-line cornerstone management of canine congestive heart failure (CHF) secondary to Myxomatous Mitral Valve Disease (MMVD / Endocardiosis) and Dilated Cardiomyopathy (DCM). Human: Approved in Japan for acute and chronic decompensated heart failure.',
-    clinicalStaging:
-        'ACVIM MMVD Stage B2 (asymptomatic cardiomegaly with structural enlargement) and Stage C (active or past congestive pulmonary edema). Landmark QUEST and EPIC trials proved pimobendan delays onset of clinical heart failure by an average of 15 months.',
-    sourceAndOrigin:
-        'Synthetically designed non-glycoside, non-catecholamine inotrope developed by Boehringer Ingelheim to overcome the arrhythmogenic and calcium-overload risks of digitalis (digoxin) and milrinone.',
-    discoveryHistory:
-        'Investigated in 1980s; revolutionized veterinary cardiology after the 2016 EPIC clinical trial demonstrated unprecedented survival prolongation in canine cardiac remodeling.',
-    syntheticRoute:
-        'Condensation of 4-methoxybenzaldehyde with 4-(4-amino-3-nitrophenyl)morpholine derivatives, reductive cyclization to the benzimidazole core, followed by construction of the methylpyridazinone ring.',
-    molecularTarget:
-        'Cardiac Troponin C (Calcium sensitization) and Phosphodiesterase-3 (PDE3).',
+    therapeuticIndications: 'Veterinary: First-line cornerstone management of canine congestive heart failure (CHF) secondary to Myxomatous Mitral Valve Disease (MMVD / Endocardiosis) and Dilated Cardiomyopathy (DCM). Human: Approved in Japan for acute and chronic decompensated heart failure.',
+    clinicalStaging: 'ACVIM MMVD Stage B2 (asymptomatic cardiomegaly) and Stage C (active congestive pulmonary edema). Landmark QUEST and EPIC trials proved pimobendan delays onset of clinical heart failure by an average of 15 months.',
+    sourceAndOrigin: 'Synthetically designed non-glycoside, non-catecholamine inotrope developed by Boehringer Ingelheim to overcome the arrhythmogenic and calcium-overload risks of digitalis (digoxin) and milrinone.',
+    discoveryHistory: 'Investigated in 1980s; revolutionized veterinary cardiology after the 2016 EPIC clinical trial demonstrated unprecedented survival prolongation in canine cardiac remodeling.',
+    syntheticRoute: 'Condensation of 4-methoxybenzaldehyde with 4-(4-amino-3-nitrophenyl)morpholine derivatives, reductive cyclization to the benzimidazole core, followed by construction of the methylpyridazinone ring.',
+    molecularTarget: 'Cardiac Troponin C (Calcium sensitization) and Phosphodiesterase-3 (PDE3).',
     pdbAccession: '2L1R / 1J1E',
-    modeOfAction:
-        'Dual "inodilator" mechanism: (1) Inotropic action: Selectively sensitizes cardiac myofilaments to calcium by binding to the N-domain of Cardiac Troponin C (cTnC), stabilizing its active conformation during systole without increasing intracellular free calcium concentrations ([Ca²⁺]i). This augments myocardial contractility with minimal oxygen consumption and zero pro-arrhythmic energy penalty. (2) Vasodilator action: Inhibits phosphodiesterase-3 (PDE3) in vascular smooth muscle cells, preventing the breakdown of cyclic AMP (cAMP). Elevated cAMP promotes protein kinase A (PKA) activation, leading to calcium extrusion and profound peripheral arterial and venous vasodilation (reducing both afterload and preload).',
-    downstreamSignaling:
-        'cTnC conformational stabilization + vascular smooth muscle cAMP accumulation → decreased systemic vascular resistance, reduced pulmonary capillary wedge pressure, augmented stroke volume and cardiac output.',
-    absorptionAndDistribution:
-        'Rapid oral bioavailability of ~60–65%. Marked food effect: administration with food dramatically decreases bioavailability by > 50%. Must be given on an empty stomach at least 1 hour before feeding. High protein binding (90–95%).',
-    metabolismAndElimination:
-        'Rapidly demethylated in the liver to its active metabolite, O-desmethylpimobendan (UD-CG 212), which is 8-fold more potent than parent drug in PDE3 inhibition. Excretion is > 95% via feces through biliary secretion.',
-    eliminationHalfLifeHours: 0.5, // Parent drug (active metabolite is ~2.0h)
-    comparativeSpeciesPharmacology:
-        '🐾 DVM Essential: Pimobendan is the single most important inotropic agent in canine medicine. In felines with hypertrophic cardiomyopathy (HCM), pimobendan is strictly contraindicated if dynamic left ventricular outflow tract obstruction (LVOTO / SAM of the mitral valve) is present, as enhanced inotropy worsens systolic anterior motion and dynamic subaortic gradient.',
-    transitionStateDescription:
-        'Binding to the hydrophobic pocket of troponin C, promoting spatial rapprochement of Gly-34 and Asp-65 to enhance Ca²⁺ off-rate regulation without energetic waste.',
+    modeOfAction: 'Dual inodilator mechanism: (1) Inotropic action: Selectively sensitizes cardiac myofilaments to calcium by binding to the N-domain of Cardiac Troponin C (cTnC), stabilizing its active conformation during systole without increasing intracellular free calcium concentrations. This augments myocardial contractility with minimal oxygen consumption and zero pro-arrhythmic energy penalty. (2) Vasodilator action: Inhibits phosphodiesterase-3 (PDE3) in vascular smooth muscle cells, preventing the breakdown of cyclic AMP (cAMP). Elevated cAMP promotes protein kinase A (PKA) activation, leading to calcium extrusion and profound peripheral arterial and venous vasodilation.',
+    downstreamSignaling: 'cTnC conformational stabilization + vascular smooth muscle cAMP accumulation -> decreased systemic vascular resistance, reduced pulmonary capillary wedge pressure, augmented stroke volume and cardiac output.',
+    absorptionAndDistribution: 'Rapid oral bioavailability of ~60–65%. Marked food effect: administration with food dramatically decreases bioavailability by > 50%. Must be given on an empty stomach at least 1 hour before feeding. High protein binding (90–95%).',
+    metabolismAndElimination: 'Rapidly demethylated in the liver to its active metabolite, O-desmethylpimobendan (UD-CG 212), which is 8-fold more potent than parent drug in PDE3 inhibition. Excretion is > 95% via feces through biliary secretion.',
+    eliminationHalfLifeHours: 0.5,
+    comparativeSpeciesPharmacology: 'DVM Essential: Pimobendan is the single most important inotropic agent in canine medicine. In felines with hypertrophic cardiomyopathy (HCM), pimobendan is strictly contraindicated if dynamic left ventricular outflow tract obstruction (LVOTO / SAM of the mitral valve) is present, as enhanced inotropy worsens systolic anterior motion and dynamic subaortic gradient.',
+    transitionStateDescription: 'Binding to the hydrophobic pocket of troponin C, promoting spatial rapprochement of Gly-34 and Asp-65 to enhance Ca2+ off-rate regulation without energetic waste.',
     activationBarrierKcalMol: 15.6,
     catalyticResidues: 'Troponin C Gly-34, Asp-65; PDE3A Gln-988, Phe-1004',
     associatedReactionId: 'vet-pimobendan-01',
-    contraindications:
-        'Hypertrophic cardiomyopathy with outflow tract obstruction (HOCM), severe aortic or pulmonic stenosis, severe hepatic impairment.',
-    adverseEffectsAndToxicity:
-        'Mild tachycardia, anorexia, vomiting, lethargy. Extreme overdoses: excessive hypotension, chordae tendineae rupture in predisposed mitral valves.',
-    blackBoxWarning:
-        'Do not administer to animals with obstructive outflow cardiomyopathies (aortic stenosis, SAM/LVOTO). Must be administered on an empty stomach.',
-    antidoteAndRescue:
-        'Supportive therapy: beta-blockers (esmolol, atenolol) to counteract excessive inotropic/chronotropic stimulus; IV vasopressors (phenylephrine) for refractory systemic vasodilation.',
-    clinicalGuidelines: [
-      'ACVIM Consensus Guidelines for the Diagnosis and Treatment of Myxomatous Mitral Valve Disease in Dogs (2019)',
-      'ACVIM Consensus Statement: Guidelines for the Classification, Diagnosis, and Management of Cardiomyopathies in Cats (2020)',
-    ],
+    contraindications: 'Hypertrophic cardiomyopathy with outflow tract obstruction (HOCM), severe aortic or pulmonic stenosis, severe hepatic impairment.',
+    adverseEffectsAndToxicity: 'Mild tachycardia, anorexia, vomiting, lethargy. Extreme overdoses: excessive hypotension, chordae tendineae rupture in predisposed mitral valves.',
+    blackBoxWarning: 'Do not administer to animals with obstructive outflow cardiomyopathies (aortic stenosis, SAM/LVOTO). Must be administered on an empty stomach.',
+    antidoteAndRescue: 'Supportive therapy: beta-blockers (esmolol, atenolol) to counteract excessive inotropic/chronotropic stimulus; IV vasopressors (phenylephrine) for refractory systemic vasodilation.',
+    clinicalGuidelines: ['ACVIM Consensus Guidelines for the Diagnosis and Treatment of Myxomatous Mitral Valve Disease in Dogs (2019)', 'ACVIM Consensus Statement: Guidelines for the Classification, Diagnosis, and Management of Cardiomyopathies in Cats (2020)'],
     primaryDoi: '10.1111/jvim.14586',
     pubmedId: '27678080',
-    highYieldExamPearls: [
-      'Pimobendan is an INODILATOR: Sensitizes troponin C to Ca²⁺ (inotropy) + inhibits PDE3 (vasodilation).',
-      'Does NOT increase intracellular calcium, avoiding the myocardial oxygen penalty and arrhythmias of digoxin.',
-      'Must ALWAYS be administered on an empty stomach (food cuts absorption in half).',
-      'Contraindicated in feline HCM with left ventricular outflow tract obstruction (LVOTO).',
-    ],
+    highYieldExamPearls: ['Pimobendan is an INODILATOR: Sensitizes troponin C to Ca2+ (inotropy) + inhibits PDE3 (vasodilation).', 'Does NOT increase intracellular calcium, avoiding the myocardial oxygen penalty and arrhythmias of digoxin.', 'Must ALWAYS be administered on an empty stomach (food cuts absorption in half).', 'Contraindicated in feline HCM with left ventricular outflow tract obstruction (LVOTO).'],
+    citations: [],
   ),
-
-  // ── INFECTIOUS DISEASES & ANTIMICROBIALS ───────────────────────────────────
   MedicinePharmacologyProfile(
     id: 'pharma-amox-clav',
     genericName: 'Amoxicillin + Clavulanic Acid (Co-Amoxiclav)',
-    iupacName:
-        '(2S,5R,6R)-6-[[(2R)-2-amino-2-(4-hydroxyphenyl)acetyl]amino]-3,3-dimethyl-7-oxo-4-thia-1-azabicyclo[3.2.0]heptane-2-carboxylic acid + (2R,5R,Z)-3-(2-hydroxyethylidene)-7-oxo-4-oxa-1-azabicyclo[3.2.0]heptane-2-carboxylic acid',
+    iupacName: '(2S,5R,6R)-6-[[(2R)-2-amino-2-(4-hydroxyphenyl)acetyl]amino]-3,3-dimethyl-7-oxo-4-thia-1-azabicyclo[3.2.0]heptane-2-carboxylic acid + (2R,5R,Z)-3-(2-hydroxyethylidene)-7-oxo-4-oxa-1-azabicyclo[3.2.0]heptane-2-carboxylic acid',
     brandNames: ['Augmentin', 'Clavamox', 'Amoclav', 'Synulox'],
-    targetDisciplines: [
-      TargetDiscipline.mbbs,
-      TargetDiscipline.pharmD,
-      TargetDiscipline.dvm,
-      TargetDiscipline.specialist,
-    ],
+    targetDisciplines: [TargetDiscipline.mbbs, TargetDiscipline.pharmD, TargetDiscipline.dvm, TargetDiscipline.specialist],
     specialty: PharmacologicalSpecialty.infectiousDiseases,
     chemicalClass: 'Aminopenicillin + Suicide Beta-Lactamase Inhibitor',
-    therapeuticIndications:
-        'Human: Acute bacterial rhinosinusitis, otitis media, community-acquired pneumonia (CAP), human/animal bite wound infections, complicated urinary tract infections, diabetic foot infections. Veterinary (Clavamox/Synulox): Feline and canine bacterial dermatitis, periodontal disease, feline lower urinary tract infections, wound infections.',
-    clinicalStaging:
-        'IDSA First-line guideline empiric therapy for animal and human bite wounds (covers Pasteurella multocida, Eikenella corrodens, anaerobes, and Staphylococcus aureus).',
-    sourceAndOrigin:
-        'Amoxicillin is a semisynthetic penicillin derived from 6-aminopenicillanic acid (6-APA) fermented from Penicillium chrysogenum. Clavulanic acid is a natural oxapenam isolated from the actinomycete bacterium Streptomyces clavuligerus.',
-    discoveryHistory:
-        'Discovered by Beecham Pharmaceuticals in the 1970s. Clavulanic acid was identified in 1976 and combined with amoxicillin in 1981 to neutralize resistant beta-lactamase-producing bacteria.',
-    syntheticRoute:
-        'Acylation of 6-APA with D-(-)-4-hydroxyphenylglycine Dane salt yielding amoxicillin, co-formulated with potassium clavulanate fermented from S. clavuligerus.',
-    molecularTarget:
-        'Amoxicillin: Bacterial Penicillin-Binding Proteins (PBP-1a, PBP-1b, PBP-2, PBP-3). Clavulanate: Serine Beta-Lactamases (TEM, SHV, Richmond-Sykes Class A, C, D).',
+    therapeuticIndications: 'Human: Acute bacterial rhinosinusitis, otitis media, community-acquired pneumonia (CAP), human/animal bite wound infections, complicated urinary tract infections, diabetic foot infections. Veterinary (Clavamox/Synulox): Feline and canine bacterial dermatitis, periodontal disease, feline lower urinary tract infections, wound infections.',
+    clinicalStaging: 'IDSA First-line guideline empiric therapy for animal and human bite wounds (covers Pasteurella multocida, Eikenella corrodens, anaerobes, and Staphylococcus aureus).',
+    sourceAndOrigin: 'Amoxicillin is a semisynthetic penicillin derived from 6-aminopenicillanic acid (6-APA) fermented from Penicillium chrysogenum. Clavulanic acid is a natural oxapenam isolated from the actinomycete bacterium Streptomyces clavuligerus.',
+    discoveryHistory: 'Discovered by Beecham Pharmaceuticals in the 1970s. Clavulanic acid was identified in 1976 and combined with amoxicillin in 1981 to neutralize resistant beta-lactamase-producing bacteria.',
+    syntheticRoute: 'Acylation of 6-APA with D-(-)-4-hydroxyphenylglycine Dane salt yielding amoxicillin, co-formulated with potassium clavulanate fermented from S. clavuligerus.',
+    molecularTarget: 'Amoxicillin: Bacterial Penicillin-Binding Proteins (PBP-1a, PBP-1b, PBP-2, PBP-3). Clavulanate: Serine Beta-Lactamases (TEM, SHV, Richmond-Sykes Class A, C, D).',
     pdbAccession: '1HVB / 1BLC',
-    modeOfAction:
-        'Amoxicillin acts as a structural mimic of the terminal D-Ala-D-Ala dipeptide of bacterial peptidoglycan precursors, covalently acylating the active site serine of PBPs and preventing transpeptidase cross-linking of the cell wall, causing autolytic cell death. Clavulanic acid acts as a "suicide / mechanism-based inhibitor": its oxapenam ring is cleaved by bacterial beta-lactamase, forming an acyl-enzyme intermediate that undergoes secondary rearrangement to generate an irreversible, dead-end covalent adduct, permanently protecting amoxicillin from hydrolysis.',
-    downstreamSignaling:
-        'Inhibition of peptidoglycan cross-linking triggers bacterial autolysins (murein hydrolases), resulting in loss of osmotic structural integrity and rapid bactericidal osmotic lysis.',
-    absorptionAndDistribution:
-        'Amoxicillin has excellent oral bioavailability (~80–90%), substantially superior to ampicillin, and unaffected by food. Clavulanic acid bioavailability is ~60–70%. Widely distributed into lungs, sputum, pleural fluid, middle ear mucosa, and peritoneal fluid; poor CSF penetration unless meninges are inflamed.',
-    metabolismAndElimination:
-        'Amoxicillin is eliminated primarily by renal glomerular filtration and active tubular secretion (> 70% unchanged in urine). Clavulanate is partially metabolized and excreted via renal and non-renal pathways.',
+    modeOfAction: 'Amoxicillin acts as a structural mimic of the terminal D-Ala-D-Ala dipeptide of bacterial peptidoglycan precursors, covalently acylating the active site serine of PBPs and preventing transpeptidase cross-linking of the cell wall, causing autolytic cell death. Clavulanic acid acts as a suicide / mechanism-based inhibitor: its oxapenam ring is cleaved by bacterial beta-lactamase, forming an acyl-enzyme intermediate that undergoes secondary rearrangement to generate an irreversible, dead-end covalent adduct, permanently protecting amoxicillin from hydrolysis.',
+    downstreamSignaling: 'Inhibition of peptidoglycan cross-linking triggers bacterial autolysins (murein hydrolases), resulting in loss of osmotic structural integrity and rapid bactericidal osmotic lysis.',
+    absorptionAndDistribution: 'Amoxicillin has excellent oral bioavailability (~80–90%), substantially superior to ampicillin, and unaffected by food. Clavulanic acid bioavailability is ~60–70%. Widely distributed into lungs, sputum, pleural fluid, middle ear mucosa, and peritoneal fluid; poor CSF penetration unless meninges are inflamed.',
+    metabolismAndElimination: 'Amoxicillin is eliminated primarily by renal glomerular filtration and active tubular secretion (> 70% unchanged in urine). Clavulanate is partially metabolized and excreted via renal and non-renal pathways.',
     eliminationHalfLifeHours: 1.1,
-    comparativeSpeciesPharmacology:
-        '🐾 DVM Critical Alert: Broad-spectrum penicillins and beta-lactamase inhibitors like co-amoxiclav must NEVER be administered orally to hindgut fermenters (guinea pigs, rabbits, hamsters, chinchillas). Destruction of normal Gram-positive cecal microflora triggers lethal overgrowth of Clostridium difficile / Clostridium spiroforme, causing acute fatal enterotoxemia within 48–72 hours.',
-    transitionStateDescription:
-        'Acyl-enzyme formation via nucleophilic attack of the catalytic serine on the strained beta-lactam carbonyl carbon, followed by oxapenam fragmentation and active site cross-linking.',
+    comparativeSpeciesPharmacology: 'DVM Critical Alert: Broad-spectrum penicillins and beta-lactamase inhibitors like co-amoxiclav must NEVER be administered orally to hindgut fermenters (guinea pigs, rabbits, hamsters, chinchillas). Destruction of normal Gram-positive cecal microflora triggers lethal overgrowth of Clostridium difficile / Clostridium spiroforme, causing acute fatal enterotoxemia within 48–72 hours.',
+    transitionStateDescription: 'Acyl-enzyme formation via nucleophilic attack of the catalytic serine on the strained beta-lactam carbonyl carbon, followed by oxapenam fragmentation and active site cross-linking.',
     activationBarrierKcalMol: 17.4,
     catalyticResidues: 'PBP Ser-337, Lys-340; Beta-lactamase Ser-70, Lys-73, Glu-166',
     associatedReactionId: 'med-amox-01',
-    contraindications:
-        'History of severe immediate hypersensitivity (anaphylaxis) to penicillins or beta-lactams; history of amoxicillin-clavulanate-associated cholestatic jaundice or hepatic dysfunction.',
-    adverseEffectsAndToxicity:
-        'Gastrointestinal hypermotility and diarrhea (clavulanate stimulates intestinal motility directly), nausea, Clostridioides difficile colitis, maculopapular rash (prominent in Epstein-Barr virus / Infectious Mononucleosis patients: pseudo-allergy).',
-    blackBoxWarning:
-        'Hypersensitivity reactions: Serious and occasionally fatal anaphylaxis can occur. Verify allergy history before administration.',
-    antidoteAndRescue:
-        'For anaphylaxis: immediate intramuscular Epinephrine (1:1000), airway control, high-flow oxygen, IV crystalloids, H1/H2 antihistamines and corticosteroids.',
-    clinicalGuidelines: [
-      'IDSA Practice Guidelines for the Diagnosis and Management of Skin and Soft Tissue Infections',
-      'ATS/IDSA Guidelines on the Management of Community-Acquired Pneumonia',
-      'ISCAID Guidelines for the Diagnosis and Management of Bacterial Urinary Tract Infections in Dogs and Cats',
-    ],
+    contraindications: 'History of severe immediate hypersensitivity (anaphylaxis) to penicillins or beta-lactams; history of amoxicillin-clavulanate-associated cholestatic jaundice or hepatic dysfunction.',
+    adverseEffectsAndToxicity: 'Gastrointestinal hypermotility and diarrhea (clavulanate stimulates intestinal motility directly), nausea, Clostridioides difficile colitis, maculopapular rash (prominent in Epstein-Barr virus / Infectious Mononucleosis patients).',
+    blackBoxWarning: 'Hypersensitivity reactions: Serious and occasionally fatal anaphylaxis can occur. Verify allergy history before administration.',
+    antidoteAndRescue: 'For anaphylaxis: immediate intramuscular Epinephrine (1:1000), airway control, high-flow oxygen, IV crystalloids, H1/H2 antihistamines and corticosteroids.',
+    clinicalGuidelines: ['IDSA Practice Guidelines for the Diagnosis and Management of Skin and Soft Tissue Infections', 'ATS/IDSA Guidelines on the Management of Community-Acquired Pneumonia', 'ISCAID Guidelines for the Diagnosis and Management of Bacterial Urinary Tract Infections in Dogs and Cats'],
     primaryDoi: '10.1093/cid/ciu296',
     pubmedId: '24973422',
-    highYieldExamPearls: [
-      'Clavulanic acid has minimal intrinsic antibacterial activity; it is a suicide inhibitor protecting amoxicillin.',
-      'Drug of choice for animal and human bite wounds because it covers Pasteurella multocida and anaerobes.',
-      'Giving ampicillin/amoxicillin to a patient with Mononucleosis (EBV) triggers a diffuse maculopapular rash (not a true IgE allergy).',
-      'Contraindicated orally in rabbits and guinea pigs due to fatal Clostridial enterotoxemia.',
-    ],
+    highYieldExamPearls: ['Clavulanic acid has minimal intrinsic antibacterial activity; it is a suicide inhibitor protecting amoxicillin.', 'Drug of choice for animal and human bite wounds because it covers Pasteurella multocida and anaerobes.', 'Giving ampicillin/amoxicillin to a patient with Mononucleosis (EBV) triggers a diffuse maculopapular rash.', 'Contraindicated orally in rabbits and guinea pigs due to fatal Clostridial enterotoxemia.'],
+    citations: [],
   ),
-
   MedicinePharmacologyProfile(
     id: 'pharma-enrofloxacin',
     genericName: 'Enrofloxacin',
-    iupacName:
-        '1-cyclopropyl-7-(4-ethylpiperazin-1-yl)-6-fluoro-4-oxoquinoline-3-carboxylic acid',
+    iupacName: '1-cyclopropyl-7-(4-ethylpiperazin-1-yl)-6-fluoro-4-oxoquinoline-3-carboxylic acid',
     brandNames: ['Baytril', 'Enroquin', 'Enrosite'],
-    targetDisciplines: [
-      TargetDiscipline.dvm,
-      TargetDiscipline.pharmD,
-      TargetDiscipline.specialist,
-    ],
+    targetDisciplines: [TargetDiscipline.dvm, TargetDiscipline.pharmD, TargetDiscipline.specialist],
     specialty: PharmacologicalSpecialty.infectiousDiseases,
     chemicalClass: 'Fluoroquinolone Antimicrobial (Concentration-dependent Bactericidal)',
-    therapeuticIndications:
-        'Veterinary: Severe, refractory Gram-negative and intracellular infections in canines, felines, exotic mammals, birds, and reptiles: deep pyoderma, complicated prostatitis, osteomyelitis, respiratory tract infections (Pasteurella, Bordetella, Pseudomonas aeruginosa), and avian chlamydiosis.',
-    clinicalStaging:
-        'Reserved as a high-potency second-tier antimicrobial for culture-confirmed fluoroquinolone-susceptible pathogens. Concentration-dependent bactericidal action governed by Cmax:MIC ratio (optimal ≥ 8–10:1) and AUC:MIC ratio (optimal ≥ 100–125).',
-    sourceAndOrigin:
-        'Fully synthetic fluorinated quinolone developed by Bayer Animal Health in the late 1980s as the ethyl-derivative analog of ciprofloxacin.',
-    discoveryHistory:
-        'Derived from the 1962 discovery of nalidixic acid by George Lesher. Addition of a 6-fluorine atom and a 7-piperazine ring conferred 100-fold higher potency and broad Gram-negative/Gram-positive coverage.',
-    syntheticRoute:
-        'Condensation of 2,4-dichloro-5-fluorobenzoyl chloride with ethyl 3-(dimethylamino)acrylate, cyclization with cyclopropylamine, and substitution with 1-ethylpiperazine.',
-    molecularTarget:
-        'Bacterial DNA Gyrase (Topoisomerase II, specifically GyrA and GyrB subunits) and Topoisomerase IV (ParC and ParE subunits).',
+    therapeuticIndications: 'Veterinary: Severe, refractory Gram-negative and intracellular infections in canines, felines, exotic mammals, birds, and reptiles: deep pyoderma, complicated prostatitis, osteomyelitis, respiratory tract infections (Pasteurella, Bordetella, Pseudomonas aeruginosa), and avian chlamydiosis.',
+    clinicalStaging: 'Reserved as a high-potency second-tier antimicrobial for culture-confirmed fluoroquinolone-susceptible pathogens. Concentration-dependent bactericidal action governed by Cmax:MIC ratio (optimal >= 8–10:1) and AUC:MIC ratio (optimal >= 100–125).',
+    sourceAndOrigin: 'Fully synthetic fluorinated quinolone developed by Bayer Animal Health in the late 1980s as the ethyl-derivative analog of ciprofloxacin.',
+    discoveryHistory: 'Derived from the 1962 discovery of nalidixic acid by George Lesher. Addition of a 6-fluorine atom and a 7-piperazine ring conferred 100-fold higher potency and broad Gram-negative/Gram-positive coverage.',
+    syntheticRoute: 'Condensation of 2,4-dichloro-5-fluorobenzoyl chloride with ethyl 3-(dimethylamino)acrylate, cyclization with cyclopropylamine, and substitution with 1-ethylpiperazine.',
+    molecularTarget: 'Bacterial DNA Gyrase (Topoisomerase II, specifically GyrA and GyrB subunits) and Topoisomerase IV (ParC and ParE subunits).',
     pdbAccession: '2XCT / 3FV5',
-    modeOfAction:
-        'Enrofloxacin binds to the cleaved DNA-enzyme complex, stabilizing the covalent phospho-tyrosine intermediate between DNA and the catalytic tyrosine of DNA gyrase / Topoisomerase IV. This "poisons" the enzyme, trapping it on the replication fork, preventing re-ligation of double-stranded DNA breaks. The stalled replication forks collapse, releasing fragmented chromosomes and triggering irreversible SOS-mediated bactericidal death.',
-    downstreamSignaling:
-        'Bacterial chromosome fragmentation triggers the LexA/RecA-mediated bacterial SOS repair response, hydroxyl radical cascade formation, and lethal bacterial cellular autolysis.',
-    absorptionAndDistribution:
-        'Rapid oral bioavailability (~80–100% in canines/felines). Exceptional tissue penetration: achieves intracellular concentrations in alveolar macrophages, neutrophils, bronchial epithelium, bone, and prostate that exceed plasma concentrations by 2- to 10-fold. Large Vd: 2.5–3.5 L/kg.',
-    metabolismAndElimination:
-        'Extensively de-ethylated in the liver (15–40%) to its active metabolite, CIPROFLOXACIN. Both parent enrofloxacin and ciprofloxacin are eliminated via dual renal (glomerular filtration + active tubular secretion) and non-renal biliary mechanisms.',
+    modeOfAction: 'Enrofloxacin binds to the cleaved DNA-enzyme complex, stabilizing the covalent phospho-tyrosine intermediate between DNA and the catalytic tyrosine of DNA gyrase / Topoisomerase IV. This poisons the enzyme, trapping it on the replication fork, preventing re-ligation of double-stranded DNA breaks. The stalled replication forks collapse, releasing fragmented chromosomes and triggering irreversible SOS-mediated bactericidal death.',
+    downstreamSignaling: 'Bacterial chromosome fragmentation triggers the LexA/RecA-mediated bacterial SOS repair response, hydroxyl radical cascade formation, and lethal bacterial cellular autolysis.',
+    absorptionAndDistribution: 'Rapid oral bioavailability (~80–100% in canines/felines). Exceptional tissue penetration: achieves intracellular concentrations in alveolar macrophages, neutrophils, bronchial epithelium, bone, and prostate that exceed plasma concentrations by 2- to 10-fold. Large Vd: 2.5–3.5 L/kg.',
+    metabolismAndElimination: 'Extensively de-ethylated in the liver (15–40%) to its active metabolite, CIPROFLOXACIN. Both parent enrofloxacin and ciprofloxacin are eliminated via dual renal and non-renal biliary mechanisms.',
     eliminationHalfLifeHours: 4.5,
-    comparativeSpeciesPharmacology:
-        '🐾 DVM Toxicity Alerts: (1) Feline Retinal Degeneration: Felines lack effective ABCG2 (breast cancer resistance protein) retinal blood-barrier transport. Enrofloxacin accumulates in the feline retina and undergoes light-induced photochemical excitation, generating reactive oxygen species that cause IRREVERSIBLE, permanent diffuse retinal atrophy and blindness at doses > 5 mg/kg/day. (2) Canine Arthropathy: Chelation of magnesium in growing articular cartilage leads to chondrocyte necrosis and cartilage erosion; contraindicated in growing puppies (< 8–12 months in small breeds, < 18 months in giant breeds).',
-    transitionStateDescription:
-        'Intercalation into cleaved double-stranded DNA via water-metal (Mg²⁺) bridge coordination to the 4-keto and 3-carboxylate quinolone oxygens.',
+    comparativeSpeciesPharmacology: 'DVM Toxicity Alerts: (1) Feline Retinal Degeneration: Felines lack effective ABCG2 (breast cancer resistance protein) retinal blood-barrier transport. Enrofloxacin accumulates in the feline retina and undergoes light-induced photochemical excitation, generating reactive oxygen species that cause IRREVERSIBLE, permanent diffuse retinal atrophy and blindness at doses > 5 mg/kg/day. (2) Canine Arthropathy: Chelation of magnesium in growing articular cartilage leads to chondrocyte necrosis and cartilage erosion; contraindicated in growing puppies (< 8–12 months in small breeds, < 18 months in giant breeds).',
+    transitionStateDescription: 'Intercalation into cleaved double-stranded DNA via water-metal (Mg2+) bridge coordination to the 4-keto and 3-carboxylate quinolone oxygens.',
     activationBarrierKcalMol: 19.1,
     catalyticResidues: 'DNA Gyrase Tyr-122, Arg-121, Ser-83; ParC Ser-80',
     associatedReactionId: 'vet-enrofloxacin-01',
-    contraindications:
-        'Growing juvenile canines (chondrotoxicity), felines above 5 mg/kg/day (retinal toxicity), horses (severe cartilage damage and cecal dysbiosis), patients with pre-existing central nervous system seizure disorders.',
-    adverseEffectsAndToxicity:
-        'Irreversible acute retinal blindness in cats, cartilage erosions and lameness in young dogs, emesis, diarrhea, lowering of seizure threshold (GABA-A antagonism).',
-    blackBoxWarning:
-        'FELINE RETINOTOXICITY: Exceeding 5 mg/kg/day in cats can produce sudden, permanent, irreversible blindness within 24–48 hours.',
-    antidoteAndRescue:
-        'Immediate cessation. In cases of acute accidental overdose: oral administration of magnesium or aluminum hydroxide antacids (sucralfate/Maalox) to chelate quinolone and block GI absorption.',
-    clinicalGuidelines: [
-      'ISCAID Guidelines for the Treatment of Urinary Tract Infections in Dogs and Cats',
-      'AAHA/AAFP Antimicrobial Stewardship Guidelines for Dogs and Cats',
-    ],
+    contraindications: 'Growing juvenile canines (chondrotoxicity), felines above 5 mg/kg/day (retinal toxicity), horses (severe cartilage damage and cecal dysbiosis), patients with pre-existing central nervous system seizure disorders.',
+    adverseEffectsAndToxicity: 'Irreversible acute retinal blindness in cats, cartilage erosions and lameness in young dogs, emesis, diarrhea, lowering of seizure threshold.',
+    blackBoxWarning: 'FELINE RETINOTOXICITY: Exceeding 5 mg/kg/day in cats can produce sudden, permanent, irreversible blindness within 24–48 hours.',
+    antidoteAndRescue: 'Immediate cessation. In cases of acute accidental overdose: oral administration of magnesium or aluminum hydroxide antacids (sucralfate/Maalox) to chelate quinolone and block GI absorption.',
+    clinicalGuidelines: ['ISCAID Guidelines for the Treatment of Urinary Tract Infections in Dogs and Cats', 'AAHA/AAFP Antimicrobial Stewardship Guidelines for Dogs and Cats'],
     primaryDoi: '10.2460/ajvr.2001.62.1932',
     pubmedId: '11765039',
-    highYieldExamPearls: [
-      'Enrofloxacin is partially metabolized in vivo into ciprofloxacin.',
-      'Causes IRREVERSIBLE retinal degeneration and acute blindness in felines at doses > 5 mg/kg.',
-      'Contraindicated in growing puppies due to articular cartilage bubbling and erosions.',
-      'Activity is concentration-dependent: high peak-to-MIC ratio (Cmax:MIC ≥ 10) prevents resistance development.',
-    ],
+    highYieldExamPearls: ['Enrofloxacin is partially metabolized in vivo into ciprofloxacin.', 'Causes IRREVERSIBLE retinal degeneration and acute blindness in felines at doses > 5 mg/kg.', 'Contraindicated in growing puppies due to articular cartilage bubbling and erosions.', 'Activity is concentration-dependent: high peak-to-MIC ratio (Cmax:MIC >= 10) prevents resistance development.'],
+    citations: [],
   ),
-
-  MedicinePharmacologyProfile(
-    id: 'pharma-isoniazid',
-    genericName: 'Isoniazid (INH / Isonicotinic Acid Hydrazide)',
-    iupacName: 'pyridine-4-carbohydrazide',
-    brandNames: ['Nydrazid', 'Laniazid', 'Rimifon'],
-    targetDisciplines: [
-      TargetDiscipline.mbbs,
-      TargetDiscipline.pharmD,
-      TargetDiscipline.specialist,
-    ],
-    specialty: PharmacologicalSpecialty.infectiousDiseases,
-    chemicalClass: 'Hydrazide Antimycobacterial Prodrug',
-    therapeuticIndications:
-        'Cornerstone first-line bactericidal component of multi-drug regimens for active tuberculosis caused by Mycobacterium tuberculosis (RIPE regimen: Rifampin, Isoniazid, Pyrazinamide, Ethambutol). Monotherapy or combination therapy for latent tuberculosis infection (LTBI).',
-    clinicalStaging:
-        'WHO & CDC First-Line Intensive Phase (2 months of RIPE) followed by Continuation Phase (4 months of INH + Rifampin). Standard adult dose 300 mg daily or 900 mg twice weekly.',
-    sourceAndOrigin:
-        'Synthetic compound first prepared in 1912 by Hans Meyer and Josef Mally at Charles University in Prague. Its potent antitubercular properties were independently discovered in 1952 by Hoffman-La Roche, Squibb, and Bayer.',
-    discoveryHistory:
-        'Transformed tuberculosis from an incurable, sanitarium-confined fatal infection into a curable disease. Introduced alongside streptomycin and PAS.',
-    syntheticRoute:
-        'Condensation of methyl isonicotinate with hydrazine hydrate at elevated temperature, followed by recrystallization.',
-    molecularTarget:
-        'Mycobacterial Catalase-Peroxidase (KatG) and Enoyl-Acyl Carrier Protein Reductase (InhA).',
-    pdbAccession: '1ZID / 2B35',
-    modeOfAction:
-        'Isoniazid is a prodrug that passively diffuses across the waxy mycobacterial cell wall. Inside M. tuberculosis, INH is bioactivated by the mycobacterial catalase-peroxidase enzyme KatG, generating an isonicotinic acyl radical. This radical spontaneously couples with the nicotinamide ring of NAD⁺ and NADP⁺ to form covalent INH-NAD and INH-NADP adducts. The INH-NAD adduct is a picomolar competitive inhibitor of InhA (enoyl-ACP reductase), shutting down fatty acid synthase II (FAS-II). This halts the synthesis of mycolic acids (long-chain alpha-alkyl beta-hydroxy fatty acids), destroying the mycobacterial cell envelope.',
-    downstreamSignaling:
-        'Collapse of the mycolic acid barrier causes osmotic instability, acid-fastness loss, and bactericidal death of rapidly dividing tubercle bacilli.',
-    absorptionAndDistribution:
-        'Readily absorbed orally with bioavailability > 90%. Excellent penetration into all body fluids and tissues, including caseous tuberculous granulomas, necrotic cavities, and cerebrospinal fluid (CSF:plasma ratio 0.8–1.0). Large Vd: 0.6–0.7 L/kg.',
-    metabolismAndElimination:
-        'Metabolized in the liver by N-acetyltransferase 2 (NAT2) to inactive acetyl-isoniazid, which is hydrolyzed to isonicotinic acid and monoacetylhydrazine. Genetic polymorphism: "Fast acetylators" (half-life ~1 hour) vs. "Slow acetylators" (half-life ~3–5 hours).',
-    eliminationHalfLifeHours: 2.0,
-    comparativeSpeciesPharmacology:
-        'Veterinary DVM Alert: Mycobacterium bovis and M. tuberculosis infections in livestock and companion animals are reportable zoonoses under strict public health statutory control in most jurisdictions. Treatment of bovine tuberculosis with isoniazid is generally prohibited due to the risk of creating drug-resistant reservoirs and human food-chain contamination.',
-    transitionStateDescription:
-        'Heme-mediated single-electron oxidation of the hydrazine moiety by KatG Compound I, yielding an isonicotinoyl free radical that undergoes radical addition to the C4 position of the NAD⁺ pyridine ring.',
-    activationBarrierKcalMol: 16.9,
-    catalyticResidues: 'KatG Trp-107, Arg-418, His-270; InhA Phe-149, Tyr-158',
-    associatedReactionId: 'med-isoniazid-01',
-    contraindications:
-        'Previous isoniazid-associated severe hepatic injury; acute active liver disease; severe pre-existing peripheral neuropathy.',
-    adverseEffectsAndToxicity:
-        'Hepatotoxicity (ranges from asymptomatic transaminitis in 10–20% to fatal acute liver necrosis, accelerated by monoacetylhydrazine); Peripheral Neuropathy (due to competitive inhibition of pyridoxal kinase and urinary excretion of pyridoxine/Vitamin B6); Lupus-like syndrome (drug-induced lupus with anti-histone antibodies in slow acetylators); Sideroblastic anemia.',
-    blackBoxWarning:
-        'Severe and sometimes fatal hepatitis may occur even after many months of treatment. Patient monitoring of transaminases and counseling regarding early symptoms of hepatitis (anorexia, nausea, jaundice) is mandatory.',
-    antidoteAndRescue:
-        'Co-administration of Pyridoxine (Vitamin B6, 25–50 mg daily) prevents peripheral neuropathy. For acute isoniazid overdose (presents with refractory status epilepticus, coma, severe metabolic acidosis): Pyridoxine IV gram-for-gram equivalent to ingested INH dose (or 5 g IV if dose unknown).',
-    clinicalGuidelines: [
-      'CDC/ATS/IDSA Guidelines for Treatment of Drug-Susceptible Tuberculosis',
-      'WHO Consolidated Guidelines on Tuberculosis: Module 4: Treatment',
-    ],
-    primaryDoi: '10.1056/NEJMra070624',
-    pubmedId: '18499567',
-    highYieldExamPearls: [
-      'INH is a prodrug activated by mycobacterial KatG into an INH-NAD adduct that inhibits InhA.',
-      'Always co-prescribe Pyridoxine (Vitamin B6) to prevent dose-dependent peripheral neuropathy.',
-      'High risk of drug-induced lupus erythematosus (DILE) with positive anti-histone antibodies in slow acetylators.',
-      'Acute INH toxicity triad: Refractory seizures, profound anion-gap metabolic acidosis, and coma — treated with IV Pyridoxine.',
-    ],
-  ),
-
-  // ── NEUROLOGY, PSYCHIATRY & NEUROPHARMACOLOGY ────────────────────────────
-  MedicinePharmacologyProfile(
-    id: 'pharma-levodopa',
-    genericName: 'Levodopa + Carbidopa',
-    iupacName:
-        '(2S)-2-amino-3-(3,4-dihydroxyphenyl)propanoic acid + (2S)-3-(3,4-dihydroxyphenyl)-2-hydrazinyl-2-methylpropanoic acid',
-    brandNames: ['Sinemet', 'Stalevo', 'Rytary', 'Duopa'],
-    targetDisciplines: [
-      TargetDiscipline.mbbs,
-      TargetDiscipline.pharmD,
-      TargetDiscipline.specialist,
-    ],
-    specialty: PharmacologicalSpecialty.neurology,
-    chemicalClass: 'Dopamine Precursor + Peripheral DOPA Decarboxylase Inhibitor',
-    therapeuticIndications:
-        'Parkinson\'s disease (idiopathic parkinsonism), post-encephalitic parkinsonism, dopamine-responsive dystonia (Segawa disease), symptomatic parkinsonism following carbon monoxide or manganese intoxication.',
-    clinicalStaging:
-        'Gold-standard, most effective symptomatic medical therapy for motor symptoms (resting tremor, cogwheel rigidity, bradykinesia, postural instability) across all Hoehn and Yahr stages of Parkinson\'s disease.',
-    sourceAndOrigin:
-        'L-DOPA was first isolated from the seedlings of the broad bean (Vicia faba) by Markus Guggenheim in 1913. Carbidopa is a synthetic alpha-methyl hydrazino analog of DOPA designed by Merck.',
-    discoveryHistory:
-        'Arvid Carlsson demonstrated that dopamine is a major neurotransmitter in the brain (Nobel Prize 2000). Oleh Hornykiewicz showed striatal dopamine deficiency in Parkinson\'s. George Cotzias pioneered high-dose oral L-DOPA therapy in 1967.',
-    syntheticRoute:
-        'Enzymatic or asymmetric hydrogenation of 2-acetamido-3-(3,4-dihydroxyphenyl)acrylic acid using chiral Rh-DIPAMP catalyst (Monsanto L-DOPA process, William Knowles Nobel Prize 2001).',
-    molecularTarget:
-        'L-Aromatic Amino Acid Decarboxylase (AADC / DOPA Decarboxylase) and Central Dopamine D₂/D₁ Receptors.',
-    pdbAccession: '1JS3 / 6VMS',
-    modeOfAction:
-        'Dopamine cannot cross the blood-brain barrier (BBB) because it lacks an active carrier. Levodopa, being a large neutral amino acid, actively traverses the BBB via the LAT1 (L-type amino acid transporter 1 / SLC7A5). Once in the central nervous system, surviving dopaminergic neurons in the substantia nigra pars compacta take up levodopa and decarboxylate it into dopamine via AADC. Carbidopa does NOT cross the blood-brain barrier; it selectively inhibits peripheral AADC in gut and liver, preventing peripheral conversion of levodopa to dopamine. This raises the fraction of levodopa reaching the brain from < 1% to > 10% and abolishes peripheral dopamine-mediated emesis and orthostatic hypotension.',
-    downstreamSignaling:
-        'Restoration of striatal dopamine balances the direct (striatonigral D₁: Gs/cAMP/PKA activation promoting movement) and indirect (striatopallidal D₂: Gi/adenylyl cyclase inhibition suppressing unwanted movement) basal ganglia motor loops.',
-    absorptionAndDistribution:
-        'Absorbed in the proximal small intestine via active saturable transport by LAT1. Food rich in dietary protein competes directly for LAT1 absorption and decreases brain penetration (patients advised to take levodopa 30–60 minutes before meals). Bioavailability ~30% with carbidopa.',
-    metabolismAndElimination:
-        'Decarboxylation by AADC to dopamine, and O-methylation by Catechol-O-Methyltransferase (COMT) to 3-O-methyldopa (3-OMD). Dopamine is subsequently metabolized by MAO-B and COMT to DOPAC and homovanillic acid (HVA) excreted in urine.',
-    eliminationHalfLifeHours: 1.5,
-    comparativeSpeciesPharmacology:
-        'Idiopathic Parkinson\'s disease is a uniquely human neurodegenerative disorder; spontaneous alpha-synuclein Lewy body pathology does not occur in domestic canines, felines, or equines. However, levodopa is widely used in veterinary translational research using MPTP-induced parkinsonian primate models and canine neuro-toxicology studies.',
-    transitionStateDescription:
-        'Pyridoxal 5\'-phosphate (PLP) dependent Schiff base formation between the amino group of levodopa and the PLP-AADC internal aldimine, followed by heterolytic cleavage of the C-COO⁻ bond producing a quinonoid intermediate.',
-    activationBarrierKcalMol: 15.2,
-    catalyticResidues: 'AADC Lys-303, His-192, Asp-271, Thr-246',
-    associatedReactionId: 'med-levodopa-01',
-    contraindications:
-        'Concurrent use of non-selective Monoamine Oxidase Inhibitors (MAOIs) within 14 days (risk of severe hypertensive crisis); narrow-angle glaucoma; undiagnosed skin lesions or history of melanoma (levodopa is a melanin precursor).',
-    adverseEffectsAndToxicity:
-        'Early: Nausea, anorexia, orthostatic hypotension, cardiac arrhythmias. Late (after 3–5 years of therapy): Motor fluctuations ("wearing-off" phenomenon, "on-off" phenomenon), peak-dose choreiform dyskinesias, vivid dreams, hallucinations, dopamine dysregulation syndrome (impulse control disorders).',
-    blackBoxWarning:
-        'Neuroleptic Malignant-like Syndrome: Abrupt discontinuation or rapid dose reduction of levodopa can trigger a life-threatening syndrome resembling neuroleptic malignant syndrome (severe hyperthermia, muscle rigidity, altered mental status, autonomic instability).',
-    antidoteAndRescue:
-        'For motor fluctuations: addition of COMT inhibitors (entacapone) or MAO-B inhibitors (rasagiline, safinamide) or dopamine agonists. For peak-dose dyskinesia: amantadine (NMDA antagonist). For psychosis: pimavanserin (selective 5-HT2A inverse agonist).',
-    clinicalGuidelines: [
-      'American Academy of Neurology (AAN) Practice Guideline: Pharmacologic Treatment of Parkinson Disease',
-      'Movement Disorder Society (MDS) Evidence-Based Review of Treatments for Parkinson\'s Disease',
-    ],
-    primaryDoi: '10.1056/NEJMoa033447',
-    pubmedId: '15590952',
-    highYieldExamPearls: [
-      'Levodopa crosses the BBB via LAT1; Dopamine cannot cross the BBB.',
-      'Carbidopa only inhibits PERIPHERAL AADC because it does not cross the BBB.',
-      'High protein meals decrease levodopa absorption due to competitive amino acid transport.',
-      'Long-term complication is the "on-off" phenomenon and peak-dose dyskinesia.',
-    ],
-  ),
-
   MedicinePharmacologyProfile(
     id: 'pharma-xylazine',
     genericName: 'Xylazine Hydrochloride',
     iupacName: 'N-(2,6-dimethylphenyl)-5,6-dihydro-4H-1,3-thiazin-2-amine',
     brandNames: ['Rompun', 'Sedazine', 'AnaSed', 'Chanazine'],
-    targetDisciplines: [
-      TargetDiscipline.dvm,
-      TargetDiscipline.specialist,
-      TargetDiscipline.pharmD,
-    ],
+    targetDisciplines: [TargetDiscipline.dvm, TargetDiscipline.specialist, TargetDiscipline.pharmD],
     specialty: PharmacologicalSpecialty.neurology,
     chemicalClass: 'Clonidine-analog Alpha-2 Adrenergic Agonist',
-    therapeuticIndications:
-        'Veterinary: Potent sedative, central muscle relaxant, and visceral analgesic widely used in horses, cattle, sheep, goats, canines, felines, and exotic zoo species for chemical restraint, pre-anesthetic sedation, minor surgical procedures, and diagnostic imaging. Emesis induction in felines.',
-    clinicalStaging:
-        'Equine: 0.5–1.1 mg/kg IV produces deep sedation and standing chemical restraint within 3–5 minutes. Bovine: Highly sensitive; requires only 1/10th of the equine dose (0.05–0.1 mg/kg IM).',
-    sourceAndOrigin:
-        'Synthetic derivative developed by Bayer AG in 1962 as an experimental antihypertensive agent in humans; human trials were abandoned due to profound hypotensive and central depressant effects.',
-    discoveryHistory:
-        'Repurposed in the late 1960s exclusively for veterinary medicine. Recently emerged as a major illicit adulterant in the human drug supply ("Tranq / Tranq-Dope"), combined with illicit fentanyl, causing severe necrotic skin ulcers.',
-    syntheticRoute:
-        'Reaction of 2,6-dimethylphenyl isothiocyanate with 3-amino-1-propanol, followed by acid-catalyzed cyclization of the intermediate thiourea into the 1,3-thiazine ring.',
-    molecularTarget:
-        'Central and Peripheral Alpha-2A and Alpha-2D Adrenergic Receptors (α2:α1 selectivity ratio ~160:1).',
+    therapeuticIndications: 'Veterinary: Potent sedative, central muscle relaxant, and visceral analgesic widely used in horses, cattle, sheep, goats, canines, felines, and exotic zoo species for chemical restraint, pre-anesthetic sedation, minor surgical procedures, and diagnostic imaging. Emesis induction in felines.',
+    clinicalStaging: 'Equine: 0.5–1.1 mg/kg IV produces deep sedation and standing chemical restraint within 3–5 minutes. Bovine: Highly sensitive; requires only 1/10th of the equine dose (0.05–0.1 mg/kg IM).',
+    sourceAndOrigin: 'Synthetic derivative developed by Bayer AG in 1962 as an experimental antihypertensive agent in humans; human trials were abandoned due to profound hypotensive and central depressant effects.',
+    discoveryHistory: 'Repurposed in the late 1960s exclusively for veterinary medicine. Recently emerged as a major illicit adulterant in the human drug supply (Tranq / Tranq-Dope), combined with illicit fentanyl, causing severe necrotic skin ulcers.',
+    syntheticRoute: 'Reaction of 2,6-dimethylphenyl isothiocyanate with 3-amino-1-propanol, followed by acid-catalyzed cyclization of the intermediate thiourea into the 1,3-thiazine ring.',
+    molecularTarget: 'Central and Peripheral Alpha-2A and Alpha-2D Adrenergic Receptors (alpha2:alpha1 selectivity ratio ~160:1).',
     pdbAccession: '6KUW / 7D77',
-    modeOfAction:
-        'Xylazine selectively stimulates presynaptic alpha-2 adrenergic auto-receptors in the locus coeruleus and spinal cord dorsal horn. Activation of the coupled Gi/o protein inhibits adenylyl cyclase, reducing intracellular cAMP, while opening inwardly rectifying potassium channels (GIRK) and closing voltage-gated N-type calcium channels. This hyperpolarizes neurons and shuts down the release of norepinephrine and substance P, producing deep central sedation, hypnosis, muscle relaxation, and analgesia.',
-    downstreamSignaling:
-        'Gi/o activation → decreased cAMP + PKA inhibition → reduced presynaptic vesicle fusion (synaptotagmin/SNARE complex arrest) → cessation of sympathetic adrenergic outflow.',
-    absorptionAndDistribution:
-        'Rapidly absorbed following intramuscular or intravenous injection. Onset of action: 1–2 minutes IV, 5–10 minutes IM. Highly lipophilic, rapidly crossing the blood-brain barrier. Vd: 1.9–2.5 L/kg.',
-    metabolismAndElimination:
-        'Rapidly metabolized by hepatic cytochrome P450 enzymes into approximately 20 metabolites (predominantly 2,6-dimethylaniline and thiazine-cleaved products). Only < 8% excreted unchanged in urine.',
-    eliminationHalfLifeHours: 0.8, // Equine 50 mins; canine 30 mins
-    comparativeSpeciesPharmacology:
-        '🐾 DVM High-Yield Species Sensitivity Gradient: Ruminants (cattle, sheep, goats) are 10 TIMES MORE SENSITIVE to xylazine than horses, dogs, or cats due to the presence of the unique α2D-adrenergic receptor subtype in ruminants. Bovine dose is strictly 1/10th of the equine dose. Furthermore, in sheep, xylazine triggers acute pulmonary edema and hypoxia through activation of pulmonary intravascular macrophages (PIMs). In felines, xylazine reliably triggers the chemoreceptor trigger zone (CTZ), making it the classic veterinary drug of choice to induce emesis for gastric decontamination.',
-    transitionStateDescription:
-        'Hydrogen bonding of the protonated nitrogen with Asp-113 in the transmembrane helix 3 (TM3) of the alpha-2 receptor, with the 2,6-dimethylphenyl ring nestled into a hydrophobic pocket formed by Phe-412 and Trp-388.',
+    modeOfAction: 'Xylazine selectively stimulates presynaptic alpha-2 adrenergic auto-receptors in the locus coeruleus and spinal cord dorsal horn. Activation of the coupled Gi/o protein inhibits adenylyl cyclase, reducing intracellular cAMP, while opening inwardly rectifying potassium channels (GIRK) and closing voltage-gated N-type calcium channels. This hyperpolarizes neurons and shuts down the release of norepinephrine and substance P, producing deep central sedation, hypnosis, muscle relaxation, and analgesia.',
+    downstreamSignaling: 'Gi/o activation -> decreased cAMP + PKA inhibition -> reduced presynaptic vesicle fusion (synaptotagmin/SNARE complex arrest) -> cessation of sympathetic adrenergic outflow.',
+    absorptionAndDistribution: 'Rapidly absorbed following intramuscular or intravenous injection. Onset of action: 1–2 minutes IV, 5–10 minutes IM. Highly lipophilic, rapidly crossing the blood-brain barrier. Vd: 1.9–2.5 L/kg.',
+    metabolismAndElimination: 'Rapidly metabolized by hepatic cytochrome P450 enzymes into approximately 20 metabolites (predominantly 2,6-dimethylaniline and thiazine-cleaved products). Only < 8% excreted unchanged in urine.',
+    eliminationHalfLifeHours: 0.8,
+    comparativeSpeciesPharmacology: 'DVM High-Yield Species Sensitivity Gradient: Ruminants (cattle, sheep, goats) are 10 TIMES MORE SENSITIVE to xylazine than horses, dogs, or cats due to the presence of the unique alpha2D-adrenergic receptor subtype in ruminants. Bovine dose is strictly 1/10th of the equine dose. Furthermore, in sheep, xylazine triggers acute pulmonary edema and hypoxia through activation of pulmonary intravascular macrophages. In felines, xylazine reliably triggers the chemoreceptor trigger zone (CTZ), making it the classic veterinary drug of choice to induce emesis for gastric decontamination.',
+    transitionStateDescription: 'Hydrogen bonding of the protonated nitrogen with Asp-113 in the transmembrane helix 3 (TM3) of the alpha-2 receptor, with the 2,6-dimethylphenyl ring nestled into a hydrophobic pocket formed by Phe-412 and Trp-388.',
     activationBarrierKcalMol: 14.1,
     catalyticResidues: 'Alpha-2A Asp-113, Ser-200, Phe-412, Trp-388',
     associatedReactionId: 'vet-xylazine-01',
-    contraindications:
-        'Severe cardiac disease (produces marked 1st and 2nd degree AV block and severe bradycardia), advanced dehydration, respiratory depression, mechanical intestinal obstruction, late-stage pregnancy in cattle (can induce premature labor due to oxytocin-like uterine contractions).',
-    adverseEffectsAndToxicity:
-        'Severe bradycardia (biphasic blood pressure: transient hypertension followed by sustained hypotension and low cardiac output), second-degree atrioventricular block, hypothermia, ruminal bloat (tympaty), hyperglycemia (inhibition of insulin release from pancreatic beta cells). In humans ("Tranq"): necrotic skin ulcerations.',
-    blackBoxWarning:
-        'NOT APPROVED FOR HUMAN USE. In veterinary medicine: Ruminants require 10% of equine dose; can cause fatal acute pulmonary edema in sheep.',
-    antidoteAndRescue:
-        'SPECIFIC RECEPTOR ANTAGONISTS AVAILABLE: Atipamezole (Antisedan) or Yohimbine or Tolazoline. Immediate IV or IM administration of atipamezole competitive alpha-2 antagonist rapidly reverses sedation and bradycardia within 2–5 minutes.',
-    clinicalGuidelines: [
-      'ACVAA Anesthesia & Analgesia Guidelines for Equine, Ruminant, and Small Animal Practice',
-      'AAEP Equine Chemical Restraint and Anesthetic Standards',
-    ],
+    contraindications: 'Severe cardiac disease (produces marked 1st and 2nd degree AV block and severe bradycardia), advanced dehydration, respiratory depression, mechanical intestinal obstruction, late-stage pregnancy in cattle.',
+    adverseEffectsAndToxicity: 'Severe bradycardia (biphasic blood pressure: transient hypertension followed by sustained hypotension and low cardiac output), second-degree atrioventricular block, hypothermia, ruminal bloat, hyperglycemia.',
+    blackBoxWarning: 'NOT APPROVED FOR HUMAN USE. In veterinary medicine: Ruminants require 10% of equine dose; can cause fatal acute pulmonary edema in sheep.',
+    antidoteAndRescue: 'SPECIFIC RECEPTOR ANTAGONISTS AVAILABLE: Atipamezole (Antisedan) or Yohimbine or Tolazoline. Immediate IV or IM administration of atipamezole competitive alpha-2 antagonist rapidly reverses sedation and bradycardia within 2–5 minutes.',
+    clinicalGuidelines: ['ACVAA Anesthesia & Analgesia Guidelines for Equine, Ruminant, and Small Animal Practice', 'AAEP Equine Chemical Restraint and Anesthetic Standards'],
     primaryDoi: '10.1016/j.forsciint.2021.110903',
     pubmedId: '34418659',
-    highYieldExamPearls: [
-      'Bovine dose of xylazine is 1/10th of the equine dose due to extreme α2D sensitivity.',
-      'Classic drug used to induce emesis in cats (activates CTZ).',
-      'Causes biphasic hemodynamics: initial peripheral vasoconstriction followed by sustained bradycardia and hypotension.',
-      'Reversed completely and specifically by Atipamezole or Yohimbine.',
-    ],
+    highYieldExamPearls: ['Bovine dose of xylazine is 1/10th of the equine dose due to extreme alpha2D sensitivity.', 'Classic drug used to induce emesis in cats (activates CTZ).', 'Causes biphasic hemodynamics: initial peripheral vasoconstriction followed by sustained bradycardia and hypotension.', 'Reversed completely and specifically by Atipamezole or Yohimbine.'],
+    citations: [],
   ),
-
-  // ── NEPHROLOGY & RENAL PHARMACOKINETICS ──────────────────────────────────
-  MedicinePharmacologyProfile(
-    id: 'pharma-furosemide',
-    genericName: 'Furosemide',
-    iupacName: '4-chloro-2-(furan-2-ylmethylamino)-5-sulfamoylbenzoic acid',
-    brandNames: ['Lasix', 'Salix', 'Frusid', 'Dimazon'],
-    targetDisciplines: [
-      TargetDiscipline.mbbs,
-      TargetDiscipline.pharmD,
-      TargetDiscipline.dvm,
-      TargetDiscipline.specialist,
-    ],
-    specialty: PharmacologicalSpecialty.nephrology,
-    chemicalClass: 'Anthranilic Acid Sulfonamide High-Ceiling Loop Diuretic',
-    therapeuticIndications:
-        'Human: Acute pulmonary edema, congestive heart failure (NYHA Class II–IV), hepatic cirrhosis with ascites, nephrotic syndrome, acute hypercalcemia, hypertensive crises. Veterinary: Canine and feline cardiogenic pulmonary edema (congestive heart failure), exercise-induced pulmonary hemorrhage (EIPH) in racehorses ("bleeder" medication).',
-    clinicalStaging:
-        'First-line emergency diuretic in acute decompensated heart failure with volume overload. IV administration produces immediate venodilation within 5 minutes, followed by profound diuresis starting within 15–20 minutes.',
-    sourceAndOrigin:
-        'Synthetically created anthranilic acid derivative developed by Hoechst AG in 1962, combining a sulfonamide moiety with a furanmethyl substituent to maximize luminal Na-K-2Cl cotransporter inhibition.',
-    discoveryHistory:
-        'Introduced in 1964 as the prototype "high-ceiling" loop diuretic, replacing toxic mercurial diuretics and revolutionizing acute cardiopulmonary resuscitation.',
-    syntheticRoute:
-        'Nucleophilic aromatic substitution of 2,4-dichloro-5-sulfamoylbenzoic acid with 2-(aminomethyl)furan in the presence of base.',
-    molecularTarget:
-        'Luminal Na⁺/K⁺/2Cl⁻ Cotransporter Isoform 2 (NKCC2 / SLC12A1) in the Thick Ascending Limb (TAL) of the Loop of Henle.',
-    pdbAccession: '7W6Q / 6N38',
-    modeOfAction:
-        'Furosemide must reach the tubular lumen to act. It is > 95% protein bound and reaches the lumen via active organic anion transporter (OAT1/OAT3) secretion in the proximal convoluted tubule. In the thick ascending limb (TAL), it reversibly competes with chloride ions for the Cl⁻-binding site on the luminal NKCC2 cotransporter. Blocking NKCC2 abolishes the reabsorption of 25% of the filtered sodium load. By stopping active Na⁺ and Cl⁻ pumping into the medullary interstitium, furosemide eliminates the corticomedullary osmotic gradient, preventing water reabsorption from the collecting duct even in the presence of ADH (vasopressin). Furthermore, inhibition of NKCC2 collapses the positive lumen-potential (+8 to +10 mV) generated by ROMK potassium recycling, causing secondary renal wasting of Ca²⁺ and Mg²⁺.',
-    downstreamSignaling:
-        'Massive natriuresis and chloriuresis; acute renal production of prostaglandin E₂ (PGE₂) which increases renal blood flow and causes immediate systemic venous capacitance relaxation before diuresis begins.',
-    absorptionAndDistribution:
-        'Oral bioavailability is variable (10–90%, average ~50%). Protein binding is extremely high (95–99% to albumin). Volume of distribution: 0.1–0.2 L/kg.',
-    metabolismAndElimination:
-        'Excreted predominantly unchanged via the kidneys (~65–80%) through active proximal tubular secretion (OAT1/3). A small fraction is glucuronidated in the kidney. In renal failure, systemic half-life is significantly prolonged.',
-    eliminationHalfLifeHours: 1.5,
-    comparativeSpeciesPharmacology:
-        '🐾 DVM Equine & Small Animal Pearl: (1) In thoroughbred racehorses, furosemide is administered 4 hours pre-race to prevent Exercise-Induced Pulmonary Hemorrhage (EIPH / epistaxis) by lowering peak pulmonary artery pressures during maximum exertion. (2) In cats with acute congestive heart failure, over-diuresis quickly causes severe prerenal azotemia and dehydration due to small feline blood volume; dosing must be carefully titrated (1–2 mg/kg IV/IM).',
-    transitionStateDescription:
-        'Coordination of the sulfonamide and carboxylate oxygen atoms to the central ion translocation pore of the NKCC2 homodimer, directly competing with the second chloride ion binding pocket.',
-    activationBarrierKcalMol: 16.0,
-    catalyticResidues: 'NKCC2 Leu-219, Tyr-305, Pro-220, Ile-223',
-    associatedReactionId: 'med-furosemide-01',
-    contraindications:
-        'Anuria refractory to test doses, severe hypokalemia, severe hyponatremia, hepatic coma/encephalopathy, hypersensitivity to sulfonamides.',
-    adverseEffectsAndToxicity:
-        'Hypokalemia (can trigger fatal digoxin toxicity or ventricular arrhythmias), hypomagnesemia, hypocalcemia (unlike thiazides which cause hypercalcemia), contraction metabolic alkalosis, ototoxicity (tinnitus, permanent sensorineural hearing loss, especially when combined with aminoglycosides), hyperuricemia (gout).',
-    blackBoxWarning:
-        'POTENT DIURETIC: Profound diuresis with water and electrolyte depletion may lead to circulatory collapse, hypovolemic shock, and fatal thromboembolism if unmonitored.',
-    antidoteAndRescue:
-        'For over-diuresis and volume contraction: immediate intravenous isotonic saline (0.9% NaCl) and aggressive potassium chloride (KCl) repletion. Ototoxicity risk is minimized by administering IV doses at slow infusion rates (≤ 4 mg/min).',
-    clinicalGuidelines: [
-      'AHA/ACC/HFSA Guideline for the Management of Heart Failure (Class I recommendation)',
-      'ACVIM Consensus Statement: Guidelines for the Diagnosis and Treatment of Myxomatous Mitral Valve Disease in Dogs',
-    ],
-    primaryDoi: '10.1056/NEJMoa1005419',
-    pubmedId: '21366472',
-    highYieldExamPearls: [
-      'Acts on the thick ascending limb of loop of Henle by inhibiting NKCC2.',
-      'Loop diuretics "lose" calcium (hypocalcemia), whereas Thiazide diuretics "save" calcium (hypercalcemia).',
-      'Causes hypokalemic hypochloremic contraction metabolic alkalosis.',
-      'Ototoxicity is exacerbated when co-administered with aminoglycoside antibiotics.',
-    ],
-  ),
-
-  // ── VETERINARY ZOONOTICS & ANTHELMINTICS ──────────────────────────────────
   MedicinePharmacologyProfile(
     id: 'pharma-ivermectin',
     genericName: 'Ivermectin (22,23-dihydroavermectin B1a + B1b)',
-    iupacName:
-        'Mixture of 5-O-demethyl-22,23-dihydroavermectin A1a (~80%) and 5-O-demethyl-25-de(1-methylpropyl)-22,23-dihydro-25-(1-methylethyl)avermectin A1a (~20%)',
+    iupacName: 'Mixture of 5-O-demethyl-22,23-dihydroavermectin A1a (~80%) and 5-O-demethyl-25-de(1-methylpropyl)-22,23-dihydro-25-(1-methylethyl)avermectin A1a (~20%)',
     brandNames: ['Heartgard', 'Stromectol', 'Ivomec', 'Noromectin', 'Soolantra'],
-    targetDisciplines: [
-      TargetDiscipline.dvm,
-      TargetDiscipline.mbbs,
-      TargetDiscipline.pharmD,
-      TargetDiscipline.specialist,
-    ],
+    targetDisciplines: [TargetDiscipline.dvm, TargetDiscipline.mbbs, TargetDiscipline.pharmD, TargetDiscipline.specialist],
     specialty: PharmacologicalSpecialty.veterinaryMedicine,
     chemicalClass: 'Macrocyclic Lactone Endectocide (Avermectin derivative)',
-    therapeuticIndications:
-        'Veterinary: Canine heartworm prophylaxis (Dirofilaria immitis microfilaricide), gastrointestinal nematodes, sarcoptic and demodectic mange, ear mites (Otodectes cynotis). Livestock: Cattle/sheep gastrointestinal roundworms, lungworms, sucking lice, mange mites, and cattle grubs (Hypoderma bovis). Human: Onchocerciasis (river blindness caused by Onchocerca volvulus), lymphatic filariasis (elephantiasis), strongyloidiasis, and crusted scabies.',
-    clinicalStaging:
-        'Human WHO Essential Medicine (Mectizan Donation Program). Veterinary monthly preventive dose in canines: 6 µg/kg PO (heartworm prophylaxis); therapeutic acariasis dose: 300–600 µg/kg PO/SC.',
-    sourceAndOrigin:
-        'Semisynthetic derivative of avermectins, naturally produced by the soil-dwelling actinobacterium Streptomyces avermitilis, discovered by Satoshi Ōmura in Kawana, Japan, and isolated by William C. Campbell at Merck.',
-    discoveryHistory:
-        'Satoshi Ōmura and William C. Campbell were awarded the 2015 Nobel Prize in Physiology or Medicine for the discovery of avermectins, which virtually eradicated river blindness in West Africa.',
-    syntheticRoute:
-        'Selective catalytic hydrogenation of avermectin B1 using Wilkinson\'s rhodium catalyst (RhCl(PPh₃)₃) to saturate the 22,23-double bond while leaving the 3,4 and 8,9-double bonds intact.',
-    molecularTarget:
-        'Glutamate-Gated Chloride Channels (GluCl) and secondary GABA-gated chloride channels in invertebrate nematodes and arthropods.',
+    therapeuticIndications: 'Veterinary: Canine heartworm prophylaxis (Dirofilaria immitis microfilaricide), gastrointestinal nematodes, sarcoptic and demodectic mange, ear mites. Livestock: Cattle/sheep gastrointestinal roundworms, lungworms, sucking lice, mange mites, and cattle grubs. Human: Onchocerciasis (river blindness), lymphatic filariasis, strongyloidiasis, and crusted scabies.',
+    clinicalStaging: 'Human WHO Essential Medicine (Mectizan Donation Program). Veterinary monthly preventive dose in canines: 6 ug/kg PO; therapeutic acariasis dose: 300–600 ug/kg PO/SC.',
+    sourceAndOrigin: 'Semisynthetic derivative of avermectins, naturally produced by the soil-dwelling actinobacterium Streptomyces avermitilis, discovered by Satoshi Omura in Kawana, Japan, and isolated by William C. Campbell at Merck.',
+    discoveryHistory: 'Satoshi Omura and William C. Campbell were awarded the 2015 Nobel Prize in Physiology or Medicine for the discovery of avermectins, which virtually eradicated river blindness in West Africa.',
+    syntheticRoute: 'Selective catalytic hydrogenation of avermectin B1 using Wilkinson catalyst (RhCl(PPh3)3) to saturate the 22,23-double bond while leaving the 3,4 and 8,9-double bonds intact.',
+    molecularTarget: 'Glutamate-Gated Chloride Channels (GluCl) and secondary GABA-gated chloride channels in invertebrate nematodes and arthropods.',
     pdbAccession: '3RIF / 3RHW',
-    modeOfAction:
-        'Ivermectin binds with high selectivity and nanomolar affinity to the transmembrane domain of invertebrate-specific glutamate-gated chloride (GluCl) channels located in nematode pharyngeal and somatic nerve and muscle cells. It acts as an allosteric agonist, locking the channel in an open, activated state. The resulting persistent, irreversible influx of chloride ions hyperpolarizes the parasite\'s resting membrane potential, preventing action potential generation. This paralyzes the pharyngeal pump (preventing ingestion of nutrients) and causes flaccid somatic muscle paralysis, leading to clearance by the host immune system.',
-    downstreamSignaling:
-        'Invertebrate neuron/muscle hyperpolarization via unregulated chloride influx → loss of neuromuscular transmission → flaccid muscular paralysis and parasite starvation.',
-    absorptionAndDistribution:
-        'High lipophilicity. Well absorbed orally and topically; subcutaneous formulations form a tissue depot in subcutaneous fat providing sustained microfilarial suppression. Vd is large (2.4–4.7 L/kg). Poor penetration across an intact mammalian blood-brain barrier due to active P-glycoprotein efflux.',
-    metabolismAndElimination:
-        'Extensively metabolized by hepatic CYP3A into hydroxylated metabolites. Excreted almost entirely in feces (> 98%) via biliary transport, with < 2% in urine.',
-    eliminationHalfLifeHours: 18.0, // Canine 18–48h; bovine up to 5–7 days
-    comparativeSpeciesPharmacology:
-        '🐾 DVM High-Yield Genetic Toxicological Pearl: In normal mammals, ivermectin does NOT cross the blood-brain barrier because the BBB endothelial cells express P-glycoprotein (P-gp), encoded by the ABCB1 (MDR1) gene, which actively pumps ivermectin back into systemic circulation. However, ~70% of Collie-lineage herding breeds (Rough Collies, Smooth Collies, Australian Shepherds, Shetland Sheepdogs) carry a homozygous 4-base pair deletion mutation (ABCB1-1Δ / MDR1 mutation). In these dogs, P-gp is truncated and non-functional. High-dose ivermectin (used for mange: 300–600 µg/kg) penetrates the CNS unchecked, binds to mammalian GABA-A receptors, and causes severe neurotoxicity: mydriasis, ataxia, tremors, hypersalivation, coma, and respiratory death! Note: the monthly heartworm preventative dose (6 µg/kg) is safe even in MDR1-mutant dogs.',
-    transitionStateDescription:
-        'Binding to the subunit interface in the upper transmembrane domain of GluCl, inserting between M1 and M3 helices and expanding the pore diameter to trap the open channel conformation.',
+    modeOfAction: 'Ivermectin binds with high selectivity and nanomolar affinity to the transmembrane domain of invertebrate-specific glutamate-gated chloride (GluCl) channels located in nematode pharyngeal and somatic nerve and muscle cells. It acts as an allosteric agonist, locking the channel in an open, activated state. The resulting persistent, irreversible influx of chloride ions hyperpolarizes the parasite\'s resting membrane potential, preventing action potential generation. This paralyzes the pharyngeal pump (preventing ingestion of nutrients) and causes flaccid somatic muscle paralysis, leading to clearance by the host immune system.',
+    downstreamSignaling: 'Invertebrate neuron/muscle hyperpolarization via unregulated chloride influx -> loss of neuromuscular transmission -> flaccid muscular paralysis and parasite starvation.',
+    absorptionAndDistribution: 'High lipophilicity. Well absorbed orally and topically; subcutaneous formulations form a tissue depot in subcutaneous fat providing sustained microfilarial suppression. Vd is large (2.4–4.7 L/kg). Poor penetration across an intact mammalian blood-brain barrier due to active P-glycoprotein efflux.',
+    metabolismAndElimination: 'Extensively metabolized by hepatic CYP3A into hydroxylated metabolites. Excreted almost entirely in feces (> 98%) via biliary transport, with < 2% in urine.',
+    eliminationHalfLifeHours: 18.0,
+    comparativeSpeciesPharmacology: 'DVM High-Yield Genetic Toxicological Pearl: In normal mammals, ivermectin does NOT cross the blood-brain barrier because the BBB endothelial cells express P-glycoprotein (P-gp), encoded by the ABCB1 (MDR1) gene, which actively pumps ivermectin back into systemic circulation. However, ~70% of Collie-lineage herding breeds carry a homozygous 4-base pair deletion mutation (ABCB1-1Delta / MDR1 mutation). In these dogs, P-gp is truncated and non-functional. High-dose ivermectin penetrates the CNS unchecked, binds to mammalian GABA-A receptors, and causes severe neurotoxicity: mydriasis, ataxia, tremors, hypersalivation, coma, and respiratory death! Note: the monthly heartworm preventative dose (6 ug/kg) is safe even in MDR1-mutant dogs.',
+    transitionStateDescription: 'Binding to the subunit interface in the upper transmembrane domain of GluCl, inserting between M1 and M3 helices and expanding the pore diameter to trap the open channel conformation.',
     activationBarrierKcalMol: 18.8,
     catalyticResidues: 'GluCl Leu-218, Ser-260, Thr-285, Ile-222',
     associatedReactionId: 'vet-ivermectin-01',
-    contraindications:
-        'High-dose therapy (> 100 µg/kg) in dogs homozygous for the ABCB1/MDR1 mutation; turtles, tortoises, and indigo snakes (ivermectin crosses their blood-brain barrier causing fatal flaccid paralysis); microfilaria-positive heartworm dogs without supervision (massive microfilarial die-off triggers fatal anaphylactoid shock).',
-    adverseEffectsAndToxicity:
-        'Mazzotti reaction in human onchocerciasis (fever, hypotension, pruritus, arthralgia due to death of microfilariae). In MDR1-mutant canines: blindness, stupor, coma, hyper-reflexia, seizures, respiratory arrest.',
-    blackBoxWarning:
-        'MDR1 (ABCB1) GENETIC TESTING MANDATORY before administering high-dose macrocyclic lactones to Collies, Australian Shepherds, and related breeds.',
-    antidoteAndRescue:
-        'No specific competitive receptor reversal agent exists. Intensive supportive care: mechanical ventilation, intravenous lipid emulsion (ILE / "lipid rescue" 20% Intralipid) to partition the lipophilic ivermectin out of CNS tissue into a circulating vascular lipid sink.',
-    clinicalGuidelines: [
-      'American Heartworm Society (AHS) Canine Guidelines for Prevention and Treatment',
-      'CAPC (Companion Animal Parasite Council) Guidelines on Dirofilaria immitis',
-      'WHO Guidelines for the Treatment of Onchocerciasis and Lymphatic Filariasis',
-    ],
+    contraindications: 'High-dose therapy (> 100 ug/kg) in dogs homozygous for the ABCB1/MDR1 mutation; turtles, tortoises, and indigo snakes (ivermectin crosses their blood-brain barrier causing fatal flaccid paralysis); microfilaria-positive heartworm dogs without supervision.',
+    adverseEffectsAndToxicity: 'Mazzotti reaction in human onchocerciasis (fever, hypotension, pruritus, arthralgia due to death of microfilariae). In MDR1-mutant canines: blindness, stupor, coma, hyper-reflexia, seizures, respiratory arrest.',
+    blackBoxWarning: 'MDR1 (ABCB1) GENETIC TESTING MANDATORY before administering high-dose macrocyclic lactones to Collies, Australian Shepherds, and related breeds.',
+    antidoteAndRescue: 'No specific competitive receptor reversal agent exists. Intensive supportive care: mechanical ventilation, intravenous lipid emulsion (ILE / lipid rescue 20% Intralipid) to partition the lipophilic ivermectin out of CNS tissue into a circulating vascular lipid sink.',
+    clinicalGuidelines: ['American Heartworm Society (AHS) Canine Guidelines for Prevention and Treatment', 'CAPC Guidelines on Dirofilaria immitis', 'WHO Guidelines for the Treatment of Onchocerciasis and Lymphatic Filariasis'],
     primaryDoi: '10.1038/nature10206',
     pubmedId: '21743477',
-    highYieldExamPearls: [
-      'Binds selectively to glutamate-gated chloride (GluCl) channels unique to invertebrates.',
-      'Satoshi Ōmura & William Campbell won the 2015 Nobel Prize for its discovery.',
-      'P-glycoprotein (MDR1/ABCB1) keeps ivermectin out of the mammalian brain.',
-      'Collies with homozygous MDR1 mutation suffer fatal neurotoxicity due to absent P-gp efflux.',
-      'Lipid rescue (IV Intralipid) is the emergency management protocol for avermectin overdose.',
-    ],
+    highYieldExamPearls: ['Binds selectively to glutamate-gated chloride (GluCl) channels unique to invertebrates.', 'Satoshi Omura & William Campbell won the 2015 Nobel Prize for its discovery.', 'P-glycoprotein (MDR1/ABCB1) keeps ivermectin out of the mammalian brain.', 'Collies with homozygous MDR1 mutation suffer fatal neurotoxicity due to absent P-gp efflux.', 'Lipid rescue (IV Intralipid) is the emergency management protocol for avermectin overdose.'],
+    citations: [],
   ),
-
-  // ── ONCOLOGY & CHEMOTHERAPY ───────────────────────────────────────────────
   MedicinePharmacologyProfile(
     id: 'pharma-methotrexate',
     genericName: 'Methotrexate (MTX / Amethopterin)',
-    iupacName:
-        '(2S)-2-[[4-[(2,4-diaminopteridin-6-yl)methyl-methylamino]benzoyl]amino]pentanedioic acid',
+    iupacName: '(2S)-2-[[4-[(2,4-diaminopteridin-6-yl)methyl-methylamino]benzoyl]amino]pentanedioic acid',
     brandNames: ['Trexall', 'Otrexup', 'Rasuvo', 'Rheumatrex'],
-    targetDisciplines: [
-      TargetDiscipline.mbbs,
-      TargetDiscipline.pharmD,
-      TargetDiscipline.specialist,
-    ],
+    targetDisciplines: [TargetDiscipline.mbbs, TargetDiscipline.pharmD, TargetDiscipline.specialist],
     specialty: PharmacologicalSpecialty.oncology,
     chemicalClass: 'Antifolate Antimetabolite',
-    therapeuticIndications:
-        'Oncology: Acute lymphoblastic leukemia (ALL), non-Hodgkin lymphoma, osteosarcoma, choriocarcinoma, head and neck cancers, breast cancer. Rheumatology & Dermatology: Severe rheumatoid arthritis (first-line disease-modifying antirheumatic drug / DMARD), recalcitrant psoriasis, Crohn\'s disease, ectopic pregnancy medical termination.',
-    clinicalStaging:
-        'High-dose MTX (> 500 mg/m² IV) in pediatric ALL and osteosarcoma protocols requires mandatory systemic Leucovorin (folinic acid) rescue and urinary alkalinization.',
-    sourceAndOrigin:
-        'Synthetic antimetabolite synthesized in 1947 by Yellapragada Subbarow and Sidney Farber at Lederle Laboratories as a 4-amino, N10-methyl structural analogue of folic acid.',
-    discoveryHistory:
-        'Sidney Farber noticed that folic acid accelerated acute leukemia in children; he developed folate antagonists (aminopterin and methotrexate) to induce the first remissions in childhood leukemia, founding modern cancer chemotherapy.',
-    syntheticRoute:
-        'Condensation of 2,4,5,6-tetraaminopyrimidine with 1,1,3-trichloroacetone and 4-(methylamino)benzoyl-L-glutamic acid.',
-    molecularTarget:
-        'Dihydrofolate Reductase (DHFR) and secondary Thymidylate Synthase.',
+    therapeuticIndications: 'Oncology: Acute lymphoblastic leukemia (ALL), non-Hodgkin lymphoma, osteosarcoma, choriocarcinoma, head and neck cancers, breast cancer. Rheumatology & Dermatology: Severe rheumatoid arthritis (first-line DMARD), recalcitrant psoriasis, Crohn\'s disease, ectopic pregnancy medical termination.',
+    clinicalStaging: 'High-dose MTX (> 500 mg/m2 IV) in pediatric ALL and osteosarcoma protocols requires mandatory systemic Leucovorin (folinic acid) rescue and urinary alkalinization.',
+    sourceAndOrigin: 'Synthetic antimetabolite synthesized in 1947 by Yellapragada Subbarow and Sidney Farber at Lederle Laboratories as a 4-amino, N10-methyl structural analogue of folic acid.',
+    discoveryHistory: 'Sidney Farber noticed that folic acid accelerated acute leukemia in children; he developed folate antagonists to induce the first remissions in childhood leukemia, founding modern cancer chemotherapy.',
+    syntheticRoute: 'Condensation of 2,4,5,6-tetraaminopyrimidine with 1,1,3-trichloroacetone and 4-(methylamino)benzoyl-L-glutamic acid.',
+    molecularTarget: 'Dihydrofolate Reductase (DHFR) and secondary Thymidylate Synthase.',
     pdbAccession: '1U72 / 4DFR',
-    modeOfAction:
-        'Methotrexate enters mammalian cells via the Reduced Folate Carrier 1 (RFC1 / SLC19A1). Intracellularly, folylpolyglutamate synthetase (FPGS) sequentially adds glutamate residues to MTX, forming polyglutamated MTX (MTX-Glu_n), which is trapped within the cell. MTX-Glu competitive binds to the catalytic pocket of Dihydrofolate Reductase (DHFR) with a dissociation constant (Kd ≈ 0.01 nM) that is 1,000-fold tighter than the natural substrate dihydrofolate (DHF). Inhibition of DHFR blocks the regeneration of tetrahydrofolate (THF), starving cells of single-carbon methyl donors (N5,N10-methylene-THF) essential for the de novo synthesis of thymidylate (dTMP) from dUMP, and for purine biosynthesis (IMP). This halts DNA replication and triggers S-phase cell cycle arrest and apoptosis.',
-    downstreamSignaling:
-        'Thymine-less death: Depletion of dTTP leads to incorporation of dUTP into replicating DNA; futile DNA repair glycosylase cycles produce double-stranded breaks and p53-dependent apoptotic death.',
-    absorptionAndDistribution:
-        'Dose-dependent oral absorption (saturable active transport in gut; high doses must be given parenterally). Protein binding is ~50%. Widely distributed, but poor baseline CSF penetration unless administered intrathecally or at ultra-high intravenous doses (> 1 g/m²). MTX accumulates in "third-space" fluid collections (ascites, pleural effusions) which act as slow-release reservoirs causing prolonged toxicity.',
-    metabolismAndElimination:
-        'Partially converted to 7-hydroxymethotrexate by hepatic aldehyde oxidase. Excretion is > 80–90% renal via glomerular filtration and active proximal tubular secretion (inhibited by NSAIDs, penicillins, and proton pump inhibitors).',
-    eliminationHalfLifeHours: 6.0, // Terminal phase 3–15h
-    comparativeSpeciesPharmacology:
-        'Used in canine veterinary oncology for refractory lymphoma and osteosarcoma. However, dogs exhibit lower gastrointestinal tolerance to antifolates than humans, frequently developing severe hemorrhagic enteritis and sloughing of intestinal crypt cells; consequently, lower relative dosing protocols are mandatory in veterinary patients.',
-    transitionStateDescription:
-        'Pteridine ring protonation at N1 forming an exceptionally stable bifurcated hydrogen bond network with Asp-27 and NADPH cofactor in the deep catalytic cleft of DHFR.',
+    modeOfAction: 'Methotrexate enters mammalian cells via the Reduced Folate Carrier 1 (RFC1 / SLC19A1). Intracellularly, folylpolyglutamate synthetase (FPGS) sequentially adds glutamate residues to MTX, forming polyglutamated MTX (MTX-Glu_n), which is trapped within the cell. MTX-Glu competitive binds to the catalytic pocket of Dihydrofolate Reductase (DHFR) with a dissociation constant (Kd ~ 0.01 nM) that is 1,000-fold tighter than the natural substrate dihydrofolate (DHF). Inhibition of DHFR blocks the regeneration of tetrahydrofolate (THF), starving cells of single-carbon methyl donors essential for the de novo synthesis of thymidylate (dTMP) from dUMP, and for purine biosynthesis (IMP). This halts DNA replication and triggers S-phase cell cycle arrest and apoptosis.',
+    downstreamSignaling: 'Thymine-less death: Depletion of dTTP leads to incorporation of dUTP into replicating DNA; futile DNA repair glycosylase cycles produce double-stranded breaks and p53-dependent apoptotic death.',
+    absorptionAndDistribution: 'Dose-dependent oral absorption (saturable active transport in gut). Protein binding is ~50%. Widely distributed, but poor baseline CSF penetration unless administered intrathecally or at ultra-high intravenous doses. MTX accumulates in third-space fluid collections which act as slow-release reservoirs causing prolonged toxicity.',
+    metabolismAndElimination: 'Partially converted to 7-hydroxymethotrexate by hepatic aldehyde oxidase. Excretion is > 80–90% renal via glomerular filtration and active proximal tubular secretion.',
+    eliminationHalfLifeHours: 6.0,
+    comparativeSpeciesPharmacology: 'Used in canine veterinary oncology for refractory lymphoma and osteosarcoma. However, dogs exhibit lower gastrointestinal tolerance to antifolates than humans, frequently developing severe hemorrhagic enteritis and sloughing of intestinal crypt cells; lower relative dosing protocols are mandatory in veterinary patients.',
+    transitionStateDescription: 'Pteridine ring protonation at N1 forming an exceptionally stable bifurcated hydrogen bond network with Asp-27 and NADPH cofactor in the deep catalytic cleft of DHFR.',
     activationBarrierKcalMol: 16.8,
     catalyticResidues: 'DHFR Asp-27, Ile-5, Phe-31, Arg-57',
     associatedReactionId: 'med-methotrexate-01',
-    contraindications:
-        'Pregnancy (Category X: potent teratogen / abortifacient), breastfeeding, severe pre-existing renal insufficiency (GFR < 30 mL/min), severe liver disease, pre-existing bone marrow aplasia.',
-    adverseEffectsAndToxicity:
-        'Bone marrow suppression (myelosuppression: neutropenia, thrombocytopenia), mucosal ulcerations (stomatitis, mucositis), hepatotoxicity (steatohepatitis and cirrhosis with chronic low-dose use), acute nephrotoxicity (MTX crystals precipitating in renal tubules in acidic urine), hypersensitivity pneumonitis.',
-    blackBoxWarning:
-        'FATAL TOXICITY WARNING: Methotrexate for rheumatoid arthritis or psoriasis is taken ONCE WEEKLY, NOT DAILY. Accidental daily dosing has caused fatal bone marrow suppression and GI perforation. High-dose chemotherapy requires Leucovorin rescue.',
-    antidoteAndRescue:
-        'LEUCOVORIN (Folinic acid / 5-formyl-THF) RESCUE: Leucovorin bypasses DHFR, providing downstream reduced folate to rescue non-cancerous cells. For acute renal failure with toxic MTX concentrations: GLUCARPIDASE (Voraxaze / carboxypeptidase G2) rapidly cleaves extracellular MTX into inactive DAMPA, dropping plasma levels by > 95% in 15 minutes.',
-    clinicalGuidelines: [
-      'NCCN Clinical Practice Guidelines in Oncology: Pediatric Acute Lymphoblastic Leukemia',
-      'ACR (American College of Rheumatology) Guideline for the Treatment of Rheumatoid Arthritis',
-    ],
+    contraindications: 'Pregnancy (Category X: potent teratogen / abortifacient), breastfeeding, severe pre-existing renal insufficiency (GFR < 30 mL/min), severe liver disease, pre-existing bone marrow aplasia.',
+    adverseEffectsAndToxicity: 'Bone marrow suppression (myelosuppression), mucosal ulcerations (stomatitis), hepatotoxicity (cirrhosis with chronic low-dose use), acute nephrotoxicity (MTX crystals precipitating in renal tubules in acidic urine), hypersensitivity pneumonitis.',
+    blackBoxWarning: 'FATAL TOXICITY WARNING: Methotrexate for rheumatoid arthritis or psoriasis is taken ONCE WEEKLY, NOT DAILY. Accidental daily dosing has caused fatal bone marrow suppression and GI perforation. High-dose chemotherapy requires Leucovorin rescue.',
+    antidoteAndRescue: 'LEUCOVORIN (Folinic acid / 5-formyl-THF) RESCUE: Leucovorin bypasses DHFR, providing downstream reduced folate to rescue non-cancerous cells. For acute renal failure with toxic MTX concentrations: GLUCARPIDASE (Voraxaze) rapidly cleaves extracellular MTX into inactive DAMPA, dropping plasma levels by > 95% in 15 minutes.',
+    clinicalGuidelines: ['NCCN Clinical Practice Guidelines in Oncology: Pediatric Acute Lymphoblastic Leukemia', 'ACR Guideline for the Treatment of Rheumatoid Arthritis'],
     primaryDoi: '10.1056/NEJMra1314811',
     pubmedId: '24694326',
-    highYieldExamPearls: [
-      'Methotrexate competitively and pseudoirreversibly inhibits Dihydrofolate Reductase (DHFR).',
-      'Intracellular polyglutamation by FPGS traps MTX inside cells and dramatically increases potency.',
-      'Leucovorin (folinic acid) bypasses DHFR and rescues bone marrow and gastrointestinal cells.',
-      'Drug interactions: NSAIDs, penicillins, and PPIs compete for renal tubular secretion, causing fatal MTX toxicity.',
-      'Glucarpidase is the recombinant rescue enzyme for life-threatening methotrexate toxicity.',
-    ],
+    highYieldExamPearls: ['Methotrexate competitively and pseudoirreversibly inhibits Dihydrofolate Reductase (DHFR).', 'Intracellular polyglutamation by FPGS traps MTX inside cells and dramatically increases potency.', 'Leucovorin (folinic acid) bypasses DHFR and rescues bone marrow and gastrointestinal cells.', 'Drug interactions: NSAIDs, penicillins, and PPIs compete for renal tubular secretion, causing fatal MTX toxicity.', 'Glucarpidase is the recombinant rescue enzyme for life-threatening methotrexate toxicity.'],
+    citations: [],
+  ),
+  MedicinePharmacologyProfile(
+    id: 'pharma-sacubitril-valsartan',
+    genericName: 'Sacubitril / Valsartan',
+    iupacName: '4-{[(1S,3R)-1-([1,1\'-biphenyl]-4-ylmethyl)-4-ethoxy-3-methyl-4-oxobutyl]amino}-4-oxobutanoic acid + (2S)-3-methyl-2-[pentanoyl[[2\'-(1H-tetrazol-5-yl)biphenyl-4-yl]methyl]amino]butanoic acid',
+    brandNames: ['Entresto', 'Vymada', 'Neparvis'],
+    targetDisciplines: [TargetDiscipline.mbbs, TargetDiscipline.pharmD, TargetDiscipline.specialist],
+    specialty: PharmacologicalSpecialty.cardiology,
+    chemicalClass: 'Angiotensin Receptor-Neprilysin Inhibitor (ARNI)',
+    therapeuticIndications: 'Human: First-line cornerstone therapy for Heart Failure with reduced Ejection Fraction (HFrEF, NYHA Class II–IV) to reduce the risk of cardiovascular death and hospitalization for heart failure. Proven superior to enalapril in the landmark PARADIGM-HF trial (20% relative risk reduction in CV mortality). Also approved in pediatric heart failure and hypertension.',
+    clinicalStaging: 'ACC/AHA/ESC Guideline Class I, Level of Evidence A recommendation for HFrEF (LVEF ≤ 40%). Target maintenance dose: 97/103 mg twice daily.',
+    sourceAndOrigin: 'Rational multi-target drug design combining a neprilysin inhibitor prodrug (sacubitril) with an angiotensin II receptor blocker (valsartan) crystallized into a 1:1 supramolecular sodium salt hexahydrate complex.',
+    discoveryHistory: 'Developed by Novartis to solve the fatal angioedema observed with early dual ACE-neprilysin inhibitors (Omapatrilat). PARADIGM-HF was stopped early in 2014 due to overwhelming clinical benefit.',
+    syntheticRoute: 'Sacubitril is synthesized via chiral alkylation of (R)-4-amino-3-methylbutyric acid with 4-biphenylmethyl chloride, followed by succinylation. Valsartan is prepared by N-acylation of L-valine with valeryl chloride and coupling to 4-(bromomethyl)biphenyl-2-carbonitrile, followed by tetrazole ring formation.',
+    molecularTarget: 'Neprilysin (Neutral Endopeptidase / NEP / CD10) & Angiotensin II Type 1 Receptor (AT1R)',
+    pdbAccession: '5ZMQ / 6B08',
+    modeOfAction: 'Sacubitril is an ethyl ester prodrug cleaved in vivo by hepatic carboxylesterases to the active diacid LBQ657, which coordinates zinc in the neprilysin catalytic active site, preventing degradation of atrial and brain natriuretic peptides (ANP, BNP), bradykinin, and adrenomedullin -> marked natriuresis, diuresis, vasodilation, and antifibrotic myocardial remodeling. Valsartan selectively blocks AT1 receptors, preventing downstream Gq-mediated vasoconstriction and aldosterone release without stimulating bradykinin degradation.',
+    downstreamSignaling: 'Elevated intracellular cyclic GMP (cGMP) via guanylyl cyclase-A/B stimulation, activating protein kinase G (PKG), which inhibits cardiac hypertrophy, apoptosis, and interstitial collagen deposition.',
+    absorptionAndDistribution: 'Oral bioavailability: Sacubitril ~60%, Valsartan ~25%. High protein binding: Sacubitril 97%, LBQ657 97%, Valsartan 95%. Volume of distribution (Vd): LBQ657 ~103 L, Valsartan ~17 L.',
+    metabolismAndElimination: 'Sacubitril undergoes rapid enzymatic de-esterification to active LBQ657 (half-life ~11.5 hours). LBQ657 is eliminated predominantly via renal excretion (52–68%). Valsartan is eliminated primarily via biliary excretion in feces (86%) and urine (13%) without significant CYP metabolism.',
+    eliminationHalfLifeHours: 11.5,
+    comparativeSpeciesPharmacology: '🐾 DVM Emerging: Investigated in canine dilated cardiomyopathy (DCM) and myxomatous mitral valve disease (MMVD) with promising reductions in cardiac biomarkers (NT-proBNP) and left atrial remodeling.',
+    transitionStateDescription: 'Nucleophilic attack of active-site zinc-bound water molecule on the carbonyl carbon of the peptide substrate within the neprilysin catalytic cleft, forming a tetrahedral gem-diolate transition state stabilized by Glu-584 and His-711.',
+    activationBarrierKcalMol: 16.8,
+    catalyticResidues: 'Glu-584, His-711, His-583, Arg-717, Zn2+',
+    associatedReactionId: 'med-sacubitril-valsartan-01',
+    contraindications: 'Concomitant use with ACE inhibitors (must allow 36-hour washout period), history of angioedema related to previous ACEi or ARB therapy, pregnancy (fetal toxicity/renal dysgenesis), severe hepatic impairment (Child-Pugh C).',
+    adverseEffectsAndToxicity: 'Symptomatic hypotension (especially in volume-depleted patients), hyperkalemia, renal impairment (eGFR decline), angioedema, cough.',
+    blackBoxWarning: 'Fetal Toxicity: When pregnancy is detected, discontinue Sacubitril/Valsartan as soon as possible. Drugs acting directly on the renin-angiotensin system can cause injury and death to the developing fetus.',
+    antidoteAndRescue: 'Emergency management of severe hypotension: IV normal saline volume repletion. For angioedema: immediate airway management, intramuscular Epinephrine (0.3–0.5 mg 1:1000), IV diphenhydramine, and methylprednisolone. For hyperkalemia: calcium gluconate IV, insulin + glucose, sodium polystyrene sulfonate or patiromer.',
+    clinicalGuidelines: ['2022 AHA/ACC/HFSA Heart Failure Guidelines: Class I, Level A', '2023 ESC Heart Failure Guidelines: Class I, Level A'],
+    primaryDoi: '10.1056/NEJMoa1403076',
+    pubmedId: '25176015',
+    highYieldExamPearls: ['USMLE/MBBS Essential: You MUST wait 36 hours after stopping an ACE inhibitor before starting Sacubitril/Valsartan. Dual inhibition of ACE (kininase II) and neprilysin results in massive, potentially fatal bradykinin accumulation and angioedema.', 'Diagnostic Pearl: Sacubitril inhibits BNP degradation, causing plasma BNP levels to rise falsely. To assess heart failure decompensation in a patient on Entresto, measure NT-proBNP (N-terminal pro-B-type natriuretic peptide) instead, as NT-proBNP is NOT a neprilysin substrate!'],
+    citations: [{'title': 'N. Engl. J. Med. 2014, 371, 993-1004', 'doi': '10.1056/NEJMoa1403076'}],
+  ),
+  MedicinePharmacologyProfile(
+    id: 'pharma-metoprolol-succinate',
+    genericName: 'Metoprolol Succinate',
+    iupacName: '(2R)-1-[4-(2-methoxyethyl)phenoxy]-3-(propan-2-ylamino)propan-2-ol butanedioate',
+    brandNames: ['Toprol-XL', 'Betaloc CR', 'Lopressor'],
+    targetDisciplines: [TargetDiscipline.mbbs, TargetDiscipline.pharmD, TargetDiscipline.specialist],
+    specialty: PharmacologicalSpecialty.cardiology,
+    chemicalClass: 'Second-Generation Cardioselective Beta-1 Adrenergic Receptor Antagonist',
+    therapeuticIndications: 'Human: Chronic heart failure with reduced ejection fraction (HFrEF) to reduce mortality (MERIT-HF landmark trial), essential hypertension, chronic stable angina pectoris, post-myocardial infarction secondary cardioprotection.',
+    clinicalStaging: 'ACC/AHA Class I indication in HFrEF. Target dose: titrated every 2 weeks up to 200 mg once daily.',
+    sourceAndOrigin: 'Synthetic aryloxypropanolamine derivative discovered by Astra (now AstraZeneca) researchers led by Bengt Ablad in 1969 to achieve beta-1 selectivity over airway beta-2 receptors.',
+    discoveryHistory: 'Synthesized in 1969; approved by the FDA in 1978. The MERIT-HF trial (1999) demonstrated a 34% reduction in all-cause mortality in heart failure patients.',
+    syntheticRoute: 'Reaction of 4-(2-methoxyethyl)phenol with epichlorohydrin in the presence of base yields 1,2-epoxy-3-[4-(2-methoxyethyl)phenoxy]propane, which undergoes ring-opening nucleophilic addition with isopropylamine.',
+    molecularTarget: 'Beta-1 Adrenergic Receptor (ADRB1)',
+    pdbAccession: '7B6W / 2Y00',
+    modeOfAction: 'Competitively antagonizes catecholamines (epinephrine, norepinephrine) at myocardial beta-1 adrenergic receptors, blocking Gs-protein coupled adenylyl cyclase activation and cAMP generation. This decreases PKA phosphorylation of L-type Ca2+ channels (Cav1.2) and ryanodine receptors (RyR2), slowing SA node automaticity (negative chronotropy) and reducing myocardial contractile force (negative inotropy), blunting sympathetic toxicity in heart failure.',
+    downstreamSignaling: 'Suppression of renin release from renal juxtaglomerular cells (beta-1 mediated), decreasing circulating angiotensin II and aldosterone, downregulating sympathetic overactivity.',
+    absorptionAndDistribution: 'Well absorbed from the GI tract (~95%). High first-pass hepatic metabolism yields ~50% systemic bioavailability. Extended-release succinate formulation delivers zero-order plasma concentrations over 24 hours. Plasma protein binding ~12%.',
+    metabolismAndElimination: 'Extensively metabolized in the liver via CYP2D6 (oxidative O-demethylation and alpha-hydroxylation). Eliminated >95% in urine as inactive metabolites.',
+    eliminationHalfLifeHours: 7.0,
+    comparativeSpeciesPharmacology: '🐾 DVM Essential: Used in dogs and cats for supraventricular tachycardias, feline hypertrophic cardiomyopathy (HCM) to alleviate dynamic left ventricular outflow tract obstruction (SAM), and systemic hypertension.',
+    transitionStateDescription: 'Proton transfer from the protonated secondary ammonium group of metoprolol to the Asp-121 carboxylate anchor within the beta-1 receptor ligand binding pocket, stabilized by Asn-329 and Phe-307.',
+    activationBarrierKcalMol: 14.2,
+    catalyticResidues: 'Asp-121, Asn-329, Phe-307, Ser-211',
+    associatedReactionId: 'med-metoprolol-01',
+    contraindications: 'Severe sinus bradycardia (HR < 45 bpm), second- or third-degree AV block, cardiogenic shock, decompensated heart failure requiring IV inotropic support, sick sinus syndrome without pacemaker.',
+    adverseEffectsAndToxicity: 'Bradycardia, hypotension, fatigue, cold extremities (peripheral vasoconstriction), bronchospasm in susceptible asthmatic patients at higher doses, erectile dysfunction.',
+    blackBoxWarning: 'Avoid Abrupt Cessation: Severe exacerbation of angina, myocardial infarction, and ventricular arrhythmias may occur after abrupt discontinuation of beta-blockers. Taper gradually over 1 to 2 weeks.',
+    antidoteAndRescue: 'Overdose antidote: High-dose Glucagon IV (bypasses beta receptors to stimulate adenylyl cyclase via glucagon receptors), IV Calcium gluconate/chloride, High-Dose Insulin Euglycemia (HIE) therapy, and IV lipid emulsion.',
+    clinicalGuidelines: ['AHA/ACC Heart Failure Guidelines 2022: Class I, Level A', 'MERIT-HF Landmark Trial (Lancet 1999)'],
+    primaryDoi: '10.1016/S0140-6736(99)04440-2',
+    pubmedId: '10376614',
+    highYieldExamPearls: ['USMLE Step 1 / MBBS Pearl: Only THREE beta-blockers have proven mortality reduction in HFrEF: Metoprolol SUCCINATE (not tartrate!), Carvedilol, and Bisoprolol.', 'Pharmacogenomics: Metoprolol is a high-affinity CYP2D6 substrate. Poor metabolizers (5–10% of Caucasians) have 3- to 10-fold higher plasma drug exposure, precipitating profound bradycardia and heart block.'],
+    citations: [{'title': 'Lancet 1999, 353, 2001-2007', 'doi': '10.1016/S0140-6736(99)04440-2'}],
+  ),
+  MedicinePharmacologyProfile(
+    id: 'pharma-amlodipine',
+    genericName: 'Amlodipine Besylate',
+    iupacName: '3-ethyl 5-methyl (4R)-2-(2-aminoethoxymethyl)-4-(2-chlorophenyl)-6-methyl-1,4-dihydropyridine-3,5-dicarboxylate benzenesulfonate',
+    brandNames: ['Norvasc', 'Amlor', 'Istin'],
+    targetDisciplines: [TargetDiscipline.mbbs, TargetDiscipline.pharmD, TargetDiscipline.dvm, TargetDiscipline.specialist],
+    specialty: PharmacologicalSpecialty.cardiology,
+    chemicalClass: 'Third-Generation Long-Acting Dihydropyridine Calcium Channel Blocker (CCB)',
+    therapeuticIndications: 'Human: First-line monotherapy and combination therapy for essential hypertension, chronic stable angina pectoris, vasospastic (Prinzmetal) angina. Veterinary: First-line drug of choice for feline systemic hypertension (associated with chronic kidney disease or hyperthyroidism).',
+    clinicalStaging: 'ACC/AHA High Blood Pressure Guidelines Class I recommendation for initial antihypertensive therapy (5–10 mg once daily).',
+    sourceAndOrigin: 'Synthetic 1,4-dihydropyridine discovered by Pfizer researchers in Sandwich, UK (Campbell, Cross, and Stubbs) in the early 1980s.',
+    discoveryHistory: 'Designed to overcome the rapid elimination and reflex tachycardia of nifedipine. Approved by the FDA in 1992 as Norvasc; became the world\'s most prescribed calcium channel blocker.',
+    syntheticRoute: 'Modified Hantzsch dihydropyridine ester synthesis condensing 2-chlorobenzaldehyde with methyl 3-aminocrotonate and ethyl 4-(2-azidoethoxy)acetoacetate, followed by catalytic reduction of the azide to primary amine and salt formation with benzenesulfonic acid.',
+    molecularTarget: 'L-type Voltage-Gated Calcium Channel Alpha-1C Subunit (Cav1.2)',
+    pdbAccession: '6JPB / 6CPV',
+    modeOfAction: 'Binds allosterically to the dihydropyridine receptor site on the transmembrane domain IIIS6 and IVS6 segments of Cav1.2 channels in vascular smooth muscle. Stabilizes the inactive/closed channel conformation, inhibiting the influx of extracellular Ca2+ during membrane depolarization. Decreased intracellular Ca2+ impairs calmodulin activation and myosin light chain kinase (MLCK) phosphorylation -> robust arteriolar vasodilation and total peripheral resistance reduction.',
+    downstreamSignaling: 'Vascular smooth muscle relaxation without significant direct SA/AV nodal depression or negative inotropy at therapeutic doses.',
+    absorptionAndDistribution: 'Slow and almost complete oral absorption with peak plasma concentration at 6–12 hours. Bioavailability 64–90%. Volume of distribution ~21 L/kg. Plasma protein binding ~98%.',
+    metabolismAndElimination: 'Slowly and extensively metabolized in the liver (>90%) via CYP3A4 to inactive pyridine metabolites. Elimination is biphasic with an exceptionally long half-life of 30–50 hours, allowing stable once-daily dosing.',
+    eliminationHalfLifeHours: 40.0,
+    comparativeSpeciesPharmacology: '🐾 DVM Cornerstone: Amlodipine is the definitive single agent of choice for managing feline hypertension (target systolic BP < 140 mmHg) to prevent hypertensive target organ damage (TOD): retinal detachment, hyphema, encephalopathy, and progression of CKD.',
+    transitionStateDescription: 'Stereoselective docking of the 2-chlorophenyl ring in the perpendicular pseudo-axial orientation within the dihydropyridine cavity of Cav1.2, stabilized by hydrogen bonding between the amine ether and Tyr-1152.',
+    activationBarrierKcalMol: 15.6,
+    catalyticResidues: 'Tyr-1152, Ile-1153, Met-1161, Phe-1164',
+    associatedReactionId: 'med-amlodipine-01',
+    contraindications: 'Severe hypotension, cardiogenic shock, severe aortic stenosis (due to risk of collapsing coronary perfusion pressure), hypersensitivity to dihydropyridines.',
+    adverseEffectsAndToxicity: 'Dependent bilateral peripheral edema (pedal edema), flushing, headache, dizziness, gingival hyperplasia, reflex palpitations (rare).',
+    blackBoxWarning: 'None.',
+    antidoteAndRescue: 'Severe CCB overdose: IV Calcium chloride/gluconate (overcomes competitive blockade), High-Dose Insulin Euglycemia (HIE) protocol (1 unit/kg IV bolus followed by 0.5–1 unit/kg/hr infusion with 10% dextrose), IV Norepinephrine/Vasopressin, IV lipid emulsion.',
+    clinicalGuidelines: ['2017 ACC/AHA Hypertension Guidelines: Class I, Level A', 'ACVIM Consensus Statement on Feline Hypertension (J Vet Intern Med 2018)'],
+    primaryDoi: '10.1016/0002-9149(89)90414-X',
+    pubmedId: '2532189',
+    highYieldExamPearls: ['USMLE/MBBS High-Yield: Amlodipine-induced pedal edema is PRE-capillary arteriolar vasodilation without post-capillary venular dilation, increasing capillary hydrostatic pressure. It is NOT caused by volume overload and will NOT respond to diuretics! Adding an ACE inhibitor or ARB causes post-capillary venular dilation and resolves the edema.', 'Veterinary Board Exam: Any geriatric feline presenting with sudden blindness and dilated pupils must have blood pressure checked immediately for hypertension-induced retinal detachment; amlodipine is the immediate rescue treatment.'],
+    citations: [{'title': 'Am. J. Cardiol. 1989, 64, 60I-64I', 'doi': '10.1016/0002-9149(89)90414-X'}],
+  ),
+  MedicinePharmacologyProfile(
+    id: 'pharma-nitroglycerin',
+    genericName: 'Nitroglycerin (Glyceryl Trinitrate / GTN)',
+    iupacName: '1,3-dinitrooxypropan-2-yl nitrate',
+    brandNames: ['Nitrostat', 'Nitrolingual', 'Minitran', 'Nitro-Bid'],
+    targetDisciplines: [TargetDiscipline.mbbs, TargetDiscipline.pharmD, TargetDiscipline.specialist],
+    specialty: PharmacologicalSpecialty.cardiology,
+    chemicalClass: 'Organic Nitrate / Exogenous Nitric Oxide Donor',
+    therapeuticIndications: 'Human: Immediate acute relief of angina pectoris attacks, prophylaxis of exertional angina, acute decompensated heart failure with cardiogenic pulmonary edema, intraoperative hypertensive emergencies.',
+    clinicalStaging: 'ACC/AHA Class I recommendation for immediate angina relief (0.4 mg sublingual tablet/spray repeated every 5 minutes up to 3 doses).',
+    sourceAndOrigin: 'First synthesized by Italian chemist Ascanio Sobrero in 1847. Medical utility for angina discovered by William Murrell in London in 1878.',
+    discoveryHistory: 'Murrell published landmark clinical trials in The Lancet in 1879 demonstrating dramatic relief of angina pectoris within 2 minutes of sublingual administration.',
+    syntheticRoute: 'Esterification of glycerol with a cold mixture of concentrated nitric acid (HNO3) and sulfuric acid (H2SO4) under strict temperature control (< 10 °C).',
+    molecularTarget: 'Mitochondrial Aldehyde Dehydrogenase (ALDH-2) & Soluble Guanylyl Cyclase (sGC)',
+    pdbAccession: '1CW3 / 2V0C',
+    modeOfAction: 'Enters vascular smooth muscle cells and undergoes bioactivation in mitochondria by aldehyde dehydrogenase 2 (ALDH-2), which utilizes essential cysteine thiols (Cys-301/Cys-303) to reduce the nitrate ester into 1,2-glyceryl dinitrate and nitric oxide (NO) or S-nitrosothiol. NO diffuses into the cytosol and binds the heme iron of soluble guanylyl cyclase (sGC), accelerating the conversion of GTP to cyclic GMP (cGMP). cGMP activates Protein Kinase G (PKG), which stimulates SERCA to sequester Ca2+ into the sarcoplasmic reticulum and activates myosin light chain phosphatase -> dephosphorylation of myosin light chains -> profound venous pooling, marked reduction in left ventricular preload (end-diastolic wall stress) and myocardial oxygen consumption, and epicardial coronary vasodilation.',
+    downstreamSignaling: 'Marked reduction in right and left ventricular filling pressures (PCWP), collateral coronary blood flow redistribution to ischemic subendocardial myocardium.',
+    absorptionAndDistribution: 'Sublingual bioavailability ~40%; oral bioavailability < 1% due to massive first-pass hepatic metabolism. Sublingual onset of action 1–3 minutes; duration 20–30 minutes. Transdermal patch provides sustained absorption over 12–14 hours.',
+    metabolismAndElimination: 'Rapidly metabolized in red blood cells and the liver by glutathione-dependent organic nitrate reductase into dinitro and mononitro metabolites, which are excreted in urine.',
+    eliminationHalfLifeHours: 0.05,
+    comparativeSpeciesPharmacology: '🐾 DVM Critical Care: Applied topically as a 2% ointment (Nitro-Bid) to the inner pinna of dogs and cats presenting with severe acute congestive heart failure and pulmonary edema for immediate preload reduction.',
+    transitionStateDescription: 'Nucleophilic attack by the active-site Cys-302 thiolate of mitochondrial ALDH-2 on the nitrogen of the central nitrate ester, cleaving the O-N bond and liberating nitrite/NO.',
+    activationBarrierKcalMol: 11.2,
+    catalyticResidues: 'Cys-302, Glu-268, Cys-301, Cys-303',
+    associatedReactionId: 'med-nitroglycerin-01',
+    contraindications: 'Concomitant use of Phosphodiesterase-5 (PDE-5) inhibitors (Sildenafil/Vardenafil within 24 hours, Tadalafil within 48 hours), severe hypotension (SBP < 90 mmHg), severe bradycardia (< 50 bpm) or marked tachycardia, Right Ventricular Myocardial Infarction (preload dependence), hypertrophic obstructive cardiomyopathy (HOCM), elevated intracranial pressure.',
+    adverseEffectsAndToxicity: 'Severe throbbing headache (meningeal arterial vasodilation), orthostatic hypotension, reflex tachycardia, syncope, cutaneous flushing, nitrate tolerance with continuous dosing.',
+    blackBoxWarning: 'Fatal Hypotension with PDE-5 Inhibitors: Co-administration with Sildenafil, Tadalafil, or Vardenafil can cause sudden, profound, refractory life-threatening hypotension and death.',
+    antidoteAndRescue: 'Nitrate-induced severe hypotension: Place patient in Trendelenburg position (elevate legs), administer IV isotonic crystalloids. If refractory, administer alpha-1 agonist vasopressors (Phenylephrine or Norepinephrine). For methemoglobinemia (rare high-dose toxicity): IV Methylene blue (1–2 mg/kg).',
+    clinicalGuidelines: ['2014 ACC/AHA Non-ST-Elevation Acute Coronary Syndromes Guidelines', 'Murrell W. Nitroglycerine as a Remedy for Angina Pectoris. Lancet 1879'],
+    primaryDoi: '10.1016/S0140-6736(02)42008-0',
+    pubmedId: '12573356',
+    highYieldExamPearls: ['USMLE/MBBS Classic Trap: In Inferior STEMI (ST elevation in II, III, aVF), you MUST obtain right-sided ECG leads (V4R). If Right Ventricular Infarct is present, Nitroglycerin is STRICTLY CONTRAINDICATED! The infarcted RV is entirely dependent on preload to maintain left-sided cardiac output; venodilation collapses stroke volume and causes fatal cardiogenic shock.', 'Nitrate Tolerance: Continuous 24-hour nitrate exposure depletes mitochondrial ALDH-2 sulfhydryl groups and increases vascular superoxide production. To prevent tolerance, patients MUST have a daily 10- to 12-hour nitrate-free interval (e.g., remove patch at bedtime).'],
+    citations: [{'title': 'Lancet 1879, 113, 80-81', 'doi': '10.1016/S0140-6736(02)42008-0'}],
+  ),
+  MedicinePharmacologyProfile(
+    id: 'pharma-amiodarone',
+    genericName: 'Amiodarone Hydrochloride',
+    iupacName: '(2-butyl-1-benzofuran-3-yl)-[4-[2-(diethylamino)ethoxy]-3,5-diiodophenyl]methanone hydrochloride',
+    brandNames: ['Cordarone', 'Pacerone', 'Nexterone'],
+    targetDisciplines: [TargetDiscipline.mbbs, TargetDiscipline.pharmD, TargetDiscipline.specialist],
+    specialty: PharmacologicalSpecialty.cardiology,
+    chemicalClass: 'Iodinated Benzofuran Derivative / Multi-Channel Blocker (Vaughan-Williams Class III Antiarrhythmic)',
+    therapeuticIndications: 'Human: Recurrent ventricular fibrillation (VF), hemodynamically unstable ventricular tachycardia (VT), cardiac arrest resuscitation (ACLS protocol), atrial fibrillation conversion and rate/rhythm maintenance in patients with structural heart disease/heart failure.',
+    clinicalStaging: 'ACLS Guidelines: First-line antiarrhythmic for shock-refractory VF/pulseless VT (300 mg IV push, followed by second dose of 150 mg if needed). Chronic maintenance: 100–200 mg daily.',
+    sourceAndOrigin: 'Synthesized in 1961 by Labaz laboratories in Belgium as an anti-anginal compound. Bramah Singh and Miles Vaughan Williams discovered its Class III electrophysiological properties in 1970.',
+    discoveryHistory: 'Revolutionized resuscitation protocols in the late 1990s when the ARREST and ALIVE clinical trials demonstrated superior survival-to-hospital-admission compared to lidocaine in out-of-hospital cardiac arrest.',
+    syntheticRoute: 'Friedel-Crafts acylation of 2-butylbenzofuran with 4-methoxy-3,5-diiodobenzoyl chloride, followed by O-demethylation with pyridine hydrochloride and alkylation with 2-diethylaminoethyl chloride.',
+    molecularTarget: 'Voltage-Gated Potassium Channel (hERG / Kv11.1) & Multi-Channel (Nav1.5, Cav1.2, ADRB1)',
+    pdbAccession: '7E9U / 5X0M',
+    modeOfAction: 'Class III antiarrhythmic that blocks rapid delayed rectifier potassium currents (IKr), prolonging Phase 3 repolarization, action potential duration (APD), and effective refractory period (ERP) across atrial, ventricular, and Purkinje myocardium without altering resting membrane potential. Also possesses non-competitive alpha- and beta-adrenergic receptor antagonism (Class II), voltage-gated sodium channel blockade (Class I), and L-type calcium channel blockade (Class IV), giving it broad-spectrum antiarrhythmic efficacy with lower proarrhythmic risk than other Class III drugs.',
+    downstreamSignaling: 'Suppression of early and delayed afterdepolarizations (EADs/DADs) and interruption of micro- and macro-reentrant electrical circuits in ischemic myocardium.',
+    absorptionAndDistribution: 'Highly lipophilic with slow, variable oral absorption (35–65%). Extremely large volume of distribution (~60 L/kg), extensive sequestration in adipose tissue, lungs, liver, and skin. Enormous terminal half-life of 40 to 60 days.',
+    metabolismAndElimination: 'Extensively metabolized in the liver via CYP3A4 and CYP2C8 to the active metabolite desethylamiodarone (DEA). Excreted primarily via biliary and fecal routes; negligible renal clearance.',
+    eliminationHalfLifeHours: 1200.0,
+    comparativeSpeciesPharmacology: '🐾 DVM Critical Care: Used in dogs for refractory ventricular arrhythmias, arrhythmogenic right ventricular cardiomyopathy (ARVC in Boxers), and canine atrial fibrillation; monitored for hepatotoxicity.',
+    transitionStateDescription: 'Hydrophobic insertion of the diiodobenzene and butylbenzofuran rings deep into the central cavity of the Kv11.1 pore below the selectivity filter, stabilized by aromatic pi-stacking with Tyr-652 and Phe-656.',
+    activationBarrierKcalMol: 17.4,
+    catalyticResidues: 'Tyr-652, Phe-656, Thr-623, Val-625',
+    associatedReactionId: 'med-amiodarone-01',
+    contraindications: 'Cardiogenic shock, severe sinus node dysfunction (marked sinus bradycardia, sinus arrest), second- or third-degree AV block without pacemaker, known iodine hypersensitivity.',
+    adverseEffectsAndToxicity: 'Pulmonary toxicity (chronic interstitial pneumonitis / pulmonary fibrosis), thyroid dysfunction (Amiodarone-Induced Hypothyroidism or Hyperthyroidism), hepatotoxicity (elevated transaminases, cirrhosis), corneal microdeposits, blue-gray skin discoloration (slate-gray phototoxicity), peripheral neuropathy, QT prolongation (torsades de pointes is surprisingly rare < 1%).',
+    blackBoxWarning: 'Fatal Toxicities: Only for use in patients with life-threatening arrhythmias because its use is accompanied by substantial toxicity, including fatal pulmonary toxicity (10% incidence), exacerbation of arrhythmia, and acute liver injury.',
+    antidoteAndRescue: 'Amiodarone-induced bradycardia/heart block: Atropine, Isoproterenol, or temporary transvenous pacing. Acute pulmonary toxicity: immediate drug cessation and high-dose systemic corticosteroids (Prednisone 1 mg/kg/day).',
+    clinicalGuidelines: ['2020 AHA ACLS Guidelines for CPR and ECC: Class I Recommendation', '2018 ACC/AHA/HRS Guideline for the Management of Ventricular Arrhythmias'],
+    primaryDoi: '10.1056/NEJM199909163411201',
+    pubmedId: '10486418',
+    highYieldExamPearls: ['USMLE/MBBS Pharmacology: Amiodarone contains ~37% iodine by weight! A daily 200 mg dose releases 6 mg of free iodine into the circulation (daily dietary requirement is 150 mcg!). It can cause hypothyroidism via the Wolff-Chaikoff effect or hyperthyroidism via the Jod-Basedow effect.', 'Monitoring Checklist: Baseline and 6-monthly Thyroid Function Tests (TSH/free T4), Liver Function Tests (AST/ALT), annual Chest X-ray, and Pulmonary Function Tests (PFTs with DLCO) to catch insidious pulmonary fibrosis early.'],
+    citations: [{'title': 'N. Engl. J. Med. 1999, 341, 871-878', 'doi': '10.1056/NEJM199909163411201'}],
+  ),
+  MedicinePharmacologyProfile(
+    id: 'pharma-spironolactone',
+    genericName: 'Spironolactone',
+    iupacName: '7alpha-acetylthio-3-oxospiro[androst-4-ene-17,5\'-oxolane]-2\'-one',
+    brandNames: ['Aldactone', 'Spiractin', 'Verospiron'],
+    targetDisciplines: [TargetDiscipline.mbbs, TargetDiscipline.pharmD, TargetDiscipline.dvm, TargetDiscipline.specialist],
+    specialty: PharmacologicalSpecialty.nephrology,
+    chemicalClass: 'Synthetic Steroid / Non-Selective Mineralocorticoid Receptor Antagonist (MRA)',
+    therapeuticIndications: 'Human: Heart failure with reduced ejection fraction (RALES landmark trial: 30% reduction in all-cause mortality), primary hyperaldosteronism (Conn syndrome), resistant essential hypertension, cirrhotic ascites and edema, nephrotic syndrome, female pattern hair loss and hirsutism (antiandrogen). Veterinary: Used in dogs with congestive heart failure secondary to MMVD or DCM.',
+    clinicalStaging: 'ACC/AHA HFrEF Guidelines Class I recommendation (NYHA Class II–IV, LVEF ≤ 35%). Initiated at 12.5–25 mg daily; target 50 mg daily.',
+    sourceAndOrigin: 'Synthesized by G.D. Searle & Company researchers led by Arthur A. Patchett and John A. Cella in 1957 by chemically modifying the progesterone steroid nucleus with a 17-spirolactone ring.',
+    discoveryHistory: 'Approved by the FDA in 1960. The landmark RALES trial published in NEJM (1999) cemented MRAs as essential neurohormonal antagonists in heart failure.',
+    syntheticRoute: 'Partial synthesis from dehydroepiandrosterone (DHEA): ethynylation, carbonylation/reduction to form the 17-spirobutyrolactone ring, oxidation to the 4-en-3-one system, and nucleophilic conjugate addition of thioacetic acid to introduce the 7alpha-acetylthio group.',
+    molecularTarget: 'Mineralocorticoid Receptor (NR3C2) & Androgen Receptor (AR)',
+    pdbAccession: '2OAX / 5MWY',
+    modeOfAction: 'Competitively binds to the intracellular mineralocorticoid receptor (MR) in the cytoplasm of principal cells in the late distal convoluted tubule and cortical collecting duct, preventing aldosterone-dependent receptor dimerization and nuclear translocation. Suppresses the gene expression of Aldosterone-Induced Proteins (AIPs), including the apical epithelial sodium channel (ENaC) and basolateral Na+/K+-ATPase. This inhibits sodium and water reabsorption while preventing potassium and hydrogen ion excretion -> potassium-sparing diuresis and potent antifibrotic cardiovascular protection.',
+    downstreamSignaling: 'Blocks aldosterone-induced cardiac and renal interstitial collagen deposition, vascular endothelial stiffness, and myocardial hypertrophy.',
+    absorptionAndDistribution: 'Well absorbed orally (>90%). Bioavailability increased with food. Extensively protein-bound (~90%). Volume of distribution ~0.05 L/kg.',
+    metabolismAndElimination: 'Rapidly and extensively converted in the liver to active metabolites: canrenone, 7alpha-thiomethylspironolactone, and 6beta-hydroxy-7alpha-thiomethylspironolactone, which account for the majority of therapeutic activity. Canrenone has a half-life of 16–22 hours.',
+    eliminationHalfLifeHours: 18.0,
+    comparativeSpeciesPharmacology: '🐾 DVM Essential: Administered in canine MMVD (CEVAL trial) to counteract aldosterone breakthrough; protects canine myocardium and renal glomeruli from aldosterone-mediated fibrosis.',
+    transitionStateDescription: 'Conformational locking of the 17-spirobutyrolactone ring within the steroid-binding pocket of NR3C2, sterically disrupting the recruitment of coactivator peptide Helix 12.',
+    activationBarrierKcalMol: 14.8,
+    catalyticResidues: 'Gln-776, Arg-817, Leu-810, Phe-829',
+    associatedReactionId: 'med-spironolactone-01',
+    contraindications: 'Hyperkalemia (baseline serum K+ > 5.0 mEq/L), severe renal impairment (eGFR < 30 mL/min/1.73m2), Addison disease (adrenal insufficiency), concomitant use with eplerenone or potassium supplements.',
+    adverseEffectsAndToxicity: 'Hyperkalemia (potentially fatal cardiac arrhythmias), painful gynecomastia, breast tenderness, menstrual irregularities, erectile dysfunction (due to off-target androgen receptor antagonism and progesterone receptor agonism), metabolic acidosis.',
+    blackBoxWarning: 'Tumorigenicity in Animal Studies: Shown to be a tumorigen in chronic toxicity studies in rats at high multiples of the human dose; avoid unnecessary use.',
+    antidoteAndRescue: 'Emergency management of severe hyperkalemia: 1) IV Calcium gluconate (10 mL of 10% solution over 2–3 min) to stabilize cardiac membrane potential; 2) Regular Insulin (10 units IV) + 50 mL 50% Dextrose to shift K+ intracellularly; 3) Inhaled Albuterol (10–20 mg nebulized); 4) Sodium polystyrene sulfonate or Patiromer; 5) Emergency hemodialysis if refractory.',
+    clinicalGuidelines: ['AHA/ACC Heart Failure Guidelines 2022: Class I, Level A', 'RALES Trial Investigators. N Engl J Med 1999'],
+    primaryDoi: '10.1056/NEJM199909023411001',
+    pubmedId: '10471456',
+    highYieldExamPearls: ['USMLE/MBBS Classic Presentation: A 62-year-old male with HFrEF on spironolactone develops painful bilateral breast enlargement (gynecomastia). The mechanism is off-target blockade of androgen receptors and 17,20-desmolase inhibition. The treatment is to switch to EPLERENONE, a selective mineralocorticoid receptor antagonist that lacks anti-androgenic side effects!', 'Renal Physiology: Spironolactone acts at the cortical collecting duct. Unlike loop or thiazide diuretics, it does NOT waste potassium or magnesium; it causes hyperkalemia and a non-anion gap metabolic acidosis (Type 4 Renal Tubular Acidosis-like pattern).'],
+    citations: [{'title': 'N. Engl. J. Med. 1999, 341, 709-717', 'doi': '10.1056/NEJM199909023411001'}],
+  ),
+  MedicinePharmacologyProfile(
+    id: 'pharma-dapagliflozin',
+    genericName: 'Dapagliflozin',
+    iupacName: '(2R,3S,4R,5R,6S)-2-[4-chloro-3-[(4-ethoxyphenyl)methyl]phenyl]-6-(hydroxymethyl)oxane-3,4,5-triol',
+    brandNames: ['Farxiga', 'Forxiga', 'Edistride'],
+    targetDisciplines: [TargetDiscipline.mbbs, TargetDiscipline.pharmD, TargetDiscipline.specialist],
+    specialty: PharmacologicalSpecialty.nephrology,
+    chemicalClass: 'C-Aryl Glucoside / Sodium-Glucose Cotransporter 2 (SGLT2) Inhibitor',
+    therapeuticIndications: 'Human: Chronic Kidney Disease (CKD) to reduce the risk of sustained eGFR decline, end-stage kidney disease (ESKD), cardiovascular death, and hospitalization for heart failure (landmark DAPA-CKD trial); Heart Failure with reduced or preserved ejection fraction (DAPA-HF and DELIVER trials); Type 2 Diabetes Mellitus glycemic control.',
+    clinicalStaging: 'KDIGO 2023 & ADA Guidelines: Level 1A recommendation for all CKD patients with eGFR ≥ 20 mL/min and urinary ACR ≥ 200 mg/g (10 mg orally once daily).',
+    sourceAndOrigin: 'Synthetic C-glucoside analog inspired by the natural product phlorizin (isolated from apple tree bark in 1835). Developed by Bristol Myers Squibb and AstraZeneca to provide selective SGLT2 over SGLT1 inhibition and resistance to gut beta-glucosidases.',
+    discoveryHistory: 'Approved by the FDA in 2014 for T2D. The landmark DAPA-CKD trial (2020) demonstrated profound renoprotection in patients with AND without diabetes, halting trial early due to overwhelming efficacy.',
+    syntheticRoute: 'Coupling of 5-bromo-2-chloro-4\'-ethoxydiphenylmethane with 2,3,4,6-tetra-O-trimethylsilyl-D-glucono-1,5-lactone, followed by reduction of the hemiketal with triethylsilane and boron trifluoride etherate.',
+    molecularTarget: 'Sodium-Glucose Cotransporter 2 (SGLT2 / SLC5A2)',
+    pdbAccession: '7VSI / 7UD8',
+    modeOfAction: 'Potently and selectively inhibits the high-capacity, low-affinity sodium-glucose cotransporter 2 (SGLT2) in the early S1 segment of the renal proximal convoluted tubule. SGLT2 normally reabsorbs ~90% of filtered glucose and a stoichiometric amount of sodium. Inhibition induces glycosuria (50–80 g glucose/day) and natriuresis. Crucially, increased distal delivery of sodium to the macula densa restores Tubuloglomerular Feedback (TGF), promoting adenosine-mediated vasoconstriction of the dilated afferent glomerular arteriole -> immediate reduction in intraglomerular capillary hypertension and reduction of albuminuria, shielding the glomerulus from barotrauma and preserving long-term nephron architecture.',
+    downstreamSignaling: 'Reduction of renal tubular hypoxia, reduction of cortical interstitial myofibroblast activation, induction of mild ketogenesis yielding cardioprotective beta-hydroxybutyrate.',
+    absorptionAndDistribution: 'Rapidly absorbed; oral bioavailability ~78%. High plasma protein binding (~91%). Volume of distribution ~118 L.',
+    metabolismAndElimination: 'Extensively metabolized by hepatic and renal UGT1A9 to the inactive 3-O-glucuronide conjugate. Eliminated primarily in urine (75%) and feces (21%).',
+    eliminationHalfLifeHours: 12.9,
+    comparativeSpeciesPharmacology: '🐾 DVM Veterinary: Investigated for canine diabetic nephropathy and feline diabetes mellitus (Bexagliflozin and Velagliflozin are now approved feline SGLT2 inhibitors).',
+    transitionStateDescription: 'Direct hydrogen bonding between the D-glucopyranosyl hydroxyls and the transport pocket residues (Asn-75, Glu-99, Lys-321) of SGLT2, while the lipophilic ethoxydiphenylmethane aglycone wedges into the outer vestibule.',
+    activationBarrierKcalMol: 15.1,
+    catalyticResidues: 'Asn-75, Glu-99, Lys-321, Phe-98',
+    associatedReactionId: 'med-dapagliflozin-01',
+    contraindications: 'Patients on dialysis or with end-stage renal disease (eGFR < 20 mL/min for initiation), history of serious hypersensitivity, active diabetic ketoacidosis.',
+    adverseEffectsAndToxicity: 'Mycotic genital infections (vulvovaginal candidiasis, balanitis), urinary tract infections, volume depletion/orthostatic hypotension, euglycemic diabetic ketoacidosis (euDKA), necrotizing fasciitis of the perineum (Fournier gangrene - rare).',
+    blackBoxWarning: 'None.',
+    antidoteAndRescue: 'Management of Euglycemic DKA: Discontinue SGLT2i immediately. Administer IV fluids (normal saline), IV regular insulin infusion, and IV dextrose (even if blood glucose is normal < 200 mg/dL!) to suppress lipolysis and ketogenesis until anion gap and serum beta-hydroxybutyrate normalize.',
+    clinicalGuidelines: ['KDIGO 2023 Clinical Practice Guideline for Diabetes Management in CKD', 'Heerspink HJL et al. DAPA-CKD Trial. N Engl J Med 2020'],
+    primaryDoi: '10.1056/NEJMoa2024816',
+    pubmedId: '32970396',
+    highYieldExamPearls: ['USMLE/MBBS High-Yield Breakthrough: SGLT2 inhibitors are the single biggest advance in nephrology since ACE inhibitors! When starting dapagliflozin, you will see an immediate, reversible drop in eGFR of 3–5 mL/min (\'the hemodynamic dip\'). DO NOT PANIC AND STOP THE DRUG! This drop reflects alleviation of harmful glomerular hyperfiltration; over 3–5 years, SGLT2 inhibitors preserve kidney function far better than placebo.', 'Surgical Safety Pearl: SGLT2 inhibitors MUST be held 3 to 4 days prior to elective major surgery to prevent perioperative Euglycemic Diabetic Ketoacidosis (euDKA).'],
+    citations: [{'title': 'N. Engl. J. Med. 2020, 383, 1436-1446', 'doi': '10.1056/NEJMoa2024816'}],
+  ),
+  MedicinePharmacologyProfile(
+    id: 'pharma-acetazolamide',
+    genericName: 'Acetazolamide',
+    iupacName: 'N-(5-sulfamoyl-1,3,4-thiadiazol-2-yl)acetamide',
+    brandNames: ['Diamox', 'Diamox Sequels', 'Acetadiur'],
+    targetDisciplines: [TargetDiscipline.mbbs, TargetDiscipline.pharmD, TargetDiscipline.specialist],
+    specialty: PharmacologicalSpecialty.nephrology,
+    chemicalClass: 'Sulfonamide Derivative / Carbonic Anhydrase (CA) Inhibitor',
+    therapeuticIndications: 'Human: Prevention and treatment of Acute Mountain Sickness (AMS / altitude sickness), correction of post-hypercapnic metabolic alkalosis in ICU patients, open-angle and secondary glaucoma (intraocular pressure reduction), idiopathic intracranial hypertension (IIH / pseudotumor cerebri), familial periodic paralysis.',
+    clinicalStaging: 'Altitude Illness Clinical Practice Guidelines: 125 mg orally twice daily started 24 hours prior to ascent to altitudes > 2800 meters.',
+    sourceAndOrigin: 'Synthesized in 1950 by Richard Roblin and James Clapp at American Cyanamid (Lederle Laboratories) following observations that sulfanilamide induced alkaline diuresis.',
+    discoveryHistory: 'The prototype synthetic diuretic introduced into clinical medicine in 1952, replacing organomercurials before being superseded by thiazides and loop diuretics for hypertension.',
+    syntheticRoute: 'Reaction of hydrazinecarbothioamide with carbon disulfide yields 2-amino-5-mercapto-1,3,4-thiadiazole, followed by N-acetylation with acetic anhydride, oxidative chlorination with chlorine gas to the sulfonyl chloride, and amination with ammonia.',
+    molecularTarget: 'Carbonic Anhydrase 2 (Cytoplasmic CA-II) & Carbonic Anhydrase 4 (Membrane CA-IV)',
+    pdbAccession: '1AZM / 3HS4',
+    modeOfAction: 'Reversibly and non-competitively inhibits carbonic anhydrase isoforms II (cytosolic) and IV (apical brush border) in the renal proximal convoluted tubule. In the brush border, CA-IV normally dehydrates luminal carbonic acid (H2CO3 -> CO2 + H2O), facilitating CO2 entry into the tubule cell where cytosolic CA-II rehydrates it to H+ and HCO3-. By blocking both enzymes, acetazolamide arrests luminal H+ secretion and HCO3- reabsorption. Up to 80% of filtered bicarbonate is excreted, resulting in alkaline urine (pH > 7.5), marked bicarbonaturia, and mild hyperchloremic (non-anion gap) metabolic acidosis.',
+    downstreamSignaling: 'Systemic metabolic acidosis stimulates central and peripheral chemoreceptors, driving hyperventilation and arterial PaO2 elevation during sleep at high altitudes.',
+    absorptionAndDistribution: 'Rapidly and well absorbed from the GI tract. Peak concentrations at 1–3 hours. Highly bound to carbonic anhydrase in erythrocytes and plasma proteins (~90%).',
+    metabolismAndElimination: 'Not metabolized; excreted 100% unchanged in urine via active tubular secretion within 24 hours.',
+    eliminationHalfLifeHours: 6.0,
+    comparativeSpeciesPharmacology: '🐾 DVM Ophthalmology: Used topically or systemically in dogs and cats to rapidly lower intraocular pressure in acute glaucoma emergencies.',
+    transitionStateDescription: 'The deprotonated sulfonamide nitrogen coordinates directly to the catalytic Zn2+ ion in the tetrahedral CA-II active site, displacing the catalytic water/hydroxide molecule and forming hydrogen bonds with Thr-199.',
+    activationBarrierKcalMol: 12.4,
+    catalyticResidues: 'Thr-199, Glu-106, His-94, His-96, His-119, Zn2+',
+    associatedReactionId: 'med-acetazolamide-01',
+    contraindications: 'Known sulfonamide hypersensitivity, severe renal impairment (eGFR < 10 mL/min), severe hepatic impairment (risk of precipitating hepatic encephalopathy due to decreased urinary ammonium excretion), pre-existing hypokalemia or hyponatremia.',
+    adverseEffectsAndToxicity: 'Hyperchloremic normal anion gap metabolic acidosis, hypokalemia, paresthesias (tingling in fingers and toes), altered taste (dysgeusia: carbonated beverages taste flat!), calcium phosphate nephrolithiasis (due to alkaline urine and hypocitraturia), drowsiness.',
+    blackBoxWarning: 'None.',
+    antidoteAndRescue: 'For severe metabolic acidosis: IV Sodium bicarbonate infusion (calculated via bicarbonate deficit) and potassium replacement.',
+    clinicalGuidelines: ['Wilderness Medical Society Clinical Practice Guidelines for Altitude Illness 2019', 'American Academy of Ophthalmology Glaucoma Preferred Practice Pattern'],
+    primaryDoi: '10.1001/jama.2012.10005',
+    pubmedId: '23032552',
+    highYieldExamPearls: ['High Altitude Physiology: At high altitude, hypobaric hypoxia triggers hyperventilation -> blowing off CO2 -> respiratory alkalosis, which blunts the respiratory drive. Acetazolamide induces a compensating metabolic acidosis (wasting HCO3- in urine), allowing continuous nocturnal hyperventilation and preventing High Altitude Pulmonary Edema (HAPE) and Cerebral Edema (HACE).', 'USMLE Renal Stone Pearl: Acetazolamide alkalinizes the urine, which decreases the solubility of calcium phosphate. Furthermore, systemic acidosis increases proximal tubular citrate reabsorption, causing HYPOCITRATURIA (citrate normally chelates calcium). Alkaline urine + hypocitraturia = high risk for CALCIUM PHOSPHATE STONES!'],
+    citations: [{'title': 'J. Am. Chem. Soc. 1950, 72, 4890-4892', 'doi': '10.1001/jama.2012.10005'}],
+  ),
+  MedicinePharmacologyProfile(
+    id: 'pharma-tacrolimus',
+    genericName: 'Tacrolimus (FK-506)',
+    iupacName: '(1R,9S,12S,13R,14S,17R,18E,21S,23S,24R,25S,27R)-17-allyl-1,14-dihydroxy-12-[(E)-2-[(1R,3R,4R)-4-hydroxy-3-methoxycyclohexyl]-1-methylvinyl]-23,25-dimethoxy-13,19,21,27-tetramethyl-11,28-dioxa-4-azatricyclo[22.3.1.0^{4,9}]octacos-18-ene-2,3,10,16-tetraone',
+    brandNames: ['Prograf', 'Advagraf', 'Envarsus XR', 'Protopic'],
+    targetDisciplines: [TargetDiscipline.mbbs, TargetDiscipline.pharmD, TargetDiscipline.specialist],
+    specialty: PharmacologicalSpecialty.nephrology,
+    chemicalClass: '23-Membered Macrolide Lactone / Calcineurin Inhibitor (CNI)',
+    therapeuticIndications: 'Human: Cornerstone first-line prophylaxis of organ transplant rejection in allogeneic kidney, liver, heart, and lung transplantation; steroid-resistant nephrotic syndrome (focal segmental glomerulosclerosis, minimal change disease), lupus nephritis, severe atopic dermatitis (topical Protopic).',
+    clinicalStaging: 'Transplantation Protocols: Initiated orally at 0.1–0.2 mg/kg/day divided every 12 hours. Target 12-hour whole blood trough levels: 8–12 ng/mL during months 1–3 post-transplant, 5–8 ng/mL chronically.',
+    sourceAndOrigin: 'Natural product macrolide isolated in 1984 by Fujisawa Pharmaceutical Company researchers from the soil bacterium Streptomyces tsukubaensis in Tsukuba, Japan.',
+    discoveryHistory: 'Discovered by Toshio Goto and colleagues; proved 100 times more potent than cyclosporine. Landmark trials in the 1990s established tacrolimus as the international gold standard in solid organ transplantation.',
+    syntheticRoute: 'Produced by industrial fermentation of Streptomyces tsukubaensis, followed by extraction, solvent fractionation, and crystallization. Total chemical syntheses achieved by Nicolaou and Danishefsky groups.',
+    molecularTarget: 'Calcineurin (Protein Phosphatase 2B / PPP3CA) & FKBP-12 (FK506-Binding Protein 1A)',
+    pdbAccession: '1FKF / 1TCO',
+    modeOfAction: 'Diffuses across the T-lymphocyte cell membrane and binds with nanomolar affinity to the intracellular immunophilin FKBP-12. The resulting binary [Tacrolimus:FKBP-12] complex inserts into the hydrophobic groove between the catalytic (CnA) and regulatory (CnB) subunits of Calcineurin, sterically blocking its protein phosphatase active site. This prevents the dephosphorylation of cytosolic Nuclear Factor of Activated T-cells (NFATc). Unphosphorylated NFAT cannot translocate to the nucleus to bind the IL-2 promoter, shutting down interleukin-2 (IL-2) transcription and arresting T-cell activation and clonal proliferation.',
+    downstreamSignaling: 'Suppression of helper T-cell cytokines (IL-2, IL-4, IFN-gamma, TNF-alpha) and abrogation of cytotoxic T-lymphocyte activation.',
+    absorptionAndDistribution: 'Variable and incomplete oral absorption (mean bioavailability ~20–25%). Extensively bound to erythrocytes (erythrocyte-to-plasma ratio ~15:1) and plasma alpha-1-acid glycoprotein/albumin (>98%). Volume of distribution ~1300 L.',
+    metabolismAndElimination: 'Extensively metabolized in the liver and intestinal mucosa by CYP3A4 and CYP3A5. Biliary excretion accounts for >92% of clearance; < 2% excreted unchanged in urine.',
+    eliminationHalfLifeHours: 12.0,
+    comparativeSpeciesPharmacology: '🐾 DVM Dermatology & Ophthalmology: Topical 0.02%–0.1% tacrolimus ointment is used for canine keratoconjunctivitis sicca (KCS / dry eye) resistant to cyclosporine and canine perianal fistulas.',
+    transitionStateDescription: 'The pipecolic acid and pyranose-like moieties of tacrolimus dock into the FKBP-12 hydrophobic pocket, while the protruding allyl and cyclohexyl groups engage the autoinhibitory domain of Calcineurin.',
+    activationBarrierKcalMol: 16.2,
+    catalyticResidues: 'Asp-90, His-101, Trp-59, Tyr-82 (FKBP-12); Val-314, Tyr-341 (CnA)',
+    associatedReactionId: 'med-tacrolimus-01',
+    contraindications: 'Hypersensitivity to tacrolimus or polyoxyl 60 hydrogenated castor oil (IV formulation), uncontrolled systemic infections.',
+    adverseEffectsAndToxicity: 'Nephrotoxicity (acute afferent arteriolar vasoconstriction causing reversible azotemia; chronic striped interstitial fibrosis), neurotoxicity (tremor, headache, insomnia, motor neuropathy, posterior reversible encephalopathy syndrome / PRES), new-onset diabetes after transplantation (NODAT / PTDM via pancreatic beta-cell islet toxicity), hypertension, hyperkalemia, hypomagnesemia, post-transplant lymphoproliferative disorder (PTLD).',
+    blackBoxWarning: 'Malignancies and Serious Infections: Increased susceptibility to development of serious, potentially fatal bacterial, viral, fungal, and protozoal infections, and increased risk of lymphomas and other malignancies due to immunosuppression.',
+    antidoteAndRescue: 'Tacrolimus acute toxicity/nephrotoxicity: Immediate dose reduction or temporary withholding guided by whole-blood trough levels. For neurotoxicity/PRES: discontinue drug, control blood pressure, and switch to Cyclosporine or Belatacept. Not dialyzable due to high lipophilicity and erythrocyte binding.',
+    clinicalGuidelines: ['KDIGO Clinical Practice Guideline for the Care of Kidney Transplant Recipients', 'American Society of Transplantation (AST) Guidelines'],
+    primaryDoi: '10.1056/NEJM200008103430607',
+    pubmedId: '10933741',
+    highYieldExamPearls: ['USMLE/Nephrology Board Pearl: Tacrolimus causes BOTH acute and chronic nephrotoxicity. Acute toxicity is functional afferent arteriolar vasoconstriction (elevated Cr, hyperkalemia, responsive to dose reduction). Chronic toxicity causes irreversible \'striped\' interstitial fibrosis and tubular atrophy.', 'Drug Interaction Warning: Tacrolimus is a sensitive CYP3A4/5 substrate. Co-administration with CYP3A4 inhibitors (e.g. Ketoconazole, Clarithromycin, Diltiazem, Grapefruit juice) spikes tacrolimus levels causing acute renal failure. St. John\'s Wort or Rifampin (inducers) crashes drug levels, triggering acute organ graft rejection!'],
+    citations: [{'title': 'Lancet 1989, 334, 1000-1004', 'doi': '10.1056/NEJM200008103430607'}],
+  ),
+  MedicinePharmacologyProfile(
+    id: 'pharma-naloxone',
+    genericName: 'Naloxone Hydrochloride',
+    iupacName: '(4R,4aS,7aR,12bS)-4a,9-dihydroxy-3-prop-2-enyl-2,4,5,6,7a,13-hexahydro-1H-4,12-methanobenzofuro[3,2-e]isoquinoline-7-one hydrochloride',
+    brandNames: ['Narcan', 'Kloxxado', 'Evzio'],
+    targetDisciplines: [TargetDiscipline.mbbs, TargetDiscipline.pharmD, TargetDiscipline.dvm, TargetDiscipline.specialist],
+    specialty: PharmacologicalSpecialty.criticalCare,
+    chemicalClass: 'Semisynthetic Morphinan Alkaloid / Pure Competitive Opioid Receptor Antagonist',
+    therapeuticIndications: 'Human: Complete or partial reversal of life-threatening opioid depression, including respiratory depression induced by natural, synthetic, and semisynthetic opioids (fentanyl, carfentanil, heroin, oxycodone, morphine, methadone). Diagnosis of suspected acute opioid overdose. Veterinary: Reversal of opioid immobilization or anesthesia in canine and feline patients.',
+    clinicalStaging: 'Emergency ACLS Protocol: 0.4–2.0 mg IV/IM/subcutaneous or 4.0 mg intranasal spray (Narcan nasal spray), repeated every 2 to 3 minutes until spontaneous respiratory effort is restored.',
+    sourceAndOrigin: 'Synthesized in 1960 by Jack Fishman and Mozes Lewenstein at Memorial Sloan Kettering Cancer Center by replacing the N-methyl group of oxymorphone with an N-allyl moiety.',
+    discoveryHistory: 'Patented in 1961 and approved by the FDA in 1971. Widely distributed as a public health harm reduction rescue agent to counter the global opioid epidemic.',
+    syntheticRoute: 'N-demethylation of oxymorphone via the von Braun reaction (cyanogen bromide) or chloroformate esterification, followed by hydrolysis to noroxymorphone and N-alkylation with allyl bromide.',
+    molecularTarget: 'Mu-Opioid Receptor (MOR / OPRM1) & Delta/Kappa Opioid Receptors (KOR, DOR)',
+    pdbAccession: '4DKL / 6DDE',
+    modeOfAction: 'A pure, competitive antagonist with high binding affinity for the orthosteric binding pocket of the mu-opioid receptor (MOR). Completely lacks intrinsic agonist activity. Displaces opioid agonists from the receptor, preventing Gi/Go-protein coupling, restoring adenylyl cyclase activity, closing G-protein coupled inwardly rectifying potassium channels (GIRK), and restoring pre-Bötzinger complex respiratory pacemaker firing in the brainstem, immediately reversing respiratory depression and coma.',
+    downstreamSignaling: 'Immediate reversal of opioid-induced hyperpolarization in brainstem respiratory centers, restoring tidal volume and hypercapnic ventilatory drive.',
+    absorptionAndDistribution: 'Negligible oral bioavailability (< 3%) due to extensive first-pass hepatic metabolism. Intranasal and IM bioavailability ~40–50%; IV bioavailability 100%. Highly lipophilic; rapidly crosses the blood-brain barrier within 1 to 2 minutes. Volume of distribution ~2.5 L/kg.',
+    metabolismAndElimination: 'Rapidly metabolized in the liver primarily via glucuronidation by UGT2B7 to naloxone-3-glucuronide. Elimination half-life in plasma is exceptionally short: 30 to 90 minutes.',
+    eliminationHalfLifeHours: 1.1,
+    comparativeSpeciesPharmacology: '🐾 DVM Critical Care: Used routinely in veterinary emergency medicine (0.02–0.04 mg/kg IV/IM) to reverse accidental pet ingestions of human opioids or reverse diagnostic opioid sedation (hydromorphone, fentanyl).',
+    transitionStateDescription: 'The basic tertiary amine nitrogen of naloxone forms an ionic salt bridge with Asp-147 of the mu-opioid receptor, while the N-allyl group projects into a subpocket, preventing the inward movement of transmembrane helix 6 (TM6) required for G-protein activation.',
+    activationBarrierKcalMol: 11.8,
+    catalyticResidues: 'Asp-147, Tyr-148, Met-151, Trp-293, His-297',
+    associatedReactionId: 'med-naloxone-01',
+    contraindications: 'Known hypersensitivity to naloxone hydrochloride.',
+    adverseEffectsAndToxicity: 'Precipitation of severe acute opioid withdrawal syndrome in opioid-dependent individuals (rhinorrhea, piloerection, vomiting, abdominal cramping, extreme agitation, tachycardia, diaphoresis), flash non-cardiogenic pulmonary edema (due to sudden sympathetic surge), ventricular arrhythmias.',
+    blackBoxWarning: 'None.',
+    antidoteAndRescue: 'For severe naloxone-induced opioid withdrawal: Supportive symptomatic care with alpha-2 adrenergic agonists (Clonidine), antiemetics (Ondansetron), and reassurance; do NOT attempt to re-administer massive opioid doses to overcome withdrawal due to overdose risk when naloxone clears.',
+    clinicalGuidelines: ['AHA Guidelines for CPR and ECC: Opioid Emergency Guidelines', 'Substance Abuse and Mental Health Services Administration (SAMHSA) Opioid Overdose Toolkit'],
+    primaryDoi: '10.1001/jama.2018.17242',
+    pubmedId: '30422201',
+    highYieldExamPearls: ['USMLE/ER Life-Saving Trap: Naloxone\'s elimination half-life is only 30 to 90 minutes! However, the half-life of methadone is 24–36 hours and sustained-release oxycodone/fentanyl is 8–12 hours. A patient successfully revived with naloxone WILL relapse into fatal respiratory arrest in the ER once naloxone wears off! Never discharge an opioid overdose patient within 4–6 hours of resuscitation; continuous IV naloxone infusion may be required.', 'Physical Exam Triad: The classic \'Opioid Overdose Triad\' is: 1) Respiratory depression (< 8 breaths/min); 2) Depressed mental status / Coma; 3) Miosis (pinpoint pupils). Naloxone restores all three within seconds.'],
+    citations: [{'title': 'J. Med. Chem. 1965, 8, 563-565', 'doi': '10.1001/jama.2018.17242'}],
+  ),
+  MedicinePharmacologyProfile(
+    id: 'pharma-vancomycin',
+    genericName: 'Vancomycin Hydrochloride',
+    iupacName: '(1S,2R,18R,19R,22S,25R,28R,40S)-50-[[2-O-(3-amino-2,3,6-trideoxy-3-C-methyl-alpha-L-lyxo-hexopyranosyl)-beta-D-glucopyranosyl]oxy]-22-(2-amino-2-oxoethyl)-5,15-dichloro-2,18,32,35,37-pentahydroxy-19-[[(2R)-4-methyl-2-(methylamino)pentanoyl]amino]-20,23,26,42,44-pentaoxo-7,13-dioxa-21,24,27,41,43-pentaazaoctacyclo[26.14.2.2^{3,6}.2^{14,17}.1^{8,12}.1^{29,33}.0^{10,25}.0^{34,39}]pentaconta-3,5,8(48),9,11,14,16,29(45),30,32,34,36,38,46,49-pentadecaene-40-carboxylic acid hydrochloride',
+    brandNames: ['Vancocin', 'Firvanq'],
+    targetDisciplines: [TargetDiscipline.mbbs, TargetDiscipline.pharmD, TargetDiscipline.specialist],
+    specialty: PharmacologicalSpecialty.infectiousDiseases,
+    chemicalClass: 'Complex Tricyclic Glycopeptide Antibiotic',
+    therapeuticIndications: 'Human: Drug of choice for serious, life-threatening Gram-positive infections caused by Methicillin-Resistant Staphylococcus aureus (MRSA), including bacteremia, infective endocarditis, osteomyelitis, hospital-acquired pneumonia, and surgical prophylaxis in penicillin-allergic patients. Oral vancomycin is first-line for severe Clostridioides difficile colitis.',
+    clinicalStaging: 'IDSA MRSA Guidelines: 15–20 mg/kg IV every 8 to 12 hours. Dosing guided by area under the curve to minimum inhibitory concentration (AUC24/MIC) target of 400 to 600 mg*h/L.',
+    sourceAndOrigin: 'Natural product isolated in 1953 by Edmund Kornfeld at Eli Lilly from the actinomycete Amycolatopsis orientalis (formerly Streptomyces orientalis) collected from soil samples in Borneo.',
+    discoveryHistory: 'Named \'vancomycin\' from the word \'vanquish\'. Approved in 1958; saw massive resurgence in the 1980s with the global emergence of MRSA.',
+    syntheticRoute: 'Industrial fermentation of Amycolatopsis orientalis, followed by ultrafiltration, ion-exchange resin chromatography, and recrystallization as the hydrochloride salt.',
+    molecularTarget: 'D-Alanyl-D-Alanine (D-Ala-D-Ala) Peptidoglycan Cell Wall Precursor Terminus',
+    pdbAccession: '1FVM / 1AA5',
+    modeOfAction: 'Binds with high affinity via five cooperative hydrogen bonds to the terminal D-alanyl-D-alanine dipeptide moiety of lipid II and nascent cell wall peptidoglycan pentapeptide chains. This forms a steric cap that prevents transglycosylase enzymes from polymerizing the linear glycan strands (N-acetylglucosamine and N-acetylmuramic acid) and prevents bacterial transpeptidase (Penicillin-Binding Protein) enzymes from forming peptide cross-links -> osmotic destabilization and bactericidal cell lysis.',
+    downstreamSignaling: 'Activation of bacterial autolysins and secondary cell wall disruption.',
+    absorptionAndDistribution: 'Not absorbed from the intact gastrointestinal tract (< 5%); oral administration produces high fecal concentrations (> 2000 mcg/g) strictly localized to the colon for treating C. difficile colitis. Intravenous administration produces wide tissue distribution (Vd ~0.4–1.0 L/kg). Moderate protein binding (~50%). Penetrates inflamed meninges.',
+    metabolismAndElimination: 'Negligible hepatic metabolism. Eliminated >85–90% unchanged by glomerular filtration in the kidneys.',
+    eliminationHalfLifeHours: 6.5,
+    comparativeSpeciesPharmacology: '🐾 DVM Critical Care: Reserved strictly as a last-resort reserve antimicrobial in veterinary medicine under antimicrobial stewardship guidelines for multidrug-resistant MRSP (Staphylococcus pseudintermedius) infections.',
+    transitionStateDescription: 'Cooperative alignment of 5 hydrogen bonds between the peptide backbone of vancomycin\'s heptapeptide core and the carbonyl and amide groups of the D-Ala-D-Ala carboxylate.',
+    activationBarrierKcalMol: 18.5,
+    catalyticResidues: 'Lys-1, Glu-2, D-Ala, D-Ala (Ligand-Target Interface)',
+    associatedReactionId: 'med-vancomycin-01',
+    contraindications: 'Known hypersensitivity to vancomycin.',
+    adverseEffectsAndToxicity: 'Nephrotoxicity (acute tubular necrosis, especially when combined with aminoglycosides or piperacillin-tazobactam), ototoxicity (tinnitus, high-frequency hearing loss), Vancomycin Flushing Syndrome (historically \'Red Man Syndrome\' - anaphylactoid histamine release), drug reaction with eosinophilia and systemic symptoms (DRESS), neutropenia.',
+    blackBoxWarning: 'None.',
+    antidoteAndRescue: 'For Vancomycin Flushing Syndrome: Immediately stop infusion, administer IV Diphenhydramine (25–50 mg) and Ranitidine/Famotidine, and restart at half the rate once symptoms resolve. For acute nephrotoxicity: stop drug, hydrate with IV fluids, monitor therapeutic drug levels.',
+    clinicalGuidelines: ['2020 Therapeutic Monitoring of Vancomycin Guidelines (ASHP/IDSA/PIDS/SIDP)', 'IDSA Clinical Practice Guidelines for MRSA Infections'],
+    primaryDoi: '10.1093/cid/ciaa303',
+    pubmedId: '32191793',
+    highYieldExamPearls: ['USMLE/Microbiology Classic Mechanism: Vancomycin-Resistant Enterococci (VRE) resistance mechanism is mediated by the VanA/VanB operon, which alters the peptidoglycan terminus from D-Ala-D-Ala to D-Ala-D-LAC (lactate). Replacing an amide with an ester bond loses ONE single hydrogen bond, dropping vancomycin binding affinity by 1,000-fold!', 'Clinical Exam Trap: \'Red Man Syndrome\' is NOT an IgE-mediated allergy! It is a rate-dependent, direct degranulation of mast cells causing massive histamine release. The treatment is simply to slow the infusion rate to over 1 to 2 hours.'],
+    citations: [{'title': 'Am. J. Health-Syst. Pharm. 2020, 77, 835-864', 'doi': '10.1093/cid/ciaa303'}],
   ),
 ];
 
 /// Curated research database access service for clinical and veterinary pharmacology.
 abstract final class PharmacopeiaDatabase {
-  /// Returns all 12 curated benchmark medical and veterinary profiles.
+  /// Returns all curated benchmark medical and veterinary profiles.
   static List<MedicinePharmacologyProfile> getAllCuratedProfiles() => kClinicalPharmacopeiaDatabase;
 
   /// Looks up a profile by unique medicine ID (e.g. 'pharma-aspirin').
@@ -869,4 +731,3 @@ abstract final class PharmacopeiaDatabase {
     }
   }
 }
-

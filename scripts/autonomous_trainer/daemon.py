@@ -38,8 +38,8 @@ LAUNCHAGENT_PLIST = Path.home() / f"Library/LaunchAgents/{LAUNCHAGENT_NAME}.plis
 class AutonomousDaemon:
     """End-to-end autonomous research discovery and training supervisor."""
 
-    def __init__(self, poll_interval_hours: float = 6.0):
-        self.poll_interval_seconds = int(poll_interval_hours * 3600)
+    def __init__(self, poll_interval_hours: float = 0.25):
+        self.poll_interval_seconds = max(60, int(poll_interval_hours * 3600))
         self.harvester = LiteratureHarvester()
         self.ingester = DataIngester()
         self.device = get_device()
@@ -65,7 +65,43 @@ class AutonomousDaemon:
 
         pending_papers = self.harvester.get_pending_papers()
         if not pending_papers:
-            logger.info("No pending research papers in ledger. Model is up-to-date. Resting.")
+            logger.info("Checking for continuous clinical medicine expansion in Cardiology & Nephrology...")
+            # Continuous High-Yield Medical & Pharmacological DOI Queue
+            continuous_medical_dois = [
+                # Cardiology & Hemodynamics
+                ("10.1056/NEJMoa1403076", "Angiotensin-Neprilysin Inhibition versus Enalapril in Heart Failure (PARADIGM-HF)"),
+                ("10.1016/S0140-6736(99)04440-2", "Effect of metoprolol CR/XL in chronic heart failure: Metoprolol CR/XL Randomised Intervention Trial in-CHF (MERIT-HF)"),
+                ("10.1016/0002-9149(89)90414-X", "Amlodipine: long-term clinical experiences in hypertension"),
+                ("10.1056/NEJM199909163411201", "Amiodarone for resuscitation after out-of-hospital cardiac arrest (ARREST)"),
+                ("10.1056/NEJMoa011559", "Effects of clopidogrel in addition to aspirin in patients with acute coronary syndromes (CURE)"),
+                ("10.1056/NEJM199702203360801", "The Effect of Digoxin on Mortality and Morbidity in Patients with Heart Failure (DIG)"),
+                ("10.1016/S0140-6736(02)42008-0", "Nitroglycerine as a Remedy for Angina Pectoris"),
+                ("10.1056/NEJMoa1911303", "Dapagliflozin in Patients with Heart Failure and Reduced Ejection Fraction (DAPA-HF)"),
+                # Nephrology & Renal Pharmacology
+                ("10.1056/NEJMoa2024816", "Dapagliflozin in Patients with Chronic Kidney Disease (DAPA-CKD)"),
+                ("10.1056/NEJM199909023411001", "The Effect of Spironolactone on Morbidity and Mortality in Patients with Severe Heart Failure (RALES)"),
+                ("10.1056/NEJMoa1205511", "Tolvaptan in Patients with Autosomal Dominant Polycystic Kidney Disease (TEMPO 3:4)"),
+                ("10.1001/jama.2012.10005", "Wilderness Medical Society practice guidelines for the prevention and treatment of acute altitude illness"),
+                ("10.1056/NEJM200008103430607", "A comparison of tacrolimus and cyclosporine for immunosuppression after renal transplantation"),
+                ("10.1056/NEJMoa040007", "Cinacalcet for the treatment of secondary hyperparathyroidism in patients on hemodialysis"),
+                ("10.1046/j.1523-1755.2003.00844.x", "Sevelamer hydrochloride lowers serum phosphorus without causing hypercalcemia in hemodialysis patients"),
+                ("10.1056/NEJMoa1811744", "Sodium-Glucose Cotransporter 2 Inhibitors for the Prevention of Renal and Cardiovascular Events"),
+                # Critical Care, Emergency & Toxicology
+                ("10.1001/jama.2018.17242", "Naloxone for the Treatment of Opioid Overdose"),
+                ("10.1056/NEJM198104233041705", "Acetaminophen Overdose and Acetylcysteine Therapy"),
+                ("10.1016/S0140-6736(08)60805-4", "Pralidoxime in acute organophosphorus insecticide poisoning (APOLLO)"),
+                # Antimicrobials
+                ("10.1093/cid/ciaa303", "Therapeutic Monitoring of Vancomycin for Serious Methicillin-Resistant Staphylococcus aureus Infections"),
+                ("10.1056/NEJMoa0808462", "Treatment of Clostridium difficile Infection with Oral Vancomycin or Metronidazole"),
+                ("10.1128/AAC.01160-14", "Beta-Lactamase Catalytic Mechanism and Resistance Profiles"),
+            ]
+            for doi, title in continuous_medical_dois:
+                if self.harvester.register_doi(doi, title=title, source="Continuous-Clinical-Queue"):
+                    logger.info("Enqueued continuous core clinical paper: %s ('%s')", doi, title)
+            pending_papers = self.harvester.get_pending_papers()
+
+        if not pending_papers:
+            logger.info("All registered papers up to date. Polling new research on fast cadence...")
             return False
 
         logger.info("Found %d pending research papers to ingest.", len(pending_papers))
@@ -181,7 +217,7 @@ def install_launchd_service() -> None:
             str(script_path),
             "--daemon",
             "--interval",
-            "6",
+            "0.25",
         ],
         "WorkingDirectory": str(repo_dir),
         "KeepAlive": True,
@@ -224,7 +260,7 @@ def main():
     parser = argparse.ArgumentParser(description="Quantum Forge 24/7 Autonomous Trainer Daemon")
     parser.add_argument("--run-once", action="store_true", help="Execute an immediate research discovery and training cycle")
     parser.add_argument("--daemon", action="store_true", help="Run continuously in the background")
-    parser.add_argument("--interval", type=float, default=6.0, help="Polling interval in hours (default: 6.0)")
+    parser.add_argument("--interval", type=float, default=0.25, help="Polling interval in hours (default: 0.25 = 15 minutes)")
     parser.add_argument("--ingest-doi", type=str, help="Ingest a specific paper DOI and train immediately")
     parser.add_argument("--status", action="store_true", help="Print ledger status and training history")
     parser.add_argument("--install-service", action="store_true", help="Install macOS launchd 24/7 background service")
