@@ -19,7 +19,7 @@
 // on-device Transformer engine instead of issuing a doomed request.
 // ============================================================================
 
-import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb;
+import 'package:flutter/foundation.dart' show kDebugMode;
 
 class ApiEndpoints {
   const ApiEndpoints._();

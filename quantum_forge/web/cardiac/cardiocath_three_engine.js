@@ -664,6 +664,22 @@
         new THREE.Vector3(-0.08, 0.26, -0.14),
       ]);
 
+      // Great Cardiac Vein (GCV) & Coronary Sinus (CS) - Venous return emptying into Right Atrium
+      this.coronarySinusCurve = new THREE.CatmullRomCurve3([
+        new THREE.Vector3(-0.02, -0.62, 0.40), // anterior apex near LAD
+        new THREE.Vector3(-0.24, -0.20, 0.38), // anterior interventricular groove
+        new THREE.Vector3(-0.46, 0.05, 0.12),  // left AV groove
+        new THREE.Vector3(-0.35, 0.08, -0.22), // posterior coronary sulcus
+        new THREE.Vector3(0.05, 0.06, -0.20),  // coronary sinus body
+        new THREE.Vector3(0.36, 0.10, -0.06),  // emptying into RA posterior floor
+      ]);
+      const csMaterial = new THREE.MeshPhysicalMaterial({
+        color: 0x0284c7, // venous blue
+        roughness: 0.28,
+        clearcoat: 0.9,
+      });
+      this.vesselsGroup.add(new THREE.Mesh(new THREE.TubeGeometry(this.coronarySinusCurve, 20, 0.052, 10, false), csMaterial));
+
       this.heartGroup.add(this.vesselsGroup);
 
       // ── 4. Guide Catheter (Ascending Aorta & Seated in Ostium) ───────────
@@ -951,6 +967,23 @@
         }
       });
 
+      // 6. INCOMING CORONARY VENOUS DRAINAGE (Great Cardiac Vein & Coronary Sinus -> RA) [CYAN-TEAL]
+      if (this.coronarySinusCurve) {
+        for (let m = 0; m < 18; m++) {
+          const mat = new THREE.MeshBasicMaterial({ color: 0x00f0ff });
+          const p = new THREE.Mesh(pGeomSmall, mat);
+          p.userData = {
+            curve: this.coronarySinusCurve,
+            progress: m / 18.0,
+            speed: 0.008 + Math.random() * 0.003,
+            type: 'coronary_venous',
+            baseColor: 0x00f0ff,
+          };
+          this.flowParticlesGroup.add(p);
+          this.flowParticles.push(p);
+        }
+      }
+
       // 6. CONDUCTION ACTION POTENTIAL SPARKS [GOLDEN EMISSIVE BEACONS]
       this.conductionSparks = [];
       const sparkGeom = new THREE.SphereGeometry(0.052, 10, 10);
@@ -1166,8 +1199,10 @@
             p.visible = true;
             p.scale.setScalar(1.4);
           } else if (isCoronaries) {
-            p.visible = (p.userData.type === 'coronary');
-            p.scale.setScalar(1.1);
+            // In the Vessels tab, display ALL vessel streams:
+            // Both incoming (SVC, IVC, Pulmonary Veins, Coronary Sinus) and outgoing (Aorta, PA, Coronary arteries)
+            p.visible = true;
+            p.scale.setScalar(1.2);
           } else if (isCond) {
             p.visible = false;
           } else if (isAnat) {

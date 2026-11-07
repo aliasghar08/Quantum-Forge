@@ -215,107 +215,112 @@ class _Cardiac3DAnatomicalHeartViewportState
 
             // ── Top Viewport Header & Multi-Mode Navigation ─────────────────
             Positioned(
-              top: 10,
-              left: 10,
-              right: 10,
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 7, vertical: 3.5),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFEF4444).withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(6),
-                        border: Border.all(
-                            color: const Color(0xFFEF4444).withValues(alpha: 0.5)),
+              top: 8,
+              left: 8,
+              right: 8,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Row 1: Header Badge + Quick Actions
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 7, vertical: 3.5),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFEF4444).withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(
+                              color: const Color(0xFFEF4444).withValues(alpha: 0.5)),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.favorite_rounded,
+                                color: Color(0xFFEF4444), size: 12),
+                            const SizedBox(width: 4),
+                            Text(
+                              'HEART 3D | ${widget.bpm.round()} BPM',
+                              style: const TextStyle(
+                                color: Color(0xFFEF4444),
+                                fontSize: 9.5,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 0.6,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(Icons.favorite_rounded,
-                              color: Color(0xFFEF4444), size: 13),
-                          const SizedBox(width: 4),
-                          Text(
-                            'HEART 3D | ${widget.bpm.round()} BPM',
-                            style: const TextStyle(
-                              color: Color(0xFFEF4444),
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 0.6,
+                      const Spacer(),
+
+                      // Toggle Labels Button
+                      _actionButton(
+                        icon: _showLabels
+                            ? Icons.label_rounded
+                            : Icons.label_off_rounded,
+                        tooltip: _showLabels ? 'Hide Labels' : 'Show Labels',
+                        isActive: _showLabels,
+                        onTap: () => setState(() => _showLabels = !_showLabels),
+                        palette: palette,
+                      ),
+                      const SizedBox(width: 4),
+
+                      // Reset Camera
+                      _actionButton(
+                        icon: Icons.refresh_rounded,
+                        tooltip: 'Reset 3D Camera',
+                        isActive: false,
+                        onTap: _resetCamera,
+                        palette: palette,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+
+                  // Row 2: Mode Selector Chips (Wrap layout so ALL 7 modes are always visible without clipping)
+                  Wrap(
+                    spacing: 4,
+                    runSpacing: 4,
+                    children: HeartViewMode.values.map((mode) {
+                      final isSel = mode == _viewMode;
+                      return GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onTap: () {
+                          setState(() => _viewMode = mode);
+                          _threeBridge?.setViewMode(mode.name);
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 6.5, vertical: 3.0),
+                          decoration: BoxDecoration(
+                            color: isSel
+                                ? const Color(0xFF00E5FF).withValues(alpha: 0.25)
+                                : palette.scaffold.withValues(alpha: 0.75),
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(
+                              color: isSel
+                                  ? const Color(0xFF00E5FF)
+                                  : palette.border,
+                              width: isSel ? 1.2 : 0.8,
                             ),
                           ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-
-                    // Layer Toggles
-                    ...HeartViewMode.values.map((mode) {
-                      final isSel = mode == _viewMode;
-                      return Padding(
-                        padding: const EdgeInsets.only(right: 6),
-                        child: GestureDetector(
-                          behavior: HitTestBehavior.opaque,
-                          onTap: () {
-                            setState(() => _viewMode = mode);
-                            _threeBridge?.setViewMode(mode.name);
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 7, vertical: 3.5),
-                            decoration: BoxDecoration(
+                          child: Text(
+                            mode.label,
+                            style: TextStyle(
                               color: isSel
-                                  ? const Color(0xFF00E5FF).withValues(alpha: 0.2)
-                                  : palette.scaffold.withValues(alpha: 0.7),
-                              borderRadius: BorderRadius.circular(6),
-                              border: Border.all(
-                                color: isSel
-                                    ? const Color(0xFF00E5FF)
-                                    : palette.border,
-                                width: isSel ? 1.2 : 0.8,
-                              ),
-                            ),
-                            child: Text(
-                              mode.label,
-                              style: TextStyle(
-                                color: isSel
-                                    ? const Color(0xFF00E5FF)
-                                    : palette.textSecondary,
-                                fontSize: 9.5,
-                                fontWeight:
-                                    isSel ? FontWeight.bold : FontWeight.normal,
-                              ),
+                                  ? const Color(0xFF00E5FF)
+                                  : palette.textSecondary,
+                              fontSize: 9.0,
+                              fontWeight:
+                                  isSel ? FontWeight.bold : FontWeight.normal,
                             ),
                           ),
                         ),
                       );
-                    }),
-                    const SizedBox(width: 4),
-
-                    // Toggle Labels Button
-                    _actionButton(
-                      icon: _showLabels
-                          ? Icons.label_rounded
-                          : Icons.label_off_rounded,
-                      tooltip: _showLabels ? 'Hide Labels' : 'Show Labels',
-                      isActive: _showLabels,
-                      onTap: () => setState(() => _showLabels = !_showLabels),
-                      palette: palette,
-                    ),
-                    const SizedBox(width: 4),
-
-                    // Reset Camera
-                    _actionButton(
-                      icon: Icons.refresh_rounded,
-                      tooltip: 'Reset 3D Camera',
-                      isActive: false,
-                      onTap: _resetCamera,
-                      palette: palette,
-                    ),
-                  ],
-                ),
+                    }).toList(),
+                  ),
+                ],
               ),
             ),
 
@@ -439,9 +444,12 @@ class _Cardiac3DAnatomicalHeartViewportState
         ];
       case HeartViewMode.coronaries:
         return [
+          _legendItem(const Color(0xFF38BDF8), 'Venous Inflow (SVC / IVC / CS -> RA)'),
+          _legendItem(const Color(0xFFF43F5E), 'Pulmonary Inflow (PV -> LA)'),
           _legendItem(const Color(0xFFEF4444), 'LAD'),
           _legendItem(const Color(0xFFFF9800), 'LCx'),
           _legendItem(const Color(0xFF00E5FF), 'RCA'),
+          _legendItem(const Color(0xFF0284C7), 'Coronary Sinus (Venous Return)'),
           _legendItem(const Color(0xFFFFEB3B), 'Catheter / Stent'),
         ];
       case HeartViewMode.ischemiaMap:
@@ -637,7 +645,8 @@ class _AnatomicalHeart3DPainter extends CustomPainter {
     // ── 5. Blood Flow Dynamics & Heart Valve Leaflets ───────────────────────
     if (viewMode == HeartViewMode.bloodFlow ||
         viewMode == HeartViewMode.anatomy ||
-        viewMode == HeartViewMode.chambers) {
+        viewMode == HeartViewMode.chambers ||
+        viewMode == HeartViewMode.coronaries) {
       _drawBloodFlowDynamics(
         canvas,
         cx,
@@ -1920,6 +1929,31 @@ class _AnatomicalHeart3DPainter extends CustomPainter {
       );
     }
 
+    // Great Cardiac Vein (GCV) & Coronary Sinus (CS) - Venous return emptying into Right Atrium
+    final coronarySinusPoints = [
+      const _Vec3(-2, -32, 28), // Apex
+      const _Vec3(10, -6, 38),  // Anterior interventricular sulcus alongside LAD
+      const _Vec3(24, 18, 30),  // Curving into left AV groove
+      const _Vec3(44, 20, 0),   // Left cardiac border
+      const _Vec3(32, 16, -24), // Posterior atrioventricular groove
+      const _Vec3(0, 14, -20),  // Coronary sinus trunk
+      const _Vec3(-18, 18, 6),  // Empties into posterior floor of Right Atrium
+    ];
+    _drawVesselSegment(
+      canvas,
+      coronarySinusPoints,
+      cx,
+      cy,
+      s,
+      cosY,
+      sinY,
+      cosX,
+      sinX,
+      color: const Color(0xFF0284C7).withValues(alpha: 0.88), // Cyan-Blue venous
+      baseWidth: 3.4,
+      isCutoff: false,
+    );
+
     // Deployed PCI Stent or Critical Stenosis Marker
     if (isRevascularized) {
       _drawDeployedStent(
@@ -2313,9 +2347,21 @@ class _AnatomicalHeart3DPainter extends CustomPainter {
         const _Vec3(20, 28, 38),
         const _Vec3(34, 16, 32),
       ],
+      // Great Cardiac Vein -> Coronary Sinus -> Right Atrium Return Stream (Venous Inflow)
+      [
+        const _Vec3(-2, -32, 28),
+        const _Vec3(10, -6, 38),
+        const _Vec3(24, 18, 30),
+        const _Vec3(44, 20, 0),
+        const _Vec3(32, 16, -24),
+        const _Vec3(0, 14, -20),
+        const _Vec3(-18, 18, 6),
+      ],
     ];
 
     for (final stream in streams) {
+      final isVenous = stream == streams.last;
+      final currentParticleColor = isVenous ? const Color(0xFF00E5FF) : particleColor;
       if (stream.length < 2) continue;
       const numP = 8;
       for (int i = 0; i < numP; i++) {
@@ -2331,7 +2377,7 @@ class _AnatomicalHeart3DPainter extends CustomPainter {
         );
         final proj = _project(pos, cx, cy, s, cosY, sinY, cosX, sinX);
         final pPaint = Paint()
-          ..color = particleColor.withValues(alpha: (0.5 + 0.5 * math.sin(t * math.pi)).clamp(0.2, 1.0))
+          ..color = currentParticleColor.withValues(alpha: (0.5 + 0.5 * math.sin(t * math.pi)).clamp(0.2, 1.0))
           ..style = PaintingStyle.fill;
 
         canvas.drawCircle(Offset(proj.x, proj.y), (isContrast ? 4.5 : 3.4) * s, pPaint);
@@ -2374,6 +2420,9 @@ class _AnatomicalHeart3DPainter extends CustomPainter {
         (title: 'LAD ("Widowmaker")', pos: const _Vec3(14, 8, 44), color: const Color(0xFFEF4444)),
         (title: 'LCx', pos: const _Vec3(46, 12, -18), color: const Color(0xFFFF9800)),
         (title: 'RCA', pos: const _Vec3(-44, 5, 20), color: const Color(0xFF00E5FF)),
+        (title: 'Coronary Sinus (Venous Drainage)', pos: const _Vec3(0, 14, -20), color: const Color(0xFF0284C7)),
+        (title: 'SVC (Venous Inflow)', pos: const _Vec3(-26, 88, 2), color: const Color(0xFF38BDF8)),
+        (title: 'Aorta (Arterial Outflow)', pos: const _Vec3(-10, 114, 14), color: const Color(0xFFEF4444)),
         (title: 'Catheter Ostium', pos: const _Vec3(10, 52, 18), color: const Color(0xFFFFEB3B)),
       ]);
     } else if (viewMode == HeartViewMode.ischemiaMap) {
