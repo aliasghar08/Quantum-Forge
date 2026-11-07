@@ -47,6 +47,23 @@ class ApiEndpoints {
     'GFN2-xTB': 8004,
   };
 
+  /// Dedicated Google Cloud Run Hemodynamics & FFR/iFR Backend
+  static const String cardioCathBackendUrl = String.fromEnvironment(
+    'CARDIOCATH_API_BASE_URL',
+    defaultValue: 'https://cardiocath-backend-227207155336.us-central1.run.app',
+  );
+
+  /// WebSocket URL for real-time hemodynamics streaming
+  static String get cardioCathWebSocketUrl {
+    final base = sanitize(cardioCathBackendUrl);
+    if (base.startsWith('https://')) {
+      return 'wss://${base.substring(8)}/ws/hemodynamics';
+    } else if (base.startsWith('http://')) {
+      return 'ws://${base.substring(7)}/ws/hemodynamics';
+    }
+    return 'wss://cardiocath-backend-227207155336.us-central1.run.app/ws/hemodynamics';
+  }
+
   /// True for hosts that only exist on the user's own machine.
   static bool isLoopback(String url) {
     final host = Uri.tryParse(url.trim())?.host.toLowerCase() ?? '';

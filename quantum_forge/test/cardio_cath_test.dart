@@ -222,6 +222,8 @@ void main() {
       // Switch territory to Inferior leads (II, III, aVF) to observe reciprocal depression
       final inferiorLeadChip = find.text('II, III, aVF (Inferior)');
       expect(inferiorLeadChip, findsOneWidget);
+      await tester.ensureVisible(inferiorLeadChip);
+      await tester.pump();
       await tester.tap(inferiorLeadChip);
       await tester.pump();
 
@@ -320,6 +322,63 @@ void main() {
 
       expect(find.text('LAD'), findsWidgets);
       expect(find.text('Catheter / Stent'), findsOneWidget);
+    });
+
+    testWidgets('Interventional Suite: toggles Virtual IVUS/OCT, PressureWire X FFR, and Rotablator',
+        (tester) async {
+      tester.view.physicalSize = const Size(1280, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(buildTestScreen());
+      await tester.pump();
+
+      // Verify ALARA Safety Bar readouts
+      expect(find.textContaining('ALARA SAFETY & CONTRAST STEWARDSHIP'), findsOneWidget);
+      expect(find.textContaining('Air Kerma:'), findsOneWidget);
+      expect(find.textContaining('Contrast:'), findsOneWidget);
+
+      // Verify Guide Catheter selections
+      expect(find.text('JL4'), findsWidgets);
+      expect(find.text('JR4'), findsOneWidget);
+
+      // Tap PressureWire X (FFR) chip
+      final pressureWireChip = find.text('PressureWire X (FFR)');
+      expect(pressureWireChip, findsOneWidget);
+      await tester.tap(pressureWireChip);
+      await tester.pump();
+
+      // Verify live FFR / iFR readout is active
+      expect(find.textContaining('FFR (Pd/Pa)'), findsOneWidget);
+
+      // Tap Rotablator Burr
+      final rotablatorBtn = find.text('Rotablator Burr');
+      expect(rotablatorBtn, findsOneWidget);
+      await tester.tap(rotablatorBtn);
+      await tester.pump();
+
+      expect(find.text('Rotablated (160k RPM)'), findsOneWidget);
+
+      // Toggle Virtual IVUS / OCT Viewport
+      final ivusToggleBtn = find.text('Virtual IVUS / OCT');
+      expect(ivusToggleBtn, findsOneWidget);
+      await tester.ensureVisible(ivusToggleBtn);
+      await tester.pump();
+      await tester.tap(ivusToggleBtn);
+      await tester.pump();
+
+      expect(find.text('VIRTUAL OCT'), findsOneWidget);
+      expect(find.text('PULLBACK: 15.0 mm'), findsOneWidget);
+
+      // Open AI Proctor debrief dialog
+      final aiProctorBtn = find.text('AI Proctor');
+      expect(aiProctorBtn, findsOneWidget);
+      await tester.tap(aiProctorBtn);
+      await tester.pump();
+
+      expect(find.text('AI Interventional Attending Proctor'), findsOneWidget);
+      expect(find.text('Close Proctor Review'), findsOneWidget);
     });
   });
 }

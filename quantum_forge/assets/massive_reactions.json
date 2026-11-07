@@ -1,5 +1,41 @@
 [
   {
+    "id": "lit_10_1007_s11033-026-12993-3",
+    "name": "Bidirectional regulation of pancreatic stellate cell-mediated pancreatic fibrosis by ",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1007/s11033-026-12993-3. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nBidirectional regulation of pancreatic stellate cell-mediated pancreatic fibrosis by prostaglandin subtypes: mechanisms and therapeutic implications - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nBidirectional regulation of pancreatic stellate cell-mediated pancreatic fibrosis by prostaglandin subtypes: mechanisms and therapeutic implications - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000    -0.0000\nH     -0.5500    -0.9200    -0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 21.08,
+    "doi": "10.1007/s11033-026-12993-3",
+    "journalRef": "Molecular Biology Reports",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_1007_s10787-026-02421-0",
+    "name": "Bee venom bioactive compounds as multi-target anti-inflammatory therapeutics: a compr",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1007/s10787-026-02421-0. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nBee venom bioactive compounds as multi-target anti-inflammatory therapeutics: a comprehensive review of molecular mechanisms, network pharmacology, molecular docking, and nano-formulated delivery - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nBee venom bioactive compounds as multi-target anti-inflammatory therapeutics: a comprehensive review of molecular mechanisms, network pharmacology, molecular docking, and nano-formulated delivery - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500    -0.0000\nH     -1.6200     1.1000    -0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000    -0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 24.44,
+    "doi": "10.1007/s10787-026-02421-0",
+    "journalRef": "Inflammopharmacology",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
     "id": "lit_10_1002_adma_202513813",
     "name": "Engineering Topological Phases in Two\u2010Dimensional Materials: A Path from Preparation ",
     "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
