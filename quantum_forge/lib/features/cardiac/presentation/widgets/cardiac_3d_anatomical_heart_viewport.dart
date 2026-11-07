@@ -18,6 +18,8 @@ class Cardiac3DAnatomicalHeartViewport extends StatefulWidget {
   final bool isCatheterEngaged;
   final double contrastIntensity; // 0.0 to 1.0 (dye pulse)
   final double bpm;
+  final CoronaryDominance dominance;
+  final bool isRevascularized;
 
   const Cardiac3DAnatomicalHeartViewport({
     super.key,
@@ -26,6 +28,8 @@ class Cardiac3DAnatomicalHeartViewport extends StatefulWidget {
     this.isCatheterEngaged = true,
     this.contrastIntensity = 0.0,
     this.bpm = 72.0,
+    this.dominance = CoronaryDominance.rightDominant,
+    this.isRevascularized = false,
   });
 
   @override
@@ -92,6 +96,8 @@ class _Cardiac3DAnatomicalHeartViewportState
                     rotationX: _rotationX,
                     zoom: _zoom,
                     palette: palette,
+                    dominance: widget.dominance,
+                    isRevascularized: widget.isRevascularized,
                   ),
                 ),
               ),
@@ -292,6 +298,8 @@ class _AnatomicalHeart3DPainter extends CustomPainter {
   final double rotationX;
   final double zoom;
   final dynamic palette;
+  final CoronaryDominance dominance;
+  final bool isRevascularized;
 
   _AnatomicalHeart3DPainter({
     required this.scenario,
@@ -302,6 +310,8 @@ class _AnatomicalHeart3DPainter extends CustomPainter {
     required this.rotationX,
     required this.zoom,
     required this.palette,
+    required this.dominance,
+    required this.isRevascularized,
   });
 
   _Vec3 _project(
@@ -527,7 +537,7 @@ class _AnatomicalHeart3DPainter extends CustomPainter {
       _Vec3(8, -12, 38),
       _Vec3(2, -28, 24),
     ];
-    final isLadOccluded = scenario.ladStenosisFraction >= 0.85;
+    final isLadOccluded = !isRevascularized && scenario.ladStenosisFraction >= 0.85;
 
     _drawVesselSegment(
       canvas,
@@ -567,12 +577,19 @@ class _AnatomicalHeart3DPainter extends CustomPainter {
     );
 
     // LCx (Left Circumflex) & Obtuse Marginal (OM)
+    // If Left-dominant, LCx gives off PDA to the posterior crux
     final lcxPoints = [
       lmBifurcation,
       _Vec3(34, 40, 20),
       _Vec3(48, 30, 2),
       _Vec3(46, 12, -18),
       _Vec3(36, -5, -28),
+      if (dominance == CoronaryDominance.leftDominant) ...[
+        _Vec3(16, -20, -26),
+        _Vec3(-6, -30, -18), // LCx-derived PDA
+      ] else if (dominance == CoronaryDominance.coDominant) ...[
+        _Vec3(16, -18, -24), // Posterolateral branch
+      ],
     ];
     _drawVesselSegment(
       canvas,
@@ -585,22 +602,33 @@ class _AnatomicalHeart3DPainter extends CustomPainter {
       cosX,
       sinX,
       color: const Color(0xFFFF9800),
-      baseWidth: 3.2,
-      isCutoff: scenario.lcxStenosisFraction >= 0.85,
+      baseWidth: dominance == CoronaryDominance.leftDominant ? 4.0 : 3.2,
+      isCutoff: !isRevascularized && scenario.lcxStenosisFraction >= 0.85,
     );
 
     // ── Right Coronary System (RCA -> PDA) ──────────────────────────────────
     final rcaOstium = _Vec3(-2, 50, 16);
-    final rcaPoints = [
-      rcaOstium,
-      _Vec3(-22, 44, 22),
-      _Vec3(-38, 26, 26),
-      _Vec3(-44, 5, 20),
-      _Vec3(-42, -15, 6),
-      _Vec3(-26, -26, -8),
-      _Vec3(-6, -30, -18), // PDA terminal
-    ];
-    final isRcaOccluded = scenario.rcaStenosisFraction >= 0.85;
+    final List<_Vec3> rcaPoints;
+    if (dominance == CoronaryDominance.leftDominant) {
+      // Non-dominant RCA ends in acute marginal branch
+      rcaPoints = [
+        rcaOstium,
+        _Vec3(-22, 44, 22),
+        _Vec3(-38, 26, 26),
+        _Vec3(-42, 6, 20),
+      ];
+    } else {
+      rcaPoints = [
+        rcaOstium,
+        _Vec3(-22, 44, 22),
+        _Vec3(-38, 26, 26),
+        _Vec3(-44, 5, 20),
+        _Vec3(-42, -15, 6),
+        _Vec3(-26, -26, -8),
+        _Vec3(-6, -30, -18), // PDA terminal
+      ];
+    }
+    final isRcaOccluded = !isRevascularized && scenario.rcaStenosisFraction >= 0.85;
 
     _drawVesselSegment(
       canvas,
@@ -613,17 +641,29 @@ class _AnatomicalHeart3DPainter extends CustomPainter {
       cosX,
       sinX,
       color: const Color(0xFF00E5FF),
-      baseWidth: 3.8,
+      baseWidth: dominance == CoronaryDominance.leftDominant ? 2.6 : 3.8,
       isCutoff: isRcaOccluded,
       cutoffIndex: 3, // Mid RCA cutoff
     );
 
-    // Highlight Stenosis Lesion Ring
+    // Highlight Stenosis Lesion Ring or Deployed Metallic Stent
     if (scenario.ladStenosisFraction > 0.0) {
-      _drawStenosisMarker(canvas, _Vec3(18, 22, 40), cx, cy, s, cosY, sinY, cosX, sinX);
+      final lesionPt = _Vec3(18, 22, 40);
+      if (isRevascularized) {
+        _drawDeployedStent(canvas, lesionPt, _Vec3(14, 8, 44), cx, cy, s, cosY, sinY, cosX, sinX);
+        _drawPtcaGuidewire(canvas, ladPoints, cx, cy, s, cosY, sinY, cosX, sinX);
+      } else {
+        _drawStenosisMarker(canvas, lesionPt, cx, cy, s, cosY, sinY, cosX, sinX);
+      }
     }
     if (scenario.rcaStenosisFraction > 0.0) {
-      _drawStenosisMarker(canvas, _Vec3(-44, 5, 20), cx, cy, s, cosY, sinY, cosX, sinX);
+      final lesionPt = _Vec3(-44, 5, 20);
+      if (isRevascularized) {
+        _drawDeployedStent(canvas, lesionPt, _Vec3(-42, -15, 6), cx, cy, s, cosY, sinY, cosX, sinX);
+        _drawPtcaGuidewire(canvas, rcaPoints, cx, cy, s, cosY, sinY, cosX, sinX);
+      } else {
+        _drawStenosisMarker(canvas, lesionPt, cx, cy, s, cosY, sinY, cosX, sinX);
+      }
     }
   }
 
@@ -709,6 +749,85 @@ class _AnatomicalHeart3DPainter extends CustomPainter {
       ..color = const Color(0xFFFFB300)
       ..style = PaintingStyle.fill;
     canvas.drawCircle(Offset(p.x, p.y), 3.0 * s, dotPaint);
+  }
+
+  void _drawDeployedStent(
+    Canvas canvas,
+    _Vec3 start,
+    _Vec3 end,
+    double cx,
+    double cy,
+    double s,
+    double cosY,
+    double sinY,
+    double cosX,
+    double sinX,
+  ) {
+    final p1 = _project(start, cx, cy, s, cosY, sinY, cosX, sinX);
+    final p2 = _project(end, cx, cy, s, cosY, sinY, cosX, sinX);
+
+    // Metallic cobalt-chromium stent cylinder outline
+    final stentMeshPaint = Paint()
+      ..color = const Color(0xFFE2E8F0)
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.square
+      ..strokeWidth = 5.2 * s;
+    canvas.drawLine(Offset(p1.x, p1.y), Offset(p2.x, p2.y), stentMeshPaint);
+
+    // Cross-hatch diamond strut pattern
+    final strutPaint = Paint()
+      ..color = const Color(0xFF38BDF8)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.6 * s;
+    final dx = (p2.x - p1.x) / 4.0;
+    final dy = (p2.y - p1.y) / 4.0;
+    for (int i = 0; i <= 4; i++) {
+      final ringCenter = Offset(p1.x + dx * i, p1.y + dy * i);
+      canvas.drawCircle(ringCenter, 3.8 * s, strutPaint);
+    }
+
+    // Radiopaque platinum-iridium proximal and distal marker dots
+    final markerPaint = Paint()
+      ..color = const Color(0xFFFDE047)
+      ..style = PaintingStyle.fill;
+    canvas.drawCircle(Offset(p1.x, p1.y), 2.8 * s, markerPaint);
+    canvas.drawCircle(Offset(p2.x, p2.y), 2.8 * s, markerPaint);
+  }
+
+  void _drawPtcaGuidewire(
+    Canvas canvas,
+    List<_Vec3> vesselPoints,
+    double cx,
+    double cy,
+    double s,
+    double cosY,
+    double sinY,
+    double cosX,
+    double sinX,
+  ) {
+    if (vesselPoints.length < 2) return;
+    final wirePaint = Paint()
+      ..color = const Color(0xFFF8FAFC).withValues(alpha: 0.95)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.0 * s;
+
+    final wirePath = Path();
+    for (int i = 0; i < vesselPoints.length; i++) {
+      final p = _project(vesselPoints[i], cx, cy, s, cosY, sinY, cosX, sinX);
+      if (i == 0) {
+        wirePath.moveTo(p.x, p.y);
+      } else {
+        wirePath.lineTo(p.x, p.y);
+      }
+    }
+    canvas.drawPath(wirePath, wirePaint);
+
+    // Radiopaque distal floppy tip (gold / platinum)
+    final tip = _project(vesselPoints.last, cx, cy, s, cosY, sinY, cosX, sinX);
+    final tipPaint = Paint()
+      ..color = const Color(0xFFFBBF24)
+      ..style = PaintingStyle.fill;
+    canvas.drawCircle(Offset(tip.x, tip.y), 2.2 * s, tipPaint);
   }
 
   void _drawGuideCatheter(

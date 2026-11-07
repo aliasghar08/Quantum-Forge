@@ -18,6 +18,9 @@ class CardiacFluoroscopyViewport extends StatelessWidget {
   final double cardiacPhase;
   final VoidCallback onInjectContrast;
   final bool isInjecting;
+  final CoronaryDominance dominance;
+  final bool isRevascularized;
+  final VoidCallback? onSimulatePci;
 
   const CardiacFluoroscopyViewport({
     super.key,
@@ -28,6 +31,9 @@ class CardiacFluoroscopyViewport extends StatelessWidget {
     required this.cardiacPhase,
     required this.onInjectContrast,
     this.isInjecting = false,
+    this.dominance = CoronaryDominance.rightDominant,
+    this.isRevascularized = false,
+    this.onSimulatePci,
   });
 
   @override
@@ -58,6 +64,8 @@ class CardiacFluoroscopyViewport extends StatelessWidget {
                   cranCaudAngle: cranCaudAngle,
                   contrastIntensity: contrastIntensity,
                   cardiacPhase: cardiacPhase,
+                  dominance: dominance,
+                  isRevascularized: isRevascularized,
                 ),
               ),
             ),
@@ -138,11 +146,12 @@ class CardiacFluoroscopyViewport extends StatelessWidget {
               bottom: 12,
               left: 12,
               right: 12,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Flexible(
-                    child: Container(
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
                       padding:
                           const EdgeInsets.symmetric(horizontal: 7, vertical: 3.5),
                       decoration: BoxDecoration(
@@ -167,54 +176,81 @@ class CardiacFluoroscopyViewport extends StatelessWidget {
                                 : Colors.white38,
                           ),
                           const SizedBox(width: 4),
-                          Flexible(
-                            child: Text(
-                              isInjecting
-                                  ? 'DYE: OPACIFIED (PULSATILE)'
-                                  : 'DYE: CLEAR',
-                              style: TextStyle(
-                                color: isInjecting
-                                    ? Colors.cyanAccent
-                                    : Colors.white60,
-                                fontSize: 9.5,
-                                fontFamily: 'monospace',
-                                fontWeight: FontWeight.bold,
-                              ),
-                              overflow: TextOverflow.ellipsis,
+                          Text(
+                            isInjecting
+                                ? 'DYE: OPACIFIED (PULSATILE)'
+                                : 'DYE: CLEAR',
+                            style: TextStyle(
+                              color: isInjecting
+                                  ? Colors.cyanAccent
+                                  : Colors.white60,
+                              fontSize: 9.5,
+                              fontFamily: 'monospace',
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
                         ],
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  ElevatedButton.icon(
-                    icon: const Icon(Icons.colorize_rounded, size: 14),
-                    label: Text(
-                      isInjecting ? 'Dye Flowing...' : 'Inject Contrast Dye',
-                      style: const TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.bold,
+                    const SizedBox(width: 8),
+                    if (onSimulatePci != null &&
+                        (scenario.ladStenosisFraction > 0 || scenario.rcaStenosisFraction > 0)) ...[
+                      ElevatedButton.icon(
+                        icon: Icon(
+                          isRevascularized ? Icons.check_circle_rounded : Icons.expand_circle_down_rounded,
+                          size: 14,
+                        ),
+                        label: Text(
+                          isRevascularized ? 'TIMI 3 (Stented)' : 'Simulate PCI Stent',
+                          style: const TextStyle(
+                            fontSize: 10.5,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: isRevascularized
+                              ? const Color(0xFF10B981)
+                              : const Color(0xFFF59E0B),
+                          foregroundColor: Colors.black,
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                          minimumSize: Size.zero,
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        onPressed: onSimulatePci,
                       ),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: isInjecting
-                          ? const Color(0xFF00E5FF)
-                          : const Color(0xFF263238),
-                      foregroundColor:
-                          isInjecting ? Colors.black : Colors.cyanAccent,
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 6),
-                      minimumSize: Size.zero,
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        side: const BorderSide(color: Color(0xFF00E5FF)),
+                      const SizedBox(width: 6),
+                    ],
+                    ElevatedButton.icon(
+                      icon: const Icon(Icons.colorize_rounded, size: 14),
+                      label: Text(
+                        isInjecting ? 'Dye Flowing...' : 'Inject Contrast Dye',
+                        style: const TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: isInjecting
+                            ? const Color(0xFF00E5FF)
+                            : const Color(0xFF263238),
+                        foregroundColor:
+                            isInjecting ? Colors.black : Colors.cyanAccent,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 6),
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          side: const BorderSide(color: Color(0xFF00E5FF)),
+                        ),
+                      ),
+                      onPressed: onInjectContrast,
                     ),
-                    onPressed: onInjectContrast,
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ],
@@ -234,6 +270,8 @@ class _FluoroscopyXRayPainter extends CustomPainter {
   final double cranCaudAngle;
   final double contrastIntensity;
   final double cardiacPhase;
+  final CoronaryDominance dominance;
+  final bool isRevascularized;
 
   _FluoroscopyXRayPainter({
     required this.scenario,
@@ -241,6 +279,8 @@ class _FluoroscopyXRayPainter extends CustomPainter {
     required this.cranCaudAngle,
     required this.contrastIntensity,
     required this.cardiacPhase,
+    this.dominance = CoronaryDominance.rightDominant,
+    this.isRevascularized = false,
   });
 
   @override
@@ -450,7 +490,7 @@ class _FluoroscopyXRayPainter extends CustomPainter {
     );
 
     // LAD (Left Anterior Descending)
-    final isLadOccluded = scenario.ladStenosisFraction >= 0.85;
+    final isLadOccluded = !isRevascularized && scenario.ladStenosisFraction >= 0.85;
     final ladPts = [
       lmBifurcation,
       const [20.0, 28.0, 38.0],
@@ -498,13 +538,19 @@ class _FluoroscopyXRayPainter extends CustomPainter {
       );
     }
 
-    // LCx (Left Circumflex)
+    // LCx (Left Circumflex) & PDA branch if Left Dominant
     final lcxPts = [
       lmBifurcation,
       const [34.0, 40.0, 20.0],
       const [48.0, 30.0, 2.0],
       const [46.0, 12.0, -18.0],
       const [36.0, -5.0, -28.0],
+      if (dominance == CoronaryDominance.leftDominant) ...[
+        const [16.0, -20.0, -26.0],
+        const [-6.0, -30.0, -18.0], // LCx-derived PDA
+      ] else if (dominance == CoronaryDominance.coDominant) ...[
+        const [16.0, -18.0, -24.0],
+      ],
     ];
     _drawFluoroscopySegment(
       canvas,
@@ -517,22 +563,32 @@ class _FluoroscopyXRayPainter extends CustomPainter {
       cosX,
       sinX,
       color: dyeColor,
-      strokeWidth: 3.4,
-      isCutoff: scenario.lcxStenosisFraction >= 0.85,
+      strokeWidth: dominance == CoronaryDominance.leftDominant ? 4.2 : 3.4,
+      isCutoff: !isRevascularized && scenario.lcxStenosisFraction >= 0.85,
     );
 
     // ── Right Coronary System ────────────────────────────────────────────────
-    final isRcaOccluded = scenario.rcaStenosisFraction >= 0.85;
+    final isRcaOccluded = !isRevascularized && scenario.rcaStenosisFraction >= 0.85;
     final rcaOstium = const [-2.0, 50.0, 16.0];
-    final rcaPts = [
-      rcaOstium,
-      const [-22.0, 44.0, 22.0],
-      const [-38.0, 26.0, 26.0],
-      const [-44.0, 5.0, 20.0],
-      const [-42.0, -15.0, 6.0],
-      const [-26.0, -26.0, -8.0],
-      const [-6.0, -30.0, -18.0],
-    ];
+    final List<List<double>> rcaPts;
+    if (dominance == CoronaryDominance.leftDominant) {
+      rcaPts = [
+        rcaOstium,
+        const [-22.0, 44.0, 22.0],
+        const [-38.0, 26.0, 26.0],
+        const [-42.0, 6.0, 20.0],
+      ];
+    } else {
+      rcaPts = [
+        rcaOstium,
+        const [-22.0, 44.0, 22.0],
+        const [-38.0, 26.0, 26.0],
+        const [-44.0, 5.0, 20.0],
+        const [-42.0, -15.0, 6.0],
+        const [-26.0, -26.0, -8.0],
+        const [-6.0, -30.0, -18.0],
+      ];
+    }
 
     _drawFluoroscopySegment(
       canvas,
@@ -545,10 +601,44 @@ class _FluoroscopyXRayPainter extends CustomPainter {
       cosX,
       sinX,
       color: dyeColor,
-      strokeWidth: 3.8,
+      strokeWidth: dominance == CoronaryDominance.leftDominant ? 2.6 : 3.8,
       isCutoff: isRcaOccluded,
       cutoffIndex: 3, // Mid-RCA cutoff
     );
+
+    // ── Stent & Guidewire Radiopacity if Revascularized ─────────────────────
+    if (isRevascularized) {
+      if (scenario.ladStenosisFraction > 0.0) {
+        _drawFluoroscopyStentAndWire(
+          canvas,
+          const [18.0, 22.0, 40.0],
+          const [14.0, 8.0, 44.0],
+          ladPts,
+          cx,
+          cy,
+          s,
+          cosY,
+          sinY,
+          cosX,
+          sinX,
+        );
+      }
+      if (scenario.rcaStenosisFraction > 0.0) {
+        _drawFluoroscopyStentAndWire(
+          canvas,
+          const [-44.0, 5.0, 20.0],
+          const [-42.0, -15.0, 6.0],
+          rcaPts,
+          cx,
+          cy,
+          s,
+          cosY,
+          sinY,
+          cosX,
+          sinX,
+        );
+      }
+    }
   }
 
   void _drawFluoroscopySegment(
@@ -603,13 +693,83 @@ class _FluoroscopyXRayPainter extends CustomPainter {
     }
   }
 
+  void _drawFluoroscopyStentAndWire(
+    Canvas canvas,
+    List<double> start,
+    List<double> end,
+    List<List<double>> vesselPts,
+    double cx,
+    double cy,
+    double s,
+    double cosY,
+    double sinY,
+    double cosX,
+    double sinX,
+  ) {
+    // 1. PTCA Guidewire (0.014" high radiopacity line crossing lesion)
+    final wirePaint = Paint()
+      ..color = const Color(0xFF1E293B)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.0 * s;
+
+    final wirePath = Path();
+    for (int i = 0; i < vesselPts.length; i++) {
+      final p = vesselPts[i];
+      final off = _project(p[0], p[1], p[2], cx, cy, s, cosY, sinY, cosX, sinX);
+      if (i == 0) {
+        wirePath.moveTo(off.dx, off.dy);
+      } else {
+        wirePath.lineTo(off.dx, off.dy);
+      }
+    }
+    canvas.drawPath(wirePath, wirePaint);
+
+    // Distal floppy tip
+    final last = vesselPts.last;
+    final tipOff = _project(last[0], last[1], last[2], cx, cy, s, cosY, sinY, cosX, sinX);
+    final tipPaint = Paint()
+      ..color = const Color(0xFF0F172A)
+      ..style = PaintingStyle.fill;
+    canvas.drawCircle(tipOff, 2.0 * s, tipPaint);
+
+    // 2. Radiopaque Stent Struts & Platinum Markers
+    final p1 = _project(start[0], start[1], start[2], cx, cy, s, cosY, sinY, cosX, sinX);
+    final p2 = _project(end[0], end[1], end[2], cx, cy, s, cosY, sinY, cosX, sinX);
+
+    final stentTubePaint = Paint()
+      ..color = const Color(0xFF0F172A)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 5.0 * s;
+    canvas.drawLine(p1, p2, stentTubePaint);
+
+    // Diamond grid rings
+    final strutPaint = Paint()
+      ..color = const Color(0xFF475569)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.4 * s;
+    final dx = (p2.dx - p1.dx) / 4.0;
+    final dy = (p2.dy - p1.dy) / 4.0;
+    for (int i = 0; i <= 4; i++) {
+      canvas.drawCircle(Offset(p1.dx + dx * i, p1.dy + dy * i), 3.4 * s, strutPaint);
+    }
+
+    // Dense radiopaque gold/platinum proximal & distal markers
+    final markerPaint = Paint()
+      ..color = const Color(0xFF020617)
+      ..style = PaintingStyle.fill;
+    canvas.drawCircle(p1, 2.6 * s, markerPaint);
+    canvas.drawCircle(p2, 2.6 * s, markerPaint);
+  }
+
   @override
   bool shouldRepaint(covariant _FluoroscopyXRayPainter old) {
     return old.contrastIntensity != contrastIntensity ||
         old.laoRaoAngle != laoRaoAngle ||
         old.cranCaudAngle != cranCaudAngle ||
         old.scenario != scenario ||
-        old.cardiacPhase != cardiacPhase;
+        old.cardiacPhase != cardiacPhase ||
+        old.dominance != dominance ||
+        old.isRevascularized != isRevascularized;
   }
 }
 

@@ -144,5 +144,133 @@ void main() {
 
       expect(find.byType(CardiacDrugMechanismDialog), findsNothing);
     });
+
+    testWidgets('Coronary Dominance Switcher toggles dynamic PDA anatomy', (tester) async {
+      tester.view.physicalSize = const Size(1280, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(buildTestScreen());
+      await tester.pump();
+
+      // Default: Right-Dominant (85%)
+      expect(find.text('Right-Dominant (85%)'), findsOneWidget);
+      expect(find.text('PDA from RCA (85% population)'), findsOneWidget);
+
+      // Switch to Left-Dominant (8%)
+      final leftDomChip = find.text('Left-Dominant (8%)');
+      await tester.tap(leftDomChip);
+      await tester.pump();
+
+      expect(find.text('PDA from LCx (8% population)'), findsOneWidget);
+
+      // Switch to Co-Dominant (7%)
+      final coDomChip = find.text('Co-Dominant (7%)');
+      await tester.tap(coDomChip);
+      await tester.pump();
+
+      expect(find.text('Dual PDA from RCA + LCx (7%)'), findsOneWidget);
+    });
+
+    testWidgets('Simulate PCI Stent deploys metallic stent and resolves ST elevation',
+        (tester) async {
+      tester.view.physicalSize = const Size(1280, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(buildTestScreen());
+      await tester.pump();
+
+      // Select Acute Anterior STEMI
+      final stemiChip = find.text('Acute Anterior STEMI');
+      await tester.tap(stemiChip);
+      await tester.pump();
+
+      // Verify Simulate PCI Stent button appears
+      final pciBtn = find.text('Simulate PCI Stent');
+      expect(pciBtn, findsOneWidget);
+
+      // Deploy PCI Stent
+      await tester.tap(pciBtn);
+      await tester.pump();
+
+      // Verify button changes to TIMI 3 (Stented)
+      expect(find.text('TIMI 3 (Stented)'), findsOneWidget);
+      // Verify contrast is flowing
+      expect(find.text('Dye Flowing...'), findsOneWidget);
+      // ST elevation resolved to ~+1.1 mm (75% resolution of 4.5 mm)
+      expect(find.text('+1.1 mm'), findsOneWidget);
+    });
+
+    testWidgets('12-Lead Territory Switcher updates localized ST deviations and reciprocal depression',
+        (tester) async {
+      tester.view.physicalSize = const Size(1280, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(buildTestScreen());
+      await tester.pump();
+
+      // Select Acute Anterior STEMI
+      final stemiChip = find.text('Acute Anterior STEMI');
+      await tester.tap(stemiChip);
+      await tester.pump();
+
+      // Switch territory to Inferior leads (II, III, aVF) to observe reciprocal depression
+      final inferiorLeadChip = find.text('II, III, aVF (Inferior)');
+      expect(inferiorLeadChip, findsOneWidget);
+      await tester.tap(inferiorLeadChip);
+      await tester.pump();
+
+      // Reciprocal ST depression should be -2.0 mm
+      expect(find.text('-2.0 mm'), findsOneWidget);
+      expect(find.textContaining('II, III, aVF'), findsWidgets);
+    });
+
+    testWidgets('OSCE Exam Mode presents clinical challenge and evaluates student response',
+        (tester) async {
+      tester.view.physicalSize = const Size(1280, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(buildTestScreen());
+      await tester.pump();
+
+      // Tap OSCE Exam Mode toggle button
+      final osceToggleBtn = find.text('OSCE Exam Mode');
+      expect(osceToggleBtn, findsOneWidget);
+      await tester.tap(osceToggleBtn);
+      await tester.pump();
+
+      // Verify OSCE header and clinical vignette
+      expect(find.text('MBBS INTERVENTIONAL OSCE CHALLENGE'), findsOneWidget);
+      expect(find.textContaining('58-year-old male arrives in emergency'), findsOneWidget);
+
+      // Select Culprit Artery
+      final ladChoice = find.text('LAD (Left Anterior Descending)');
+      expect(ladChoice, findsOneWidget);
+      await tester.tap(ladChoice);
+      await tester.pump();
+
+      // Select Treatment
+      final treatmentChoice = find.text('Deploy PCI Stent + Dual Antiplatelet (Aspirin + P2Y12)');
+      expect(treatmentChoice, findsOneWidget);
+      await tester.tap(treatmentChoice);
+      await tester.pump();
+
+      // Submit OSCE Assessment
+      final submitBtn = find.text('Submit OSCE Assessment');
+      expect(submitBtn, findsOneWidget);
+      await tester.tap(submitBtn);
+      await tester.pump();
+
+      // Evaluation results
+      expect(find.textContaining('SCORE:'), findsOneWidget);
+      expect(find.text('FACULTY CLINICAL RATIONALE & FEEDBACK:'), findsOneWidget);
+    });
   });
 }

@@ -112,6 +112,195 @@ enum CoronaryVesselBranch {
   pda,
 }
 
+/// Coronary Circulation Dominance (MBBS / Board Anatomy Core)
+enum CoronaryDominance {
+  rightDominant(
+    'Right-Dominant (85%)',
+    'PDA originates from distal RCA; supplies posterior septum & inferior LV wall.',
+  ),
+  leftDominant(
+    'Left-Dominant (8%)',
+    'PDA originates from distal LCx; RCA is small and non-dominant.',
+  ),
+  coDominant(
+    'Co-Dominant (7%)',
+    'Posterior descending branches arise from both distal RCA and distal LCx.',
+  );
+
+  final String label;
+  final String description;
+  const CoronaryDominance(this.label, this.description);
+}
+
+/// Multi-Lead 12-Lead ECG Territory Switcher
+enum EcgTerritoryLead {
+  leadII('Lead II', 'Systemic rhythm vector & baseline monitoring', 'II'),
+  v1V4Anterior('V1–V4 (Anterior)', 'Anteroseptal wall; culprit LAD artery', 'V1–V4'),
+  inferiorLeads('II, III, aVF (Inferior)', 'Inferior wall; culprit RCA artery', 'II, III, aVF'),
+  lateralLeads('I, aVL, V5–V6 (Lateral)', 'Lateral free wall; culprit LCx artery', 'I, aVL');
+
+  final String label;
+  final String description;
+  final String shortLabel;
+  const EcgTerritoryLead(this.label, this.description, this.shortLabel);
+}
+
+/// Cath Lab OSCE Challenge Case Model
+class OsceCathCase {
+  final String id;
+  final String scenarioId;
+  final String clinicalVignette;
+  final String targetOptimalView;
+  final String targetOptimalProjectionId;
+  final List<String> vesselChoices;
+  final String correctVessel;
+  final List<String> treatmentChoices;
+  final String correctTreatment;
+  final String contraindicationWarning;
+  final String teachingPearl;
+
+  const OsceCathCase({
+    required this.id,
+    required this.scenarioId,
+    required this.clinicalVignette,
+    required this.targetOptimalView,
+    required this.targetOptimalProjectionId,
+    required this.vesselChoices,
+    required this.correctVessel,
+    required this.treatmentChoices,
+    required this.correctTreatment,
+    required this.contraindicationWarning,
+    required this.teachingPearl,
+  });
+
+  String get title {
+    switch (scenarioId) {
+      case 'anterior_stemi_lad':
+        return 'Anterior STEMI';
+      case 'inferior_mi_rca':
+        return 'Inferior MI';
+      case 'lm_stenosis_damping':
+        return 'Left Main Damping';
+      default:
+        return 'Cath Case';
+    }
+  }
+
+  String get prompt => clinicalVignette;
+  String get culpritArtery => correctVessel;
+  String get correctPharmacology => correctTreatment;
+  String get rationale => '$teachingPearl\n\nCONTRAINDICATION / WARNING: $contraindicationWarning';
+
+  double get targetLaoRao {
+    switch (targetOptimalProjectionId) {
+      case 'lao_cranial':
+        return 40.0;
+      case 'lao_straight':
+        return 40.0;
+      case 'rao_caudal':
+        return -25.0;
+      default:
+        return 0.0;
+    }
+  }
+
+  double get targetCranCaud {
+    switch (targetOptimalProjectionId) {
+      case 'lao_cranial':
+        return 30.0;
+      case 'lao_straight':
+        return 0.0;
+      case 'rao_caudal':
+        return -30.0;
+      default:
+        return 0.0;
+    }
+  }
+}
+
+const List<OsceCathCase> kOsceCathCases = [
+  OsceCathCase(
+    id: 'osce_case_anterior_stemi',
+    scenarioId: 'anterior_stemi_lad',
+    clinicalVignette:
+        '58-year-old male arrives in emergency 45 min after crushing substernal chest pain radiating to left arm. ECG shows hyperacute T waves and ST elevation across V1-V4. Diagnostic catheter engages left main coronary ostium.',
+    targetOptimalView: 'LAO Cranial or RAO Caudal (Spider View)',
+    targetOptimalProjectionId: 'lao_cranial',
+    vesselChoices: [
+      'LAD (Left Anterior Descending)',
+      'LCx (Left Circumflex)',
+      'RCA (Right Coronary Artery)',
+      'PDA (Posterior Descending Artery)',
+    ],
+    correctVessel: 'LAD (Left Anterior Descending)',
+    treatmentChoices: [
+      'Deploy PCI Stent + Dual Antiplatelet (Aspirin + P2Y12)',
+      'Administer Intracoronary Nitroglycerin bolus only',
+      'Discharge on oral Beta-blocker without stenting',
+      'Administer IV Calcium Gluconate',
+    ],
+    correctTreatment: 'Deploy PCI Stent + Dual Antiplatelet (Aspirin + P2Y12)',
+    contraindicationWarning:
+        'Delaying primary PCI revascularization beyond 90 min door-to-balloon window exponentially increases transmural myocardial necrosis and free wall rupture risk.',
+    teachingPearl:
+        'Proximal LAD occlusion ("Widowmaker") threatens the anterior LV free wall and bundle branches. Prompt primary stenting restores TIMI 3 flow and aborts cardiogenic shock.',
+  ),
+  OsceCathCase(
+    id: 'osce_case_inferior_mi',
+    scenarioId: 'inferior_mi_rca',
+    clinicalVignette:
+        '64-year-old female presents with epigastric pain, diaphoresis, nausea, and marked hypotension (BP: 85/50 mmHg, HR: 48 bpm). ECG reveals ST elevation in leads II, III, aVF.',
+    targetOptimalView: 'LAO Straight (40° LAO / 0°)',
+    targetOptimalProjectionId: 'lao_straight',
+    vesselChoices: [
+      'RCA (Right Coronary Artery)',
+      'LAD (Left Anterior Descending)',
+      'Left Main Stem',
+      'Obtuse Marginal (OM)',
+    ],
+    correctVessel: 'RCA (Right Coronary Artery)',
+    treatmentChoices: [
+      'IV Normal Saline fluid bolus + Atropine + PCI Revascularization',
+      'Sublingual Nitroglycerin 0.4 mg repeat x3',
+      'Immediate IV Beta-Blocker (Metoprolol 5 mg)',
+      'Oral Diltiazem for rate control',
+    ],
+    correctTreatment:
+        'IV Normal Saline fluid bolus + Atropine + PCI Revascularization',
+    contraindicationWarning:
+        'Nitrates and diuretics are CONTRAINDICATED in inferior MI with RV involvement because RV preload is severely compromised; nitrates trigger catastrophic circulatory collapse.',
+    teachingPearl:
+        'RCA supplies the SA node in 60% and AV node in 90% of patients. Ischemic sinus bradycardia responds to Atropine and volume loading; avoid nitrate-induced preload reduction.',
+  ),
+  OsceCathCase(
+    id: 'osce_case_lm_damping',
+    scenarioId: 'lm_stenosis_damping',
+    clinicalVignette:
+        'Diagnostic catheter advances into the aortic root and engages the left coronary ostium. Immediately, the aortic pressure monitor drops from 125/82 to 85/35 mmHg with loss of dicrotic notch.',
+    targetOptimalView: 'RAO Caudal (Spider View)',
+    targetOptimalProjectionId: 'rao_caudal',
+    vesselChoices: [
+      'Left Main (LM) Ostial Stenosis',
+      'Distal LAD Perforator',
+      'Right Marginal Artery',
+      'Non-coronary sinus wedging',
+    ],
+    correctVessel: 'Left Main (LM) Ostial Stenosis',
+    treatmentChoices: [
+      'Immediate Catheter Disengagement / Withdrawal into Ascending Aorta',
+      'Advance catheter deeper into Left Main trunk',
+      'Inject 10 mL contrast dye forcefully under high pressure',
+      'Administer high-dose IV Adenosine',
+    ],
+    correctTreatment:
+        'Immediate Catheter Disengagement / Withdrawal into Ascending Aorta',
+    contraindicationWarning:
+        'Injecting dye or keeping a wedged catheter in an ostial Left Main stenosis causes total antegrade perfusion arrest and triggers refractory ventricular fibrillation.',
+    teachingPearl:
+        'Pressure damping or ventricularization occurs when the catheter tip seals an ostial stenosis. The operator must immediately disengage the catheter to restore coronary blood flow.',
+  ),
+];
+
 /// Cardiac Clinical Pathology Scenario
 class CardiacPathologyScenario {
   final String id;
@@ -126,6 +315,7 @@ class CardiacPathologyScenario {
   final double diastolicBp;
   final double stElevationMm; // Positive = elevation, Negative = depression
   final bool isCatheterDamped;
+  final bool isRevascularized;
   final String ecgFindings;
   final String clinicalPearls;
   final List<CardiacDrugMechanismLink> linkedDrugs;
@@ -143,10 +333,49 @@ class CardiacPathologyScenario {
     this.diastolicBp = 80.0,
     this.stElevationMm = 0.0,
     this.isCatheterDamped = false,
+    this.isRevascularized = false,
     required this.ecgFindings,
     required this.clinicalPearls,
     required this.linkedDrugs,
   });
+
+  CardiacPathologyScenario copyWith({
+    String? id,
+    String? title,
+    String? subtitle,
+    String? anatomicalLesion,
+    double? ladStenosisFraction,
+    double? lcxStenosisFraction,
+    double? rcaStenosisFraction,
+    double? baselineBpm,
+    double? systolicBp,
+    double? diastolicBp,
+    double? stElevationMm,
+    bool? isCatheterDamped,
+    bool? isRevascularized,
+    String? ecgFindings,
+    String? clinicalPearls,
+    List<CardiacDrugMechanismLink>? linkedDrugs,
+  }) {
+    return CardiacPathologyScenario(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      subtitle: subtitle ?? this.subtitle,
+      anatomicalLesion: anatomicalLesion ?? this.anatomicalLesion,
+      ladStenosisFraction: ladStenosisFraction ?? this.ladStenosisFraction,
+      lcxStenosisFraction: lcxStenosisFraction ?? this.lcxStenosisFraction,
+      rcaStenosisFraction: rcaStenosisFraction ?? this.rcaStenosisFraction,
+      baselineBpm: baselineBpm ?? this.baselineBpm,
+      systolicBp: systolicBp ?? this.systolicBp,
+      diastolicBp: diastolicBp ?? this.diastolicBp,
+      stElevationMm: stElevationMm ?? this.stElevationMm,
+      isCatheterDamped: isCatheterDamped ?? this.isCatheterDamped,
+      isRevascularized: isRevascularized ?? this.isRevascularized,
+      ecgFindings: ecgFindings ?? this.ecgFindings,
+      clinicalPearls: clinicalPearls ?? this.clinicalPearls,
+      linkedDrugs: linkedDrugs ?? this.linkedDrugs,
+    );
+  }
 }
 
 /// Pharmacological Drug Link for the Molecular Bridge
