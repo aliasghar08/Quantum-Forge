@@ -1,5 +1,324 @@
 [
   {
+    "id": "lit_10_1002_adma_202513813",
+    "name": "Engineering Topological Phases in Two\u2010Dimensional Materials: A Path from Preparation ",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1002/adma.202513813. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nEngineering Topological Phases in Two\u2010Dimensional Materials: A Path from Preparation to Device Applications - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nEngineering Topological Phases in Two\u2010Dimensional Materials: A Path from Preparation to Device Applications - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200    -0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200    -0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 16.93,
+    "doi": "10.1002/adma.202513813",
+    "journalRef": "Advanced Materials",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_1186_s13064-026-00351-9",
+    "name": "Biochemical mechanisms of acetylcholinesterase in Alzheimer\u2019s disease pathogenesis an",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1186/s13064-026-00351-9. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nBiochemical mechanisms of acetylcholinesterase in Alzheimer\u2019s disease pathogenesis and future therapeutic strategies - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nBiochemical mechanisms of acetylcholinesterase in Alzheimer\u2019s disease pathogenesis and future therapeutic strategies - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500    -0.0000\nH     -1.6200     1.1000    -0.0000\nH     -0.5500    -0.9200    -0.0000\nC      2.5000     0.1000    -0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 20.33,
+    "doi": "10.1186/s13064-026-00351-9",
+    "journalRef": "Discover Neuroscience",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_1002_pen_71006",
+    "name": "A Star Shape Branched Hydrophilic Polyurethane Dispersant Containing Carboxyl and Ami",
+    "iupacName": "Scholarly reaction (Polymer Chain Growth)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1002/pen.71006. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "polymer",
+    "reactantXyz": "10\nA Star Shape Branched Hydrophilic Polyurethane Dispersant Containing Carboxyl and Amino Anchoring Groups for Inducing Strong Thixotropy in Aqueous Titanium Dioxide Pastes - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nA Star Shape Branched Hydrophilic Polyurethane Dispersant Containing Carboxyl and Amino Anchoring Groups for Inducing Strong Thixotropy in Aqueous Titanium Dioxide Pastes - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500    -0.0000\nH     -1.6200     1.1000    -0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000    -0.0000\nH      2.8500     1.1200    -0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 23.88,
+    "doi": "10.1002/pen.71006",
+    "journalRef": "Polymer Engineering &amp; Science",
+    "tags": [
+      "Polymer-Chemistry",
+      "Macromolecular",
+      "Verified-DOI"
+    ]
+  },
+  {
+    "id": "lit_10_1002_pen_71005",
+    "name": "Preparation of\n                    <scp>\n                      CO\n                   ",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1002/pen.71005. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nPreparation of\n                    <scp>\n                      CO\n                      <sub>2</sub>\n                    </scp>\n                    \u2010Based Peelable Adhesives Featuring Fully Cross\u2010Linked Networks via Metal\u2010Chelate Cross\u2010Link and Dual\u2010Curing Process - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nPreparation of\n                    <scp>\n                      CO\n                      <sub>2</sub>\n                    </scp>\n                    \u2010Based Peelable Adhesives Featuring Fully Cross\u2010Linked Networks via Metal\u2010Chelate Cross\u2010Link and Dual\u2010Curing Process - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000    -0.0000\nH     -0.5500    -0.9200    -0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 19.05,
+    "doi": "10.1002/pen.71005",
+    "journalRef": "Polymer Engineering &amp; Science",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_2147_ijn_s646323",
+    "name": "Extracellular Vesicles in Periodontitis: Bidirectional Crosstalk Between Periodontal ",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.2147/ijn.s646323. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nExtracellular Vesicles in Periodontitis: Bidirectional Crosstalk Between Periodontal Inflammation and Systemic Diseases - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nExtracellular Vesicles in Periodontitis: Bidirectional Crosstalk Between Periodontal Inflammation and Systemic Diseases - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000    -0.0000\nH     -0.5500    -0.9200    -0.0000\nC      2.5000     0.1000    -0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 18.41,
+    "doi": "10.2147/ijn.s646323",
+    "journalRef": "International Journal of Nanomedicine",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_1016_j_polymdegradstab_2026_112575",
+    "name": "Valorization of PVC by modulating main-chain scission versus graft copolymerization v",
+    "iupacName": "Scholarly reaction (Polymer Chain Growth)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1016/j.polymdegradstab.2026.112575. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "polymer",
+    "reactantXyz": "10\nValorization of PVC by modulating main-chain scission versus graft copolymerization via manganese-mediated, light-driven halogen atom transfer - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nValorization of PVC by modulating main-chain scission versus graft copolymerization via manganese-mediated, light-driven halogen atom transfer - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500    -0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200    -0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 18.29,
+    "doi": "10.1016/j.polymdegradstab.2026.112575",
+    "journalRef": "Polymer Degradation and Stability",
+    "tags": [
+      "Polymer-Chemistry",
+      "Macromolecular",
+      "Verified-DOI"
+    ]
+  },
+  {
+    "id": "lit_10_1016_j_glycos_2026_100067",
+    "name": "Recent Advances in Carbohydrate Polymer-Mediated Cancer Immunotherapy",
+    "iupacName": "Scholarly reaction (Polymer Chain Growth)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1016/j.glycos.2026.100067. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "polymer",
+    "reactantXyz": "10\nRecent Advances in Carbohydrate Polymer-Mediated Cancer Immunotherapy - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nRecent Advances in Carbohydrate Polymer-Mediated Cancer Immunotherapy - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000    -0.0000\nH     -0.5500    -0.9200    -0.0000\nC      2.5000     0.1000    -0.0000\nH      2.8500     1.1200    -0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 20.88,
+    "doi": "10.1016/j.glycos.2026.100067",
+    "journalRef": "Glycoscience &amp; Therapy",
+    "tags": [
+      "Polymer-Chemistry",
+      "Macromolecular",
+      "Verified-DOI"
+    ]
+  },
+  {
+    "id": "lit_10_1016_j_hazadv_2026_101720",
+    "name": "Sprayable Redox-Responsive Colorimetric Sensors for On-Site CWA Detection and Deconta",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1016/j.hazadv.2026.101720. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nSprayable Redox-Responsive Colorimetric Sensors for On-Site CWA Detection and Decontamination - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nSprayable Redox-Responsive Colorimetric Sensors for On-Site CWA Detection and Decontamination - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000    -0.0000\nH     -0.5500    -0.9200    -0.0000\nC      2.5000     0.1000    -0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 18.29,
+    "doi": "10.1016/j.hazadv.2026.101720",
+    "journalRef": "Journal of Hazardous Materials Advances",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_3389_fphar_2026_1923374",
+    "name": "Epoxy fatty acids reduce corneal opacity and myofibroblast activation after alkali in",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.3389/fphar.2026.1923374. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nEpoxy fatty acids reduce corneal opacity and myofibroblast activation after alkali injury - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nEpoxy fatty acids reduce corneal opacity and myofibroblast activation after alkali injury - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500    -0.0000\nH     -1.6200     1.1000    -0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 20.85,
+    "doi": "10.3389/fphar.2026.1923374",
+    "journalRef": "Frontiers in Pharmacology",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_1007_s44163-026-02592-3",
+    "name": "Review of computer vision algorithms in histopathology to decipher complex features i",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1007/s44163-026-02592-3. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nReview of computer vision algorithms in histopathology to decipher complex features in cancer - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nReview of computer vision algorithms in histopathology to decipher complex features in cancer - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000    -0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200    -0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 19.38,
+    "doi": "10.1007/s44163-026-02592-3",
+    "journalRef": "Discover Artificial Intelligence",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_25258_ijddt_16_86s_131",
+    "name": "In Silico Studies on the Impact of Inositol, a Bioactive Compound of Rice Water on MM",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.25258/ijddt.16.86s.131. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nIn Silico Studies on the Impact of Inositol, a Bioactive Compound of Rice Water on MMPs in Skin Aging - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nIn Silico Studies on the Impact of Inositol, a Bioactive Compound of Rice Water on MMPs in Skin Aging - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000    -0.0000\nH     -0.5500    -0.9200    -0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 24.7,
+    "doi": "10.25258/ijddt.16.86s.131",
+    "journalRef": "International Journal of Drug Delivery Technology",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_1016_j_indcrop_2026_124712",
+    "name": "Room-temperature foaming of carbonated soybean oil into biobased non-isocyanate polyu",
+    "iupacName": "Scholarly reaction (Polymer Chain Growth)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1016/j.indcrop.2026.124712. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "polymer",
+    "reactantXyz": "10\nRoom-temperature foaming of carbonated soybean oil into biobased non-isocyanate polyurethane foams via a substrate-decoupled cascade exotherm - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nRoom-temperature foaming of carbonated soybean oil into biobased non-isocyanate polyurethane foams via a substrate-decoupled cascade exotherm - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500    -0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200    -0.0000\nC      2.5000     0.1000    -0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 20.07,
+    "doi": "10.1016/j.indcrop.2026.124712",
+    "journalRef": "Industrial Crops and Products",
+    "tags": [
+      "Polymer-Chemistry",
+      "Macromolecular",
+      "Verified-DOI"
+    ]
+  },
+  {
+    "id": "lit_10_26877_asset_v8i4_2981",
+    "name": "Toward Durable Prosthetic Feet: Mechanical and Tribological Evaluation of Polyurethan",
+    "iupacName": "Scholarly reaction (Polymer Chain Growth)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.26877/asset.v8i4.2981. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "polymer",
+    "reactantXyz": "10\nToward Durable Prosthetic Feet: Mechanical and Tribological Evaluation of Polyurethane Elastomers - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nToward Durable Prosthetic Feet: Mechanical and Tribological Evaluation of Polyurethane Elastomers - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500    -0.0000\nH     -1.6200     1.1000    -0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 24.77,
+    "doi": "10.26877/asset.v8i4.2981",
+    "journalRef": "Advance Sustainable Science Engineering and Technology",
+    "tags": [
+      "Polymer-Chemistry",
+      "Macromolecular",
+      "Verified-DOI"
+    ]
+  },
+  {
+    "id": "lit_10_1038_s41392-026-02790-6",
+    "name": "The AMPK signaling pathway in cell metabolism and human diseases",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1038/s41392-026-02790-6. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nThe AMPK signaling pathway in cell metabolism and human diseases - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nThe AMPK signaling pathway in cell metabolism and human diseases - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500    -0.0000\nH     -1.6200     1.1000    -0.0000\nH     -0.5500    -0.9200    -0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200    -0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 18.82,
+    "doi": "10.1038/s41392-026-02790-6",
+    "journalRef": "Signal Transduction and Targeted Therapy",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_1016_j_cell_2026_09_036",
+    "name": "Fatty acid desaturation controls cellular fate decisions between senescence and ferro",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1016/j.cell.2026.09.036. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nFatty acid desaturation controls cellular fate decisions between senescence and ferroptosis - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nFatty acid desaturation controls cellular fate decisions between senescence and ferroptosis - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000    -0.0000\nH     -0.5500    -0.9200    -0.0000\nC      2.5000     0.1000    -0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 21.61,
+    "doi": "10.1016/j.cell.2026.09.036",
+    "journalRef": "Cell",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_3389_fphar_2026_1913312",
+    "name": "8,9-EET analogs protect glomerular cells from doxorubicin-induced toxicity",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.3389/fphar.2026.1913312. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\n8,9-EET analogs protect glomerular cells from doxorubicin-induced toxicity - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\n8,9-EET analogs protect glomerular cells from doxorubicin-induced toxicity - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500    -0.0000\nH     -1.6200     1.1000    -0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 25.08,
+    "doi": "10.3389/fphar.2026.1913312",
+    "journalRef": "Frontiers in Pharmacology",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_1186_s41120-026-00204-z",
+    "name": "Mechanistic understanding of the precipitation inhibition effect of HPMCAS via thermo",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1186/s41120-026-00204-z. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nMechanistic understanding of the precipitation inhibition effect of HPMCAS via thermodynamic modeling - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nMechanistic understanding of the precipitation inhibition effect of HPMCAS via thermodynamic modeling - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500    -0.0000\nH     -1.6200     1.1000    -0.0000\nH     -0.5500    -0.9200    -0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200    -0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 18.43,
+    "doi": "10.1186/s41120-026-00204-z",
+    "journalRef": "AAPS Open",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_36922_msam026340083",
+    "name": "Hybrid resorbable anchors/biomolecule-eluting nanofibers for enhanced pedicle screw f",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.36922/msam026340083. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nHybrid resorbable anchors/biomolecule-eluting nanofibers for enhanced pedicle screw fixation - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nHybrid resorbable anchors/biomolecule-eluting nanofibers for enhanced pedicle screw fixation - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200    -0.0000\nC      2.5000     0.1000    -0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 18.51,
+    "doi": "10.36922/msam026340083",
+    "journalRef": "Materials Science in Additive Manufacturing",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
     "id": "lit_10_1016_j_ecoenv_2026_120989",
     "name": "Heat stress, cognitive performance, and temporal metabolomic changes: Evidence from a",
     "iupacName": "Scholarly reaction (Peptide Hydrolysis)",

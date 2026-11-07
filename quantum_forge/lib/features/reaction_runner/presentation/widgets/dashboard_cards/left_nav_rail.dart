@@ -18,6 +18,7 @@ import 'package:quantum_forge/screens/settings_screen.dart';
 import 'package:quantum_forge/screens/pharmacogenomics_screen.dart';
 import 'package:quantum_forge/screens/osce_sandbox_screen.dart';
 import 'package:quantum_forge/screens/ddi_split_screen.dart';
+import 'package:quantum_forge/screens/cardio_cath_screen.dart';
 import 'package:quantum_forge/core/widgets/quantum_forge_logo.dart';
 import 'package:quantum_forge/core/services/url_service.dart';
 
@@ -191,6 +192,14 @@ class ProfessionalDrawer extends StatelessWidget {
               () => Navigator.of(context).push(DdiSplitScreen.route()),
               showTooltips,
               'Comparative drug-drug interactions and superbug steric resistance sandbox.',
+            ),
+            _routeItem(
+              context,
+              Icons.favorite_rounded,
+              'CardioCath 3D Lab',
+              () => Navigator.of(context).push(CardioCathScreen.route()),
+              showTooltips,
+              'Coronary angiography, C-arm fluoroscopy and live hemodynamic telemetry lab.',
             ),
 
             SizedBox(height: gap(12)),

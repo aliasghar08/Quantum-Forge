@@ -14,6 +14,7 @@ import 'package:quantum_forge/core/services/url_service.dart';
 import 'package:quantum_forge/screens/pharmacogenomics_screen.dart';
 import 'package:quantum_forge/screens/osce_sandbox_screen.dart';
 import 'package:quantum_forge/screens/ddi_split_screen.dart';
+import 'package:quantum_forge/screens/cardio_cath_screen.dart';
 import 'package:quantum_forge/features/pharmacopeia/data/pharmacopeia_database.dart';
 import 'package:quantum_forge/features/pharmacopeia/data/medicine_pharmacology_profile.dart';
 
@@ -263,6 +264,14 @@ class _QuantumControlsPanelState extends State<QuantumControlsPanel> {
           subtitle: 'MRSA / TEM-52 steric clash analysis',
           onTap: () => Navigator.of(context).push(DdiSplitScreen.route()),
         ),
+        const SizedBox(height: 8),
+        _clinicalActionPill(
+          icon: Icons.favorite_rounded,
+          color: const Color(0xFFFF5252),
+          label: 'CardioCath 3D Lab',
+          subtitle: 'Coronary angiography & fluoroscopy simulator',
+          onTap: () => Navigator.of(context).push(CardioCathScreen.route()),
+        ),
       ];
     }
 
@@ -323,6 +332,14 @@ class _QuantumControlsPanelState extends State<QuantumControlsPanel> {
         label: 'Split-Screen DDI & AMR',
         subtitle: 'Superbug bacterial resistance visualizer',
         onTap: () => Navigator.of(context).push(DdiSplitScreen.route()),
+      ),
+      const SizedBox(height: 8),
+      _clinicalActionPill(
+        icon: Icons.favorite_rounded,
+        color: const Color(0xFFFF5252),
+        label: 'CardioCath 3D Lab',
+        subtitle: 'C-Arm fluoroscopy & cardiac hemodynamics',
+        onTap: () => Navigator.of(context).push(CardioCathScreen.route()),
       ),
     ];
   }
