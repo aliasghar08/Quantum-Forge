@@ -272,5 +272,54 @@ void main() {
       expect(find.textContaining('SCORE:'), findsOneWidget);
       expect(find.text('FACULTY CLINICAL RATIONALE & FEEDBACK:'), findsOneWidget);
     });
+
+    testWidgets('3D Anatomical Heart Viewport switches layers between Anatomy, Blood Flow, Conduction, and Coronaries',
+        (tester) async {
+      tester.view.physicalSize = const Size(1280, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(buildTestScreen());
+      await tester.pump();
+
+      // Verify Initial 3D Anatomy Mode & legend
+      expect(find.text('Anatomy'), findsOneWidget);
+      expect(find.text('LV Myocardium'), findsOneWidget);
+      expect(find.text('Pulmonary / Vena Cava'), findsOneWidget);
+
+      // Switch to Blood Flow Mode
+      final flowTab = find.text('Blood Flow');
+      expect(flowTab, findsOneWidget);
+      await tester.ensureVisible(flowTab);
+      await tester.pump();
+      await tester.tap(flowTab);
+      await tester.pump();
+
+      expect(find.text('Oxygenated (LA/LV/Aorta)'), findsOneWidget);
+      expect(find.text('Deoxygenated (RA/RV/PA)'), findsOneWidget);
+
+      // Switch to Conduction System Mode
+      final condTab = find.text('Conduction');
+      expect(condTab, findsOneWidget);
+      await tester.ensureVisible(condTab);
+      await tester.pump();
+      await tester.tap(condTab);
+      await tester.pump();
+
+      expect(find.text('SA Node (Pacemaker)'), findsOneWidget);
+      expect(find.text('His-Purkinje Network'), findsOneWidget);
+
+      // Switch to Vessels Mode
+      final coronariesTab = find.text('Vessels');
+      expect(coronariesTab, findsOneWidget);
+      await tester.ensureVisible(coronariesTab);
+      await tester.pump();
+      await tester.tap(coronariesTab);
+      await tester.pump();
+
+      expect(find.text('LAD'), findsWidgets);
+      expect(find.text('Catheter / Stent'), findsOneWidget);
+    });
   });
 }
