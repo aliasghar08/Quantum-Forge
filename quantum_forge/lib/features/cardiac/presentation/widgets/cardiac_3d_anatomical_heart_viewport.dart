@@ -2,16 +2,19 @@
 // 3D Anatomical Heart & Coronary Tree Viewport — CardioCath 3D
 // ----------------------------------------------------------------------------
 // Comprehensive 3D perspective organ diagram of the human heart featuring:
-// 1. Myocardial chambers (LV, RV, LA, RA, Apex, Interventricular Septum)
-// 2. Great vessels (Ascending Aorta, 3 Arch Branches, Pulmonary Trunk & Arteries,
-//    Superior Vena Cava, Inferior Vena Cava, Pulmonary Veins)
-// 3. Directional blood flow streams (Deoxygenated blue vs Oxygenated red) with
-//    dynamic systolic/diastolic valve leaflet mechanics
-// 4. Cardiac conduction system (SA Node, AV Node, Bundle of His, Purkinje Fibers)
-//    synchronized to cardiac cycle and ECG strip
-// 5. Epicardial coronary arterial tree (LM, LAD, LCx, RCA, dynamic PDA)
-// 6. Interactive 3D anatomical pin callouts, orbital 360° rotation and zoom
-// Zero external mesh assets; 100% proprietary procedural math.
+// 1. Shaded 3D Volumetric Myocardium with directional lighting, specular highlights,
+//    and distinct Left Ventricle, Right Ventricle, Apex, and Interventricular Sulcus.
+// 2. Internal Chambers (Cutaway 4-Chamber view) showing thick LV wall, crescent RV,
+//    muscular Interventricular Septum, Papillary Muscles, and Chordae Tendineae.
+// 3. Great vessels (Ascending Aorta, 3 Arch Branches, Pulmonary Trunk & Arteries,
+//    Superior Vena Cava, Inferior Vena Cava, and 4 Pulmonary Veins).
+// 4. Directional blood flow streams (Deoxygenated blue vs Oxygenated red) with
+//    dynamic systolic/diastolic valve leaflet mechanics (Aortic, Mitral, Tricuspid, Pulmonary).
+// 5. Cardiac conduction system (SA Node, AV Node, Bundle of His, Purkinje Fibers)
+//    synchronized to cardiac cycle and ECG strip.
+// 6. Epicardial coronary arterial tree (LM, LAD, LCx, RCA, dynamic PDA, Stent).
+// 7. Interactive 3D anatomical pin callouts, orbital 360° rotation and pinch zoom.
+// Zero external mesh assets; 100% proprietary procedural vector mathematics.
 // ============================================================================
 
 import 'dart:math' as math;
@@ -21,6 +24,7 @@ import '../../data/cardiac_pathology_models.dart';
 
 enum HeartViewMode {
   anatomy('Anatomy'),
+  chambers('Chambers'),
   bloodFlow('Blood Flow'),
   conduction('Conduction'),
   coronaries('Vessels');
@@ -232,88 +236,50 @@ class _Cardiac3DAnatomicalHeartViewportState
             Positioned(
               bottom: 10,
               left: 10,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
-                decoration: BoxDecoration(
-                  color: palette.scaffold.withValues(alpha: 0.85),
-                  borderRadius: BorderRadius.circular(6),
-                  border: Border.all(color: palette.border),
-                ),
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: _buildLegendItems(),
-                  ),
-                ),
-              ),
-            ),
-
-            // ── Drag & Rotate Hint ──────────────────────────────────────────
-            Positioned(
-              bottom: 10,
               right: 10,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-                decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 0.55),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Text(
-                  '360° Drag Orbit | Pinch Zoom',
-                  style: TextStyle(
-                    color: palette.textMuted,
-                    fontSize: 9.5,
-                    fontStyle: FontStyle.italic,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Flexible(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+                      decoration: BoxDecoration(
+                        color: palette.scaffold.withValues(alpha: 0.88),
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(color: palette.border),
+                      ),
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: _buildLegendItems(),
+                        ),
+                      ),
+                    ),
                   ),
-                ),
+                  const SizedBox(width: 6),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.6),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      '360° Orbit',
+                      style: TextStyle(
+                        color: palette.textMuted,
+                        fontSize: 9.5,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
         ),
       ),
     );
-  }
-
-  List<Widget> _buildLegendItems() {
-    switch (_viewMode) {
-      case HeartViewMode.bloodFlow:
-        return [
-          _legendItem(const Color(0xFFEF4444), 'Oxygenated (LA/LV/Aorta)'),
-          const SizedBox(width: 8),
-          _legendItem(const Color(0xFF00E5FF), 'Deoxygenated (RA/RV/PA)'),
-          const SizedBox(width: 8),
-          _legendItem(const Color(0xFFFFEB3B), 'Valves (Mitral/Aortic)'),
-        ];
-      case HeartViewMode.conduction:
-        return [
-          _legendItem(const Color(0xFF10B981), 'SA Node (Pacemaker)'),
-          const SizedBox(width: 8),
-          _legendItem(const Color(0xFFFFB300), 'AV Node (PR Delay)'),
-          const SizedBox(width: 8),
-          _legendItem(const Color(0xFF38BDF8), 'His-Purkinje Network'),
-        ];
-      case HeartViewMode.coronaries:
-        return [
-          _legendItem(const Color(0xFFEF4444), 'LAD'),
-          const SizedBox(width: 8),
-          _legendItem(const Color(0xFFFF9800), 'LCx'),
-          const SizedBox(width: 8),
-          _legendItem(const Color(0xFF00E5FF), 'RCA'),
-          const SizedBox(width: 8),
-          _legendItem(const Color(0xFFFFEB3B), 'Catheter / Stent'),
-        ];
-      case HeartViewMode.anatomy:
-        return [
-          _legendItem(const Color(0xFFDC2626), 'LV Myocardium'),
-          const SizedBox(width: 8),
-          _legendItem(const Color(0xFFB91C1C), 'RV Free Wall'),
-          const SizedBox(width: 8),
-          _legendItem(const Color(0xFFEF5350), 'Aorta'),
-          const SizedBox(width: 8),
-          _legendItem(const Color(0xFF3B82F6), 'Pulmonary / Vena Cava'),
-        ];
-    }
   }
 
   Widget _actionButton({
@@ -325,11 +291,11 @@ class _Cardiac3DAnatomicalHeartViewportState
   }) {
     return Tooltip(
       message: tooltip,
-      child: InkWell(
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
         onTap: onTap,
-        borderRadius: BorderRadius.circular(6),
         child: Container(
-          padding: const EdgeInsets.all(5),
+          padding: const EdgeInsets.all(4),
           decoration: BoxDecoration(
             color: isActive
                 ? const Color(0xFF00E5FF).withValues(alpha: 0.2)
@@ -337,6 +303,7 @@ class _Cardiac3DAnatomicalHeartViewportState
             borderRadius: BorderRadius.circular(6),
             border: Border.all(
               color: isActive ? const Color(0xFF00E5FF) : palette.border,
+              width: 0.8,
             ),
           ),
           child: Icon(
@@ -349,28 +316,71 @@ class _Cardiac3DAnatomicalHeartViewportState
     );
   }
 
+  List<Widget> _buildLegendItems() {
+    switch (_viewMode) {
+      case HeartViewMode.anatomy:
+        return [
+          _legendItem(const Color(0xFFDC2626), 'LV Myocardium'),
+          _legendItem(const Color(0xFFB91C1C), 'RV Free Wall'),
+          _legendItem(const Color(0xFFEF4444), 'Aorta'),
+          _legendItem(const Color(0xFF2563EB), 'Pulmonary / Vena Cava'),
+          _legendItem(const Color(0xFFFEF08A), 'Sulcus / Adipose'),
+        ];
+      case HeartViewMode.chambers:
+        return [
+          _legendItem(const Color(0xFFEF4444), 'LV Cavity (Thick Wall)'),
+          _legendItem(const Color(0xFFB91C1C), 'RV Cavity (Crescent)'),
+          _legendItem(const Color(0xFF991B1B), 'Interventricular Septum'),
+          _legendItem(Colors.white, 'Chordae & Papillary'),
+          _legendItem(const Color(0xFFFDE047), 'Valves (Mitral/Tricuspid)'),
+        ];
+      case HeartViewMode.bloodFlow:
+        return [
+          _legendItem(const Color(0xFFFF1744), 'Oxygenated (LA/LV/Aorta)'),
+          _legendItem(const Color(0xFF00E5FF), 'Deoxygenated (RA/RV/PA)'),
+          _legendItem(const Color(0xFFFDE047), 'Valves (Dynamic)'),
+        ];
+      case HeartViewMode.conduction:
+        return [
+          _legendItem(const Color(0xFF10B981), 'SA Node (Pacemaker)'),
+          _legendItem(const Color(0xFFFFB300), 'AV Node'),
+          _legendItem(const Color(0xFF00E5FF), 'His-Purkinje Network'),
+        ];
+      case HeartViewMode.coronaries:
+        return [
+          _legendItem(const Color(0xFFEF4444), 'LAD'),
+          _legendItem(const Color(0xFFFF9800), 'LCx'),
+          _legendItem(const Color(0xFF00E5FF), 'RCA'),
+          _legendItem(const Color(0xFFFFEB3B), 'Catheter / Stent'),
+        ];
+    }
+  }
+
   Widget _legendItem(Color color, String label) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          width: 8,
-          height: 8,
-          decoration: BoxDecoration(
-            color: color,
-            shape: BoxShape.circle,
+    return Padding(
+      padding: const EdgeInsets.only(right: 8),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 7,
+            height: 7,
+            decoration: BoxDecoration(
+              color: color,
+              shape: BoxShape.circle,
+            ),
           ),
-        ),
-        const SizedBox(width: 4),
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 9.5,
-            fontWeight: FontWeight.bold,
-            color: Colors.white70,
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 9.5,
+              fontWeight: FontWeight.w500,
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
@@ -388,7 +398,17 @@ class _Vec3 {
   _Vec3 scale(double s) => _Vec3(x * s, y * s, z * s);
 
   double dot(_Vec3 o) => x * o.x + y * o.y + z * o.z;
+  _Vec3 cross(_Vec3 o) => _Vec3(
+        y * o.z - z * o.y,
+        z * o.x - x * o.z,
+        x * o.y - y * o.x,
+      );
+
   double get length => math.sqrt(x * x + y * y + z * z);
+  _Vec3 get normalized {
+    final len = length;
+    return len > 0.0001 ? _Vec3(x / len, y / len, z / len) : const _Vec3(0, 0, 1);
+  }
 }
 
 class _AnatomicalHeart3DPainter extends CustomPainter {
@@ -420,6 +440,18 @@ class _AnatomicalHeart3DPainter extends CustomPainter {
     required this.showLabels,
   });
 
+  _Vec3 _rotate(_Vec3 p, double cosY, double sinY, double cosX, double sinX) {
+    // 1. Rotate Y (Azimuth)
+    final x1 = p.x * cosY - p.z * sinY;
+    final z1 = p.x * sinY + p.z * cosY;
+
+    // 2. Rotate X (Elevation)
+    final y2 = p.y * cosX - z1 * sinX;
+    final z2 = p.y * sinX + z1 * cosX;
+
+    return _Vec3(x1, y2, z2);
+  }
+
   _Vec3 _project(
     _Vec3 p,
     double cx,
@@ -430,22 +462,15 @@ class _AnatomicalHeart3DPainter extends CustomPainter {
     double cosX,
     double sinX,
   ) {
-    // 1. Rotate Y (Azimuth)
-    final x1 = p.x * cosY - p.z * sinY;
-    final z1 = p.x * sinY + p.z * cosY;
-
-    // 2. Rotate X (Elevation)
-    final y2 = p.y * cosX - z1 * sinX;
-    final z2 = p.y * sinX + z1 * cosX;
-
-    // 3. Perspective Camera Projection (focal distance = 460)
+    final r = _rotate(p, cosY, sinY, cosX, sinX);
+    // Perspective Camera Projection (focal distance = 460)
     const focalDist = 460.0;
-    final factor = focalDist / (focalDist + z2);
+    final factor = focalDist / (focalDist + r.z);
 
     return _Vec3(
-      cx + x1 * scaleFactor * factor,
-      cy + y2 * scaleFactor * factor,
-      z2,
+      cx + r.x * scaleFactor * factor,
+      cy + r.y * scaleFactor * factor,
+      r.z,
     );
   }
 
@@ -474,23 +499,39 @@ class _AnatomicalHeart3DPainter extends CustomPainter {
     // ── 2. Atrial Chambers (RA, LA & Auricles) ──────────────────────────────
     _drawAtrialChambers(canvas, cx, cy, baseScale, cosY, sinY, cosX, sinX);
 
-    // ── 3. Ventricular Myocardium (LV Cone, RV Crescent, Apex) ──────────────
-    _drawVentricularMyocardium(
-      canvas,
-      cx,
-      cy,
-      currentScale,
-      cosY,
-      sinY,
-      cosX,
-      sinX,
-    );
+    // ── 3. Ventricular Myocardium & Internal Cavities ────────────────────────
+    if (viewMode == HeartViewMode.chambers) {
+      _drawCutawayInternalChambers(
+        canvas,
+        cx,
+        cy,
+        currentScale,
+        cosY,
+        sinY,
+        cosX,
+        sinX,
+        isSystole,
+      );
+    } else {
+      _drawVolumetricShadedMyocardium(
+        canvas,
+        cx,
+        cy,
+        currentScale,
+        cosY,
+        sinY,
+        cosX,
+        sinX,
+      );
+    }
 
     // ── 4. Great Arterial Trunks (Ascending Aorta & Pulmonary Trunk) ────────
     _drawGreatArterialTrunks(canvas, cx, cy, baseScale, cosY, sinY, cosX, sinX);
 
     // ── 5. Blood Flow Dynamics & Heart Valve Leaflets ───────────────────────
-    if (viewMode == HeartViewMode.bloodFlow || viewMode == HeartViewMode.anatomy) {
+    if (viewMode == HeartViewMode.bloodFlow ||
+        viewMode == HeartViewMode.anatomy ||
+        viewMode == HeartViewMode.chambers) {
       _drawBloodFlowDynamics(
         canvas,
         cx,
@@ -505,7 +546,9 @@ class _AnatomicalHeart3DPainter extends CustomPainter {
     }
 
     // ── 6. Cardiac Conduction System (SA/AV Nodes, Purkinje) ────────────────
-    if (viewMode == HeartViewMode.conduction || viewMode == HeartViewMode.anatomy) {
+    if (viewMode == HeartViewMode.conduction ||
+        viewMode == HeartViewMode.anatomy ||
+        viewMode == HeartViewMode.chambers) {
       _drawConductionSystem(
         canvas,
         cx,
@@ -574,12 +617,12 @@ class _AnatomicalHeart3DPainter extends CustomPainter {
     double sinX,
   ) {
     final veinPaint = Paint()
-      ..color = const Color(0xFF1E3A8A).withValues(alpha: 0.85)
+      ..color = const Color(0xFF1E3A8A).withValues(alpha: 0.9)
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round;
 
     final veinFill = Paint()
-      ..color = const Color(0xFF2563EB).withValues(alpha: 0.45)
+      ..color = const Color(0xFF2563EB).withValues(alpha: 0.6)
       ..style = PaintingStyle.fill;
 
     // Superior Vena Cava (SVC) entering RA
@@ -588,7 +631,7 @@ class _AnatomicalHeart3DPainter extends CustomPainter {
       const _Vec3(-26, 80, 2),
       const _Vec3(-24, 58, 6),
     ];
-    _draw3DTube(canvas, svcCurve, 11.0 * s, veinPaint, veinFill, cx, cy, s, cosY, sinY, cosX, sinX);
+    _draw3DTube(canvas, svcCurve, 12.0 * s, veinPaint, veinFill, cx, cy, s, cosY, sinY, cosX, sinX);
 
     // Inferior Vena Cava (IVC) entering lower RA
     final ivcCurve = [
@@ -596,7 +639,7 @@ class _AnatomicalHeart3DPainter extends CustomPainter {
       const _Vec3(-24, 5, 2),
       const _Vec3(-22, -18, -2),
     ];
-    _draw3DTube(canvas, ivcCurve, 10.0 * s, veinPaint, veinFill, cx, cy, s, cosY, sinY, cosX, sinX);
+    _draw3DTube(canvas, ivcCurve, 11.0 * s, veinPaint, veinFill, cx, cy, s, cosY, sinY, cosX, sinX);
 
     // 4 Pulmonary Veins entering Left Atrium (LA)
     final lpvUpper = [const _Vec3(26, 54, -20), const _Vec3(42, 60, -28)];
@@ -605,10 +648,10 @@ class _AnatomicalHeart3DPainter extends CustomPainter {
     final rpvLower = [const _Vec3(-12, 44, -24), const _Vec3(-28, 46, -32)];
 
     final pvPaint = Paint()
-      ..color = const Color(0xFFDC2626).withValues(alpha: 0.8)
+      ..color = const Color(0xFFDC2626).withValues(alpha: 0.85)
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round
-      ..strokeWidth = 6.0 * s;
+      ..strokeWidth = 6.5 * s;
 
     for (final vein in [lpvUpper, lpvLower, rpvUpper, rpvLower]) {
       final p1 = _project(vein[0], cx, cy, s, cosY, sinY, cosX, sinX);
@@ -635,17 +678,20 @@ class _AnatomicalHeart3DPainter extends CustomPainter {
     final raProj = _project(raCenter, cx, cy, s, cosY, sinY, cosX, sinX);
 
     final raGradient = RadialGradient(
+      center: const Alignment(-0.35, -0.45),
       colors: [
-        const Color(0xFF3B82F6).withValues(alpha: 0.55),
-        const Color(0xFF1E3A8A).withValues(alpha: 0.75),
+        const Color(0xFF60A5FA).withValues(alpha: 0.75),
+        const Color(0xFF2563EB).withValues(alpha: 0.85),
+        const Color(0xFF1E3A8A).withValues(alpha: 0.95),
       ],
+      stops: const [0.0, 0.6, 1.0],
     ).createShader(Rect.fromCircle(center: Offset(raProj.x, raProj.y), radius: 26.0 * s));
 
     final raPaint = Paint()
       ..shader = raGradient
       ..style = PaintingStyle.fill;
     canvas.drawOval(
-      Rect.fromCenter(center: Offset(raProj.x, raProj.y), width: 38.0 * s, height: 46.0 * s),
+      Rect.fromCenter(center: Offset(raProj.x, raProj.y), width: 40.0 * s, height: 48.0 * s),
       raPaint,
     );
 
@@ -654,9 +700,11 @@ class _AnatomicalHeart3DPainter extends CustomPainter {
     final laProj = _project(laCenter, cx, cy, s, cosY, sinY, cosX, sinX);
 
     final laGradient = RadialGradient(
+      center: const Alignment(-0.3, -0.4),
       colors: [
-        const Color(0xFFE11D48).withValues(alpha: 0.45),
-        const Color(0xFF881337).withValues(alpha: 0.75),
+        const Color(0xFFF87171).withValues(alpha: 0.65),
+        const Color(0xFFDC2626).withValues(alpha: 0.8),
+        const Color(0xFF881337).withValues(alpha: 0.95),
       ],
     ).createShader(Rect.fromCircle(center: Offset(laProj.x, laProj.y), radius: 24.0 * s));
 
@@ -664,15 +712,15 @@ class _AnatomicalHeart3DPainter extends CustomPainter {
       ..shader = laGradient
       ..style = PaintingStyle.fill;
     canvas.drawOval(
-      Rect.fromCenter(center: Offset(laProj.x, laProj.y), width: 36.0 * s, height: 38.0 * s),
+      Rect.fromCenter(center: Offset(laProj.x, laProj.y), width: 38.0 * s, height: 40.0 * s),
       laPaint,
     );
   }
 
   // ─────────────────────────────────────────────────────────────────────────
-  // 3. Ventricular Myocardium (Left & Right Ventricles, Apex, Sulci)
+  // 3A. Volumetric Shaded Myocardium (3D Polygonal Quad Mesh with Lighting)
   // ─────────────────────────────────────────────────────────────────────────
-  void _drawVentricularMyocardium(
+  void _drawVolumetricShadedMyocardium(
     Canvas canvas,
     double cx,
     double cy,
@@ -685,57 +733,157 @@ class _AnatomicalHeart3DPainter extends CustomPainter {
     final isAnteriorIschemic = scenario.id.contains('anterior_stemi');
     final isInferiorIschemic = scenario.id.contains('inferior_mi');
 
-    final slices = [
-      (center: const _Vec3(0, -36, 0), rx: 12.0, ry: 10.0, rz: 10.0), // Apex
-      (center: const _Vec3(4, -18, 4), rx: 28.0, ry: 20.0, rz: 22.0), // Low Ventricular
-      (center: const _Vec3(8, 6, 8), rx: 46.0, ry: 30.0, rz: 34.0),   // Mid Ventricular
-      (center: const _Vec3(12, 28, 12), rx: 56.0, ry: 36.0, rz: 40.0), // High Base
-      (center: const _Vec3(10, 44, 14), rx: 50.0, ry: 32.0, rz: 36.0), // Atrioventricular Groove
+    // Directional light vector pointing from top-left-front towards origin
+    final lightDir = const _Vec3(-0.38, 0.65, 0.66).normalized;
+
+    // Cross-sectional rings defining the ventricular myocardium shape
+    final ringDefs = [
+      (y: -38.0, rx: 10.0, rz: 10.0, cx: 0.0, cz: 0.0),    // Apex
+      (y: -22.0, rx: 28.0, rz: 24.0, cx: 4.0, cz: 4.0),    // Low Ventricular
+      (y: -4.0, rx: 46.0, rz: 36.0, cx: 8.0, cz: 8.0),     // Mid Ventricular
+      (y: 16.0, rx: 56.0, rz: 44.0, cx: 12.0, cz: 12.0),   // High Ventricular
+      (y: 34.0, rx: 52.0, rz: 40.0, cx: 10.0, cz: 12.0),   // AV Sulcus
+      (y: 46.0, rx: 44.0, rz: 34.0, cx: 8.0, cz: 10.0),    // Base of Great Outflow
     ];
 
-    for (int i = 0; i < slices.length; i++) {
-      final slice = slices[i];
-      final path = Path();
-      const numPts = 24;
+    const int numAngularSteps = 20;
 
-      for (int j = 0; j <= numPts; j++) {
-        final angle = (j / numPts) * 2.0 * math.pi;
-        final rX = slice.rx * (1.0 + 0.18 * math.sin(angle));
-        final rZ = slice.rz * (1.0 - 0.12 * math.cos(angle));
+    // Build 3D mesh vertices
+    final List<List<_Vec3>> mesh = [];
+    for (int i = 0; i < ringDefs.length; i++) {
+      final ring = ringDefs[i];
+      final List<_Vec3> ringPts = [];
+      for (int j = 0; j < numAngularSteps; j++) {
+        final angle = (j / numAngularSteps) * 2.0 * math.pi;
 
-        final px = slice.center.x + rX * math.cos(angle);
-        final py = slice.center.y;
-        final pz = slice.center.z + rZ * math.sin(angle);
+        // Anatomical distortion: LV is thick & round on lateral side, RV is crescent anterior
+        final rX = ring.rx * (1.0 + 0.16 * math.sin(angle) - 0.08 * math.cos(angle * 2.0));
+        final rZ = ring.rz * (1.0 - 0.14 * math.cos(angle));
 
-        final proj = _project(_Vec3(px, py, pz), cx, cy, s, cosY, sinY, cosX, sinX);
-        if (j == 0) {
-          path.moveTo(proj.x, proj.y);
-        } else {
-          path.lineTo(proj.x, proj.y);
-        }
+        final px = ring.cx + rX * math.cos(angle);
+        final py = ring.y;
+        final pz = ring.cz + rZ * math.sin(angle);
+
+        ringPts.add(_Vec3(px, py, pz));
       }
-
-      Color baseMyoColor = const Color(0xFFDC2626);
-      if (isAnteriorIschemic && !isRevascularized && i >= 1 && i <= 3) {
-        baseMyoColor = const Color(0xFF701A75); // Dusky ischemic myocardium
-      } else if (isInferiorIschemic && !isRevascularized && i <= 2) {
-        baseMyoColor = const Color(0xFF4C0519); // Inferior hypokinetic myocardium
-      }
-
-      final myoPaint = Paint()
-        ..color = baseMyoColor.withValues(alpha: 0.32 + (i * 0.08))
-        ..style = PaintingStyle.fill;
-
-      final myoBorder = Paint()
-        ..color = baseMyoColor.withValues(alpha: 0.65)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.6;
-
-      canvas.drawPath(path, myoPaint);
-      canvas.drawPath(path, myoBorder);
+      mesh.add(ringPts);
     }
 
-    // Anterior Interventricular Sulcus (fat pad groove where LAD courses)
+    // Generate Quads between consecutive rings
+    final List<({
+      _Vec3 p1,
+      _Vec3 p2,
+      _Vec3 p3,
+      _Vec3 p4,
+      _Vec3 center,
+      _Vec3 normal,
+      double depthZ,
+      int ringIndex,
+      int angleIndex,
+    })> quads = [];
+
+    for (int i = 0; i < mesh.length - 1; i++) {
+      for (int j = 0; j < numAngularSteps; j++) {
+        final nextJ = (j + 1) % numAngularSteps;
+
+        final p1 = mesh[i][j];
+        final p2 = mesh[i][nextJ];
+        final p3 = mesh[i + 1][nextJ];
+        final p4 = mesh[i + 1][j];
+
+        final center = (p1 + p2 + p3 + p4).scale(0.25);
+        final rCenter = _rotate(center, cosY, sinY, cosX, sinX);
+
+        // Compute normal vector via cross product
+        final edge1 = p2 - p1;
+        final edge2 = p4 - p1;
+        final rawNormal = edge1.cross(edge2).normalized;
+        final rotNormal = _rotate(rawNormal, cosY, sinY, cosX, sinX).normalized;
+
+        quads.add((
+          p1: p1,
+          p2: p2,
+          p3: p3,
+          p4: p4,
+          center: center,
+          normal: rotNormal,
+          depthZ: rCenter.z,
+          ringIndex: i,
+          angleIndex: j,
+        ));
+      }
+    }
+
+    // Depth sort quads (Painter's algorithm: draw farthest Z first)
+    quads.sort((a, b) => a.depthZ.compareTo(b.depthZ));
+
+    // Render Quads with Directional Shading & Pathology coloration
+    for (final quad in quads) {
+      final proj1 = _project(quad.p1, cx, cy, s, cosY, sinY, cosX, sinX);
+      final proj2 = _project(quad.p2, cx, cy, s, cosY, sinY, cosX, sinX);
+      final proj3 = _project(quad.p3, cx, cy, s, cosY, sinY, cosX, sinX);
+      final proj4 = _project(quad.p4, cx, cy, s, cosY, sinY, cosX, sinX);
+
+      // Back-face culling check in screen projection (shoelace signed area)
+      final area = (proj2.x - proj1.x) * (proj3.y - proj1.y) -
+          (proj2.y - proj1.y) * (proj3.x - proj1.x);
+
+      // We allow semi-transparent backfaces or draw front faces boldly
+      final isFrontFace = area >= -1.0;
+
+      // Base Myocardial Color
+      Color baseColor = const Color(0xFFDC2626); // Rich Cardiac Crimson
+
+      // Ischemic myocardium coloration
+      final isAnteriorArea = quad.angleIndex >= 3 && quad.angleIndex <= 9;
+      final isInferiorArea = quad.angleIndex >= 14 && quad.angleIndex <= 18;
+
+      if (isAnteriorIschemic && !isRevascularized && isAnteriorArea && quad.ringIndex >= 1 && quad.ringIndex <= 4) {
+        baseColor = const Color(0xFF701A75); // Dusky Cyanotic Ischemic Muscle
+      } else if (isInferiorIschemic && !isRevascularized && isInferiorArea && quad.ringIndex <= 3) {
+        baseColor = const Color(0xFF4C0519); // Hypokinetic Ischemic Tissue
+      } else if (quad.angleIndex == 6 || quad.angleIndex == 7) {
+        // Anterior Interventricular Sulcus: Adipose fat pad embedding LAD
+        baseColor = const Color(0xFFCA8A04);
+      }
+
+      // Directional Lighting Calculation
+      final diffuse = (quad.normal.dot(lightDir)).clamp(0.0, 1.0);
+      final ambient = isFrontFace ? 0.35 : 0.15;
+      final totalLight = (ambient + diffuse * 0.65).clamp(0.1, 1.0);
+
+      // Specular highlight on glossy epicardium
+      final halfVec = (lightDir + const _Vec3(0, 0, 1)).normalized;
+      final spec = isFrontFace
+          ? math.pow((quad.normal.dot(halfVec)).clamp(0.0, 1.0), 10.0) * 0.3
+          : 0.0;
+
+      final r = (baseColor.r * totalLight + spec * 255).clamp(0.0, 255.0).toInt();
+      final g = (baseColor.g * totalLight + spec * 255).clamp(0.0, 255.0).toInt();
+      final b = (baseColor.b * totalLight + spec * 255).clamp(0.0, 255.0).toInt();
+      final alpha = isFrontFace ? 0.94 : 0.40;
+
+      final quadPaint = Paint()
+        ..color = Color.fromARGB((alpha * 255).toInt(), r, g, b)
+        ..style = PaintingStyle.fill;
+
+      final borderPaint = Paint()
+        ..color = Color.fromARGB(((isFrontFace ? 0.25 : 0.08) * 255).toInt(), r, g, b)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 0.8;
+
+      final path = Path()
+        ..moveTo(proj1.x, proj1.y)
+        ..lineTo(proj2.x, proj2.y)
+        ..lineTo(proj3.x, proj3.y)
+        ..lineTo(proj4.x, proj4.y)
+        ..close();
+
+      canvas.drawPath(path, quadPaint);
+      canvas.drawPath(path, borderPaint);
+    }
+
+    // Epicardial Adipose Sulcus highlight
     final sulcusPts = [
       const _Vec3(12, 34, 28),
       const _Vec3(8, 14, 30),
@@ -752,11 +900,159 @@ class _AnatomicalHeart3DPainter extends CustomPainter {
       }
     }
     final fatPadPaint = Paint()
-      ..color = const Color(0xFFFEF08A).withValues(alpha: 0.35)
+      ..color = const Color(0xFFFEF08A).withValues(alpha: 0.45)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 8.0 * s
+      ..strokeCap = StrokeCap.round;
+    canvas.drawPath(sulcusPath, fatPadPaint);
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // 3B. Internal Chambers (Cutaway 4-Chamber Coronal View)
+  // ─────────────────────────────────────────────────────────────────────────
+  void _drawCutawayInternalChambers(
+    Canvas canvas,
+    double cx,
+    double cy,
+    double s,
+    double cosY,
+    double sinY,
+    double cosX,
+    double sinX,
+    bool isSystole,
+  ) {
+    // 1. Posterior Myocardial Shell
+    final shellPaint = Paint()
+      ..color = const Color(0xFF450A0A).withValues(alpha: 0.95)
+      ..style = PaintingStyle.fill;
+
+    final shellPath = Path();
+    final posteriorOutline = [
+      const _Vec3(0, -38, -2),   // Apex
+      const _Vec3(34, -14, -6),  // LV lateral wall
+      const _Vec3(44, 18, -6),
+      const _Vec3(36, 42, -4),   // Base
+      const _Vec3(-18, 40, -4),  // RV base
+      const _Vec3(-38, 14, -6),  // RV free wall
+      const _Vec3(-28, -14, -6),
+    ];
+
+    for (int i = 0; i < posteriorOutline.length; i++) {
+      final p = _project(posteriorOutline[i], cx, cy, s, cosY, sinY, cosX, sinX);
+      if (i == 0) {
+        shellPath.moveTo(p.x, p.y);
+      } else {
+        shellPath.lineTo(p.x, p.y);
+      }
+    }
+    shellPath.close();
+    canvas.drawPath(shellPath, shellPaint);
+
+    // 2. Thick Muscular Interventricular Septum (dividing LV and RV)
+    final septumPts = [
+      const _Vec3(0, -36, 0),
+      const _Vec3(2, -18, 2),
+      const _Vec3(4, 6, 2),
+      const _Vec3(2, 34, 2),
+    ];
+    final septumPath = Path();
+    for (int i = 0; i < septumPts.length; i++) {
+      final p = _project(septumPts[i], cx, cy, s, cosY, sinY, cosX, sinX);
+      if (i == 0) {
+        septumPath.moveTo(p.x, p.y);
+      } else {
+        septumPath.lineTo(p.x, p.y);
+      }
+    }
+    final septumPaint = Paint()
+      ..color = const Color(0xFF991B1B)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 14.0 * s
+      ..strokeCap = StrokeCap.round;
+    canvas.drawPath(septumPath, septumPaint);
+
+    // 3. Thick Left Ventricle Wall (12-15mm)
+    final lvCutRim = [
+      const _Vec3(0, -36, 0),
+      const _Vec3(28, -16, 4),
+      const _Vec3(42, 12, 4),
+      const _Vec3(36, 36, 4),
+    ];
+    final lvPath = Path();
+    for (int i = 0; i < lvCutRim.length; i++) {
+      final p = _project(lvCutRim[i], cx, cy, s, cosY, sinY, cosX, sinX);
+      if (i == 0) {
+        lvPath.moveTo(p.x, p.y);
+      } else {
+        lvPath.lineTo(p.x, p.y);
+      }
+    }
+    final lvWallPaint = Paint()
+      ..color = const Color(0xFFEF4444)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 12.0 * s
+      ..strokeCap = StrokeCap.round;
+    canvas.drawPath(lvPath, lvWallPaint);
+
+    // 4. Thinner Right Ventricle Wall (3-5mm)
+    final rvCutRim = [
+      const _Vec3(0, -36, 0),
+      const _Vec3(-26, -14, 4),
+      const _Vec3(-36, 12, 4),
+      const _Vec3(-20, 36, 4),
+    ];
+    final rvPath = Path();
+    for (int i = 0; i < rvCutRim.length; i++) {
+      final p = _project(rvCutRim[i], cx, cy, s, cosY, sinY, cosX, sinX);
+      if (i == 0) {
+        rvPath.moveTo(p.x, p.y);
+      } else {
+        rvPath.lineTo(p.x, p.y);
+      }
+    }
+    final rvWallPaint = Paint()
+      ..color = const Color(0xFFB91C1C)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 6.0 * s
+      ..strokeCap = StrokeCap.round;
+    canvas.drawPath(rvPath, rvWallPaint);
+
+    // 5. Papillary Muscles & Chordae Tendineae ("Heart Strings")
+    // Left Ventricular Papillary Muscle
+    final lvPapillaryBase = const _Vec3(24, -8, 0);
+    final lvPapillaryTip = const _Vec3(18, 6, 2);
+    final pBase = _project(lvPapillaryBase, cx, cy, s, cosY, sinY, cosX, sinX);
+    final pTip = _project(lvPapillaryTip, cx, cy, s, cosY, sinY, cosX, sinX);
+
+    final papPaint = Paint()
+      ..color = const Color(0xFFDC2626)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 7.0 * s
       ..strokeCap = StrokeCap.round;
-    canvas.drawPath(sulcusPath, fatPadPaint);
+    canvas.drawLine(Offset(pBase.x, pBase.y), Offset(pTip.x, pTip.y), papPaint);
+
+    // Chordae Tendineae stretching from papillary muscle to Mitral Valve cusps
+    final mitralAnnulus = const _Vec3(14, 30, 4);
+    final mAnnulusProj = _project(mitralAnnulus, cx, cy, s, cosY, sinY, cosX, sinX);
+
+    final chordaePaint = Paint()
+      ..color = Colors.white.withValues(alpha: 0.9)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.2 * s;
+
+    canvas.drawLine(Offset(pTip.x, pTip.y), Offset(mAnnulusProj.x - 6 * s, mAnnulusProj.y), chordaePaint);
+    canvas.drawLine(Offset(pTip.x, pTip.y), Offset(mAnnulusProj.x + 6 * s, mAnnulusProj.y), chordaePaint);
+
+    // Mitral Valve Leaflets
+    final mitralPaint = Paint()
+      ..color = const Color(0xFFFDE047).withValues(alpha: isSystole ? 0.95 : 0.4)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.4 * s;
+    canvas.drawLine(
+      Offset(mAnnulusProj.x - 10 * s, mAnnulusProj.y),
+      Offset(mAnnulusProj.x + 10 * s, mAnnulusProj.y + (isSystole ? 0 : 5 * s)),
+      mitralPaint,
+    );
   }
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -782,27 +1078,27 @@ class _AnatomicalHeart3DPainter extends CustomPainter {
     ];
 
     final aortaPaint = Paint()
-      ..color = const Color(0xFFDC2626).withValues(alpha: 0.85)
+      ..color = const Color(0xFFDC2626).withValues(alpha: 0.95)
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round;
     final aortaFill = Paint()
-      ..color = const Color(0xFFEF4444).withValues(alpha: 0.45)
+      ..color = const Color(0xFFEF4444).withValues(alpha: 0.55)
       ..style = PaintingStyle.fill;
 
     _draw3DTube(canvas, aortaCurve, 16.0 * s, aortaPaint, aortaFill, cx, cy, s, cosY, sinY, cosX, sinX);
 
     // Three Classic Supra-Aortic Arch Branches (Brachiocephalic, Carotid, Subclavian)
     final archBranches = [
-      [const _Vec3(-2, 98, 16), const _Vec3(-2, 126, 16)],
-      [const _Vec3(-10, 108, 14), const _Vec3(-10, 132, 14)],
-      [const _Vec3(-20, 114, 12), const _Vec3(-24, 134, 10)],
+      [const _Vec3(-2, 98, 16), const _Vec3(-2, 126, 16)],   // Brachiocephalic trunk
+      [const _Vec3(-10, 108, 14), const _Vec3(-10, 132, 14)], // Left Common Carotid
+      [const _Vec3(-20, 114, 12), const _Vec3(-24, 134, 10)], // Left Subclavian Artery
     ];
 
     final branchPaint = Paint()
       ..color = const Color(0xFFEF4444)
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round
-      ..strokeWidth = 4.2 * s;
+      ..strokeWidth = 4.4 * s;
 
     for (final branch in archBranches) {
       final p1 = _project(branch[0], cx, cy, s, cosY, sinY, cosX, sinX);
@@ -818,14 +1114,14 @@ class _AnatomicalHeart3DPainter extends CustomPainter {
     ];
 
     final paPaint = Paint()
-      ..color = const Color(0xFF2563EB).withValues(alpha: 0.9)
+      ..color = const Color(0xFF2563EB).withValues(alpha: 0.95)
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round;
     final paFill = Paint()
-      ..color = const Color(0xFF3B82F6).withValues(alpha: 0.45)
+      ..color = const Color(0xFF3B82F6).withValues(alpha: 0.55)
       ..style = PaintingStyle.fill;
 
-    _draw3DTube(canvas, pulmonaryCurve, 14.0 * s, paPaint, paFill, cx, cy, s, cosY, sinY, cosX, sinX);
+    _draw3DTube(canvas, pulmonaryCurve, 14.5 * s, paPaint, paFill, cx, cy, s, cosY, sinY, cosX, sinX);
 
     final rpaCurve = [const _Vec3(0, 78, 18), const _Vec3(-30, 80, -2)];
     final lpaCurve = [const _Vec3(0, 78, 18), const _Vec3(26, 82, -2)];
@@ -834,7 +1130,7 @@ class _AnatomicalHeart3DPainter extends CustomPainter {
       ..color = const Color(0xFF2563EB)
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round
-      ..strokeWidth = 8.0 * s;
+      ..strokeWidth = 8.5 * s;
 
     for (final b in [rpaCurve, lpaCurve]) {
       final p1 = _project(b[0], cx, cy, s, cosY, sinY, cosX, sinX);
@@ -902,25 +1198,25 @@ class _AnatomicalHeart3DPainter extends CustomPainter {
       isSystole,
     );
 
-    // 3. Heart Valve Annulus & Dynamic Leaflets (Aortic & Mitral)
+    // 3. Heart Valve Annulus & Dynamic Leaflets (Aortic Semilunar Valve)
     final aorticValvePos = const _Vec3(4, 46, 12);
     final av = _project(aorticValvePos, cx, cy, s, cosY, sinY, cosX, sinX);
 
     final valveRingPaint = Paint()
-      ..color = const Color(0xFFFDE047).withValues(alpha: 0.8)
+      ..color = const Color(0xFFFDE047).withValues(alpha: 0.85)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2.0;
 
-    final avRadius = (isSystole ? 9.0 : 6.0) * s;
+    final avRadius = (isSystole ? 9.5 : 6.0) * s;
     canvas.drawCircle(Offset(av.x, av.y), avRadius, valveRingPaint);
 
     final leafletPaint = Paint()
-      ..color = Colors.white.withValues(alpha: isSystole ? 0.3 : 0.9)
+      ..color = Colors.white.withValues(alpha: isSystole ? 0.35 : 0.95)
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.4;
+      ..strokeWidth = 1.5;
 
     for (int i = 0; i < 3; i++) {
-      final angle = (i * 2.0 * math.pi / 3.0) + (isSystole ? 0.3 : 0.0);
+      final angle = (i * 2.0 * math.pi / 3.0) + (isSystole ? 0.35 : 0.0);
       canvas.drawLine(
         Offset(av.x, av.y),
         Offset(av.x + avRadius * math.cos(angle), av.y + avRadius * math.sin(angle)),
@@ -943,9 +1239,11 @@ class _AnatomicalHeart3DPainter extends CustomPainter {
     bool isSystole,
   ) {
     if (stream.length < 2) return;
-    const numParticles = 6;
+    const numParticles = 7;
     for (int i = 0; i < numParticles; i++) {
-      final t = ((i / numParticles) + (cardiacPhase * 2.0)) % 1.0;
+      // Speed accelerates during systole ejection
+      final speedFactor = isSystole ? 2.8 : 1.4;
+      final t = ((i / numParticles) + (cardiacPhase * speedFactor)) % 1.0;
       final idx = (t * (stream.length - 1)).floor();
       final frac = (t * (stream.length - 1)) - idx;
 
@@ -959,10 +1257,10 @@ class _AnatomicalHeart3DPainter extends CustomPainter {
 
       final proj = _project(currentPos, cx, cy, s, cosY, sinY, cosX, sinX);
       final pPaint = Paint()
-        ..color = color.withValues(alpha: (0.4 + 0.6 * math.sin(t * math.pi)).clamp(0.1, 1.0))
+        ..color = color.withValues(alpha: (0.4 + 0.6 * math.sin(t * math.pi)).clamp(0.15, 1.0))
         ..style = PaintingStyle.fill;
 
-      canvas.drawCircle(Offset(proj.x, proj.y), 3.2 * s, pPaint);
+      canvas.drawCircle(Offset(proj.x, proj.y), 3.5 * s, pPaint);
     }
   }
 
@@ -988,13 +1286,13 @@ class _AnatomicalHeart3DPainter extends CustomPainter {
       ..color = isSaFiring ? const Color(0xFF00E676) : const Color(0xFF10B981)
       ..style = PaintingStyle.fill;
 
-    canvas.drawCircle(Offset(saProj.x, saProj.y), (isSaFiring ? 6.5 : 4.5) * s, saPaint);
+    canvas.drawCircle(Offset(saProj.x, saProj.y), (isSaFiring ? 7.0 : 4.5) * s, saPaint);
     if (isSaFiring) {
       final wavePaint = Paint()
-        ..color = const Color(0xFF00E676).withValues(alpha: 0.5)
+        ..color = const Color(0xFF00E676).withValues(alpha: 0.55)
         ..style = PaintingStyle.stroke
         ..strokeWidth = 2.0;
-      canvas.drawCircle(Offset(saProj.x, saProj.y), 11.0 * s, wavePaint);
+      canvas.drawCircle(Offset(saProj.x, saProj.y), 12.0 * s, wavePaint);
     }
 
     // 2. Atrioventricular (AV) Node (at base of interatrial septum)
@@ -1005,7 +1303,7 @@ class _AnatomicalHeart3DPainter extends CustomPainter {
     final avPaint = Paint()
       ..color = isAvFiring ? const Color(0xFFFFD600) : const Color(0xFFF59E0B)
       ..style = PaintingStyle.fill;
-    canvas.drawCircle(Offset(avProj.x, avProj.y), (isAvFiring ? 6.0 : 4.0) * s, avPaint);
+    canvas.drawCircle(Offset(avProj.x, avProj.y), (isAvFiring ? 6.5 : 4.0) * s, avPaint);
 
     // 3. Bundle of His & Left/Right Bundle Branches (down septum)
     final hisBranch = [
@@ -1020,7 +1318,7 @@ class _AnatomicalHeart3DPainter extends CustomPainter {
     final hisPaint = Paint()
       ..color = isVentricularFiring ? const Color(0xFF00E5FF) : const Color(0xFF0284C7)
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.2 * s;
+      ..strokeWidth = 2.4 * s;
 
     final hisPath = Path();
     for (int i = 0; i < hisBranch.length; i++) {
@@ -1045,7 +1343,7 @@ class _AnatomicalHeart3DPainter extends CustomPainter {
           ? const Color(0xFF67E8F9).withValues(alpha: 0.95)
           : const Color(0xFF0284C7).withValues(alpha: 0.5)
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.2 * s;
+      ..strokeWidth = 1.3 * s;
 
     for (final branch in purkinjeArbor) {
       final bPath = Path();
@@ -1095,12 +1393,14 @@ class _AnatomicalHeart3DPainter extends CustomPainter {
     final ladPoints = [
       lmBifurcation,
       const _Vec3(20, 28, 38),
-      const _Vec3(14, 8, 44),
-      const _Vec3(8, -12, 38),
-      const _Vec3(2, -28, 24),
-      const _Vec3(0, -34, 10),
+      const _Vec3(14, 8, 44),   // Culprit lesion location in Anterior STEMI
+      const _Vec3(10, -12, 38),
+      const _Vec3(4, -30, 26),
+      const _Vec3(0, -36, 12),  // Apex
     ];
-    final isLadOccluded = !isRevascularized && scenario.ladStenosisFraction >= 0.85;
+
+    final isLadOccluded =
+        scenario.ladStenosisFraction > 0.5 && !isRevascularized;
 
     _drawVesselSegment(
       canvas,
@@ -1118,14 +1418,10 @@ class _AnatomicalHeart3DPainter extends CustomPainter {
       cutoffIndex: 2,
     );
 
-    final diagPoints = [
-      const _Vec3(18, 22, 40),
-      const _Vec3(32, 8, 32),
-      const _Vec3(42, -6, 20),
-    ];
+    // Diagonal branches from LAD
     _drawVesselSegment(
       canvas,
-      diagPoints,
+      [const _Vec3(20, 28, 38), const _Vec3(34, 16, 32)],
       cx,
       cy,
       s,
@@ -1133,24 +1429,20 @@ class _AnatomicalHeart3DPainter extends CustomPainter {
       sinY,
       cosX,
       sinX,
-      color: const Color(0xFFEF4444).withValues(alpha: isLadOccluded ? 0.35 : 1.0),
+      color: const Color(0xFFEF4444).withValues(alpha: 0.8),
       baseWidth: 2.2,
-      isCutoff: isLadOccluded,
+      isCutoff: false,
     );
 
+    // LCx: Left Circumflex Artery
     final lcxPoints = [
       lmBifurcation,
-      const _Vec3(34, 40, 20),
-      const _Vec3(48, 30, 2),
+      const _Vec3(32, 40, 18),
+      const _Vec3(42, 28, 2),
       const _Vec3(46, 12, -18),
-      const _Vec3(36, -5, -28),
-      if (dominance == CoronaryDominance.leftDominant) ...[
-        const _Vec3(16, -20, -26),
-        const _Vec3(-6, -30, -18),
-      ] else if (dominance == CoronaryDominance.coDominant) ...[
-        const _Vec3(16, -18, -24),
-      ],
+      const _Vec3(40, -4, -28),
     ];
+
     _drawVesselSegment(
       canvas,
       lcxPoints,
@@ -1162,31 +1454,39 @@ class _AnatomicalHeart3DPainter extends CustomPainter {
       cosX,
       sinX,
       color: const Color(0xFFFF9800),
-      baseWidth: dominance == CoronaryDominance.leftDominant ? 4.0 : 3.2,
-      isCutoff: !isRevascularized && scenario.lcxStenosisFraction >= 0.85,
+      baseWidth: 3.4,
+      isCutoff: false,
     );
 
+    // Obtuse Marginal (OM1) branch
+    _drawVesselSegment(
+      canvas,
+      [const _Vec3(42, 28, 2), const _Vec3(48, 14, 12)],
+      cx,
+      cy,
+      s,
+      cosY,
+      sinY,
+      cosX,
+      sinX,
+      color: const Color(0xFFFF9800).withValues(alpha: 0.8),
+      baseWidth: 2.0,
+      isCutoff: false,
+    );
+
+    // RCA: Right Coronary Artery
     final rcaOstium = const _Vec3(-2, 50, 16);
-    final List<_Vec3> rcaPoints;
-    if (dominance == CoronaryDominance.leftDominant) {
-      rcaPoints = [
-        rcaOstium,
-        const _Vec3(-22, 44, 22),
-        const _Vec3(-38, 26, 26),
-        const _Vec3(-42, 6, 20),
-      ];
-    } else {
-      rcaPoints = [
-        rcaOstium,
-        const _Vec3(-22, 44, 22),
-        const _Vec3(-38, 26, 26),
-        const _Vec3(-44, 5, 20),
-        const _Vec3(-42, -15, 6),
-        const _Vec3(-26, -26, -8),
-        const _Vec3(-6, -30, -18),
-      ];
-    }
-    final isRcaOccluded = !isRevascularized && scenario.rcaStenosisFraction >= 0.85;
+    final rcaPoints = [
+      rcaOstium,
+      const _Vec3(-20, 44, 20),
+      const _Vec3(-36, 26, 24),
+      const _Vec3(-44, 5, 20),   // Culprit lesion location in Inferior MI
+      const _Vec3(-42, -14, 8),
+      const _Vec3(-30, -28, -6), // Crux cordis
+    ];
+
+    final isRcaOccluded =
+        scenario.rcaStenosisFraction > 0.5 && !isRevascularized;
 
     _drawVesselSegment(
       canvas,
@@ -1199,34 +1499,130 @@ class _AnatomicalHeart3DPainter extends CustomPainter {
       cosX,
       sinX,
       color: const Color(0xFF00E5FF),
-      baseWidth: dominance == CoronaryDominance.leftDominant ? 2.6 : 3.8,
+      baseWidth: 4.0,
       isCutoff: isRcaOccluded,
       cutoffIndex: 3,
     );
 
-    if (scenario.ladStenosisFraction > 0.0) {
-      final lesionPt = const _Vec3(18, 22, 40);
-      if (isRevascularized) {
-        _drawDeployedStent(canvas, lesionPt, const _Vec3(14, 8, 44), cx, cy, s, cosY, sinY, cosX, sinX);
-        _drawPtcaGuidewire(canvas, ladPoints, cx, cy, s, cosY, sinY, cosX, sinX);
-      } else {
-        _drawStenosisMarker(canvas, lesionPt, cx, cy, s, cosY, sinY, cosX, sinX);
-      }
+    // Acute Marginal branch
+    _drawVesselSegment(
+      canvas,
+      [const _Vec3(-36, 26, 24), const _Vec3(-46, 14, 28)],
+      cx,
+      cy,
+      s,
+      cosY,
+      sinY,
+      cosX,
+      sinX,
+      color: const Color(0xFF00E5FF).withValues(alpha: 0.8),
+      baseWidth: 2.0,
+      isCutoff: false,
+    );
+
+    // Posterior Descending Artery (PDA) dynamically courses from RCA or LCx
+    if (dominance == CoronaryDominance.rightDominant ||
+        dominance == CoronaryDominance.coDominant) {
+      final pdaPoints = [
+        const _Vec3(-30, -28, -6),
+        const _Vec3(-18, -32, -4),
+        const _Vec3(-4, -36, 0),
+        const _Vec3(0, -36, 10), // Reaches apex
+      ];
+      _drawVesselSegment(
+        canvas,
+        pdaPoints,
+        cx,
+        cy,
+        s,
+        cosY,
+        sinY,
+        cosX,
+        sinX,
+        color: const Color(0xFF00E5FF).withValues(alpha: 0.85),
+        baseWidth: 2.6,
+        isCutoff: isRcaOccluded,
+        cutoffIndex: 0,
+      );
+    } else {
+      // Left Dominant: PDA branches off LCx at the posterior crux
+      final leftPdaPoints = [
+        const _Vec3(40, -4, -28),
+        const _Vec3(22, -18, -20),
+        const _Vec3(8, -30, -10),
+        const _Vec3(0, -36, 10),
+      ];
+      _drawVesselSegment(
+        canvas,
+        leftPdaPoints,
+        cx,
+        cy,
+        s,
+        cosY,
+        sinY,
+        cosX,
+        sinX,
+        color: const Color(0xFFFF9800).withValues(alpha: 0.85),
+        baseWidth: 2.6,
+        isCutoff: false,
+      );
     }
-    if (scenario.rcaStenosisFraction > 0.0) {
-      final lesionPt = const _Vec3(-44, 5, 20);
-      if (isRevascularized) {
-        _drawDeployedStent(canvas, lesionPt, const _Vec3(-42, -15, 6), cx, cy, s, cosY, sinY, cosX, sinX);
-        _drawPtcaGuidewire(canvas, rcaPoints, cx, cy, s, cosY, sinY, cosX, sinX);
-      } else {
-        _drawStenosisMarker(canvas, lesionPt, cx, cy, s, cosY, sinY, cosX, sinX);
-      }
+
+    // Deployed PCI Stent or Critical Stenosis Marker
+    if (isRevascularized) {
+      _drawDeployedStent(
+        canvas,
+        const _Vec3(16, 14, 42),
+        const _Vec3(12, 2, 45),
+        cx,
+        cy,
+        s,
+        cosY,
+        sinY,
+        cosX,
+        sinX,
+      );
+      _drawPtcaGuidewire(
+        canvas,
+        ladPoints,
+        cx,
+        cy,
+        s,
+        cosY,
+        sinY,
+        cosX,
+        sinX,
+      );
+    } else if (scenario.ladStenosisFraction > 0.5) {
+      _drawStenosisMarker(
+        canvas,
+        const _Vec3(14, 8, 44),
+        cx,
+        cy,
+        s,
+        cosY,
+        sinY,
+        cosX,
+        sinX,
+      );
+    } else if (scenario.rcaStenosisFraction > 0.5) {
+      _drawStenosisMarker(
+        canvas,
+        const _Vec3(-44, 5, 20),
+        cx,
+        cy,
+        s,
+        cosY,
+        sinY,
+        cosX,
+        sinX,
+      );
     }
   }
 
   void _drawVesselSegment(
     Canvas canvas,
-    List<_Vec3> pts,
+    List<_Vec3> points,
     double cx,
     double cy,
     double s,
@@ -1239,11 +1635,11 @@ class _AnatomicalHeart3DPainter extends CustomPainter {
     required bool isCutoff,
     int? cutoffIndex,
   }) {
-    final effectivePts = isCutoff && cutoffIndex != null
-        ? pts.sublist(0, math.min(cutoffIndex + 1, pts.length))
-        : pts;
+    if (points.isEmpty) return;
 
-    if (effectivePts.length < 2) return;
+    final effectivePts = (isCutoff && cutoffIndex != null)
+        ? points.sublist(0, cutoffIndex + 1)
+        : points;
 
     final path = Path();
     for (int i = 0; i < effectivePts.length; i++) {
@@ -1455,6 +1851,14 @@ class _AnatomicalHeart3DPainter extends CustomPainter {
         (title: 'AV Node', pos: const _Vec3(-4, 46, 6), color: const Color(0xFFFFB300)),
         (title: 'Bundle of His', pos: const _Vec3(2, 10, 16), color: const Color(0xFF00E5FF)),
         (title: 'Purkinje Fibers', pos: const _Vec3(18, -4, 18), color: const Color(0xFF38BDF8)),
+      ]);
+    } else if (viewMode == HeartViewMode.chambers) {
+      labels.addAll([
+        (title: 'LV Cavity (12-15mm wall)', pos: const _Vec3(22, 10, 4), color: const Color(0xFFEF4444)),
+        (title: 'RV Cavity (3-5mm wall)', pos: const _Vec3(-22, 12, 4), color: const Color(0xFFB91C1C)),
+        (title: 'Interventricular Septum', pos: const _Vec3(2, 8, 2), color: const Color(0xFF991B1B)),
+        (title: 'Papillary Muscle & Chordae', pos: const _Vec3(18, 6, 2), color: Colors.white),
+        (title: 'Aorta & Arch', pos: const _Vec3(-10, 114, 14), color: const Color(0xFFEF4444)),
       ]);
     } else if (viewMode == HeartViewMode.coronaries) {
       labels.addAll([
