@@ -6,6 +6,7 @@ import 'package:quantum_forge/features/cardiac/presentation/widgets/cardiac_fluo
 import 'package:quantum_forge/features/cardiac/presentation/widgets/cardiac_c_arm_gantry_twin.dart';
 import 'package:quantum_forge/features/cardiac/presentation/widgets/cardiac_hemodynamic_ecg_strip.dart';
 import 'package:quantum_forge/features/cardiac/presentation/widgets/cardiac_drug_mechanism_dialog.dart';
+import 'package:quantum_forge/features/cardiac/presentation/widgets/cardio_nephro_gnn_dialog.dart';
 
 void main() {
   group('CardioCath 3D: Coronary Angiography & Hemodynamic Lab Tests', () {
@@ -464,6 +465,76 @@ void main() {
       final ecgNormal = CardiacHemodynamicEcgStrip.computeSyntheticEcgSample(0.350, 0.0);
       final ecgStemi = CardiacHemodynamicEcgStrip.computeSyntheticEcgSample(0.350, 4.5);
       expect(ecgStemi - ecgNormal, closeTo(0.40, 0.06), reason: '4.5 mm ST elevation translates to ~+0.40 mV ST takeoff');
+    });
+
+    testWidgets('CardioNephroGNN Screener Dialog renders benchmark presets and hERG risk',
+        (tester) async {
+      tester.view.physicalSize = const Size(1280, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: CardioNephroGnnDialog(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // SaMD banner verification
+      expect(
+        find.textContaining('EDUCATIONAL SIMULATION ONLY — In-silico GNN estimate'),
+        findsOneWidget,
+      );
+
+      // Dialog title & GNN badge
+      expect(find.text('PyTorch MPS GNN'), findsOneWidget);
+      expect(find.textContaining('CardioNephroGNN'), findsWidgets);
+
+      // Verify preset chips are present
+      expect(find.text('Enalaprilat'), findsWidgets);
+      expect(find.text('Bisoprolol'), findsOneWidget);
+      expect(find.text('Empagliflozin'), findsOneWidget);
+      expect(find.text('Losartan'), findsOneWidget);
+      expect(find.text('Amiodarone'), findsOneWidget);
+      expect(find.text('Terfenadine'), findsOneWidget);
+
+      // Initial drug is Enalaprilat (safe)
+      expect(find.textContaining('LOW RISK (SAFE)'), findsOneWidget);
+      expect(find.text('ACE'), findsWidgets);
+
+      // Tap on Terfenadine (High-Risk Cardiotoxic Control)
+      final terfenadineChip = find.text('Terfenadine');
+      await tester.tap(terfenadineChip);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 200));
+
+      // Terfenadine should trigger High Risk hERG and QT prolongation alert
+      expect(find.textContaining('HIGH RISK — Strong hERG Block'), findsOneWidget);
+      expect(find.textContaining('CLINICAL ALERT: High affinity for the hERG'), findsOneWidget);
+    });
+
+    testWidgets('CardioCathScreen opens CardioNephroGNN dialog from AppBar action',
+        (tester) async {
+      tester.view.physicalSize = const Size(1400, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(buildTestScreen(size: const Size(1400, 900)));
+      await tester.pump();
+
+      final gnnButton = find.text('CardioNephroGNN');
+      expect(gnnButton, findsOneWidget);
+      await tester.tap(gnnButton);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 200));
+
+      // Dialog should now be open
+      expect(find.byType(CardioNephroGnnDialog), findsOneWidget);
+      expect(find.text('PyTorch MPS GNN'), findsOneWidget);
     });
   });
 }

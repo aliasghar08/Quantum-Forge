@@ -8,6 +8,7 @@
 import 'package:flutter/material.dart';
 import 'package:quantum_forge/core/theme/theme_provider.dart';
 import '../../data/cardiac_pathology_models.dart';
+import 'cardio_nephro_gnn_dialog.dart';
 
 class CardiacDrugMechanismDialog extends StatelessWidget {
   final CardiacPathologyScenario scenario;
@@ -150,7 +151,20 @@ class CardiacDrugMechanismDialog extends StatelessWidget {
                       ],
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 8),
+                  OutlinedButton.icon(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      CardioNephroGnnDialog.show(context);
+                    },
+                    icon: const Icon(Icons.hub_rounded, size: 14, color: Color(0xFFA78BFA)),
+                    label: const Text('GNN Screener', style: TextStyle(color: Color(0xFFA78BFA), fontSize: 11)),
+                    style: OutlinedButton.styleFrom(
+                      side: const BorderSide(color: Color(0xFF8B5CF6)),
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
                   ElevatedButton(
                     onPressed: () => Navigator.of(context).pop(),
                     style: ElevatedButton.styleFrom(

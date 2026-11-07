@@ -82,6 +82,57 @@ class FsiTrajectoryRequest(BaseModel):
     frames_count: int = 120
 
 
+class CompoundPredictRequest(BaseModel):
+    smiles: str = Field(..., description="Canonical or valid SMILES chemical structure")
+    name: Optional[str] = Field(None, description="Optional drug/compound name")
+
+
+PRESET_COMPOUNDS: List[Dict[str, Any]] = [
+    {
+        "name": "Enalaprilat",
+        "clinical_class": "ACE Inhibitor (Heart Failure & Nephroprotection)",
+        "smiles": "C[C@@H](N[C@@H](CCc1ccccc1)C(=O)O)C(=O)N2CCC[C@H]2C(=O)O",
+        "primary_target": "ACE",
+        "pearl": "Active metabolite of enalapril. Potent ACE inhibitor reducing Angiotensin II vasoconstriction and aldosterone-mediated sodium retention. Minimal hERG liability.",
+    },
+    {
+        "name": "Bisoprolol",
+        "clinical_class": "Cardioselective Beta-1 Adrenergic Blocker",
+        "smiles": "CC(C)NCC(O)COc1ccc(cc1)COCCOC(C)C",
+        "primary_target": "ADRB1",
+        "pearl": "High beta-1 selectivity minimizes bronchoconstriction while blunting sympathetic tachycardia and reducing myocardial oxygen demand (MVO2).",
+    },
+    {
+        "name": "Empagliflozin",
+        "clinical_class": "SGLT2 Inhibitor (Cardio-Renal Protective)",
+        "smiles": "Cc1ccc(cc1Cc2c(Cl)ccc(c2)O[C@@H]3O[C@H](CO)[C@@H](O)[C@H](O)[C@H]3O)C4CCCO4",
+        "primary_target": "SGLT2",
+        "pearl": "Inhibits renal proximal tubule sodium-glucose cotransporter 2; restores tubuloglomerular feedback, reduces glomerular hyperfiltration, and slashes heart failure hospitalizations.",
+    },
+    {
+        "name": "Losartan",
+        "clinical_class": "Angiotensin II Type 1 (AT1) Receptor Blocker (ARB)",
+        "smiles": "CCCC1=NC(Cl)=C(CO)N1Cc1ccc(cc1)-c1ccccc1-c1nnn[nH]1",
+        "primary_target": "AGTR1",
+        "pearl": "Selectively blocks the AT1 receptor without increasing bradykinin levels, preventing ACE-inhibitor associated dry cough while lowering renal vascular resistance.",
+    },
+    {
+        "name": "Amiodarone",
+        "clinical_class": "Class III Multi-Channel Antiarrhythmic",
+        "smiles": "CCCCC1=C(C2=C(O1)C=CC(=C2)C(=O)C3=CC(=C(C(=C3)I)OCCN(CC)CC)I)CC",
+        "primary_target": "Multi-Channel / hERG",
+        "pearl": "Broad-spectrum potassium/calcium/sodium blocker. While it prolongs QT interval, its concomitant calcium-channel block rarely leads to Torsades de Pointes compared to pure hERG blockers.",
+    },
+    {
+        "name": "Terfenadine",
+        "clinical_class": "Withdrawn Antihistamine (Known Fatal Torsadogen)",
+        "smiles": "CC(C)(C)c1ccc(cc1)C(O)CCCN2CCC(CC2)C(O)(c3ccccc3)c4ccccc4",
+        "primary_target": "hERG",
+        "pearl": "Classic high-potency hERG blocker withdrawn globally after causing fatal polymorphic ventricular tachycardia (Torsades de Pointes) when co-administered with CYP3A4 inhibitors.",
+    },
+]
+
+
 @app.get("/health")
 async def health_check():
     return {
@@ -300,4 +351,58 @@ async def websocket_hemodynamics_stream(websocket: WebSocket):
         logger.info("WebSocket disconnected.")
     except Exception as e:
         logger.error(f"WebSocket error: {e}")
+
+
+# ==============================================================================
+# CardioNephroGNN: AI Cardio-Renal Drug Affinity & hERG Safety Screener
+# ==============================================================================
+
+@app.get("/api/cardio-nephro/presets")
+async def get_cardio_nephro_presets():
+    """
+    Returns reference clinical benchmark compounds for 1-tap screening in CardioCath 3D Lab.
+    """
+    return {
+        "status": "success",
+        "total_presets": len(PRESET_COMPOUNDS),
+        "presets": PRESET_COMPOUNDS,
+    }
+
+
+@app.post("/api/cardio-nephro/predict")
+async def predict_cardio_nephro_compound(req: CompoundPredictRequest):
+    """
+    CardioNephroGNN: Multi-target graph neural network predicting binding affinity (pIC50)
+    for key cardiovascular and renal targets (ACE, AGTR1, ADRB1, SGLT2, hERG)
+    and hERG QT prolongation cardiotoxicity liability.
+    
+    Software as a Medical Device (SaMD) Notice:
+    Educational and in-silico simulation only. Not for clinical diagnosis, prescribing, or patient care.
+    """
+    if not req.smiles or not req.smiles.strip():
+        raise HTTPException(status_code=400, detail="SMILES string cannot be empty.")
+
+    try:
+        from cardio_nephro_gnn.predict import predict_compound
+
+        result = predict_compound(req.smiles.strip(), req.name)
+        if "error" in result:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Invalid chemical SMILES: {result['error']}. Unable to parse molecular graph.",
+            )
+
+        # Append SaMD legal shield and metadata
+        result["status"] = "success"
+        result["samd_legal_notice"] = (
+            "EDUCATIONAL SIMULATION ONLY — In-silico GNN estimate. "
+            "Not for clinical diagnosis, patient management, or interventional planning."
+        )
+        return result
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"CardioNephroGNN prediction failed for SMILES '{req.smiles}': {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Inference error: {str(e)}")
+
 

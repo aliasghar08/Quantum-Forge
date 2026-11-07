@@ -64,6 +64,20 @@
     ],
     "rewrites": [
       {
+        "source": "/api/cardiac/**",
+        "run": {
+          "serviceId": "cardiocath-backend",
+          "region": "us-central1"
+        }
+      },
+      {
+        "source": "/api/cardio-nephro/**",
+        "run": {
+          "serviceId": "cardiocath-backend",
+          "region": "us-central1"
+        }
+      },
+      {
         "source": "**",
         "destination": "/index.html"
       }

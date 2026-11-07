@@ -19,7 +19,7 @@
 // on-device Transformer engine instead of issuing a doomed request.
 // ============================================================================
 
-import 'package:flutter/foundation.dart' show kDebugMode;
+import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb;
 
 class ApiEndpoints {
   const ApiEndpoints._();
@@ -52,6 +52,14 @@ class ApiEndpoints {
     'CARDIOCATH_API_BASE_URL',
     defaultValue: 'https://cardiocath-backend-227207155336.us-central1.run.app',
   );
+
+  /// CardioNephroGNN: Multi-target cardio-renal drug affinity and hERG cardiotoxicity prediction
+  static String get cardioNephroPredictUrl =>
+      '${sanitize(cardioCathBackendUrl)}/api/cardio-nephro/predict';
+
+  /// CardioNephroGNN benchmark presets
+  static String get cardioNephroPresetsUrl =>
+      '${sanitize(cardioCathBackendUrl)}/api/cardio-nephro/presets';
 
   /// WebSocket URL for real-time hemodynamics streaming
   static String get cardioCathWebSocketUrl {

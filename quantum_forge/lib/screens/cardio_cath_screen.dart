@@ -25,6 +25,7 @@ import '../features/cardiac/presentation/widgets/cardiac_c_arm_gantry_twin.dart'
 import '../features/cardiac/presentation/widgets/cardiac_ivus_oct_viewport.dart';
 import '../features/cardiac/presentation/widgets/cardiac_hemodynamic_ecg_strip.dart';
 import '../features/cardiac/presentation/widgets/cardiac_drug_mechanism_dialog.dart';
+import '../features/cardiac/presentation/widgets/cardio_nephro_gnn_dialog.dart';
 
 class CardioCathScreen extends StatefulWidget {
   final String? initialScenarioId;
@@ -590,7 +591,7 @@ class _CardioCathScreenState extends State<CardioCathScreen>
 
           // Inspect Drug MoA Button
           Padding(
-            padding: const EdgeInsets.only(right: 12),
+            padding: const EdgeInsets.only(right: 6),
             child: ActionChip(
               avatar: const Icon(Icons.medication_liquid_rounded,
                   color: Color(0xFF00E5FF), size: 15),
@@ -607,6 +608,29 @@ class _CardioCathScreenState extends State<CardioCathScreen>
               onPressed: () => showDialog<void>(
                 context: context,
                 builder: (_) => CardiacDrugMechanismDialog(scenario: _activeScenario),
+              ),
+            ),
+          ),
+
+          // CardioNephroGNN Screener Button
+          Padding(
+            padding: const EdgeInsets.only(right: 12),
+            child: ActionChip(
+              avatar: const Icon(Icons.hub_rounded,
+                  color: Color(0xFFA78BFA), size: 15),
+              label: const Text(
+                'CardioNephroGNN',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFFA78BFA),
+                ),
+              ),
+              backgroundColor: const Color(0xFF8B5CF6).withValues(alpha: 0.18),
+              side: const BorderSide(color: Color(0xFFA78BFA), width: 0.9),
+              onPressed: () => showDialog<void>(
+                context: context,
+                builder: (_) => const CardioNephroGnnDialog(),
               ),
             ),
           ),

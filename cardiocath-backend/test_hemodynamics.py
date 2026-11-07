@@ -151,3 +151,64 @@ def test_fsi_trajectory_endpoint():
     assert data_revasc["is_ischemic"] is False
     assert data_revasc["ffr"] >= 0.88
 
+
+def test_cardio_nephro_presets_endpoint():
+    response = client.get("/api/cardio-nephro/presets")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["status"] == "success"
+    assert data["total_presets"] >= 6
+    names = [p["name"] for p in data["presets"]]
+    assert "Enalaprilat" in names
+    assert "Terfenadine" in names
+    assert "Empagliflozin" in names
+
+
+def test_cardio_nephro_predict_enalaprilat_safe():
+    payload = {
+        "name": "Enalaprilat",
+        "smiles": "C[C@@H](N[C@@H](CCc1ccccc1)C(=O)O)C(=O)N2CCC[C@H]2C(=O)O",
+    }
+    response = client.post("/api/cardio-nephro/predict", json=payload)
+    assert response.status_code == 200
+    data = response.json()
+    assert data["status"] == "success"
+    assert data["compound_name"] == "Enalaprilat"
+    # Target affinities
+    affinities = data["target_affinities"]
+    assert "ace" in affinities
+    assert affinities["ace"]["pIC50"] >= 7.0  # High potency ACE inhibitor
+    # Cardiotoxicity safety
+    cardio = data["cardiotoxicity_analysis"]
+    assert cardio["herg_risk_probability"] < 0.30
+    assert cardio["qt_prolongation_warning"] is False
+    assert "LOW RISK" in cardio["risk_classification"]
+    assert "samd_legal_notice" in data
+
+
+def test_cardio_nephro_predict_terfenadine_high_risk():
+    payload = {
+        "name": "Terfenadine",
+        "smiles": "CC(C)(C)c1ccc(cc1)C(O)CCCN2CCC(CC2)C(O)(c3ccccc3)c4ccccc4",
+    }
+    response = client.post("/api/cardio-nephro/predict", json=payload)
+    assert response.status_code == 200
+    data = response.json()
+    assert data["status"] == "success"
+    cardio = data["cardiotoxicity_analysis"]
+    # Terfenadine is a classic high-potency hERG blocker
+    assert cardio["herg_risk_probability"] >= 0.70
+    assert cardio["qt_prolongation_warning"] is True
+    assert "HIGH RISK" in cardio["risk_classification"]
+
+
+def test_cardio_nephro_predict_invalid_smiles():
+    payload = {
+        "name": "Nonsense",
+        "smiles": "NOT_A_VALID_SMILES_STRING_12345",
+    }
+    response = client.post("/api/cardio-nephro/predict", json=payload)
+    assert response.status_code == 400
+    assert "Invalid chemical SMILES" in response.json()["detail"]
+
+
