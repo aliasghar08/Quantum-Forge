@@ -38,7 +38,7 @@ LAUNCHAGENT_PLIST = Path.home() / f"Library/LaunchAgents/{LAUNCHAGENT_NAME}.plis
 class AutonomousDaemon:
     """End-to-end autonomous research discovery and training supervisor."""
 
-    def __init__(self, poll_interval_hours: float = 0.25):
+    def __init__(self, poll_interval_hours: float = 6.0):
         self.poll_interval_seconds = max(60, int(poll_interval_hours * 3600))
         self.harvester = LiteratureHarvester()
         self.ingester = DataIngester()
@@ -217,7 +217,7 @@ def install_launchd_service() -> None:
             str(script_path),
             "--daemon",
             "--interval",
-            "0.25",
+            "6.0",
         ],
         "WorkingDirectory": str(repo_dir),
         "KeepAlive": True,
@@ -260,7 +260,7 @@ def main():
     parser = argparse.ArgumentParser(description="Quantum Forge 24/7 Autonomous Trainer Daemon")
     parser.add_argument("--run-once", action="store_true", help="Execute an immediate research discovery and training cycle")
     parser.add_argument("--daemon", action="store_true", help="Run continuously in the background")
-    parser.add_argument("--interval", type=float, default=0.25, help="Polling interval in hours (default: 0.25 = 15 minutes)")
+    parser.add_argument("--interval", type=float, default=6.0, help="Polling interval in hours (default: 6.0)")
     parser.add_argument("--ingest-doi", type=str, help="Ingest a specific paper DOI and train immediately")
     parser.add_argument("--status", action="store_true", help="Print ledger status and training history")
     parser.add_argument("--install-service", action="store_true", help="Install macOS launchd 24/7 background service")

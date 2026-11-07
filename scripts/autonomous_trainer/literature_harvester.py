@@ -98,6 +98,38 @@ def get_db(db_path: Path = DEFAULT_DB_PATH) -> sqlite3.Connection:
     return conn
 
 
+def is_proper_clinical_medicine(title: str, journal: str = "") -> bool:
+    """Strictly filters for human clinical pharmacology, therapeutics, and doctor-prescribed medicines.
+    
+    Rejects non-medical fields (pedagogy, linguistics, LLMs, social media, concrete, finance, etc.).
+    """
+    text = f"{title} {journal}".lower()
+    
+    # 1. Non-medical rejection keywords
+    disallowed = [
+        "chatgpt", "large language model", "llm", "l2 writing", "learner engagement",
+        "pedagogy", "social media", "concrete", "mortar", "blockchain", "cryptocurrency",
+        "deep learning for text", "sentiment analysis", "curriculum development",
+        "game-based", "cqpf", "student engagement", "higher education teaching",
+        "facial recognition", "natural language processing", "pedagogical"
+    ]
+    if any(d in text for d in disallowed):
+        return False
+        
+    # 2. Positive clinical pharmacology & doctor-prescribed medicine keywords
+    clinical_keywords = [
+        "pharmac", "drug", "receptor", "inhibitor", "antagonist", "agonist",
+        "cardio", "renal", "nephro", "heart failure", "hypertension", "diuretic",
+        "myocardial", "arrhythmia", "statin", "calcineurin", "transplant",
+        "antibiotic", "antimicrobial", "antiviral", "chemotherapy", "oncology",
+        "endocrin", "diabetes", "insulin", "sglt2", "glp-1", "beta-blocker",
+        "calcium channel", "toxicology", "antidote", "metabolism", "cyp450",
+        "clearance", "plasma", "serum", "clinical trial", "patient", "pathophysiology",
+        "vasodilat", "vasoconstrict", "adverse effect", "dosing", "therapeutic"
+    ]
+    return any(ck in text for ck in clinical_keywords)
+
+
 class LiteratureHarvester:
     """Queries academic search APIs for new transition state and reaction PES research."""
 
@@ -201,6 +233,40 @@ class LiteratureHarvester:
                 "url": url_landing,
                 "abstract": "",  # Storing uncopyrightable scientific metadata only
                 "data_links": json.dumps(data_links),
+            })
+        return discovered
+
+    def search_europepmc(self, query: str = "cardiology nephrology pharmacology", limit: int = 5) -> list[dict]:
+        """Search Europe PMC / PubMed Central for peer-reviewed biomedical and clinical pharmacology papers."""
+        logger.info("Polling Europe PMC for physician-prescribed clinical pharmacology: '%s'", query)
+        encoded_q = urllib.parse.quote(query + " AND (SRC:MED OR SRC:PMC)")
+        url = f"https://www.ebi.ac.uk/europepmc/webservices/rest/search?query={encoded_q}&format=json&pageSize={limit}&resultType=core"
+        data = self.fetch_json(url)
+        if not data or "resultList" not in data or "result" not in data["resultList"]:
+            return []
+
+        discovered = []
+        for item in data["resultList"]["result"]:
+            doi = item.get("doi")
+            if not doi:
+                pmid = item.get("pmid")
+                if pmid:
+                    doi = f"pmid:{pmid}"
+                else:
+                    continue
+
+            title = item.get("title", "").rstrip(".")
+            pub_date = item.get("firstPublicationDate") or item.get("pubYear") or str(datetime.date.today())
+            journal = item.get("journalTitle") or item.get("journalInfo", {}).get("journal", {}).get("title", "")
+            
+            discovered.append({
+                "doi": doi,
+                "title": title,
+                "published_date": str(pub_date),
+                "source": "EuropePMC",
+                "url": f"https://doi.org/{doi}" if not doi.startswith("pmid:") else f"https://pubmed.ncbi.nlm.nih.gov/{doi.split(':')[1]}/",
+                "journal": journal,
+                "data_links": "[]",
             })
         return discovered
 
@@ -323,12 +389,21 @@ class LiteratureHarvester:
         for topic in chosen_topics:
             all_candidates.extend(self.search_openalex(topic, limit=2))
             all_candidates.extend(self.search_crossref(topic, limit=2))
+            all_candidates.extend(self.search_europepmc(topic, limit=2))
 
         new_dois = []
         with self.conn:
             cur = self.conn.cursor()
             for cand in all_candidates:
                 doi = cand["doi"]
+                title = cand.get("title", "")
+                journal = cand.get("journal", "")
+
+                # Strict physician-prescribed / doctor-used clinical medicine gate
+                if not is_proper_clinical_medicine(title, journal):
+                    logger.info("Skipping non-clinical or non-pharmaceutical work: %s ('%s')", doi, title[:60])
+                    continue
+
                 cur.execute("SELECT doi FROM papers WHERE doi = ?", (doi,))
                 if cur.fetchone() is not None:
                     continue  # Already seen and tracked
