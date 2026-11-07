@@ -20,6 +20,11 @@ class CardioCathThreeBridge {
   static bool _factoriesRegistered = false;
   static final Map<int, CardioCathThreeBridge> _heartBridges = {};
   static final Map<int, CardioCathThreeBridge> _fluoroBridges = {};
+  static CardioCathThreeBridge? _latestHeartBridge;
+  static CardioCathThreeBridge? _latestFluoroBridge;
+
+  static CardioCathThreeBridge? get latestHeartBridge => _latestHeartBridge;
+  static CardioCathThreeBridge? get latestFluoroBridge => _latestFluoroBridge;
 
   final int _viewId;
   final web.HTMLDivElement _element;
@@ -27,6 +32,9 @@ class CardioCathThreeBridge {
   JSObject? _viewer;
   bool _initScheduled = false;
   bool _disposed = false;
+  bool hasFailed = false;
+
+  bool get hasActiveViewer => _viewer != null;
 
   CardioCathThreeBridge._(this._viewId, this._element, this._isFluoro);
 
@@ -51,10 +59,12 @@ class CardioCathThreeBridge {
         ..style.height = '100%'
         ..style.position = 'relative'
         ..style.overflow = 'hidden'
-        ..style.backgroundColor = '#0f172a';
+        ..style.backgroundColor = '#070c18';
 
       final bridge = CardioCathThreeBridge._(viewId, element, false);
       _heartBridges[viewId] = bridge;
+      _latestHeartBridge = bridge;
+      bridge._scheduleInit();
       return element;
     });
 
@@ -70,6 +80,8 @@ class CardioCathThreeBridge {
 
       final bridge = CardioCathThreeBridge._(viewId, element, true);
       _fluoroBridges[viewId] = bridge;
+      _latestFluoroBridge = bridge;
+      bridge._scheduleInit();
       return element;
     });
   }
@@ -102,7 +114,10 @@ class CardioCathThreeBridge {
     try {
       final global = web.window as JSObject;
       final hub = global.getProperty('CardioCathThree'.toJS) as JSObject?;
-      if (hub == null) return;
+      if (hub == null) {
+        hasFailed = true;
+        return;
+      }
 
       final options = JSObject();
       if (_isFluoro) {
@@ -110,7 +125,11 @@ class CardioCathThreeBridge {
       } else {
         _viewer = hub.callMethod('initHeartViewer'.toJS, _element, options) as JSObject?;
       }
+      if (_viewer == null) {
+        hasFailed = true;
+      }
     } catch (e) {
+      hasFailed = true;
       // Graceful fallback to Flutter CustomPainter
     }
   }

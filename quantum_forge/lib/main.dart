@@ -21,6 +21,7 @@ import 'package:quantum_forge/core/services/auth_service.dart';
 import 'package:quantum_forge/core/services/session_state_service.dart';
 import 'package:quantum_forge/core/services/feedback_service.dart';
 import 'package:quantum_forge/core/widgets/floating_copyright_watermark.dart';
+import 'package:quantum_forge/screens/cardio_cath_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -186,6 +187,14 @@ class _QuantumForgeAppState extends State<QuantumForgeApp> {
                 );
               },
               home: const AuthGate(),
+              onGenerateRoute: (routeSettings) {
+                final uri = Uri.tryParse(routeSettings.name ?? '');
+                final path = uri?.path ?? '';
+                if (path == '/cardiac' || path == 'cardiac') {
+                  return CardioCathScreen.route();
+                }
+                return null;
+              },
             ),
           ),
         );

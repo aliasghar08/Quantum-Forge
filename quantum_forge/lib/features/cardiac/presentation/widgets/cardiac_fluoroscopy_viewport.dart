@@ -113,6 +113,12 @@ class _CardiacFluoroscopyViewportState extends State<CardiacFluoroscopyViewport>
 
   @override
   Widget build(BuildContext context) {
+    if (kIsWeb && _threeBridge == null) {
+      _threeBridge = CardioCathThreeBridge.latestFluoroBridge;
+      if (_threeBridge != null) {
+        _syncBridge();
+      }
+    }
     return Container(
       decoration: BoxDecoration(
         color: const Color(0xFF0A0D12),
@@ -132,7 +138,7 @@ class _CardiacFluoroscopyViewportState extends State<CardiacFluoroscopyViewport>
           children: [
             // ── Inverted Monochromatic Fluoroscopy Screen ───────────────────
             Positioned.fill(
-              child: kIsWeb && CardioCathThreeBridge.isSupported
+              child: kIsWeb && CardioCathThreeBridge.isSupported && !(_threeBridge?.hasFailed ?? false)
                   ? HtmlElementView(
                       viewType: CardioCathThreeBridge.fluoroViewType,
                       onPlatformViewCreated: (int id) {

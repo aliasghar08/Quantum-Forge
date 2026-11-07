@@ -19,6 +19,10 @@ class CardioCathThreeBridge {
 
   static CardioCathThreeBridge? forHeartView(int viewId) => null;
   static CardioCathThreeBridge? forFluoroView(int viewId) => null;
+  static CardioCathThreeBridge? get latestHeartBridge => null;
+  static CardioCathThreeBridge? get latestFluoroBridge => null;
+  bool get hasActiveViewer => false;
+  bool get hasFailed => false;
 
   void setViewMode(String mode) {}
   void setDominance(CoronaryDominance dominance) {}

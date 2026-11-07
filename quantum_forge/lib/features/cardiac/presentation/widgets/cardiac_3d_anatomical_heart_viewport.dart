@@ -147,6 +147,13 @@ class _Cardiac3DAnatomicalHeartViewportState
   Widget build(BuildContext context) {
     final palette = ThemeNotifier.paletteOf(context);
 
+    if (kIsWeb && _threeBridge == null) {
+      _threeBridge = CardioCathThreeBridge.latestHeartBridge;
+      if (_threeBridge != null) {
+        _syncBridge();
+      }
+    }
+
     return Container(
       decoration: BoxDecoration(
         color: palette.panel,
@@ -159,7 +166,7 @@ class _Cardiac3DAnatomicalHeartViewportState
           children: [
             // ── Interactive 3D Canvas ────────────────────────────────────────
             Positioned.fill(
-              child: kIsWeb && CardioCathThreeBridge.isSupported
+              child: kIsWeb && CardioCathThreeBridge.isSupported && !(_threeBridge?.hasFailed ?? false)
                   ? HtmlElementView(
                       viewType: CardioCathThreeBridge.heartViewType,
                       onPlatformViewCreated: (int id) {
@@ -555,8 +562,8 @@ class _AnatomicalHeart3DPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final cx = size.width / 2;
-    final cy = size.height / 2 + 15;
-    final baseScale = (size.height / 360.0) * zoom;
+    final cy = size.height / 2 + 6;
+    final baseScale = (size.height / 340.0) * zoom;
 
     final cosY = math.cos(rotationY);
     final sinY = math.sin(rotationY);
@@ -570,6 +577,9 @@ class _AnatomicalHeart3DPainter extends CustomPainter {
         ? 0.12 * math.sin((cardiacPhase - 0.22) / 0.26 * math.pi)
         : 0.0;
     final currentScale = baseScale * (1.0 - systolicContraction);
+
+    // ── 0. Ghost Thoracic Ribcage & Spine Architecture ──────────────────────
+    _drawThoracicRibcage(canvas, cx, cy, baseScale, cosY, sinY, cosX, sinX);
 
     // ── 1. Posterior Venous Structures (SVC, IVC, Pulmonary Veins) ──────────
     _drawPosteriorVenousStructures(canvas, cx, cy, baseScale, cosY, sinY, cosX, sinX);
@@ -642,6 +652,17 @@ class _AnatomicalHeart3DPainter extends CustomPainter {
     // ── 7. Epicardial Coronary Arteries & Catheter ───────────────────────────
     if (viewMode == HeartViewMode.coronaries || viewMode == HeartViewMode.anatomy) {
       _drawCoronaryArteries(
+        canvas,
+        cx,
+        cy,
+        currentScale,
+        cosY,
+        sinY,
+        cosX,
+        sinX,
+      );
+
+      _drawCoronaryBloodFlowParticles(
         canvas,
         cx,
         cy,
@@ -939,14 +960,14 @@ class _AnatomicalHeart3DPainter extends CustomPainter {
       final r = (baseColor.r * totalLight + spec * 255).clamp(0.0, 255.0).toInt();
       final g = (baseColor.g * totalLight + spec * 255).clamp(0.0, 255.0).toInt();
       final b = (baseColor.b * totalLight + spec * 255).clamp(0.0, 255.0).toInt();
-      final alpha = isFrontFace ? 0.94 : 0.40;
+      final alpha = isFrontFace ? 0.34 : 0.16;
 
       final quadPaint = Paint()
         ..color = Color.fromARGB((alpha * 255).toInt(), r, g, b)
         ..style = PaintingStyle.fill;
 
       final borderPaint = Paint()
-        ..color = Color.fromARGB(((isFrontFace ? 0.25 : 0.08) * 255).toInt(), r, g, b)
+        ..color = Color.fromARGB(((isFrontFace ? 0.40 : 0.12) * 255).toInt(), r, g, b)
         ..style = PaintingStyle.stroke
         ..strokeWidth = 0.8;
 
@@ -1906,6 +1927,163 @@ class _AnatomicalHeart3DPainter extends CustomPainter {
       ..color = Colors.white
       ..style = PaintingStyle.fill;
     canvas.drawCircle(Offset(tip.x, tip.y), 3.2 * s, tipPaint);
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Ghost Thoracic Ribcage & Spine Architecture
+  // ─────────────────────────────────────────────────────────────────────────
+  void _drawThoracicRibcage(
+    Canvas canvas,
+    double cx,
+    double cy,
+    double s,
+    double cosY,
+    double sinY,
+    double cosX,
+    double sinX,
+  ) {
+    final ribPaint = Paint()
+      ..color = const Color(0xFF94A3B8).withValues(alpha: 0.16)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.2 * s
+      ..strokeCap = StrokeCap.round;
+
+    final spinePaint = Paint()
+      ..color = const Color(0xFF64748B).withValues(alpha: 0.14)
+      ..style = PaintingStyle.fill;
+
+    // Thoracic spine column behind heart
+    for (int v = -4; v <= 4; v++) {
+      final vPos = _Vec3(-4.0, v * 22.0 + 10.0, -42.0);
+      final p = _project(vPos, cx, cy, s, cosY, sinY, cosX, sinX);
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(
+          Rect.fromCenter(center: Offset(p.x, p.y), width: 30.0 * s, height: 14.0 * s),
+          const Radius.circular(3),
+        ),
+        spinePaint,
+      );
+    }
+
+    // 8 pairs of curving ribs
+    for (int r = 0; r < 8; r++) {
+      final yLevel = 85.0 - r * 18.0;
+      final width = 55.0 + math.sin((r / 7.0) * math.pi) * 22.0;
+
+      // Left rib
+      final leftRib = [
+        _Vec3(-4.0, yLevel + 4.0, -42.0),
+        _Vec3(-width * 0.85, yLevel + 2.0, -18.0),
+        _Vec3(-width, yLevel - 8.0, 16.0),
+        _Vec3(-width * 0.55, yLevel - 15.0, 42.0),
+        _Vec3(-2.0, yLevel - 16.0, 48.0),
+      ];
+      final pathL = Path();
+      for (int i = 0; i < leftRib.length; i++) {
+        final p = _project(leftRib[i], cx, cy, s, cosY, sinY, cosX, sinX);
+        if (i == 0) {
+          pathL.moveTo(p.x, p.y);
+        } else {
+          pathL.lineTo(p.x, p.y);
+        }
+      }
+      canvas.drawPath(pathL, ribPaint);
+
+      // Right rib
+      final rightRib = [
+        _Vec3(-4.0, yLevel + 4.0, -42.0),
+        _Vec3(width * 0.85, yLevel + 2.0, -18.0),
+        _Vec3(width, yLevel - 8.0, 16.0),
+        _Vec3(width * 0.55, yLevel - 15.0, 42.0),
+        _Vec3(2.0, yLevel - 16.0, 48.0),
+      ];
+      final pathR = Path();
+      for (int i = 0; i < rightRib.length; i++) {
+        final p = _project(rightRib[i], cx, cy, s, cosY, sinY, cosX, sinX);
+        if (i == 0) {
+          pathR.moveTo(p.x, p.y);
+        } else {
+          pathR.lineTo(p.x, p.y);
+        }
+      }
+      canvas.drawPath(pathR, ribPaint);
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Real-Time Pulsatile Coronary Blood Flow Particle Pipeline
+  // ─────────────────────────────────────────────────────────────────────────
+  void _drawCoronaryBloodFlowParticles(
+    Canvas canvas,
+    double cx,
+    double cy,
+    double s,
+    double cosY,
+    double sinY,
+    double cosX,
+    double sinX,
+  ) {
+    // Coronary flow accelerates during ventricular diastole (cardiacPhase 0.50 - 0.90)
+    final isDiastole = cardiacPhase >= 0.50 && cardiacPhase <= 0.90;
+    final speed = isDiastole ? 2.6 : 0.8;
+    final isContrast = contrastIntensity > 0.05;
+    final particleColor = isContrast ? const Color(0xFF00F5FF) : const Color(0xFFFF2A4B);
+
+    final streams = [
+      // LAD Stream
+      [
+        const _Vec3(12, 44, 20),
+        const _Vec3(18, 32, 34),
+        const _Vec3(16, 12, 40),
+        const _Vec3(10, -10, 38),
+        const _Vec3(0, -32, 28),
+      ],
+      // LCx Stream
+      [
+        const _Vec3(12, 44, 20),
+        const _Vec3(32, 40, 18),
+        const _Vec3(42, 28, 2),
+        const _Vec3(46, 12, -18),
+        const _Vec3(40, -4, -28),
+      ],
+      // RCA Stream
+      [
+        const _Vec3(-2, 50, 16),
+        const _Vec3(-20, 44, 20),
+        const _Vec3(-36, 26, 24),
+        const _Vec3(-44, 5, 20),
+        const _Vec3(-42, -14, 8),
+        const _Vec3(-30, -28, -6),
+      ],
+      // D1 Stream
+      [
+        const _Vec3(20, 28, 38),
+        const _Vec3(34, 16, 32),
+      ],
+    ];
+
+    for (final stream in streams) {
+      if (stream.length < 2) continue;
+      const numP = 8;
+      for (int i = 0; i < numP; i++) {
+        final t = ((i / numP) + (cardiacPhase * speed)) % 1.0;
+        final idx = (t * (stream.length - 1)).floor();
+        final frac = (t * (stream.length - 1)) - idx;
+        final p1 = stream[idx];
+        final p2 = stream[math.min(idx + 1, stream.length - 1)];
+        final pos = _Vec3(
+          p1.x + (p2.x - p1.x) * frac,
+          p1.y + (p2.y - p1.y) * frac,
+          p1.z + (p2.z - p1.z) * frac,
+        );
+        final proj = _project(pos, cx, cy, s, cosY, sinY, cosX, sinX);
+        final pPaint = Paint()
+          ..color = particleColor.withValues(alpha: (0.5 + 0.5 * math.sin(t * math.pi)).clamp(0.2, 1.0))
+          ..style = PaintingStyle.fill;
+
+        canvas.drawCircle(Offset(proj.x, proj.y), (isContrast ? 4.5 : 3.4) * s, pPaint);
+      }
+    }
   }
 
   // ─────────────────────────────────────────────────────────────────────────
