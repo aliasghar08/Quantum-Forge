@@ -191,7 +191,9 @@ class _QuantumForgeAppState extends State<QuantumForgeApp> {
                 final uri = Uri.tryParse(routeSettings.name ?? '');
                 final path = uri?.path ?? '';
                 if (path == '/cardiac' || path == 'cardiac') {
-                  return CardioCathScreen.route();
+                  return CardioCathScreen.route(
+                    initialScenarioId: uri?.queryParameters['scenario'],
+                  );
                 }
                 return null;
               },

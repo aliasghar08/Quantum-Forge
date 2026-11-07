@@ -5,6 +5,8 @@
 // pressure waveforms rendered via mathematical CustomPainter.
 // Synchronized to cardiac contraction cycle, BPM, STEMI ST-elevation,
 // live FFR / iFR / WSS metrics, IABP counterpulsation, and catheter damping.
+// Calibrated to 25 mm/s | 10 mm/mV standard Cath Lab telemetry grid with
+// sweeping phosphor erase-bar, leading glowing dots, and QRS sync LED.
 // ============================================================================
 
 import 'dart:math' as math;
@@ -13,7 +15,7 @@ import 'package:quantum_forge/core/theme/theme_provider.dart';
 import '../../data/cardiac_pathology_models.dart';
 import '../../data/coronary_hemodynamics_engine.dart';
 
-class CardiacHemodynamicEcgStrip extends StatelessWidget {
+class CardiacHemodynamicEcgStrip extends StatefulWidget {
   final CardiacPathologyScenario scenario;
   final double cardiacPhase; // 0.0 to 1.0 (repeating cycle)
   final double bpm;
@@ -47,10 +49,155 @@ class CardiacHemodynamicEcgStrip extends StatelessWidget {
     this.wssDynes,
   });
 
+  // ───────────────────────────────────────────────────────────────────────────
+  // Public Clinical Mathematical Models (Exposed for High-Fidelity Verification)
+  // ───────────────────────────────────────────────────────────────────────────
+
+  /// Computes synthetic ECG amplitude (mV) at cardiac cycle phase [phase] in [0.0, 1.0).
+  ///
+  /// Milestones (25 mm/s, 10 mm/mV):
+  /// - P-wave: [0.08, 0.17] -> smooth upright dome, peak +0.15 mV.
+  /// - PR-segment: (0.17, 0.23) -> isoelectric 0.00 mV (AV nodal delay).
+  /// - QRS-complex: [0.23, 0.31] (< 85 ms narrow duration):
+  ///   * Q-wave: [0.230, 0.255] -> nadir -0.15 mV at phi = 0.245.
+  ///   * R-wave: [0.255, 0.285] -> razor-sharp triangular spike peaking at +1.25 mV at phi = 0.270.
+  ///   * S-wave: [0.285, 0.310] -> sharp nadir -0.28 mV at phi = 0.295, returning to J-point at 0.310.
+  /// - ST-segment & T-wave: (0.310, 0.560]:
+  ///   * ST deviation: localized elevation/depression decaying from J-point into T-wave.
+  ///   * T-wave: upright dome peaking at phi = 0.460 (+0.32 mV), ending by phi = 0.560.
+  /// - Diastole (TP interval): (0.560, 1.0] and [0.0, 0.08) -> isoelectric 0.00 mV.
+  static double computeSyntheticEcgSample(double phase, double stElevationMm) {
+    final phi = phase % 1.0;
+    double v = 0.0;
+
+    if (phi >= 0.08 && phi <= 0.17) {
+      // P-Wave (Atrial Depolarization)
+      v = 0.15 * math.sin((phi - 0.08) / 0.09 * math.pi);
+    } else if (phi > 0.17 && phi < 0.230) {
+      // PR Segment (AV Nodal Delay)
+      v = 0.0;
+    } else if (phi >= 0.230 && phi <= 0.255) {
+      // Q-Wave Dip (Nadir -0.15 mV at phi = 0.245)
+      v = -0.15 * math.sin((phi - 0.230) / 0.025 * math.pi);
+    } else if (phi > 0.255 && phi <= 0.285) {
+      // R-Wave Razor-Sharp Spike (Peak +1.25 mV at phi = 0.270)
+      if (phi <= 0.270) {
+        v = 1.25 * ((phi - 0.255) / 0.015);
+      } else {
+        v = 1.25 * ((0.285 - phi) / 0.015);
+      }
+    } else if (phi > 0.285 && phi <= 0.310) {
+      // S-Wave Nadir (-0.28 mV at phi = 0.295)
+      v = -0.28 * math.sin((phi - 0.285) / 0.025 * math.pi);
+    } else if (phi > 0.310 && phi <= 0.560) {
+      // ST Segment & Asymmetric T-Wave (Repolarization)
+      final stMv = (stElevationMm / 10.0);
+      final stProgress = (phi - 0.310) / 0.250;
+      final stOffset = stMv * math.cos(stProgress * math.pi * 0.5);
+
+      double tWave = 0.0;
+      if (phi >= 0.340) {
+        final tProg = (phi - 0.340) / 0.220;
+        tWave = 0.32 * math.pow(math.sin(tProg * math.pi), 1.2);
+      }
+      v = stOffset + tWave;
+    } else {
+      // Isoelectric baseline during diastole
+      v = 0.0;
+    }
+
+    return v;
+  }
+
+  /// Computes physiological Aortic Pressure Pa (mmHg) at cardiac cycle phase [phase].
+  ///
+  /// Strict Electro-Mechanical Phase Lock (Wiggers Diagram):
+  /// - phi = 0.270: Ventricular depolarization (R-wave peak).
+  /// - phi in [0.270, 0.330]: Isovolumetric contraction -> Left ventricle generates
+  ///   pressure against closed aortic valve. Pa remains at diastolic nadir (80 mmHg).
+  /// - phi = 0.330: Aortic valve opens -> Steep systolic upstroke begins.
+  /// - phi = 0.440: Peak systolic pressure (120 mmHg) during ventricular ejection.
+  /// - phi = 0.560: Ventricular ejection ceases -> Pa drops to ~91 mmHg.
+  /// - phi = 0.570: Dicrotic notch incisura (aortic valve closure) with rebound to 94 mmHg at 0.590.
+  /// - phi > 0.600: Diastolic runoff exponential Windkessel decay returning to 80 mmHg.
+  static double computeAorticPressure(
+    double phase,
+    bool damped,
+    bool iabp, {
+    double systolicBp = 120.0,
+    double diastolicBp = 80.0,
+  }) {
+    final phi = phase % 1.0;
+
+    if (damped) {
+      // Catheter wedged into ostium / LM ventricularization
+      if (phi >= 0.28 && phi <= 0.48) {
+        final tau = (phi - 0.28) / 0.20;
+        return 20.0 + (systolicBp * 0.55) * math.sin(tau * math.pi);
+      } else {
+        return 18.0;
+      }
+    }
+
+    double p;
+    if (phi >= 0.330 && phi <= 0.440) {
+      // Rapid Systolic Ejection Upstroke
+      final tau = (phi - 0.330) / 0.110;
+      p = diastolicBp + (systolicBp - diastolicBp) * math.pow(math.sin(tau * math.pi * 0.5), 1.15);
+    } else if (phi > 0.440 && phi <= 0.560) {
+      // Reduced Ejection
+      final tau = (phi - 0.440) / 0.120;
+      p = systolicBp - (systolicBp - 91.0) * math.sin(tau * math.pi * 0.5);
+    } else if (phi > 0.560 && phi <= 0.600) {
+      // Dicrotic Notch Incisura & Rebound (Aortic Valve Closure at phi = 0.570)
+      final tau = (phi - 0.560) / 0.040;
+      p = 91.0 - 2.0 * math.sin(tau * 2.0 * math.pi) + 3.0 * tau;
+    } else if (phi >= 0.260 && phi < 0.330) {
+      // End-Diastolic Plateau & Isovolumetric Contraction (Aortic Valve Closed)
+      p = diastolicBp;
+    } else {
+      // Diastolic Windkessel Runoff (Exponential Decay towards Diastolic BP)
+      final tRun = phi > 0.600 ? (phi - 0.600) / 0.660 : (phi + 0.400) / 0.660;
+      p = diastolicBp + (94.0 - diastolicBp) * math.exp(-3.0 * tRun);
+    }
+
+    // Intra-Aortic Balloon Pump (IABP) 1:1 Counterpulsation Augmentation
+    if (iabp) {
+      if (phi >= 0.570 && phi <= 0.880) {
+        // Balloon inflation at dicrotic notch provides diastolic coronary augmentation
+        final iabpTau = (phi - 0.570) / 0.310;
+        p += 36.0 * math.sin(iabpTau * math.pi);
+      } else if (phi > 0.880) {
+        // Presystolic balloon deflation unloads left ventricle afterload
+        p -= 10.0;
+      }
+    }
+
+    return p;
+  }
+
+  @override
+  State<CardiacHemodynamicEcgStrip> createState() => _CardiacHemodynamicEcgStripState();
+}
+
+class _CardiacHemodynamicEcgStripState extends State<CardiacHemodynamicEcgStrip> {
+  int _beatParity = 0;
+  double _lastPhase = 0.0;
+
+  @override
+  void didUpdateWidget(covariant CardiacHemodynamicEcgStrip oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Detect phase wrap-around (1.0 -> 0.0) to advance phosphor sweep beat parity
+    if (widget.cardiacPhase < _lastPhase - 0.5) {
+      _beatParity = (_beatParity + 1) % 2;
+    }
+    _lastPhase = widget.cardiacPhase;
+  }
+
   double _computeEffectiveStElevation() {
     double baseSt;
-    if (scenario.id.contains('anterior_stemi')) {
-      switch (activeTerritory) {
+    if (widget.scenario.id.contains('anterior_stemi')) {
+      switch (widget.activeTerritory) {
         case EcgTerritoryLead.v1V4Anterior:
           baseSt = 4.5;
           break;
@@ -61,11 +208,11 @@ class CardiacHemodynamicEcgStrip extends StatelessWidget {
           baseSt = 1.2;
           break;
         case EcgTerritoryLead.leadII:
-          baseSt = scenario.stElevationMm;
+          baseSt = widget.scenario.stElevationMm;
           break;
       }
-    } else if (scenario.id.contains('inferior_mi')) {
-      switch (activeTerritory) {
+    } else if (widget.scenario.id.contains('inferior_mi')) {
+      switch (widget.activeTerritory) {
         case EcgTerritoryLead.inferiorLeads:
           baseSt = 3.8;
           break;
@@ -76,14 +223,14 @@ class CardiacHemodynamicEcgStrip extends StatelessWidget {
           baseSt = -1.5; // Reciprocal depression in high lateral aVL
           break;
         case EcgTerritoryLead.leadII:
-          baseSt = scenario.stElevationMm;
+          baseSt = widget.scenario.stElevationMm;
           break;
       }
     } else {
-      baseSt = scenario.stElevationMm;
+      baseSt = widget.scenario.stElevationMm;
     }
 
-    if (isRevascularized) {
+    if (widget.isRevascularized) {
       return baseSt * 0.25; // 75% resolution post-revascularization
     }
     return baseSt;
@@ -94,16 +241,23 @@ class CardiacHemodynamicEcgStrip extends StatelessWidget {
     final palette = ThemeNotifier.paletteOf(context);
 
     // Calculate dynamic hemodynamics
-    final isShock = complication == AcuteComplicationState.cardiogenicShock;
-    final sys = isShock ? 75.0 : scenario.systolicBp;
-    final dia = isShock ? 48.0 : scenario.diastolicBp;
+    final isShock = widget.complication == AcuteComplicationState.cardiogenicShock;
+    final sys = isShock ? 75.0 : widget.scenario.systolicBp;
+    final dia = isShock ? 48.0 : widget.scenario.diastolicBp;
     final map = dia + (sys - dia) / 3.0;
     final effectiveSt = _computeEffectiveStElevation();
 
-    final isPressureWire = wireType == InterventionalWireType.pressureWireX;
-    final isDamped = scenario.isCatheterDamped ||
-        complication == AcuteComplicationState.lmVentricularization ||
-        (catheterType == GuideCatheterType.al1 && scenario.id.contains('critical_lm'));
+    final isPressureWire = widget.wireType == InterventionalWireType.pressureWireX;
+    final isDamped = widget.scenario.isCatheterDamped ||
+        widget.complication == AcuteComplicationState.lmVentricularization ||
+        (widget.catheterType == GuideCatheterType.al1 &&
+            widget.scenario.id.contains('critical_lm'));
+
+    // R-Wave QRS Electrical Depolarization Sync (phi in [0.255, 0.295])
+    final isQrsActive = widget.cardiacPhase >= 0.255 && widget.cardiacPhase <= 0.295;
+
+    // Continuous 2-beat phosphor sweep progress across the canvas width [0.0, 1.0]
+    final sweepProgress = (_beatParity * 0.5) + (widget.cardiacPhase * 0.5);
 
     return Container(
       height: 200,
@@ -140,16 +294,21 @@ class CardiacHemodynamicEcgStrip extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 12),
+
+                    // Heart Rate with live R-Wave QRS Sync LED
                     _vitalsBadge(
                       label: 'HR',
-                      value: '${bpm.round()} bpm',
-                      color: bpm < 60
+                      value: '${widget.bpm.round()} bpm',
+                      color: widget.bpm < 60
                           ? const Color(0xFFFFB300)
-                          : (bpm > 100
+                          : (widget.bpm > 100
                               ? const Color(0xFFFF5252)
                               : const Color(0xFF00E676)),
                     ),
-                    const SizedBox(width: 10),
+                    const SizedBox(width: 6),
+                    _qrsSyncIndicator(isQrsActive),
+                    const SizedBox(width: 12),
+
                     _vitalsBadge(
                       label: 'Ao BP',
                       value: '${sys.round()}/${dia.round()} mmHg',
@@ -169,7 +328,7 @@ class CardiacHemodynamicEcgStrip extends StatelessWidget {
 
                     // ST-Segment elevation / depression readout
                     _vitalsBadge(
-                      label: 'ST (${activeTerritory.shortLabel})',
+                      label: 'ST (${widget.activeTerritory.shortLabel})',
                       value: '${effectiveSt >= 0 ? "+" : ""}${effectiveSt.toStringAsFixed(1)} mm',
                       color: effectiveSt.abs() > 1.0
                           ? (effectiveSt > 0 ? const Color(0xFFFF1744) : const Color(0xFF38BDF8))
@@ -177,40 +336,40 @@ class CardiacHemodynamicEcgStrip extends StatelessWidget {
                     ),
 
                     // Pressure Wire Metrics (FFR & iFR)
-                    if (isPressureWire && ffrValue != null) ...[
+                    if (isPressureWire && widget.ffrValue != null) ...[
                       const SizedBox(width: 10),
                       _vitalsBadge(
                         label: 'FFR (Pd/Pa)',
-                        value: ffrValue!.toStringAsFixed(2),
-                        color: ffrValue! <= 0.80
+                        value: widget.ffrValue!.toStringAsFixed(2),
+                        color: widget.ffrValue! <= 0.80
                             ? const Color(0xFFFF1744)
                             : const Color(0xFF00E676),
                       ),
                     ],
 
-                    if (isPressureWire && ifrValue != null) ...[
+                    if (isPressureWire && widget.ifrValue != null) ...[
                       const SizedBox(width: 10),
                       _vitalsBadge(
                         label: 'iFR (WFP)',
-                        value: ifrValue!.toStringAsFixed(2),
-                        color: ifrValue! <= 0.89
+                        value: widget.ifrValue!.toStringAsFixed(2),
+                        color: widget.ifrValue! <= 0.89
                             ? const Color(0xFFFF9800)
                             : const Color(0xFF00E676),
                       ),
                     ],
 
-                    if (wssDynes != null) ...[
+                    if (widget.wssDynes != null) ...[
                       const SizedBox(width: 10),
                       _vitalsBadge(
                         label: 'WSS',
-                        value: '${wssDynes!.toStringAsFixed(0)} dyn/cm²',
-                        color: wssDynes! > 70.0
+                        value: '${widget.wssDynes!.toStringAsFixed(0)} dyn/cm²',
+                        color: widget.wssDynes! > 70.0
                             ? const Color(0xFFFFB300)
                             : const Color(0xFF38BDF8),
                       ),
                     ],
 
-                    if (iabpActive) ...[
+                    if (widget.iabpActive) ...[
                       const SizedBox(width: 10),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
@@ -252,10 +411,10 @@ class CardiacHemodynamicEcgStrip extends StatelessWidget {
                               thumbColor: const Color(0xFF00E676),
                             ),
                             child: Slider(
-                              value: bpm,
+                              value: widget.bpm,
                               min: 45.0,
                               max: 130.0,
-                              onChanged: onBpmChanged,
+                              onChanged: widget.onBpmChanged,
                             ),
                           ),
                         ),
@@ -286,12 +445,12 @@ class CardiacHemodynamicEcgStrip extends StatelessWidget {
                       scrollDirection: Axis.horizontal,
                       child: Row(
                         children: EcgTerritoryLead.values.map((territory) {
-                          final isSelected = territory == activeTerritory;
+                          final isSelected = territory == widget.activeTerritory;
                           return Padding(
                             padding: const EdgeInsets.only(right: 6),
                             child: GestureDetector(
                               behavior: HitTestBehavior.opaque,
-                              onTap: () => onTerritoryChanged?.call(territory),
+                              onTap: () => widget.onTerritoryChanged?.call(territory),
                               child: Container(
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: 6, vertical: 2.5),
@@ -334,21 +493,71 @@ class CardiacHemodynamicEcgStrip extends StatelessWidget {
             Expanded(
               child: CustomPaint(
                 painter: _DualWaveformsPainter(
-                  cardiacPhase: cardiacPhase,
+                  cardiacPhase: widget.cardiacPhase,
+                  sweepProgress: sweepProgress,
                   stElevationMm: effectiveSt,
                   isDamped: isDamped,
                   systolicBp: sys,
                   diastolicBp: dia,
-                  leadLabel: activeTerritory.label,
-                  wireType: wireType,
-                  iabpActive: iabpActive,
-                  ffrValue: ffrValue,
+                  leadLabel: widget.activeTerritory.label,
+                  wireType: widget.wireType,
+                  iabpActive: widget.iabpActive,
+                  ffrValue: widget.ffrValue,
                 ),
                 child: Container(),
               ),
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _qrsSyncIndicator(bool active) {
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 60),
+      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+      decoration: BoxDecoration(
+        color: active
+            ? const Color(0xFF00E676).withValues(alpha: 0.25)
+            : Colors.transparent,
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(
+          color: active ? const Color(0xFF00E676) : Colors.white12,
+          width: 0.8,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 7,
+            height: 7,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: active ? const Color(0xFF00E676) : const Color(0xFF0B331A),
+              boxShadow: active
+                  ? [
+                      const BoxShadow(
+                        color: Color(0xFF00E676),
+                        blurRadius: 6,
+                        spreadRadius: 1.5,
+                      )
+                    ]
+                  : null,
+            ),
+          ),
+          const SizedBox(width: 4),
+          Text(
+            'QRS',
+            style: TextStyle(
+              color: active ? const Color(0xFF00E676) : Colors.white30,
+              fontSize: 8.5,
+              fontWeight: active ? FontWeight.bold : FontWeight.normal,
+              fontFamily: 'monospace',
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -389,6 +598,7 @@ class CardiacHemodynamicEcgStrip extends StatelessWidget {
 
 class _DualWaveformsPainter extends CustomPainter {
   final double cardiacPhase;
+  final double sweepProgress;
   final double stElevationMm;
   final bool isDamped;
   final double systolicBp;
@@ -400,6 +610,7 @@ class _DualWaveformsPainter extends CustomPainter {
 
   _DualWaveformsPainter({
     required this.cardiacPhase,
+    required this.sweepProgress,
     required this.stElevationMm,
     required this.isDamped,
     required this.systolicBp,
@@ -416,27 +627,54 @@ class _DualWaveformsPainter extends CustomPainter {
     final bpBounds =
         Rect.fromLTWH(0, size.height * 0.52, size.width, size.height * 0.48);
 
-    _drawOscilloscopeGrid(canvas, size);
+    _drawTelemetryGrid(canvas, size);
     _drawEcgWaveform(canvas, ecgBounds);
     _drawArterialPressureWaveforms(canvas, bpBounds);
+    _drawPhosphorSweepBeam(canvas, size);
   }
 
-  void _drawOscilloscopeGrid(Canvas canvas, Size size) {
-    final gridPaint = Paint()
-      ..color = const Color(0xFF00E676).withValues(alpha: 0.05)
+  /// Standard Cath Lab Telemetry Calibration Grid (25 mm/s | 10 mm/mV)
+  /// - Minor grid: 1 mm spacing (~4 px), subtle salmon/red line
+  /// - Major grid: 5 mm spacing (20 px = 5 minor boxes), bold accent
+  void _drawTelemetryGrid(Canvas canvas, Size size) {
+    final minorPaint = Paint()
+      ..color = const Color(0xFFEF5350).withValues(alpha: 0.05)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 0.5;
 
-    const double step = 20.0;
-    for (double x = 0; x < size.width; x += step) {
-      canvas.drawLine(Offset(x, 0), Offset(x, size.height), gridPaint);
+    final majorPaint = Paint()
+      ..color = const Color(0xFFEF5350).withValues(alpha: 0.14)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 0.8;
+
+    const double minorStep = 4.0;
+    const double majorStep = 20.0;
+
+    // Minor vertical lines
+    for (double x = 0; x < size.width; x += minorStep) {
+      if ((x % majorStep).abs() > 0.01) {
+        canvas.drawLine(Offset(x, 0), Offset(x, size.height), minorPaint);
+      }
     }
-    for (double y = 0; y < size.height; y += step) {
-      canvas.drawLine(Offset(0, y), Offset(size.width, y), gridPaint);
+    // Major vertical lines
+    for (double x = 0; x < size.width; x += majorStep) {
+      canvas.drawLine(Offset(x, 0), Offset(x, size.height), majorPaint);
     }
 
+    // Minor horizontal lines
+    for (double y = 0; y < size.height; y += minorStep) {
+      if ((y % majorStep).abs() > 0.01) {
+        canvas.drawLine(Offset(0, y), Offset(size.width, y), minorPaint);
+      }
+    }
+    // Major horizontal lines
+    for (double y = 0; y < size.height; y += majorStep) {
+      canvas.drawLine(Offset(0, y), Offset(size.width, y), majorPaint);
+    }
+
+    // Middle separator bar between ECG and Pressure
     final dividerPaint = Paint()
-      ..color = Colors.white12
+      ..color = Colors.white24
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.0;
     canvas.drawLine(Offset(0, size.height * 0.50),
@@ -444,66 +682,134 @@ class _DualWaveformsPainter extends CustomPainter {
   }
 
   void _drawEcgWaveform(Canvas canvas, Rect bounds) {
-    final baselineY = bounds.top + bounds.height * 0.65;
+    final baselineY = bounds.top + bounds.height * 0.70;
     final sweepWidth = bounds.width;
 
-    // Lead Label
+    // Standard 1 mV Calibration Pulse on Far-Left Margin (10 mm vertical step = 36 px)
+    _drawCalibrationPulse(canvas, bounds, baselineY);
+
+    // Header Lead Label + Telemetry Calibration Badge
     final textPainter = TextPainter(
       text: TextSpan(
-        text: 'ECG $leadLabel',
-        style: const TextStyle(
-          color: Color(0xFF00E676),
-          fontSize: 9.5,
-          fontFamily: 'monospace',
-          fontWeight: FontWeight.bold,
-        ),
+        children: [
+          TextSpan(
+            text: 'ECG $leadLabel  ',
+            style: const TextStyle(
+              color: Color(0xFF00E676),
+              fontSize: 9.5,
+              fontFamily: 'monospace',
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const TextSpan(
+            text: '[25 mm/s | 10 mm/mV]',
+            style: TextStyle(
+              color: Colors.white38,
+              fontSize: 8.5,
+              fontFamily: 'monospace',
+            ),
+          ),
+        ],
       ),
       textDirection: TextDirection.ltr,
     )..layout();
     textPainter.paint(canvas, Offset(8, bounds.top + 4));
 
-    final path = Path();
-    const int numSamples = 200;
-
-    for (int i = 0; i <= numSamples; i++) {
-      final x = (i / numSamples) * sweepWidth;
-      final localPhase = ((i / numSamples) * 2.5 + cardiacPhase) % 1.0;
-
-      final ecgVal = _computeSyntheticEcgSample(localPhase, stElevationMm);
-      final y = baselineY - ecgVal * 14.0;
-
-      if (i == 0) {
-        path.moveTo(x, y);
-      } else {
-        path.lineTo(x, y);
-      }
-    }
+    // Continuous 2-beat waveform across width
+    const int numSamples = 240;
+    const double numBeats = 2.0;
+    final cursorX = sweepProgress * sweepWidth;
+    const double eraseGap = 24.0;
 
     final ecgPaint = Paint()
       ..color = const Color(0xFF00E676)
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round
-      ..strokeWidth = 1.6;
+      ..strokeWidth = 1.7;
 
-    canvas.drawPath(path, ecgPaint);
+    Path? currentPath;
+    double? activeCursorY;
+
+    for (int i = 0; i <= numSamples; i++) {
+      final x = (i / numSamples) * sweepWidth;
+
+      // Check if x is inside the CRT sweeping erase-head gap
+      final inEraseGap = (cursorX + eraseGap <= sweepWidth)
+          ? (x >= cursorX && x <= cursorX + eraseGap)
+          : (x >= cursorX || x <= (cursorX + eraseGap) - sweepWidth);
+
+      if (inEraseGap) {
+        if (currentPath != null) {
+          canvas.drawPath(currentPath, ecgPaint);
+          currentPath = null;
+        }
+        continue;
+      }
+
+      final localPhase = ((x / sweepWidth) * numBeats) % 1.0;
+      final ecgVal = CardiacHemodynamicEcgStrip.computeSyntheticEcgSample(
+          localPhase, stElevationMm);
+
+      // 10 mm/mV scaling: 1.0 mV = 36 px deflection
+      final y = baselineY - (ecgVal * 36.0);
+
+      // Capture exact position of leading beam dot
+      if ((x - cursorX).abs() < (sweepWidth / numSamples) * 1.2) {
+        activeCursorY = y;
+      }
+
+      if (currentPath == null) {
+        currentPath = Path()..moveTo(x, y);
+      } else {
+        currentPath.lineTo(x, y);
+      }
+    }
+
+    if (currentPath != null) {
+      canvas.drawPath(currentPath, ecgPaint);
+    }
+
+    // Glowing phosphor leading dot at sweep cursor
+    final dotY = activeCursorY ??
+        (baselineY -
+            (CardiacHemodynamicEcgStrip.computeSyntheticEcgSample(
+                    (cardiacPhase % 1.0), stElevationMm) *
+                36.0));
+    _drawGlowingDot(canvas, Offset(cursorX, dotY), const Color(0xFF00E676));
   }
 
-  double _computeSyntheticEcgSample(double phase, double stElevation) {
-    double v = 0.0;
-    if (phase >= 0.10 && phase <= 0.20) {
-      v += 0.20 * math.sin((phase - 0.10) / 0.10 * math.pi);
-    } else if (phase > 0.24 && phase <= 0.26) {
-      v -= 0.18 * math.sin((phase - 0.24) / 0.02 * math.pi);
-    } else if (phase > 0.26 && phase <= 0.30) {
-      v += 1.60 * math.sin((phase - 0.26) / 0.04 * math.pi);
-    } else if (phase > 0.30 && phase <= 0.33) {
-      v -= 0.35 * math.sin((phase - 0.30) / 0.03 * math.pi);
-    } else if (phase > 0.33 && phase <= 0.65) {
-      final stOffset = (stElevation / 10.0);
-      final tWave = 0.38 * math.sin((phase - 0.38) / 0.27 * math.pi);
-      v += (stOffset * 0.75) + (phase > 0.40 ? tWave : 0.0);
-    }
-    return v;
+  void _drawCalibrationPulse(Canvas canvas, Rect bounds, double baselineY) {
+    const double pulseStartX = 10.0;
+    const double pulseWidth = 12.0;
+    const double pulseHeight = 36.0; // 1.0 mV = 36 px at 10 mm/mV
+
+    final calPath = Path()
+      ..moveTo(pulseStartX - 4.0, baselineY)
+      ..lineTo(pulseStartX, baselineY)
+      ..lineTo(pulseStartX, baselineY - pulseHeight)
+      ..lineTo(pulseStartX + pulseWidth, baselineY - pulseHeight)
+      ..lineTo(pulseStartX + pulseWidth, baselineY)
+      ..lineTo(pulseStartX + pulseWidth + 4.0, baselineY);
+
+    final calPaint = Paint()
+      ..color = const Color(0xFF00E676).withValues(alpha: 0.7)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.2;
+
+    canvas.drawPath(calPath, calPaint);
+
+    final calLabel = TextPainter(
+      text: const TextSpan(
+        text: '1mV',
+        style: TextStyle(
+          color: Color(0xFF00E676),
+          fontSize: 7.5,
+          fontFamily: 'monospace',
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+    )..layout();
+    calLabel.paint(canvas, Offset(pulseStartX + 1, baselineY - pulseHeight - 9));
   }
 
   void _drawArterialPressureWaveforms(Canvas canvas, Rect bounds) {
@@ -552,92 +858,154 @@ class _DualWaveformsPainter extends CustomPainter {
     )..layout();
     textPainter.paint(canvas, Offset(8, bounds.top + 4));
 
-    // Aortic Pa (Red)
-    final paPath = Path();
-    final pdPath = Path();
-    const int numSamples = 200;
+    const int numSamples = 240;
+    const double numBeats = 2.0;
+    final cursorX = sweepProgress * sweepWidth;
+    const double eraseGap = 24.0;
 
-    for (int i = 0; i <= numSamples; i++) {
-      final x = (i / numSamples) * sweepWidth;
-      final localPhase = ((i / numSamples) * 2.5 + cardiacPhase) % 1.0;
-
-      final pa = _computeAorticPressure(localPhase, isDamped, iabpActive);
-      final yPa = bottomY - (pa / 160.0) * (bounds.height * 0.85);
-
-      if (i == 0) {
-        paPath.moveTo(x, yPa);
-      } else {
-        paPath.lineTo(x, yPa);
-      }
-
-      if (isPressureWire) {
-        // Distal Pd has trans-stenotic pressure drop
-        final drop = (ffrValue != null) ? (1.0 - ffrValue!) * 40.0 : 25.0;
-        final pd = math.max(pa - drop, 15.0);
-        final yPd = bottomY - (pd / 160.0) * (bounds.height * 0.85);
-
-        if (i == 0) {
-          pdPath.moveTo(x, yPd);
-        } else {
-          pdPath.lineTo(x, yPd);
-        }
-      }
-    }
-
-    // Paint Pa (Red)
     final paPaint = Paint()
       ..color = isDamped ? const Color(0xFFFF5252) : const Color(0xFFFF1744)
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round
-      ..strokeWidth = 1.6;
-    canvas.drawPath(paPath, paPaint);
+      ..strokeWidth = 1.7;
 
-    // Paint Pd (Yellow)
+    final pdPaint = Paint()
+      ..color = const Color(0xFFFFEB3B)
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round
+      ..strokeWidth = 1.7;
+
+    Path? currentPaPath;
+    Path? currentPdPath;
+    double? activePaCursorY;
+    double? activePdCursorY;
+
+    for (int i = 0; i <= numSamples; i++) {
+      final x = (i / numSamples) * sweepWidth;
+
+      // Check CRT erase-head gap
+      final inEraseGap = (cursorX + eraseGap <= sweepWidth)
+          ? (x >= cursorX && x <= cursorX + eraseGap)
+          : (x >= cursorX || x <= (cursorX + eraseGap) - sweepWidth);
+
+      if (inEraseGap) {
+        if (currentPaPath != null) {
+          canvas.drawPath(currentPaPath, paPaint);
+          currentPaPath = null;
+        }
+        if (currentPdPath != null) {
+          canvas.drawPath(currentPdPath, pdPaint);
+          currentPdPath = null;
+        }
+        continue;
+      }
+
+      final localPhase = ((x / sweepWidth) * numBeats) % 1.0;
+      final pa = CardiacHemodynamicEcgStrip.computeAorticPressure(
+        localPhase,
+        isDamped,
+        iabpActive,
+        systolicBp: systolicBp,
+        diastolicBp: diastolicBp,
+      );
+
+      // Scale: 30 mmHg nadir to 160 mmHg ceiling mapped to height * 0.82
+      final yPa = bottomY - ((pa - 30.0) / 130.0) * (bounds.height * 0.82);
+
+      if ((x - cursorX).abs() < (sweepWidth / numSamples) * 1.2) {
+        activePaCursorY = yPa;
+      }
+
+      if (currentPaPath == null) {
+        currentPaPath = Path()..moveTo(x, yPa);
+      } else {
+        currentPaPath.lineTo(x, yPa);
+      }
+
+      if (isPressureWire) {
+        // Distal Pd trans-stenotic pressure drop
+        final drop = (ffrValue != null) ? (1.0 - ffrValue!) * 40.0 : 25.0;
+        final pd = math.max(pa - drop, 15.0);
+        final yPd = bottomY - ((pd - 30.0) / 130.0) * (bounds.height * 0.82);
+
+        if ((x - cursorX).abs() < (sweepWidth / numSamples) * 1.2) {
+          activePdCursorY = yPd;
+        }
+
+        if (currentPdPath == null) {
+          currentPdPath = Path()..moveTo(x, yPd);
+        } else {
+          currentPdPath.lineTo(x, yPd);
+        }
+      }
+    }
+
+    if (currentPaPath != null) {
+      canvas.drawPath(currentPaPath, paPaint);
+    }
+    if (currentPdPath != null) {
+      canvas.drawPath(currentPdPath, pdPaint);
+    }
+
+    // Glowing phosphor leading dots
+    final dotPaY = activePaCursorY ??
+        (bottomY -
+            ((CardiacHemodynamicEcgStrip.computeAorticPressure(
+                            (cardiacPhase % 1.0), isDamped, iabpActive,
+                            systolicBp: systolicBp, diastolicBp: diastolicBp) -
+                        30.0) /
+                    130.0) *
+                (bounds.height * 0.82));
+    _drawGlowingDot(canvas, Offset(cursorX, dotPaY),
+        isDamped ? const Color(0xFFFF5252) : const Color(0xFFFF1744));
+
     if (isPressureWire) {
-      final pdPaint = Paint()
-        ..color = const Color(0xFFFFEB3B)
-        ..style = PaintingStyle.stroke
-        ..strokeCap = StrokeCap.round
-        ..strokeWidth = 1.6;
-      canvas.drawPath(pdPath, pdPaint);
+      final drop = (ffrValue != null) ? (1.0 - ffrValue!) * 40.0 : 25.0;
+      final curPa = CardiacHemodynamicEcgStrip.computeAorticPressure(
+          (cardiacPhase % 1.0), isDamped, iabpActive,
+          systolicBp: systolicBp, diastolicBp: diastolicBp);
+      final curPd = math.max(curPa - drop, 15.0);
+      final dotPdY = activePdCursorY ??
+          (bottomY - ((curPd - 30.0) / 130.0) * (bounds.height * 0.82));
+      _drawGlowingDot(canvas, Offset(cursorX, dotPdY), const Color(0xFFFFEB3B));
     }
   }
 
-  double _computeAorticPressure(double phase, bool damped, bool iabp) {
-    if (damped) {
-      if (phase >= 0.28 && phase <= 0.50) {
-        return 35.0 + 50.0 * math.sin((phase - 0.28) / 0.22 * math.pi);
-      }
-      return 35.0;
-    }
+  /// Sweeping vertical phosphor bar across the monitor strip
+  void _drawPhosphorSweepBeam(Canvas canvas, Size size) {
+    final cursorX = sweepProgress * size.width;
+    final beamPaint = Paint()
+      ..color = Colors.white.withValues(alpha: 0.18)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.0;
 
-    double p;
-    if (phase >= 0.26 && phase <= 0.44) {
-      final sFraction = (phase - 0.26) / 0.18;
-      p = diastolicBp + (systolicBp - diastolicBp) * math.sin(sFraction * math.pi);
-    } else if (phase > 0.44 && phase <= 0.52) {
-      final nFraction = (phase - 0.44) / 0.08;
-      p = 92.0 + 8.0 * math.cos(nFraction * math.pi * 2);
-    } else {
-      final dFraction = (phase > 0.52 ? (phase - 0.52) / 0.74 : (phase + 0.48) / 0.74);
-      p = 92.0 - (92.0 - diastolicBp) * math.pow(dFraction, 0.7);
-    }
+    canvas.drawLine(Offset(cursorX, 0), Offset(cursorX, size.height), beamPaint);
+  }
 
-    if (iabp) {
-      if (phase >= 0.35 && phase <= 0.88) {
-        final tau = (phase - 0.35) / 0.53;
-        p += 36.0 * math.sin(tau * math.pi); // Diastolic augmentation wave
-      } else if (phase > 0.88) {
-        p -= 10.0;
-      }
-    }
+  void _drawGlowingDot(Canvas canvas, Offset center, Color color) {
+    // Outer halo glow
+    final haloPaint = Paint()
+      ..color = color.withValues(alpha: 0.35)
+      ..style = PaintingStyle.fill;
+    canvas.drawCircle(center, 5.5, haloPaint);
 
-    return p;
+    // Inner bright core
+    final corePaint = Paint()
+      ..color = Colors.white
+      ..style = PaintingStyle.fill;
+    canvas.drawCircle(center, 2.0, corePaint);
+
+    // Color fringe
+    final fringePaint = Paint()
+      ..color = color
+      ..style = PaintingStyle.fill;
+    canvas.drawCircle(center, 3.2, fringePaint);
   }
 
   @override
   bool shouldRepaint(covariant _DualWaveformsPainter old) {
     return old.cardiacPhase != cardiacPhase ||
+        old.sweepProgress != sweepProgress ||
         old.stElevationMm != stElevationMm ||
         old.isDamped != isDamped ||
         old.systolicBp != systolicBp ||

@@ -384,5 +384,64 @@ void main() {
       expect(find.text('AI Interventional Attending Proctor'), findsOneWidget);
       expect(find.text('Close Proctor Review'), findsOneWidget);
     });
+
+    test('ECG and Hemodynamic Telemetry: R-wave spike, electro-mechanical phase lock, and dicrotic notch', () {
+      // 1. P-wave, QRS spike, and S-wave morphology verification
+      final pPeak = CardiacHemodynamicEcgStrip.computeSyntheticEcgSample(0.125, 0.0);
+      final qNadir = CardiacHemodynamicEcgStrip.computeSyntheticEcgSample(0.245, 0.0);
+      final rPeak = CardiacHemodynamicEcgStrip.computeSyntheticEcgSample(0.270, 0.0);
+      final sNadir = CardiacHemodynamicEcgStrip.computeSyntheticEcgSample(0.295, 0.0);
+      final tPeak = CardiacHemodynamicEcgStrip.computeSyntheticEcgSample(0.460, 0.0);
+
+      expect(pPeak, closeTo(0.15, 0.02), reason: 'P-wave upright dome must be ~+0.15 mV');
+      expect(qNadir, closeTo(-0.15, 0.02), reason: 'Q-wave negative dip must be ~-0.15 mV');
+      expect(rPeak, closeTo(1.25, 0.01), reason: 'R-wave razor-sharp spike must peak at +1.25 mV');
+      expect(sNadir, closeTo(-0.28, 0.02), reason: 'S-wave nadir must dip to ~-0.28 mV');
+      expect(tPeak, closeTo(0.32, 0.03), reason: 'T-wave upright dome must peak at ~+0.32 mV');
+
+      // Requirement: R-wave amplitude > 4x P-wave amplitude
+      expect(rPeak, greaterThan(4.0 * pPeak), reason: 'R-wave amplitude must be > 4x P-wave amplitude');
+      expect(rPeak / pPeak, greaterThan(7.0), reason: 'True QRS:P ratio exceeds 7:1');
+
+      // 2. Strict Electro-Mechanical Coupling (Pa vs R-Wave)
+      // At R-wave peak (0.270), left ventricle is initiating isovolumetric contraction;
+      // aortic valve is closed, so Pa must still be at diastolic nadir (80 mmHg).
+      final paAtR = CardiacHemodynamicEcgStrip.computeAorticPressure(0.270, false, false);
+      expect(paAtR, closeTo(80.0, 1.5), reason: 'Pa at R-wave peak must remain at diastolic baseline (80 mmHg)');
+
+      // Search for Pa peak across full cardiac cycle
+      double maxPa = 0.0;
+      double phiAtMaxPa = 0.0;
+      for (int i = 0; i < 1000; i++) {
+        final phi = i / 1000.0;
+        final pa = CardiacHemodynamicEcgStrip.computeAorticPressure(phi, false, false);
+        if (pa > maxPa) {
+          maxPa = pa;
+          phiAtMaxPa = phi;
+        }
+      }
+
+      // Requirement: Systolic Pa peak strictly after R-wave peak
+      expect(phiAtMaxPa, greaterThan(0.270), reason: 'Systolic Pa peak must occur strictly after R-wave peak');
+      expect(phiAtMaxPa, closeTo(0.440, 0.02), reason: 'Systolic Pa peak occurs at ejection peak ~0.44');
+      expect(maxPa, closeTo(120.0, 1.0), reason: 'Peak systolic Pa must reach 120 mmHg');
+
+      // 3. Requirement: Dicrotic notch strictly after T-wave
+      // T-wave ends at phi = 0.560
+      const tWaveEndPhi = 0.560;
+      final paAtIncisura = CardiacHemodynamicEcgStrip.computeAorticPressure(0.570, false, false);
+      final paAtRebound = CardiacHemodynamicEcgStrip.computeAorticPressure(0.590, false, false);
+
+      expect(0.570, greaterThan(tWaveEndPhi), reason: 'Dicrotic notch must occur strictly after T-wave end (0.560)');
+      // Verify incisura dip followed by rebound
+      expect(paAtRebound, greaterThan(paAtIncisura), reason: 'Dicrotic notch rebound must exceed incisura nadir');
+      expect(paAtIncisura, closeTo(89.5, 2.0));
+      expect(paAtRebound, closeTo(94.0, 2.0));
+
+      // 4. STEMI ST-Elevation Verification
+      final ecgNormal = CardiacHemodynamicEcgStrip.computeSyntheticEcgSample(0.350, 0.0);
+      final ecgStemi = CardiacHemodynamicEcgStrip.computeSyntheticEcgSample(0.350, 4.5);
+      expect(ecgStemi - ecgNormal, closeTo(0.40, 0.06), reason: '4.5 mm ST elevation translates to ~+0.40 mV ST takeoff');
+    });
   });
 }

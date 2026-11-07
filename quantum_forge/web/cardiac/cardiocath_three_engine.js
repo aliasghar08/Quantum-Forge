@@ -867,9 +867,9 @@
       this.ventriclesMesh.scale.set(scaleX, scaleY, scaleZ);
       this.ventriclesMesh.rotation.y = torsion * akinesis * 0.45;
 
-      // Dynamic Valves: Systole opens Aortic, closes Mitral; Diastole opens Mitral, closes Aortic
-      const vAortic = frame.valveAortic !== undefined ? frame.valveAortic : ((phi >= 0.15 && phi <= 0.45) ? 1.0 : 0.0);
-      const vMitral = frame.valveMitral !== undefined ? frame.valveMitral : ((phi > 0.50) ? 1.0 : 0.0);
+      // Dynamic Valves: Systole opens Aortic (0.33 - 0.56), closes Mitral; Diastole opens Mitral (>0.58), closes Aortic
+      const vAortic = frame.valveAortic !== undefined ? frame.valveAortic : ((phi >= 0.33 && phi <= 0.56) ? 1.0 : 0.0);
+      const vMitral = frame.valveMitral !== undefined ? frame.valveMitral : ((phi > 0.58) ? 1.0 : 0.0);
 
       if (this.aorticCusps) {
         this.aorticCusps.forEach((cusp) => {
@@ -884,17 +884,17 @@
 
       // Conduction flash & action potential propagation
       if (this.saNode) {
-        // P-wave phase: SA node sparks
-        const saFlash = (phi >= 0.0 && phi <= 0.18) ? (1.0 + Math.sin((phi / 0.18) * Math.PI) * 0.6) : 1.0;
+        // P-wave phase (0.08 - 0.18): SA node sparks
+        const saFlash = (phi >= 0.08 && phi <= 0.18) ? (1.0 + Math.sin(((phi - 0.08) / 0.10) * Math.PI) * 0.6) : 1.0;
         this.saNode.scale.setScalar(saFlash);
 
-        // PR segment: AV node holds and relays
-        const avFlash = (phi >= 0.18 && phi <= 0.28) ? 1.5 : 1.0;
+        // PR segment (0.18 - 0.25): AV node holds and relays
+        const avFlash = (phi >= 0.18 && phi <= 0.25) ? 1.5 : 1.0;
         this.avNode.scale.setScalar(avFlash);
 
-        // QRS complex (0.28 - 0.42): Action potential sparks cascade down His-Purkinje
+        // QRS complex (0.25 - 0.33): Action potential sparks cascade down His-Purkinje
         if (this.hisCurve && this.conductionSparks.length > 0) {
-          const hisPhase = (phi >= 0.26 && phi <= 0.44) ? (phi - 0.26) / 0.18 : -1.0;
+          const hisPhase = (phi >= 0.25 && phi <= 0.33) ? (phi - 0.25) / 0.08 : -1.0;
           this.conductionSparks.forEach((spark, idx) => {
             if (hisPhase >= 0.0) {
               spark.visible = true;

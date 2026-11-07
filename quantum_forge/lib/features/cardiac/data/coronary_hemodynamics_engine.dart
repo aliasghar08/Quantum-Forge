@@ -363,18 +363,23 @@ class ComputationalHemodynamicsEngine {
       final double t = k * dt;
       final double phi = k / framesCount.toDouble();
 
-      // 1. ECG
+      // 1. ECG (Strict Clinical Phase Milestones)
       double ecg = 0.0;
-      if (phi >= 0.10 && phi <= 0.20) {
-        ecg = 0.15 * math.sin((phi - 0.10) / 0.10 * math.pi);
-      } else if (phi > 0.24 && phi <= 0.26) {
-        ecg = -0.15 * math.sin((phi - 0.24) / 0.02 * math.pi);
-      } else if (phi > 0.26 && phi <= 0.29) {
-        ecg = 1.25 * math.sin((phi - 0.26) / 0.03 * math.pi);
-      } else if (phi > 0.29 && phi <= 0.32) {
-        ecg = -0.35 * math.sin((phi - 0.29) / 0.03 * math.pi);
-      } else if (phi >= 0.42 && phi <= 0.60) {
-        ecg = 0.35 * math.sin((phi - 0.42) / 0.18 * math.pi);
+      if (phi >= 0.08 && phi <= 0.17) {
+        ecg = 0.15 * math.sin((phi - 0.08) / 0.09 * math.pi);
+      } else if (phi >= 0.230 && phi <= 0.255) {
+        ecg = -0.15 * math.sin((phi - 0.230) / 0.025 * math.pi);
+      } else if (phi > 0.255 && phi <= 0.285) {
+        if (phi <= 0.270) {
+          ecg = 1.25 * ((phi - 0.255) / 0.015);
+        } else {
+          ecg = 1.25 * ((0.285 - phi) / 0.015);
+        }
+      } else if (phi > 0.285 && phi <= 0.310) {
+        ecg = -0.28 * math.sin((phi - 0.285) / 0.025 * math.pi);
+      } else if (phi >= 0.340 && phi <= 0.560) {
+        final double tr = (phi - 0.340) / 0.220;
+        ecg = 0.32 * math.pow(math.sin(tr * math.pi), 1.2);
       }
 
       // 2. Elastance
@@ -385,15 +390,15 @@ class ComputationalHemodynamicsEngine {
         eT = eMin + (eMax - eMin) * math.exp(-14.0 * (t - tSys));
       }
 
-      // 3. Volumes & Strains
+      // 3. Volumes & Strains (Electro-Mechanical Ejection phi in [0.33, 0.56])
       final double lvVol;
       final double rvVol;
       final double radialStrain;
       final double longStrain;
       final double torsionDeg;
 
-      if (phi >= 0.25 && phi <= 0.48) {
-        final double sysPhase = (phi - 0.25) / 0.23;
+      if (phi >= 0.33 && phi <= 0.56) {
+        final double sysPhase = (phi - 0.33) / 0.23;
         final double ejectionFrac = 0.5 * (1.0 - math.cos(math.pi * sysPhase));
         lvVol = 125.0 - (125.0 - 55.0) * ejectionFrac;
         rvVol = 130.0 - (130.0 - 60.0) * ejectionFrac;
@@ -401,9 +406,9 @@ class ComputationalHemodynamicsEngine {
         longStrain = -0.21 * math.sin(math.pi * sysPhase);
         torsionDeg = 12.5 * math.sin(math.pi * sysPhase);
       } else {
-        final double diasPhase = phi < 0.25
-            ? (phi + (1.0 - 0.48)) / (0.25 + (1.0 - 0.48))
-            : (phi - 0.48) / (1.0 - 0.48 + 0.25);
+        final double diasPhase = phi < 0.33
+            ? (phi + (1.0 - 0.56)) / (0.33 + (1.0 - 0.56))
+            : (phi - 0.56) / (1.0 - 0.56 + 0.33);
         final double fillFrac = 0.5 * (1.0 - math.cos(math.pi * math.min(1.0, diasPhase * 1.4)));
         lvVol = 55.0 + (125.0 - 55.0) * fillFrac;
         rvVol = 60.0 + (130.0 - 60.0) * fillFrac;
@@ -415,18 +420,18 @@ class ComputationalHemodynamicsEngine {
       final double laVol = 65.0 - (lvVol - 90.0) * 0.45;
       final double raVol = 70.0 - (rvVol - 95.0) * 0.45;
 
-      // 4. Valves
+      // 4. Valves (Aortic opens 0.33, shuts at dicrotic notch 0.56)
       double vAortic = 0.0;
       double vPulmonic = 0.0;
       double vMitral = 0.0;
       double vTricuspid = 0.0;
 
-      if (phi >= 0.28 && phi <= 0.47) {
-        final double vp = (phi - 0.28) / 0.19;
+      if (phi >= 0.33 && phi <= 0.56) {
+        final double vp = (phi - 0.33) / 0.23;
         vAortic = math.sin(math.pi * vp);
         vPulmonic = math.sin(math.pi * vp);
-      } else if (phi >= 0.52 && phi <= 0.95) {
-        final double vp = (phi - 0.52) / 0.43;
+      } else if (phi >= 0.60 && phi <= 0.98) {
+        final double vp = (phi - 0.60) / 0.38;
         vMitral = math.sin(math.pi * math.min(1.0, vp * 1.2));
         vTricuspid = math.sin(math.pi * math.min(1.0, vp * 1.2));
       }
@@ -434,17 +439,17 @@ class ComputationalHemodynamicsEngine {
       // 5. Conduction
       double condWave = 0.05;
       String condNode = 'RESTING';
-      if (phi >= 0.08 && phi < 0.20) {
-        condWave = math.sin(math.pi * (phi - 0.08) / 0.12);
+      if (phi >= 0.08 && phi < 0.18) {
+        condWave = math.sin(math.pi * (phi - 0.08) / 0.10);
         condNode = 'SA_ATRIA';
-      } else if (phi >= 0.20 && phi < 0.25) {
-        condWave = 0.7 + 0.3 * math.sin(math.pi * (phi - 0.20) / 0.05);
+      } else if (phi >= 0.18 && phi < 0.25) {
+        condWave = 0.7 + 0.3 * math.sin(math.pi * (phi - 0.18) / 0.07);
         condNode = 'AV_NODE';
-      } else if (phi >= 0.25 && phi < 0.35) {
+      } else if (phi >= 0.25 && phi < 0.33) {
         condWave = 1.0;
         condNode = 'HIS_PURKINJE';
-      } else if (phi >= 0.42 && phi < 0.58) {
-        condWave = 0.4 * math.sin(math.pi * (phi - 0.42) / 0.16);
+      } else if (phi >= 0.34 && phi < 0.56) {
+        condWave = 0.4 * math.sin(math.pi * (phi - 0.34) / 0.22);
         condNode = 'REPOLARIZATION';
       }
 
@@ -460,17 +465,26 @@ class ComputationalHemodynamicsEngine {
         'apex': akinLad * akinRca,
       };
 
-      // 7. Hemodynamics (Pa, Pd, Flow, WSS)
+      // 7. Hemodynamics (Pa, Pd, Flow, WSS) - Strict Wiggers Electro-Mechanical Phase Lock
       final double pa;
-      if (phi >= 0.28 && phi <= 0.47) {
-        pa = 80.0 + 40.0 * math.sin(math.pi * (phi - 0.28) / 0.19);
+      if (phi >= 0.33 && phi <= 0.44) {
+        final double tau = (phi - 0.33) / 0.11;
+        pa = 80.0 + 40.0 * math.pow(math.sin(tau * math.pi * 0.5), 1.15);
+      } else if (phi > 0.44 && phi <= 0.56) {
+        final double tau = (phi - 0.44) / 0.12;
+        pa = 120.0 - 29.0 * math.sin(tau * math.pi * 0.5);
+      } else if (phi > 0.56 && phi <= 0.60) {
+        final double tau = (phi - 0.56) / 0.04;
+        pa = 91.0 - 2.0 * math.sin(tau * 2.0 * math.pi) + 3.0 * tau;
+      } else if (phi >= 0.26 && phi < 0.33) {
+        pa = 80.0;
       } else {
-        final double decPhi = phi < 0.28 ? (phi + (1.0 - 0.47)) : (phi - 0.47);
-        pa = 78.0 + 26.0 * math.exp(-2.2 * decPhi);
+        final double tRun = phi > 0.60 ? (phi - 0.60) / 0.66 : (phi + 0.40) / 0.66;
+        pa = 80.0 + 14.0 * math.exp(-3.0 * tRun);
       }
 
-      final double baseFlow = (phi >= 0.50 && phi <= 0.92)
-          ? 70.0 + 90.0 * math.sin(math.pi * (phi - 0.50) / 0.42)
+      final double baseFlow = (phi >= 0.57 && phi <= 0.95)
+          ? 70.0 + 90.0 * math.sin(math.pi * (phi - 0.57) / 0.38)
           : 25.0;
 
       final double areaLad = math.max(0.02, 1.0 - (effLad / 100.0));

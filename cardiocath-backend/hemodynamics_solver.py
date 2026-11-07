@@ -149,35 +149,45 @@ class CoronaryHemodynamicsSolver:
             # Aortic Pressure Generation
             if is_lm_ventricularization:
                 # Catheter wedged into LM ostium damping pressure to RV/LV shape
-                # Early peak, rapid drop down to near end-diastolic 15 mmHg
-                if phi < 0.30:
-                    pa = 15.0 + (sbp - 25.0) * math.sin(phi / 0.30 * math.pi)
+                # Early peak, rapid drop down to near end-diastolic 15-20 mmHg
+                if 0.28 <= phi <= 0.48:
+                    tau = (phi - 0.28) / 0.20
+                    pa = 20.0 + (sbp * 0.55) * math.sin(tau * math.pi)
                 else:
-                    pa = 15.0 + 10.0 * math.exp(-(phi - 0.30) * 4.0)
-            elif phi < systole_fraction:
-                # Systolic ejection curve
-                tau = phi / systole_fraction
-                pa = dbp + (sbp - dbp) * math.sin(tau * math.pi * 0.85)
+                    pa = 18.0
+            elif 0.33 <= phi <= 0.44:
+                # Rapid systolic ejection upstroke (aortic valve opened at 0.33, following QRS at 0.27)
+                tau = (phi - 0.33) / 0.11
+                pa = dbp + (sbp - dbp) * (math.sin(tau * math.pi * 0.5) ** 1.15)
+            elif 0.44 < phi <= 0.56:
+                # Reduced ventricular ejection
+                tau = (phi - 0.44) / 0.12
+                pa = sbp - (sbp - 91.0) * math.sin(tau * math.pi * 0.5)
+            elif 0.56 < phi <= 0.60:
+                # Dicrotic notch incisura & rebound (aortic valve closure at 0.57)
+                tau = (phi - 0.56) / 0.04
+                pa = 91.0 - 2.0 * math.sin(tau * 2.0 * math.pi) + 3.0 * tau
+            elif 0.26 <= phi < 0.33:
+                # End-diastolic plateau & isovolumetric contraction (aortic valve closed)
+                pa = dbp
             else:
-                # Diastolic decay with dicrotic notch
-                tau = (phi - systole_fraction) / (1.0 - systole_fraction)
-                notch = 8.0 * math.exp(-((tau - 0.06) ** 2) / 0.002)
-                decay = (sbp - dbp) * 0.65 * math.exp(-tau * 1.5)
-                pa = dbp + decay + notch
+                # Diastolic Windkessel exponential decay towards diastolic BP
+                t_run = (phi - 0.60) / 0.66 if phi > 0.60 else (phi + 0.40) / 0.66
+                pa = dbp + (94.0 - dbp) * math.exp(-3.0 * t_run)
 
             # Intra-Aortic Balloon Pump (IABP) 1:1 Counterpulsation Augmentation
             iabp_press = 0.0
             if iabp_active:
-                # Balloon inflates immediately at dicrotic notch (phi = 0.35)
-                # Deflates just before systole (phi = 0.92) to unload LV
-                if 0.35 <= phi <= 0.90:
-                    iabp_tau = (phi - 0.35) / 0.55
-                    iabp_aug = 35.0 * math.sin(iabp_tau * math.pi)
+                # Balloon inflates immediately at dicrotic notch (phi = 0.57)
+                # Deflates just before systole (phi = 0.88) to unload LV
+                if 0.57 <= phi <= 0.88:
+                    iabp_tau = (phi - 0.57) / 0.31
+                    iabp_aug = 36.0 * math.sin(iabp_tau * math.pi)
                     pa += iabp_aug
                     iabp_press = 260.0  # Balloon helium pressure mmHg
-                elif phi > 0.90:
+                elif phi > 0.88:
                     # Presystolic unloading drop
-                    pa -= 12.0
+                    pa -= 10.0
                     iabp_press = 0.0
             iabp_list.append(iabp_press)
 
