@@ -18,9 +18,12 @@
 // ============================================================================
 
 import 'dart:math' as math;
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:quantum_forge/core/theme/theme_provider.dart';
 import '../../data/cardiac_pathology_models.dart';
+import '../../data/coronary_hemodynamics_engine.dart';
+import 'cardiac_three_engine.dart';
 
 enum HeartViewMode {
   anatomy('Anatomy'),
@@ -68,12 +71,76 @@ class _Cardiac3DAnatomicalHeartViewportState
   HeartViewMode _viewMode = HeartViewMode.anatomy;
   bool _showLabels = true;
 
+  CardioCathThreeBridge? _threeBridge;
+  CardiacFsiTrajectory? _trajectory;
+
+  @override
+  void initState() {
+    super.initState();
+    if (kIsWeb) {
+      CardioCathThreeBridge.ensureViewFactories();
+    }
+    _computeTrajectory();
+  }
+
+  void _computeTrajectory() {
+    _trajectory = ComputationalHemodynamicsEngine.solveFsiTrajectory(
+      scenario: widget.scenario,
+      dominance: widget.dominance,
+      isRevascularized: widget.isRevascularized,
+      bpm: widget.bpm,
+    );
+  }
+
+  void _syncBridge() {
+    if (_threeBridge == null) return;
+    _threeBridge!.setViewMode(_viewMode.name);
+    _threeBridge!.setDominance(widget.dominance);
+    _threeBridge!.setRevascularized(widget.isRevascularized);
+    if (widget.contrastIntensity > 0.05) {
+      _threeBridge!.injectContrast();
+    }
+    _syncCurrentFrame();
+  }
+
+  void _syncCurrentFrame() {
+    if (_threeBridge == null || _trajectory == null || _trajectory!.frames.isEmpty) return;
+    final int frameIdx = ((widget.cardiacPhase * (_trajectory!.frames.length - 1)).round())
+        .clamp(0, _trajectory!.frames.length - 1);
+    final frame = _trajectory!.frames[frameIdx];
+    _threeBridge!.applyFsiFrame(frame);
+  }
+
+  @override
+  void didUpdateWidget(covariant Cardiac3DAnatomicalHeartViewport oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.scenario != oldWidget.scenario ||
+        widget.dominance != oldWidget.dominance ||
+        widget.isRevascularized != oldWidget.isRevascularized ||
+        widget.bpm != oldWidget.bpm) {
+      _computeTrajectory();
+      _syncBridge();
+    } else if (widget.cardiacPhase != oldWidget.cardiacPhase) {
+      _syncCurrentFrame();
+    }
+    if (widget.contrastIntensity > 0.05 && oldWidget.contrastIntensity <= 0.05) {
+      _threeBridge?.injectContrast();
+    }
+  }
+
+  @override
+  void dispose() {
+    _threeBridge?.dispose();
+    super.dispose();
+  }
+
   void _resetCamera() {
     setState(() {
       _rotationY = 0.35;
       _rotationX = 0.15;
       _zoom = 1.0;
     });
+    _threeBridge?.resetCamera();
   }
 
   @override
@@ -92,41 +159,49 @@ class _Cardiac3DAnatomicalHeartViewportState
           children: [
             // ── Interactive 3D Canvas ────────────────────────────────────────
             Positioned.fill(
-              child: GestureDetector(
-                onScaleStart: (details) {
-                  _lastPanPos = details.focalPoint;
-                },
-                onScaleUpdate: (details) {
-                  setState(() {
-                    if (details.scale != 1.0) {
-                      _zoom = (_zoom * details.scale).clamp(0.65, 2.0);
-                    } else if (_lastPanPos != null) {
-                      final delta = details.focalPoint - _lastPanPos!;
-                      _rotationY += delta.dx * 0.012;
-                      _rotationX = (_rotationX - delta.dy * 0.012)
-                          .clamp(-math.pi / 2.5, math.pi / 2.5);
-                    }
-                    _lastPanPos = details.focalPoint;
-                  });
-                },
-                onScaleEnd: (_) => _lastPanPos = null,
-                child: CustomPaint(
-                  painter: _AnatomicalHeart3DPainter(
-                    scenario: widget.scenario,
-                    cardiacPhase: widget.cardiacPhase,
-                    isCatheterEngaged: widget.isCatheterEngaged,
-                    contrastIntensity: widget.contrastIntensity,
-                    rotationY: _rotationY,
-                    rotationX: _rotationX,
-                    zoom: _zoom,
-                    palette: palette,
-                    dominance: widget.dominance,
-                    isRevascularized: widget.isRevascularized,
-                    viewMode: _viewMode,
-                    showLabels: _showLabels,
-                  ),
-                ),
-              ),
+              child: kIsWeb && CardioCathThreeBridge.isSupported
+                  ? HtmlElementView(
+                      viewType: CardioCathThreeBridge.heartViewType,
+                      onPlatformViewCreated: (int id) {
+                        _threeBridge = CardioCathThreeBridge.forHeartView(id);
+                        _syncBridge();
+                      },
+                    )
+                  : GestureDetector(
+                      onScaleStart: (details) {
+                        _lastPanPos = details.focalPoint;
+                      },
+                      onScaleUpdate: (details) {
+                        setState(() {
+                          if (details.scale != 1.0) {
+                            _zoom = (_zoom * details.scale).clamp(0.65, 2.0);
+                          } else if (_lastPanPos != null) {
+                            final delta = details.focalPoint - _lastPanPos!;
+                            _rotationY += delta.dx * 0.012;
+                            _rotationX = (_rotationX - delta.dy * 0.012)
+                                .clamp(-math.pi / 2.5, math.pi / 2.5);
+                          }
+                          _lastPanPos = details.focalPoint;
+                        });
+                      },
+                      onScaleEnd: (_) => _lastPanPos = null,
+                      child: CustomPaint(
+                        painter: _AnatomicalHeart3DPainter(
+                          scenario: widget.scenario,
+                          cardiacPhase: widget.cardiacPhase,
+                          isCatheterEngaged: widget.isCatheterEngaged,
+                          contrastIntensity: widget.contrastIntensity,
+                          rotationY: _rotationY,
+                          rotationX: _rotationX,
+                          zoom: _zoom,
+                          palette: palette,
+                          dominance: widget.dominance,
+                          isRevascularized: widget.isRevascularized,
+                          viewMode: _viewMode,
+                          showLabels: _showLabels,
+                        ),
+                      ),
+                    ),
             ),
 
             // ── Top Viewport Header & Multi-Mode Navigation ─────────────────
@@ -174,7 +249,10 @@ class _Cardiac3DAnatomicalHeartViewportState
                         padding: const EdgeInsets.only(right: 6),
                         child: GestureDetector(
                           behavior: HitTestBehavior.opaque,
-                          onTap: () => setState(() => _viewMode = mode),
+                          onTap: () {
+                            setState(() => _viewMode = mode);
+                            _threeBridge?.setViewMode(mode.name);
+                          },
                           child: Container(
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 7, vertical: 3.5),

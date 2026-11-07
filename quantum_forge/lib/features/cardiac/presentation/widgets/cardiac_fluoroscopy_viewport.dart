@@ -7,10 +7,13 @@
 // ============================================================================
 
 import 'dart:math' as math;
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../../data/cardiac_pathology_models.dart';
+import '../../data/coronary_hemodynamics_engine.dart';
+import 'cardiac_three_engine.dart';
 
-class CardiacFluoroscopyViewport extends StatelessWidget {
+class CardiacFluoroscopyViewport extends StatefulWidget {
   final CardiacPathologyScenario scenario;
   final double laoRaoAngle; // Negative = RAO, Positive = LAO
   final double cranCaudAngle; // Negative = Caudal, Positive = Cranial
@@ -37,6 +40,78 @@ class CardiacFluoroscopyViewport extends StatelessWidget {
   });
 
   @override
+  State<CardiacFluoroscopyViewport> createState() => _CardiacFluoroscopyViewportState();
+}
+
+class _CardiacFluoroscopyViewportState extends State<CardiacFluoroscopyViewport> {
+  CardioCathThreeBridge? _threeBridge;
+  CardiacFsiTrajectory? _trajectory;
+
+  @override
+  void initState() {
+    super.initState();
+    if (kIsWeb) {
+      CardioCathThreeBridge.ensureViewFactories();
+    }
+    _computeTrajectory();
+  }
+
+  void _computeTrajectory() {
+    _trajectory = ComputationalHemodynamicsEngine.solveFsiTrajectory(
+      scenario: widget.scenario,
+      dominance: widget.dominance,
+      isRevascularized: widget.isRevascularized,
+    );
+  }
+
+  void _syncBridge() {
+    if (_threeBridge == null) return;
+    _threeBridge!.setGantryAngles(widget.laoRaoAngle, widget.cranCaudAngle);
+    _threeBridge!.setDominance(widget.dominance);
+    _threeBridge!.setRevascularized(widget.isRevascularized);
+    if (widget.contrastIntensity > 0.05) {
+      _threeBridge!.injectContrast();
+    }
+    _syncCurrentFrame();
+  }
+
+  void _syncCurrentFrame() {
+    if (_threeBridge == null || _trajectory == null || _trajectory!.frames.isEmpty) return;
+    final int frameIdx = ((widget.cardiacPhase * (_trajectory!.frames.length - 1)).round())
+        .clamp(0, _trajectory!.frames.length - 1);
+    final frame = _trajectory!.frames[frameIdx];
+    _threeBridge!.applyFsiFrame(frame);
+  }
+
+  @override
+  void didUpdateWidget(covariant CardiacFluoroscopyViewport oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.laoRaoAngle != oldWidget.laoRaoAngle || widget.cranCaudAngle != oldWidget.cranCaudAngle) {
+      _threeBridge?.setGantryAngles(widget.laoRaoAngle, widget.cranCaudAngle);
+    }
+    if (widget.dominance != oldWidget.dominance) {
+      _computeTrajectory();
+      _threeBridge?.setDominance(widget.dominance);
+    }
+    if (widget.isRevascularized != oldWidget.isRevascularized || widget.scenario != oldWidget.scenario) {
+      _computeTrajectory();
+      _threeBridge?.setRevascularized(widget.isRevascularized);
+    }
+    if (widget.contrastIntensity > 0.05 && oldWidget.contrastIntensity <= 0.05) {
+      _threeBridge?.injectContrast();
+    }
+    if (widget.cardiacPhase != oldWidget.cardiacPhase) {
+      _syncCurrentFrame();
+    }
+  }
+
+  @override
+  void dispose() {
+    _threeBridge?.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
@@ -57,17 +132,25 @@ class CardiacFluoroscopyViewport extends StatelessWidget {
           children: [
             // ── Inverted Monochromatic Fluoroscopy Screen ───────────────────
             Positioned.fill(
-              child: CustomPaint(
-                painter: _FluoroscopyXRayPainter(
-                  scenario: scenario,
-                  laoRaoAngle: laoRaoAngle,
-                  cranCaudAngle: cranCaudAngle,
-                  contrastIntensity: contrastIntensity,
-                  cardiacPhase: cardiacPhase,
-                  dominance: dominance,
-                  isRevascularized: isRevascularized,
-                ),
-              ),
+              child: kIsWeb && CardioCathThreeBridge.isSupported
+                  ? HtmlElementView(
+                      viewType: CardioCathThreeBridge.fluoroViewType,
+                      onPlatformViewCreated: (int id) {
+                        _threeBridge = CardioCathThreeBridge.forFluoroView(id);
+                        _syncBridge();
+                      },
+                    )
+                  : CustomPaint(
+                      painter: _FluoroscopyXRayPainter(
+                        scenario: widget.scenario,
+                        laoRaoAngle: widget.laoRaoAngle,
+                        cranCaudAngle: widget.cranCaudAngle,
+                        contrastIntensity: widget.contrastIntensity,
+                        cardiacPhase: widget.cardiacPhase,
+                        dominance: widget.dominance,
+                        isRevascularized: widget.isRevascularized,
+                      ),
+                    ),
             ),
 
             // ── Circular Intensifier Reticle Mask & Grid ────────────────────
@@ -104,8 +187,8 @@ class CardiacFluoroscopyViewport extends StatelessWidget {
                           const SizedBox(width: 5),
                           Flexible(
                             child: Text(
-                              'FLUO ${laoRaoAngle < 0 ? 'RAO ${(-laoRaoAngle).round()}°' : (laoRaoAngle > 0 ? 'LAO ${laoRaoAngle.round()}°' : 'AP 0°')} / '
-                              '${cranCaudAngle < 0 ? 'CAUD ${(-cranCaudAngle).round()}°' : (cranCaudAngle > 0 ? 'CRAN ${cranCaudAngle.round()}°' : '0°')}',
+                              'FLUO ${widget.laoRaoAngle < 0 ? 'RAO ${(-widget.laoRaoAngle).round()}°' : (widget.laoRaoAngle > 0 ? 'LAO ${widget.laoRaoAngle.round()}°' : 'AP 0°')} / '
+                              '${widget.cranCaudAngle < 0 ? 'CAUD ${(-widget.cranCaudAngle).round()}°' : (widget.cranCaudAngle > 0 ? 'CRAN ${widget.cranCaudAngle.round()}°' : '0°')}',
                               style: const TextStyle(
                                 color: Colors.greenAccent,
                                 fontSize: 10.5,
@@ -155,12 +238,12 @@ class CardiacFluoroscopyViewport extends StatelessWidget {
                       padding:
                           const EdgeInsets.symmetric(horizontal: 7, vertical: 3.5),
                       decoration: BoxDecoration(
-                        color: isInjecting
+                        color: widget.isInjecting
                             ? Colors.cyanAccent.withValues(alpha: 0.25)
                             : Colors.black.withValues(alpha: 0.6),
                         borderRadius: BorderRadius.circular(6),
                         border: Border.all(
-                          color: isInjecting
+                          color: widget.isInjecting
                               ? Colors.cyanAccent
                               : Colors.white24,
                         ),
@@ -171,17 +254,17 @@ class CardiacFluoroscopyViewport extends StatelessWidget {
                           Icon(
                             Icons.water_drop_rounded,
                             size: 12,
-                            color: isInjecting
+                            color: widget.isInjecting
                                 ? Colors.cyanAccent
                                 : Colors.white38,
                           ),
                           const SizedBox(width: 4),
                           Text(
-                            isInjecting
+                            widget.isInjecting
                                 ? 'DYE: OPACIFIED (PULSATILE)'
                                 : 'DYE: CLEAR',
                             style: TextStyle(
-                              color: isInjecting
+                              color: widget.isInjecting
                                   ? Colors.cyanAccent
                                   : Colors.white60,
                               fontSize: 9.5,
@@ -193,22 +276,22 @@ class CardiacFluoroscopyViewport extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 8),
-                    if (onSimulatePci != null &&
-                        (scenario.ladStenosisFraction > 0 || scenario.rcaStenosisFraction > 0)) ...[
+                    if (widget.onSimulatePci != null &&
+                        (widget.scenario.ladStenosisFraction > 0 || widget.scenario.rcaStenosisFraction > 0)) ...[
                       ElevatedButton.icon(
                         icon: Icon(
-                          isRevascularized ? Icons.check_circle_rounded : Icons.expand_circle_down_rounded,
+                          widget.isRevascularized ? Icons.check_circle_rounded : Icons.expand_circle_down_rounded,
                           size: 14,
                         ),
                         label: Text(
-                          isRevascularized ? 'TIMI 3 (Stented)' : 'Simulate PCI Stent',
+                          widget.isRevascularized ? 'TIMI 3 (Stented)' : 'Simulate PCI Stent',
                           style: const TextStyle(
                             fontSize: 10.5,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: isRevascularized
+                          backgroundColor: widget.isRevascularized
                               ? const Color(0xFF10B981)
                               : const Color(0xFFF59E0B),
                           foregroundColor: Colors.black,
@@ -219,25 +302,25 @@ class CardiacFluoroscopyViewport extends StatelessWidget {
                             borderRadius: BorderRadius.circular(8),
                           ),
                         ),
-                        onPressed: onSimulatePci,
+                        onPressed: widget.onSimulatePci,
                       ),
                       const SizedBox(width: 6),
                     ],
                     ElevatedButton.icon(
                       icon: const Icon(Icons.colorize_rounded, size: 14),
                       label: Text(
-                        isInjecting ? 'Dye Flowing...' : 'Inject Contrast Dye',
+                        widget.isInjecting ? 'Dye Flowing...' : 'Inject Contrast Dye',
                         style: const TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: isInjecting
+                        backgroundColor: widget.isInjecting
                             ? const Color(0xFF00E5FF)
                             : const Color(0xFF263238),
                         foregroundColor:
-                            isInjecting ? Colors.black : Colors.cyanAccent,
+                            widget.isInjecting ? Colors.black : Colors.cyanAccent,
                         padding: const EdgeInsets.symmetric(
                             horizontal: 10, vertical: 6),
                         minimumSize: Size.zero,
@@ -247,7 +330,7 @@ class CardiacFluoroscopyViewport extends StatelessWidget {
                           side: const BorderSide(color: Color(0xFF00E5FF)),
                         ),
                       ),
-                      onPressed: onInjectContrast,
+                      onPressed: widget.onInjectContrast,
                     ),
                   ],
                 ),

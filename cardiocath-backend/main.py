@@ -72,6 +72,16 @@ class ProctorRequest(BaseModel):
     complication_handled: Optional[str] = None
 
 
+class FsiTrajectoryRequest(BaseModel):
+    scenario_id: str = "anterior_stemi"
+    dominance: str = "right"
+    is_revascularized: bool = False
+    lad_stenosis: Optional[float] = None
+    rca_stenosis: Optional[float] = None
+    heart_rate: float = 72.0
+    frames_count: int = 120
+
+
 @app.get("/health")
 async def health_check():
     return {
@@ -133,6 +143,31 @@ async def simulate_hemodynamics(req: SimulationRequest):
         }
     except Exception as e:
         logger.error(f"Simulation error: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/cardiac/trajectory")
+async def get_fsi_trajectory(req: FsiTrajectoryRequest):
+    """
+    120-frame Fluid-Structure Interaction (FSI) Biomechanical Trajectory.
+    Provides time-varying elastance, chamber volumes, strain, valve angles,
+    conduction propagation, and trans-stenotic hemodynamics.
+    """
+    try:
+        solver = CoronaryHemodynamicsSolver(
+            params=HemodynamicParameters(heart_rate=req.heart_rate)
+        )
+        trajectory = solver.solve_fsi_trajectory(
+            scenario_id=req.scenario_id,
+            dominance=req.dominance,
+            is_revascularized=req.is_revascularized,
+            lad_stenosis=req.lad_stenosis,
+            rca_stenosis=req.rca_stenosis,
+            frames_count=req.frames_count,
+        )
+        return trajectory
+    except Exception as e:
+        logger.error(f"FSI Trajectory error: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
 

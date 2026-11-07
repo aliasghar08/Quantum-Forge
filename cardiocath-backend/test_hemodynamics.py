@@ -122,3 +122,32 @@ def test_proctor_evaluation_endpoint():
     assert res["score"] >= 80
     assert res["grade"] == "Distinction"
 
+
+def test_fsi_trajectory_endpoint():
+    payload = {
+        "scenario_id": "anterior_stemi",
+        "dominance": "right",
+        "is_revascularized": False,
+        "frames_count": 120,
+    }
+    response = client.post("/api/cardiac/trajectory", json=payload)
+    assert response.status_code == 200
+    data = response.json()
+    assert data["status"] == "success"
+    assert data["frames_count"] == 120
+    assert data["is_ischemic"] is True
+    assert len(data["trajectory_frames"]) == 120
+
+    # Test revascularized recovery
+    payload_revasc = {
+        "scenario_id": "anterior_stemi",
+        "dominance": "right",
+        "is_revascularized": True,
+        "frames_count": 120,
+    }
+    resp_revasc = client.post("/api/cardiac/trajectory", json=payload_revasc)
+    assert resp_revasc.status_code == 200
+    data_revasc = resp_revasc.json()
+    assert data_revasc["is_ischemic"] is False
+    assert data_revasc["ffr"] >= 0.88
+

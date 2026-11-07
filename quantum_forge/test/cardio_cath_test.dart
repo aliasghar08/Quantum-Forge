@@ -75,7 +75,7 @@ void main() {
     });
 
     testWidgets('tapping Inject Contrast triggers dye opacification', (tester) async {
-      tester.view.physicalSize = const Size(1280, 900);
+      tester.view.physicalSize = const Size(1280, 1200);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
@@ -85,6 +85,8 @@ void main() {
 
       final injectBtn = find.text('Inject Contrast Dye');
       expect(injectBtn, findsOneWidget);
+      await tester.ensureVisible(injectBtn);
+      await tester.pump();
 
       await tester.tap(injectBtn);
       await tester.pump();
@@ -175,7 +177,7 @@ void main() {
 
     testWidgets('Simulate PCI Stent deploys metallic stent and resolves ST elevation',
         (tester) async {
-      tester.view.physicalSize = const Size(1280, 900);
+      tester.view.physicalSize = const Size(1280, 1200);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
@@ -191,6 +193,8 @@ void main() {
       // Verify Simulate PCI Stent button appears
       final pciBtn = find.text('Simulate PCI Stent');
       expect(pciBtn, findsOneWidget);
+      await tester.ensureVisible(pciBtn);
+      await tester.pump();
 
       // Deploy PCI Stent
       await tester.tap(pciBtn);

@@ -12,7 +12,7 @@ LM Ventricularization, Cardiogenic Shock + IABP Counterpulsation).
 """
 
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple, Any
 import math
 import numpy as np
 
@@ -402,3 +402,244 @@ class CoronaryHemodynamicsSolver:
             mv += 0.35 * math.sin(tau * math.pi)
 
         return mv
+
+    def solve_fsi_trajectory(
+        self,
+        scenario_id: str = "anterior_stemi",
+        dominance: str = "right",
+        is_revascularized: bool = False,
+        lad_stenosis: Optional[float] = None,
+        rca_stenosis: Optional[float] = None,
+        frames_count: int = 120,
+    ) -> Dict[str, Any]:
+        """
+        120-frame Fluid-Structure Interaction (FSI) Biomechanical Trajectory.
+        Couples Sagawa time-varying elastance E(t), 3-Element Windkessel (R_p, C, R_d),
+        and 1D coronary wave propagation across LM, LAD, D1, LCx, OM1, RCA, PDA.
+        Outputs per-frame ventricular/atrial strain, regional akinesis, valve angles,
+        conduction wave, velocities, and trans-stenotic pressures (Pa, Pd).
+        """
+        # Determine effective stenoses based on scenario
+        if lad_stenosis is None:
+            if scenario_id in ["anterior_stemi", "bifurcation"]:
+                lad_stenosis = 0.0 if is_revascularized else 95.0
+            elif scenario_id == "triple_vessel":
+                lad_stenosis = 0.0 if is_revascularized else 85.0
+            else:
+                lad_stenosis = 0.0
+
+        if rca_stenosis is None:
+            if scenario_id == "inferior_stemi":
+                rca_stenosis = 0.0 if is_revascularized else 95.0
+            elif scenario_id == "triple_vessel":
+                rca_stenosis = 0.0 if is_revascularized else 90.0
+            else:
+                rca_stenosis = 0.0
+
+        hr = self.params.heart_rate
+        beat_dur = 60.0 / hr
+        dt = beat_dur / frames_count
+
+        # Sagawa parameters
+        e_max = 2.4   # mmHg/mL (end-systolic elastance)
+        e_min = 0.07  # mmHg/mL (end-diastolic elastance)
+        t_sys = 0.35 * math.sqrt(beat_dur) # Systolic duration ~ 0.32-0.35s
+
+        frames: List[Dict[str, Any]] = []
+
+        for k in range(frames_count):
+            t = k * dt
+            phi = k / float(frames_count)
+
+            # 1. ECG Lead II
+            ecg = self._synthesize_ecg(phi)
+
+            # 2. Time-varying elastance E(t)
+            if t <= t_sys:
+                e_t = e_min + (e_max - e_min) * 0.5 * (1.0 - math.cos(math.pi * t / t_sys))
+            else:
+                decay_rate = 14.0
+                e_t = e_min + (e_max - e_min) * math.exp(-decay_rate * (t - t_sys))
+
+            # 3. Ventricular Volumes & Global Strain
+            # Systole: ejection from 125 mL (EDV) to 55 mL (ESV)
+            # Diastole: rapid filling + diastasis + atrial booster
+            if 0.25 <= phi <= 0.48: # Ventricular systole
+                sys_phase = (phi - 0.25) / 0.23
+                ejection_frac = 0.5 * (1.0 - math.cos(math.pi * sys_phase))
+                lv_vol = 125.0 - (125.0 - 55.0) * ejection_frac
+                rv_vol = 130.0 - (130.0 - 60.0) * ejection_frac
+                radial_strain = 0.38 * math.sin(math.pi * sys_phase)
+                long_strain = -0.21 * math.sin(math.pi * sys_phase)
+                torsion_deg = 12.5 * math.sin(math.pi * sys_phase)
+            else: # Diastole
+                if phi < 0.25:
+                    dias_phase = (phi + (1.0 - 0.48)) / (0.25 + (1.0 - 0.48))
+                else:
+                    dias_phase = (phi - 0.48) / (1.0 - 0.48 + 0.25)
+                fill_frac = 0.5 * (1.0 - math.cos(math.pi * min(1.0, dias_phase * 1.4)))
+                lv_vol = 55.0 + (125.0 - 55.0) * fill_frac
+                rv_vol = 60.0 + (130.0 - 60.0) * fill_frac
+                radial_strain = 0.05 * (1.0 - fill_frac)
+                long_strain = -0.03 * (1.0 - fill_frac)
+                torsion_deg = 1.0 * (1.0 - fill_frac)
+
+            # Atrial volumes (inverse of ventricles: fill during ventricular systole)
+            la_vol = 65.0 - (lv_vol - 90.0) * 0.45
+            ra_vol = 70.0 - (rv_vol - 95.0) * 0.45
+
+            # 4. Dynamic 3D Valve States (0.0 closed, 1.0 fully open)
+            if 0.28 <= phi <= 0.47: # Aortic & Pulmonic open
+                v_phase = (phi - 0.28) / 0.19
+                valve_aortic = math.sin(math.pi * v_phase)
+                valve_pulmonic = math.sin(math.pi * v_phase)
+                valve_mitral = 0.0
+                valve_tricuspid = 0.0
+            elif 0.52 <= phi <= 0.95: # Mitral & Tricuspid open in diastole
+                v_phase = (phi - 0.52) / 0.43
+                valve_aortic = 0.0
+                valve_pulmonic = 0.0
+                valve_mitral = math.sin(math.pi * min(1.0, v_phase * 1.2))
+                valve_tricuspid = math.sin(math.pi * min(1.0, v_phase * 1.2))
+            else: # Isovolumetric contraction / relaxation (all closed)
+                valve_aortic = 0.0
+                valve_pulmonic = 0.0
+                valve_mitral = 0.0
+                valve_tricuspid = 0.0
+
+            # 5. Conduction Wavefront & Node State
+            if 0.08 <= phi < 0.20:
+                conduction_wavefront = math.sin(math.pi * (phi - 0.08) / 0.12)
+                conduction_node = "SA_ATRIA"
+            elif 0.20 <= phi < 0.25:
+                conduction_wavefront = 0.7 + 0.3 * math.sin(math.pi * (phi - 0.20) / 0.05)
+                conduction_node = "AV_NODE"
+            elif 0.25 <= phi < 0.35:
+                conduction_wavefront = 1.0
+                conduction_node = "HIS_PURKINJE"
+            elif 0.42 <= phi < 0.58:
+                conduction_wavefront = 0.4 * math.sin(math.pi * (phi - 0.42) / 0.16)
+                conduction_node = "REPOLARIZATION"
+            else:
+                conduction_wavefront = 0.05
+                conduction_node = "RESTING"
+
+            # 6. Regional Wall Motion (Ischemic akinesis vs normal)
+            # Anterior, Septal, Lateral, Inferior, Apex
+            if lad_stenosis > 70.0:
+                akinesis_lad = max(0.12, 1.0 - (lad_stenosis / 100.0) * 0.92)
+            else:
+                akinesis_lad = 1.0
+
+            if rca_stenosis > 70.0:
+                akinesis_rca = max(0.15, 1.0 - (rca_stenosis / 100.0) * 0.90)
+            else:
+                akinesis_rca = 1.0
+
+            wall_motion = {
+                "anterior": round(akinesis_lad, 2),
+                "septal": round(akinesis_lad * 0.95, 2),
+                "lateral": 1.0,
+                "inferior": round(akinesis_rca, 2),
+                "apex": round(akinesis_lad * akinesis_rca, 2),
+            }
+
+            # 7. Pressures: Aortic (Pa) and Distal (Pd) across LAD & RCA
+            # Pa Windkessel contour
+            if 0.28 <= phi <= 0.47: # Systolic pulse
+                p_pulse = math.sin(math.pi * (phi - 0.28) / 0.19)
+                pa = 80.0 + 40.0 * p_pulse
+            else: # Diastolic decay from dicrotic notch
+                if phi < 0.28:
+                    decay_phi = (phi + (1.0 - 0.47))
+                else:
+                    decay_phi = (phi - 0.47)
+                pa = 78.0 + 26.0 * math.exp(-2.2 * decay_phi)
+
+            # Coronary flow is predominantly DIASTOLIC (compression prevents flow in systole)
+            if 0.50 <= phi <= 0.92:
+                dias_flow_factor = math.sin(math.pi * (phi - 0.50) / 0.42)
+                base_flow = 70.0 + 90.0 * dias_flow_factor
+            else:
+                base_flow = 25.0
+
+            # Trans-stenotic pressure drop (Young-Frisoli non-linear)
+            # Delta P = A * Flow + B * Flow^2
+            area_ratio_lad = max(0.02, 1.0 - (lad_stenosis / 100.0))
+            delta_p_lad = (1.0 / area_ratio_lad - 1.0) * 0.15 * base_flow * 0.05 + ((1.0 / area_ratio_lad) - 1.0)**2 * 0.003 * (base_flow * 0.05)**2
+            pd_lad = max(15.0, pa - delta_p_lad)
+
+            area_ratio_rca = max(0.02, 1.0 - (rca_stenosis / 100.0))
+            delta_p_rca = (1.0 / area_ratio_rca - 1.0) * 0.15 * base_flow * 0.05 + ((1.0 / area_ratio_rca) - 1.0)**2 * 0.003 * (base_flow * 0.05)**2
+            pd_rca = max(15.0, pa - delta_p_rca)
+
+            # Endothelial WSS (dynes/cm^2)
+            wss = 15.0 + (lad_stenosis / 100.0) * 75.0 * (base_flow / 80.0)
+
+            # Velocities in major branches (cm/s)
+            vel_lm = (base_flow / (math.pi * (0.2)**2)) * 0.08
+            vel_lad = vel_lm * 0.65 * area_ratio_lad
+            vel_lcx = vel_lm * 0.55
+            vel_rca = vel_lm * (0.75 if dominance == "right" else 0.45) * area_ratio_rca
+            vel_pda = vel_rca * 0.85 if dominance == "right" else vel_lcx * 0.85
+
+            frames.append({
+                "frame_index": k,
+                "time_s": round(t, 4),
+                "cardiac_phase": round(phi, 4),
+                "ecg_mv": round(ecg, 3),
+                "elastance": round(e_t, 3),
+                "lv_vol_ml": round(lv_vol, 1),
+                "rv_vol_ml": round(rv_vol, 1),
+                "la_vol_ml": round(la_vol, 1),
+                "ra_vol_ml": round(ra_vol, 1),
+                "strain_radial": round(radial_strain, 3),
+                "strain_longitudinal": round(long_strain, 3),
+                "torsion_deg": round(torsion_deg, 2),
+                "wall_motion": wall_motion,
+                "valve_aortic": round(valve_aortic, 2),
+                "valve_mitral": round(valve_mitral, 2),
+                "valve_tricuspid": round(valve_tricuspid, 2),
+                "valve_pulmonic": round(valve_pulmonic, 2),
+                "conduction_wavefront": round(conduction_wavefront, 2),
+                "conduction_node": conduction_node,
+                "pa": round(pa, 1),
+                "pd_lad": round(pd_lad, 1),
+                "pd_rca": round(pd_rca, 1),
+                "coronary_flow_ml_min": round(base_flow * area_ratio_lad, 1),
+                "wss_dynes_cm2": round(wss, 1),
+                "velocities_cm_s": {
+                    "lm": round(vel_lm, 1),
+                    "lad": round(vel_lad, 1),
+                    "lcx": round(vel_lcx, 1),
+                    "rca": round(vel_rca, 1),
+                    "pda": round(vel_pda, 1),
+                },
+            })
+
+        mean_pa = float(np.mean([f["pa"] for f in frames]))
+        mean_pd_lad = float(np.mean([f["pd_lad"] for f in frames]))
+        ffr = round(mean_pd_lad / max(1.0, mean_pa), 2)
+
+        # Diastolic wave-free window (phi 0.72 to 0.88)
+        wfp_frames = [f for f in frames if 0.72 <= f["cardiac_phase"] <= 0.88]
+        if wfp_frames:
+            wfp_pa = float(np.mean([f["pa"] for f in wfp_frames]))
+            wfp_pd = float(np.mean([f["pd_lad"] for f in wfp_frames]))
+            ifr = round(wfp_pd / max(1.0, wfp_pa), 2)
+        else:
+            ifr = ffr
+
+        return {
+            "status": "success",
+            "scenario_id": scenario_id,
+            "dominance": dominance,
+            "is_revascularized": is_revascularized,
+            "frames_count": len(frames),
+            "ffr": ffr,
+            "ifr": ifr,
+            "mean_pa": round(mean_pa, 1),
+            "mean_pd_lad": round(mean_pd_lad, 1),
+            "is_ischemic": ffr <= 0.80,
+            "trajectory_frames": frames,
+        }

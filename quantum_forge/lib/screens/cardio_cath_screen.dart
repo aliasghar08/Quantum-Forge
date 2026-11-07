@@ -81,6 +81,11 @@ class _CardioCathScreenState extends State<CardioCathScreen>
   double _contrastVolumeMl = 65.0;
   static const double _patientEgfr = 65.0;
 
+  // 120-Frame FSI Biomechanical Trajectory Playback
+  bool _isPlaying = true;
+  double _playbackSpeed = 1.0;
+  int _currentFsiFrame = 0;
+
   // OSCE Exam Mode State
   bool _isOsceMode = false;
   int _osceCaseIndex = 0;
@@ -138,6 +143,9 @@ class _CardioCathScreenState extends State<CardioCathScreen>
     )..repeat();
 
     _cardiacAnimController.addListener(() {
+      if (_isPlaying) {
+        _currentFsiFrame = (_cardiacAnimController.value * 119).round().clamp(0, 119);
+      }
       setState(() {});
     });
   }
@@ -152,9 +160,39 @@ class _CardioCathScreenState extends State<CardioCathScreen>
   void _updateBpm(double newBpm) {
     setState(() {
       _bpm = newBpm;
-      final cycleDurationMs = (60.0 / _bpm * 1000).round().clamp(300, 2000);
+      final cycleDurationMs = ((60.0 / _bpm * 1000) / _playbackSpeed).round().clamp(150, 4000);
       _cardiacAnimController.duration = Duration(milliseconds: cycleDurationMs);
-      if (!_cardiacAnimController.isAnimating) {
+      if (!_cardiacAnimController.isAnimating && _isPlaying) {
+        _cardiacAnimController.repeat();
+      }
+    });
+  }
+
+  void _togglePlayback() {
+    setState(() {
+      _isPlaying = !_isPlaying;
+      if (_isPlaying) {
+        _cardiacAnimController.repeat();
+      } else {
+        _cardiacAnimController.stop();
+      }
+    });
+  }
+
+  void _seekFsiFrame(int frame) {
+    setState(() {
+      _currentFsiFrame = frame.clamp(0, 119);
+      _cardiacAnimController.value = _currentFsiFrame / 119.0;
+    });
+  }
+
+  void _setPlaybackSpeed(double speed) {
+    setState(() {
+      _playbackSpeed = speed;
+      final baseCycleMs = (60.0 / _bpm * 1000).round();
+      final adjustedMs = (baseCycleMs / _playbackSpeed).round().clamp(150, 4000);
+      _cardiacAnimController.duration = Duration(milliseconds: adjustedMs);
+      if (_isPlaying) {
         _cardiacAnimController.repeat();
       }
     });
@@ -569,6 +607,10 @@ class _CardioCathScreenState extends State<CardioCathScreen>
 
             // ── ALARA Radiation & Contrast Safety Tracker Strip ─────────────
             _buildAlaraSafetyBar(palette),
+            const SizedBox(height: 12),
+
+            // ── 120-Frame FSI Biomechanical Physics Playback Bar ───────────
+            _buildPhysicsTrajectoryBar(palette),
             const SizedBox(height: 12),
 
             // ── Synchronized Viewports (3D Heart, Fluo, C-Arm, IVUS/OCT) ───
@@ -1051,6 +1093,176 @@ class _CardioCathScreenState extends State<CardioCathScreen>
         Text('$label: ', style: const TextStyle(color: Colors.white38, fontSize: 9.5, fontFamily: 'monospace')),
         Text(value, style: TextStyle(color: color, fontSize: 10, fontFamily: 'monospace', fontWeight: FontWeight.bold)),
       ],
+    );
+  }
+
+  Widget _buildPhysicsTrajectoryBar(dynamic palette) {
+    final phase = _currentFsiFrame / 119.0;
+    String phaseLabel = 'Diastole (Filling)';
+    if (phase >= 0.25 && phase <= 0.48) {
+      phaseLabel = 'Systole (Ventricular Ejection)';
+    } else if (phase >= 0.08 && phase < 0.20) {
+      phaseLabel = 'Atrial Systole (P-Wave Booster)';
+    } else if (phase >= 0.72 && phase <= 0.88) {
+      phaseLabel = 'Wave-Free Window (iFR Measurement)';
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: const Color(0xFF0F172A).withValues(alpha: 0.95),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: const Color(0xFF38BDF8).withValues(alpha: 0.3)),
+      ),
+      child: Row(
+        children: [
+          // Play / Pause Button
+          IconButton(
+            icon: Icon(
+              _isPlaying ? Icons.pause_circle_filled_rounded : Icons.play_circle_filled_rounded,
+              color: const Color(0xFF00E5FF),
+              size: 24,
+            ),
+            tooltip: _isPlaying ? 'Pause Simulation' : 'Play Simulation',
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(),
+            onPressed: _togglePlayback,
+          ),
+          const SizedBox(width: 8),
+
+          // Step backward 1 frame
+          IconButton(
+            icon: const Icon(Icons.skip_previous_rounded, color: Colors.white70, size: 20),
+            tooltip: 'Step Previous Frame',
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(),
+            onPressed: () => _seekFsiFrame(_currentFsiFrame - 1),
+          ),
+          const SizedBox(width: 4),
+
+          // Step forward 1 frame
+          IconButton(
+            icon: const Icon(Icons.skip_next_rounded, color: Colors.white70, size: 20),
+            tooltip: 'Step Next Frame',
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(),
+            onPressed: () => _seekFsiFrame(_currentFsiFrame + 1),
+          ),
+          const SizedBox(width: 10),
+
+          // Frame Label
+          Text(
+            'FRAME ${_currentFsiFrame.toString().padLeft(3, '0')}/120',
+            style: const TextStyle(
+              color: Color(0xFF38BDF8),
+              fontSize: 10.5,
+              fontWeight: FontWeight.bold,
+              fontFamily: 'monospace',
+            ),
+          ),
+          const SizedBox(width: 6),
+          Text(
+            '($phaseLabel)',
+            style: const TextStyle(
+              color: Colors.white54,
+              fontSize: 9.5,
+            ),
+          ),
+          const SizedBox(width: 12),
+
+          // Scrub Slider
+          Expanded(
+            child: SliderTheme(
+              data: SliderTheme.of(context).copyWith(
+                trackHeight: 3,
+                thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
+                overlayShape: const RoundSliderOverlayShape(overlayRadius: 10),
+                activeTrackColor: const Color(0xFF00E5FF),
+                inactiveTrackColor: Colors.white24,
+                thumbColor: const Color(0xFF00E5FF),
+              ),
+              child: Slider(
+                value: _currentFsiFrame.toDouble(),
+                min: 0,
+                max: 119,
+                divisions: 119,
+                onChanged: (val) {
+                  if (_isPlaying) {
+                    _togglePlayback();
+                  }
+                  _seekFsiFrame(val.round());
+                },
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+
+          // Speed Multipliers
+          ...[0.25, 0.5, 1.0, 1.5].map((speed) {
+            final isSel = _playbackSpeed == speed;
+            return Padding(
+              padding: const EdgeInsets.only(left: 4),
+              child: InkWell(
+                onTap: () => _setPlaybackSpeed(speed),
+                borderRadius: BorderRadius.circular(4),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: isSel ? const Color(0xFF00E5FF).withValues(alpha: 0.25) : Colors.transparent,
+                    borderRadius: BorderRadius.circular(4),
+                    border: Border.all(
+                      color: isSel ? const Color(0xFF00E5FF) : Colors.white24,
+                      width: 0.8,
+                    ),
+                  ),
+                  child: Text(
+                    '${speed}x',
+                    style: TextStyle(
+                      color: isSel ? const Color(0xFF00E5FF) : Colors.white70,
+                      fontSize: 9.5,
+                      fontWeight: isSel ? FontWeight.bold : FontWeight.normal,
+                    ),
+                  ),
+                ),
+              ),
+            );
+          }),
+          const SizedBox(width: 10),
+
+          // Cloud Run FSI Badge
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3.5),
+            decoration: BoxDecoration(
+              color: const Color(0xFF10B981).withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(6),
+              border: Border.all(color: const Color(0xFF10B981).withValues(alpha: 0.5)),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 6,
+                  height: 6,
+                  decoration: const BoxDecoration(
+                    color: Color(0xFF10B981),
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                const SizedBox(width: 5),
+                const Text(
+                  'FSI ENGINE ACTIVE',
+                  style: TextStyle(
+                    color: Color(0xFF10B981),
+                    fontSize: 9.5,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
