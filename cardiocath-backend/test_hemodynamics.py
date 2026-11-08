@@ -212,3 +212,160 @@ def test_cardio_nephro_predict_invalid_smiles():
     assert "Invalid chemical SMILES" in response.json()["detail"]
 
 
+def test_workstation_module_1_echo_doppler():
+    # Severe Aortic Stenosis: v = 4.5 m/s => Bernoulli Delta P = 4 * 4.5^2 = 81.0 mmHg
+    resp = client.post("/api/cardiac/echo-doppler", json={"window": "PLAX", "phenotype": "severe_as"})
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["bernoulli_delta_p_mmhg"] == 81.0
+    assert data["nyquist_aliasing"] is True
+
+    # HFrEF: LVEF < 40%
+    resp_hf = client.post("/api/cardiac/echo-doppler", json={"window": "A4C", "phenotype": "hfref"})
+    assert resp_hf.status_code == 200
+    assert resp_hf.json()["lvef_percent"] < 35.0
+
+
+def test_workstation_module_2_auscultation_pcg():
+    # HOCM murmur intensifies with Valsalva and softens with Squatting
+    valsalva = client.post(
+        "/api/cardiac/auscultation-pcg",
+        json={"listening_post": "tricuspid", "profile": "hocm", "maneuver": "valsalva"},
+    ).json()
+    squat = client.post(
+        "/api/cardiac/auscultation-pcg",
+        json={"listening_post": "tricuspid", "profile": "hocm", "maneuver": "squatting"},
+    ).json()
+    assert valsalva["murmur_amplitude_multiplier"] > 1.4
+    assert squat["murmur_amplitude_multiplier"] < 0.6
+
+
+def test_workstation_module_3_ep_study_ablation_and_pacer():
+    # WPW pre-excitation has shortened HV interval (15 ms), restored to 45 ms post-RF ablation
+    wpw = client.post("/api/cardiac/ep-study", json={"rhythm": "wpw", "rf_ablated": False}).json()
+    assert wpw["hv_interval_ms"] == 15
+
+    ablated = client.post("/api/cardiac/ep-study", json={"rhythm": "wpw", "rf_ablated": True}).json()
+    assert ablated["effective_rhythm"] == "normal_sinus"
+    assert ablated["hv_interval_ms"] == 45
+
+    # Complete heart block rescued by DDD pacemaker
+    chb_paced = client.post(
+        "/api/cardiac/ep-study",
+        json={"rhythm": "complete_heart_block", "pacemaker_mode": "DDD"},
+    ).json()
+    assert chb_paced["ventricular_rate_bpm"] == 72
+
+
+def test_workstation_module_4_pv_loop_pharmacology():
+    base = client.post("/api/cardiac/pv-loop", json={}).json()
+    dobu = client.post("/api/cardiac/pv-loop", json={"drug_preset": "dobutamine"}).json()
+    assert dobu["lvef_percent"] > base["lvef_percent"]
+    assert dobu["esv_ml"] < base["esv_ml"]
+
+
+def test_workstation_module_5_chd_shunt_oximetry():
+    # Secundum ASD step-up in RA & Qp/Qs > 1.5
+    asd = client.post("/api/cardiac/chd-shunt", json={"defect": "secundum_asd"}).json()
+    assert asd["qp_qs_ratio"] > 1.5
+    assert asd["oximetry_sao2_percent"]["ra"] > asd["oximetry_sao2_percent"]["svc"]
+
+    # PDA closed by Indomethacin restores Qp/Qs = 1.0
+    pda_closed = client.post(
+        "/api/cardiac/chd-shunt",
+        json={"defect": "pda", "intervention": "indomethacin"},
+    ).json()
+    assert pda_closed["qp_qs_ratio"] == 1.0
+
+
+def test_workstation_module_6_neuro_tilt_eeg():
+    # Vasovagal syncope at 70 deg tilt causes cerebral hypoperfusion & theta/delta slowing
+    syncope = client.post(
+        "/api/cardiac/neuro-tilt",
+        json={"profile": "vasovagal_syncope", "tilt_angle_deg": 70.0, "counter_maneuver": False},
+    ).json()
+    assert syncope["syncope_imminent"] is True
+    assert syncope["frontal_eeg_state"] == "theta_delta_slowing"
+
+    # Leg-cross counter-pressure maneuver restores cerebral perfusion and alpha EEG
+    rescued = client.post(
+        "/api/cardiac/neuro-tilt",
+        json={"profile": "vasovagal_syncope", "tilt_angle_deg": 70.0, "counter_maneuver": True},
+    ).json()
+    assert rescued["syncope_imminent"] is False
+    assert rescued["frontal_eeg_state"] == "alpha_awake_8_12hz"
+
+
+def test_cardio_nephro_gnn_5_member_ensemble_uncertainty_and_chembl_ids():
+    """Verify 5-member bootstrap ensemble returns epistemic sigma, Tanimoto similarity, OOD badge, and ChEMBL IDs."""
+    resp = client.post(
+        "/api/cardio-nephro/predict",
+        json={
+            "name": "Terfenadine",
+            "smiles": "CC(C)(C)c1ccc(cc1)C(O)CCCN2CCC(CC2)C(O)(c3ccccc3)c4ccccc4",
+        },
+    )
+    assert resp.status_code == 200
+    data = resp.json()
+    assert "ensemble_metadata" in data
+    ens = data["ensemble_metadata"]
+    assert ens["ensemble_size"] == 5
+    assert "mean_epistemic_sigma_pIC50" in ens
+    assert "max_tanimoto_similarity" in ens
+    assert "is_ood" in ens
+    assert ens["verified_chembl_targets"]["herg"] == "CHEMBL240"
+    assert ens["verified_chembl_targets"]["ace"] == "CHEMBL1824"
+    assert ens["verified_chembl_targets"]["agtr1"] == "CHEMBL233"
+    assert ens["verified_chembl_targets"]["adrb1"] == "CHEMBL213"
+    assert ens["verified_chembl_targets"]["sglt2"] == "CHEMBL5251"
+    assert "epistemic_sigma_pIC50" in data["target_affinities"]["herg"]
+
+
+def test_cardio_electrophys_net_cipa_action_potential():
+    """Verify CardioElectrophys-Net chains CardioNephroGNN and returns 600ms Vm(t), APD90, EADs, and qNet."""
+    resp = client.post(
+        "/api/cardiac/cipa-ap",
+        json={
+            "compound_name": "Terfenadine",
+            "plasma_conc_uM": 1.0,
+            "heart_rate_bpm": 70.0,
+        },
+    )
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["status"] == "success"
+    assert len(data["time_ms"]) == 120
+    assert len(data["control_vm_mv"]) == 120
+    assert len(data["drug_vm_mv"]) == 120
+    bio = data["cipa_biomarkers"]
+    assert bio["drug_apd90_ms"] > bio["control_apd90_ms"]
+    assert bio["delta_apd90_ms"] > 20.0
+    assert "qnet_uC_uF" in bio
+    assert "tdp_risk_category" in bio
+
+
+def test_cardio_pinn_hemodynamics_virtual_cohort_and_sobol_tornado():
+    """Verify CardioPINN-Hemodynamics solves N=250 virtual cohort with baseline vs post-PCI stats & Sobol ranking."""
+    resp = client.post(
+        "/api/cardiac/research-cohort",
+        json={
+            "n_patients": 250,
+            "mean_stenosis_pct": 72.0,
+            "mean_lesion_length_mm": 18.0,
+            "mean_reference_diameter_mm": 3.0,
+        },
+    )
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["status"] == "success"
+    assert data["cohort_size"] == 250
+    base = data["baseline_cohort"]
+    pci = data["post_pci_cohort"]
+    assert pci["ffr"]["mean"] > base["ffr"]["mean"]
+    assert pci["throat_tawss_dynes_cm2"]["mean"] < base["throat_tawss_dynes_cm2"]["mean"]
+    assert len(data["sensitivity_tornado"]) >= 5
+    assert "spatial_profile" in data
+
+
+
+

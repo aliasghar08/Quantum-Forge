@@ -8,6 +8,8 @@ import 'package:quantum_forge/features/cardiac/presentation/widgets/cardiac_hemo
 import 'package:quantum_forge/features/cardiac/presentation/widgets/cardiac_drug_mechanism_dialog.dart';
 import 'package:quantum_forge/features/cardiac/presentation/widgets/cardio_nephro_gnn_dialog.dart';
 import 'package:quantum_forge/features/cardiac/presentation/widgets/cardiac_clinical_info_system.dart';
+import 'package:quantum_forge/features/cardiac/presentation/widgets/cardiac_diagnostic_workstation_panel.dart';
+import 'package:quantum_forge/features/cardiac/presentation/widgets/cardiac_research_workstation_panel.dart';
 
 void main() {
   group('CardioCath 3D: Coronary Angiography & Hemodynamic Lab Tests', () {
@@ -608,6 +610,114 @@ void main() {
       );
       await tester.tap(find.text('Close Guide'));
       await tester.pump();
+    });
+
+    testWidgets('6-Module Cardiovascular Sciences & Diagnostic Workstation renders and switches across all 6 clinical modules',
+        (tester) async {
+      tester.view.physicalSize = const Size(1440, 1200);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(buildTestScreen(size: const Size(1440, 1200)));
+      await tester.pump();
+
+      expect(find.byType(CardiacDiagnosticWorkstationPanel), findsOneWidget);
+      expect(
+        find.text('CARDIOVASCULAR SCIENCES & CLINICAL DIAGNOSTIC WORKSTATION (6 MODULES)'),
+        findsOneWidget,
+      );
+
+      // Module 1 (Default): Echo & Doppler Lab
+      expect(find.text('1. Echo & Doppler Lab'), findsOneWidget);
+      expect(find.text('PLAX (Parasternal Long)'), findsOneWidget);
+      expect(find.text('Bernoulli ΔP = 4v²'), findsOneWidget);
+
+      // Switch to Module 2: Auscultation & PCG
+      final mod2Tab = find.text('2. Auscultation & PCG');
+      await tester.ensureVisible(mod2Tab);
+      await tester.pump();
+      await tester.tap(mod2Tab);
+      await tester.pump();
+      expect(find.text('A2–P2 Split Interval'), findsOneWidget);
+      expect(find.text('Valsalva Strain (Phase II)'), findsOneWidget);
+
+      // Switch to Module 3: EP, Arrhythmia & Pacer
+      final mod3Tab = find.text('3. EP, Arrhythmia & Pacer');
+      await tester.tap(mod3Tab);
+      await tester.pump();
+      expect(find.text('AH Interval (AV Node)'), findsOneWidget);
+      expect(find.text('HV Interval (His-Purkinje)'), findsOneWidget);
+
+      // Switch to Module 4: LV P–V Loop & Heart Failure
+      final mod4Tab = find.text('4. LV P–V Loop & Heart Failure');
+      await tester.tap(mod4Tab);
+      await tester.pump();
+      expect(find.text('Dobutamine (β1 Inotrope)'), findsOneWidget);
+      expect(find.text('Stroke Work / PVA (MVO₂)'), findsOneWidget);
+
+      // Switch to Module 5: Congenital Shunt & Oximetry
+      final mod5Tab = find.text('5. Congenital Shunt & Oximetry');
+      await tester.tap(mod5Tab);
+      await tester.pump();
+      expect(find.text('Qp / Qs Shunt Ratio'), findsOneWidget);
+      expect(find.text('Indomethacin (COX Inhibitor → Closes PDA)'), findsOneWidget);
+
+      // Switch to Module 6: Neuro-Cardiology Tilt & EEG
+      final mod6Tab = find.text('6. Neuro-Cardiology Tilt & EEG');
+      await tester.tap(mod6Tab);
+      await tester.pump();
+      expect(find.text('Frontal EEG Rhythm'), findsOneWidget);
+      expect(find.text('Leg-Cross Counter-Pressure Maneuver'), findsOneWidget);
+    });
+
+    testWidgets('Computational Research Workstation Panel renders and switches across all 4 PyTorch MPS research tabs',
+        (tester) async {
+      tester.view.physicalSize = const Size(1440, 1400);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(buildTestScreen(size: const Size(1440, 1400)));
+      await tester.pump();
+
+      expect(find.byType(CardiacResearchWorkstationPanel), findsOneWidget);
+      expect(
+        find.text('CARDIOVASCULAR COMPUTATIONAL RESEARCH WORKSTATION (IN-HOUSE M1 PRO PYTORCH SUITE)'),
+        findsOneWidget,
+      );
+
+      // Tab 1 (Default): CardioElectrophys-Net (CiPA AP & hERG)
+      expect(find.text('1. CardioElectrophys-Net (CiPA AP & hERG)'), findsOneWidget);
+      expect(find.text('IKr (hERG / CHEMBL240)'), findsOneWidget);
+      expect(find.textContaining('CiPA qNet:'), findsOneWidget);
+
+      // Switch to Tab 2: CardioPINN TAWSS / OSI & Reynolds Profiler
+      final tab2 = find.text('2. CardioPINN TAWSS / OSI & Reynolds Profiler');
+      await tester.ensureVisible(tab2);
+      await tester.pump();
+      await tester.tap(tab2);
+      await tester.pump();
+      expect(find.text('Project 3D Coronary WSS Heatmap'), findsOneWidget);
+      expect(find.textContaining('Peak Throat TAWSS'), findsOneWidget);
+
+      // Switch to Tab 3: Virtual Cohort (N=50–500) & Sobol Tornado
+      final tab3 = find.text('3. Virtual Cohort (N=50–500) & Sobol Tornado');
+      await tester.tap(tab3);
+      await tester.pump();
+      expect(find.text('N = 500'), findsOneWidget);
+      expect(
+        find.text('FIRST-ORDER SOBOL SENSITIVITY TORNADO (VARIANCE CONTRIBUTION S1 TO FFR)'),
+        findsOneWidget,
+      );
+
+      // Switch to Tab 4: Reproducible Export & Provenance Ledger
+      final tab4 = find.text('4. Reproducible Export & Provenance Ledger');
+      await tester.tap(tab4);
+      await tester.pump();
+      expect(find.textContaining('SHA-256 REPRODUCIBILITY DIGEST:'), findsOneWidget);
+      expect(find.text('Copy 1,000 Hz Waveform CSV'), findsOneWidget);
+      expect(find.text('Copy SHA-256 JSON Manifest'), findsOneWidget);
     });
   });
 }

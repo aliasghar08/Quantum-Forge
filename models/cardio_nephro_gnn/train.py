@@ -1,11 +1,11 @@
-"""Independent MPS Training Pipeline for CardioNephroGNN.
+"""Independent MPS Training Pipeline for CardioNephroGNN (5-Member Bootstrap Ensemble).
 
 Features:
-1. Bemis-Murcko Chemical Scaffold Splitting (Train: 80%, Val: 10%, Test: 10%).
+1. Bemis-Murcko Chemical Scaffold Splitting + Bootstrap Resampling across 5 Ensemble Members (`member_0.pt` to `member_4.pt`).
 2. Multi-Task Masked Loss (Handling sparse target assay matrices).
 3. Apple Silicon Metal GPU Acceleration (torch.device("mps")) with os.nice(10) priority.
 4. Cosine Annealing Learning Rate Schedule, Gradient Clipping, and Early Stopping.
-5. Best Model Checkpoint Serialization with Evaluation Metrics.
+5. Best Model Checkpoint Serialization + Reference Training SMILES for RDKit Tanimoto OOD Detection.
 """
 
 from __future__ import annotations
@@ -17,7 +17,6 @@ import math
 import os
 from pathlib import Path
 import random
-import sys
 import time
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -51,6 +50,7 @@ DATA_PATH = BASE_DIR / "data" / "cardio_nephro_assays.parquet"
 CHECKPOINT_DIR = BASE_DIR / "checkpoints"
 CHECKPOINT_DIR.mkdir(parents=True, exist_ok=True)
 BEST_CHECKPOINT = CHECKPOINT_DIR / "cardio_nephro_gnn_best.pt"
+ENSEMBLE_SIZE = 5
 
 
 def get_device() -> torch.device:
@@ -104,7 +104,7 @@ def scaffold_split(
     test_df = df.iloc[test_inds].copy().reset_index(drop=True)
 
     logger.info(
-        f"Scaffold Split Complete -> Train: {len(train_df)}, "
+        f"Scaffold Split (seed={seed}) -> Train: {len(train_df)}, "
         f"Val: {len(val_df)}, Test: {len(test_df)}"
     )
     return train_df, val_df, test_df
@@ -186,44 +186,40 @@ def compute_multi_task_loss(
     return total_loss, loss_metrics
 
 
-def train_cardio_nephro_gnn(
-    epochs: int = 40,
+def train_single_member(
+    member_idx: int,
+    df: pd.DataFrame,
+    all_smiles: List[str],
+    device: torch.device,
+    epochs: int = 35,
     lr: float = 3e-4,
     hidden_dim: int = 128,
     num_layers: int = 4,
-    seed: int = 42,
-) -> CardioNephroGNN:
-    """Train the CardioNephroGNN model locally on Apple Silicon MPS."""
-    # Set seeds for reproducibility
+    base_seed: int = 42,
+) -> Tuple[CardioNephroGNN, float, float]:
+    """Train a single bootstrap ensemble member on Apple Silicon MPS."""
+    seed = base_seed + member_idx * 17
     torch.manual_seed(seed)
     random.seed(seed)
     np.random.seed(seed)
 
-    device = get_device()
-    logger.info(f"Targeting Training Device: {device} (Apple Silicon Hardware Accelerated)")
-
-    if not DATA_PATH.exists():
-        logger.warning(f"Dataset {DATA_PATH} not found. Launching harvester...")
-        from .harvest_chembl import build_cardio_nephro_dataset
-        df = build_cardio_nephro_dataset(live_fetch=True)
-    else:
-        df = pd.read_parquet(DATA_PATH)
-
-    logger.info(f"Loaded {len(df)} compounds for training.")
-
-    # Scaffold splitting
     train_df, val_df, test_df = scaffold_split(df, seed=seed)
-    train_dataset = CardioNephroDataset(train_df)
+    # Bootstrap resample training set with replacement (plus unique anchor coverage)
+    rng = np.random.default_rng(seed)
+    boot_indices = rng.choice(len(train_df), size=len(train_df), replace=True)
+    # Combine bootstrap draw with full train_df for robust small-N convergence with distinct member weights
+    boot_train_df = pd.concat(
+        [train_df, train_df.iloc[boot_indices]], ignore_index=True
+    )
+
+    train_dataset = CardioNephroDataset(boot_train_df)
     val_dataset = CardioNephroDataset(val_df)
     test_dataset = CardioNephroDataset(test_df)
 
-    logger.info(f"Usable Molecule Graphs -> Train: {len(train_dataset)}, Val: {len(val_dataset)}, Test: {len(test_dataset)}")
-
-    # Initialize model
     model = CardioNephroGNN(
         hidden_dim=hidden_dim,
         num_layers=num_layers,
-        dropout=0.12,
+        dropout=0.10 + 0.015 * member_idx,
     ).to(device)
 
     optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=1e-4)
@@ -231,15 +227,18 @@ def train_cardio_nephro_gnn(
 
     best_val_loss = float("inf")
     best_epoch = 0
+    member_ckpt_path = CHECKPOINT_DIR / f"member_{member_idx}.pt"
 
-    logger.info(f"Starting {epochs} epochs of multi-task message-passing training...")
+    logger.info(
+        f"--- Training Ensemble Member #{member_idx} (seed={seed}, "
+        f"boot_train={len(train_dataset)}, val={len(val_dataset)}) on {device} ---"
+    )
 
     for epoch in range(1, epochs + 1):
         model.train()
         train_loss = 0.0
         train_count = 0
 
-        # Shuffle training set
         indices = list(range(len(train_dataset)))
         random.shuffle(indices)
 
@@ -248,7 +247,6 @@ def train_cardio_nephro_gnn(
             g = item["graph"]
             targets = item["targets"]
 
-            # Transfer tensors to MPS
             node_feats = g["node_features"].to(device)
             adj = g["adj_matrix"].to(device)
             edge_feats = g["edge_features"].to(device)
@@ -290,40 +288,34 @@ def train_cardio_nephro_gnn(
 
         avg_val_loss = val_loss / max(val_count, 1)
 
-        if epoch % 5 == 0 or epoch == 1 or avg_val_loss < best_val_loss:
+        if epoch % 10 == 0 or epoch == 1 or avg_val_loss < best_val_loss:
             logger.info(
-                f"Epoch [{epoch:02d}/{epochs:02d}] | "
-                f"Train Loss: {avg_train_loss:.4f} | "
-                f"Val Loss: {avg_val_loss:.4f} | "
-                f"LR: {scheduler.get_last_lr()[0]:.6f}"
+                f"[Member {member_idx}] Epoch [{epoch:02d}/{epochs:02d}] | "
+                f"Train Loss: {avg_train_loss:.4f} | Val Loss: {avg_val_loss:.4f}"
             )
 
-        # Checkpoint if best
         if avg_val_loss < best_val_loss:
             best_val_loss = avg_val_loss
             best_epoch = epoch
             checkpoint = {
                 "model_state_dict": model.state_dict(),
+                "member_idx": member_idx,
+                "seed": seed,
                 "hidden_dim": hidden_dim,
                 "num_layers": num_layers,
                 "epoch": epoch,
                 "val_loss": best_val_loss,
                 "target_names": TARGET_NAMES,
+                "reference_smiles": all_smiles,
                 "trained_at": time.strftime("%Y-%m-%dT%H:%M:%SZ"),
                 "device": str(device),
             }
-            torch.save(checkpoint, BEST_CHECKPOINT)
+            torch.save(checkpoint, member_ckpt_path)
 
-        # Free Apple Silicon unified memory
         if hasattr(torch, "mps") and torch.backends.mps.is_available():
             torch.mps.empty_cache()
 
-    logger.info(f"Training Complete! Best Val Loss: {best_val_loss:.4f} at Epoch {best_epoch}.")
-    logger.info(f"Saved Checkpoint to: {BEST_CHECKPOINT}")
-
-    # Evaluate on Test Set
-    logger.info("Evaluating Best Checkpoint on Test Set (Out-of-Distribution Scaffolds)...")
-    checkpoint = torch.load(BEST_CHECKPOINT, map_location=device)
+    checkpoint = torch.load(member_ckpt_path, map_location=device)
     model.load_state_dict(checkpoint["model_state_dict"])
     model.eval()
 
@@ -346,15 +338,79 @@ def train_cardio_nephro_gnn(
                 test_count += 1
 
     avg_test_loss = test_loss / max(test_count, 1)
-    logger.info(f"Test Set Loss: {avg_test_loss:.4f} across {test_count} evaluated chemical scaffolds.")
-    return model
+    logger.info(
+        f"[Member {member_idx}] Saved {member_ckpt_path.name} "
+        f"(Best Val: {best_val_loss:.4f} @ Ep {best_epoch}, Test: {avg_test_loss:.4f})"
+    )
+    return model, best_val_loss, avg_test_loss
+
+
+def train_cardio_nephro_gnn(
+    epochs: int = 35,
+    lr: float = 3e-4,
+    hidden_dim: int = 128,
+    num_layers: int = 4,
+    seed: int = 42,
+    num_members: int = ENSEMBLE_SIZE,
+) -> CardioNephroGNN:
+    """Train the 5-member CardioNephroGNN bootstrap ensemble on Apple Silicon MPS."""
+    device = get_device()
+    logger.info(
+        f"Targeting Training Device: {device} "
+        f"(Apple Silicon Hardware Accelerated | {num_members}-Member Bootstrap Ensemble)"
+    )
+
+    if not DATA_PATH.exists():
+        logger.warning(f"Dataset {DATA_PATH} not found. Launching harvester...")
+        from .harvest_chembl import build_cardio_nephro_dataset
+        df = build_cardio_nephro_dataset(live_fetch=True)
+    else:
+        df = pd.read_parquet(DATA_PATH)
+
+    all_smiles = [str(s) for s in df["smiles"].dropna().unique().tolist()]
+    logger.info(f"Loaded {len(df)} compounds ({len(all_smiles)} unique SMILES) for ensemble training.")
+
+    best_overall_val = float("inf")
+    best_model: Optional[CardioNephroGNN] = None
+    best_member_idx = 0
+
+    for m_idx in range(num_members):
+        model, val_loss, _ = train_single_member(
+            member_idx=m_idx,
+            df=df,
+            all_smiles=all_smiles,
+            device=device,
+            epochs=epochs,
+            lr=lr,
+            hidden_dim=hidden_dim,
+            num_layers=num_layers,
+            base_seed=seed,
+        )
+        if val_loss < best_overall_val or best_model is None:
+            best_overall_val = val_loss
+            best_model = model
+            best_member_idx = m_idx
+
+    # Copy best member checkpoint to BEST_CHECKPOINT for backward compatibility
+    best_member_ckpt = CHECKPOINT_DIR / f"member_{best_member_idx}.pt"
+    if best_member_ckpt.exists():
+        ckpt_data = torch.load(best_member_ckpt, map_location=device)
+        ckpt_data["ensemble_size"] = num_members
+        torch.save(ckpt_data, BEST_CHECKPOINT)
+        logger.info(
+            f"5-Member Ensemble Training Complete! Best Member: #{best_member_idx} "
+            f"(Val Loss: {best_overall_val:.4f}) -> synced to {BEST_CHECKPOINT.name}"
+        )
+
+    assert best_model is not None
+    return best_model
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Train CardioNephroGNN on Apple Silicon.")
-    parser.add_argument("--epochs", type=int, default=30, help="Number of training epochs.")
+    parser = argparse.ArgumentParser(description="Train CardioNephroGNN 5-Member Ensemble on Apple Silicon.")
+    parser.add_argument("--epochs", type=int, default=35, help="Number of training epochs per member.")
     parser.add_argument("--lr", type=float, default=3e-4, help="Learning rate.")
+    parser.add_argument("--members", type=int, default=5, help="Number of bootstrap ensemble members.")
     args = parser.parse_args()
 
-    train_cardio_nephro_gnn(epochs=args.epochs, lr=args.lr)
-
+    train_cardio_nephro_gnn(epochs=args.epochs, lr=args.lr, num_members=args.members)

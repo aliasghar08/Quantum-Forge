@@ -24,6 +24,14 @@ class CardioCathThreeBridge {
   bool get hasActiveViewer => false;
   bool get hasFailed => false;
 
+  static void playHeartSoundCycle({
+    required double splitMs,
+    required double s3Amp,
+    required double s4Amp,
+    required double sysMurmurAmp,
+    required double diasMurmurAmp,
+  }) {}
+
   void setViewMode(String mode) {}
   void setDominance(CoronaryDominance dominance) {}
   void setRevascularized(bool isRevascularized) {}

@@ -565,6 +565,197 @@ const Map<String, CardiacInfoTopic> kCardiacInfoTopics = {
     howToInteract:
         'Click "Legal & Regulatory Shield" at any time to view the complete 7-Pillar Legal Disclaimers, Trademark Non-Affiliation Notice, and Terms of Use.',
   ),
+  'diag_echo_lab': CardiacInfoTopic(
+    id: 'diag_echo_lab',
+    title: 'Virtual 2D/3D Echocardiography, M-Mode & Color Flow Doppler Lab',
+    category: 'CARDIAC DIAGNOSTIC WORKSTATION',
+    accentColor: Color(0xFF00E5FF),
+    plainLanguageSummary:
+        'Simulates placing an ultrasound probe on the chest (TTE) or esophagus (TEE) to watch heart valves open and close in a fan-shaped ultrasound beam, measure pumping strength (LVEF%), and see turbulent blood leaks (Color Doppler).',
+    advancedMechanism:
+        'Models phased-array piezoelectric ultrasound sector imaging (2.5–5.0 MHz), M-Mode time-motion interrogation, Color Flow BART (Blue Away, Red Toward) autocorrelation, and Continuous-Wave (CW) spectral Doppler:\n'
+        '• 4 Standard Acoustic Windows: Parasternal Long-Axis (PLAX), Parasternal Short-Axis (PSAX papillary level), Apical 4-Chamber (A4C), and Subcostal 4-Chamber.\n'
+        '• Left Ventricular Ejection Fraction: LVEF = (EDV - ESV) / EDV × 100%. Distinguishes HFrEF (LVEF < 40%, dilated cavity, EPSS > 7 mm), HFpEF (LVEF >= 50%, concentric hypertrophy, E/A reversal), and HOCM (asymmetric septal hypertrophy + Systolic Anterior Motion [SAM] of the mitral valve).\n'
+        '• Simplified Bernoulli Equation: ΔP = 4 × v_max² (e.g., Peak Aortic Jet Velocity v = 4.5 m/s yields a peak instantaneous gradient ΔP = 81 mmHg in Severe Aortic Stenosis).',
+    normalReferenceRange:
+        'LVEF: 55–70% | EPSS: < 7 mm | TAPSE: >= 17 mm | Mitral E/A Ratio: 0.8–2.0 | Peak AoV Velocity: 1.0–1.7 m/s (ΔP < 12 mmHg)',
+    clinicalBoardPearl:
+        'In Hypertrophic Obstructive Cardiomyopathy (HOCM), high-velocity LV outflow tract ejection creates a Venturi/drag effect that pulls the anterior mitral leaflet into the septum (SAM), causing dynamic LVOT obstruction and a late-peaking "dagger-shaped" CW Doppler envelope.',
+    howToInteract:
+        'Switch between PLAX, PSAX, A4C, and Subcostal acoustic windows, toggle Color Doppler On/Off, and switch hemodynamic phenotypes (Normal, HFrEF, HFpEF, Severe AS, Severe MR, HOCM).',
+  ),
+  'diag_auscultation_pcg': CardiacInfoTopic(
+    id: 'diag_auscultation_pcg',
+    title: 'Cardiac Auscultation, Phonocardiography (PCG) & Bedside Maneuvers',
+    category: 'CARDIAC DIAGNOSTIC WORKSTATION',
+    accentColor: Color(0xFF10B981),
+    plainLanguageSummary:
+        'Places a virtual stethoscope on the 4 chest listening posts so you can see (and hear) normal heart sounds (S1 "lub", S2 "dub"), extra gallop sounds (S3/S4), and valve murmurs, and test how bedside maneuvers change murmur loudness.',
+    advancedMechanism:
+        'Synchronizes acoustic heart sound envelopes with the Wiggers ECG and pressure cycle:\n'
+        '• S1 (Mitral M1 + Tricuspid T1 closure): Occurs immediately after the QRS R-wave as ventricular pressure exceeds atrial pressure.\n'
+        '• S2 (Aortic A2 + Pulmonic P2 closure): Occurs at the dicrotic notch (end of T-wave). Inspiration drops intrathoracic pressure, increasing venous return to the RV and delaying P2 (Physiologic Splitting). Secundum ASD causes Fixed Splitting; LBBB/Severe AS delays A2 causing Paradoxical Splitting.\n'
+        '• S3 Gallop (Early Diastole): Rapid ventricular filling into a dilated, compliant LV (HFrEF / Mitral Regurgitation).\n'
+        '• S4 Gallop (Late Diastole / Atrial Kick): Atrial contraction into a stiff, hypertrophied LV (HTN / Concentric LVH / HOCM).\n'
+        '• Dynamic Maneuvers: Valsalva (Phase II) and Standing decrease preload (most murmurs softer, EXCEPT HOCM louder and MVP click earlier); Squatting increases preload & afterload; Isometric Handgrip increases afterload (intensifies AR, MR, VSD; softens AS and HOCM).',
+    normalReferenceRange:
+        'Aortic: R 2nd ICS | Pulmonic: L 2nd ICS | Tricuspid: L 4th ICS | Mitral (Apex): L 5th ICS Mid-Clavicular Line',
+    clinicalBoardPearl:
+        'USMLE Classic: Only two systolic pathology conditions get LOUDER with Valsalva strain or abrupt standing (which decrease LV end-diastolic volume): HOCM (septum moves closer to anterior mitral leaflet) and Mitral Valve Prolapse (click moves earlier, murmur lengthens).',
+    howToInteract:
+        'Select a precordial post (Aortic, Pulmonic, Tricuspid, Mitral), pick a murmur/sound profile, and click bedside maneuvers (Inspiration, Valsalva, Squatting, Handgrip) to watch real-time PCG amplitude modulation.',
+  ),
+  'diag_ep_arrhythmia': CardiacInfoTopic(
+    id: 'diag_ep_arrhythmia',
+    title: 'Electrophysiology (EP) Study, Arrhythmia Mapping, RF Ablation & Pacemaker Lab',
+    category: 'CARDIAC DIAGNOSTIC WORKSTATION',
+    accentColor: Color(0xFFFFD600),
+    plainLanguageSummary:
+        'Shows how electrical signals travel inside the heart using 4 internal recording catheters (HRA, His, CS, RVA), simulates dangerous heart rhythm disorders, and lets you burn away abnormal short-circuits (RF Ablation) or turn on a pacemaker.',
+    advancedMechanism:
+        'Models intracardiac electrograms (EGMs) alongside surface Lead II ECG and connects directly to CardioNephroGNN hERG (IKr) pharmacology:\n'
+        '• Intracardiac Intervals: AH interval (AV nodal conduction, normal 50–120 ms, prolonged by Beta-blockers/CCBs/Adenosine) and HV interval (His-Purkinje conduction, normal 35–55 ms, prolonged by Class IA/IC Na+ channel blockers or infra-Hisian Mobitz II disease).\n'
+        '• Arrhythmia Mechanisms: WPW Syndrome (Accessory Bundle of Kent bypassing AV node → short PR < 120 ms + slurred Delta wave), AVNRT (dual slow/fast AV nodal pathways), Atrial Flutter (cavotricuspid isthmus macro-reentry at 300 bpm sawtooth F-waves), Complete (3rd-Degree) AV Block (AV dissociation), and Torsades de Pointes (polymorphic VT triggered by Early Afterdepolarizations [EADs] from hERG K+ channel blockade).\n'
+        '• Interventions: Radiofrequency (RF) Catheter Ablation (50–65°C thermal lesion eliminating Kent pathway or CTI) and Dual-Chamber DDD/VVI Pacemaker pacing spikes.',
+    normalReferenceRange:
+        'PA Interval: 25–55 ms | AH Interval: 50–120 ms | HV Interval: 35–55 ms | QTc: < 450 ms (M), < 460 ms (F)',
+    clinicalBoardPearl:
+        'Mobitz Type I (Wenckebach) occurs IN the AV node (prolonging AH interval, responsive to Atropine), whereas Mobitz Type II occurs BELOW the AV node in the His-Purkinje system (prolonged HV interval) and requires permanent pacemaker implantation due to risk of sudden progression to Complete Heart Block.',
+    howToInteract:
+        'Choose an arrhythmia (Normal, WPW, AVNRT, Atrial Flutter, 3rd-Degree Block, or Drug-Induced Torsades de Pointes), then click "Deliver RF Catheter Ablation" or toggle "Dual-Chamber DDD Pacemaker".',
+  ),
+  'diag_pv_loop': CardiacInfoTopic(
+    id: 'diag_pv_loop',
+    title: 'Left Ventricular Pressure-Volume (P–V) Loop & Sagawa Elastance Simulator',
+    category: 'CARDIAC DIAGNOSTIC WORKSTATION',
+    accentColor: Color(0xFFF43F5E),
+    plainLanguageSummary:
+        'Plots Left Ventricular Volume (mL) on the X-axis against Pressure (mmHg) on the Y-axis for a single heartbeat, making it effortless to see how Preload, Afterload, and Inotropy (contractility) change Stroke Volume and Cardiac Output.',
+    advancedMechanism:
+        'Computed directly from Sagawa Time-Varying Elastance E(t) = P_LV(t) / (V_LV(t) - V_0):\n'
+        '• 4 Phases of the P–V Loop: (1) Diastolic Filling along the exponential EDPVR curve (Mitral valve open), (2) Vertical Isovolumetric Contraction (Mitral closes at EDV), (3) Systolic Ejection up to the linear ESPVR line of slope E_max (Aortic valve opens at diastolic Pa), and (4) Vertical Isovolumetric Relaxation (Aortic valve closes at ESV).\n'
+        '• Energetics: Stroke Volume SV = EDV - ESV. External Stroke Work (SW) is the area enclosed inside the P–V loop. Potential Energy (PE) is the triangle to the left of the loop bounded by ESPVR and EDPVR. Pressure-Volume Area PVA = SW + PE correlates linearly with myocardial oxygen consumption (MVO2).',
+    normalReferenceRange:
+        'EDV: ~120 mL | ESV: ~50 mL | Stroke Volume (SV): ~70 mL | LVEF: ~58% | E_max (ESPVR Slope): ~2.0 mmHg/mL',
+    clinicalBoardPearl:
+        'Increasing Contractility (Dobutamine / Digoxin / Sympathetic β1) steepens the ESPVR slope (↑ E_max), shifting the left vertical border of the loop to the LEFT (↓ ESV, ↑ SV, ↑ EF). Increasing Afterload (Norepinephrine / Aortic Stenosis) increases peak systolic pressure and shifts the left border to the RIGHT (↑ ESV, ↓ SV).',
+    howToInteract:
+        'Drag the Preload (EDV), Afterload (Ea), and Contractility (Emax) sliders or click 1-tap Drug Challenge presets (Dobutamine, Norepinephrine, Nitroglycerin, Metoprolol, Sacubitril/Valsartan) to compare the live P–V loop against the dashed normal reference loop.',
+  ),
+  'diag_chd_shunt': CardiacInfoTopic(
+    id: 'diag_chd_shunt',
+    title: 'Congenital Heart Disease (CHD), Oximetry Step-Up & Qp/Qs Shunt Lab',
+    category: 'CARDIAC DIAGNOSTIC WORKSTATION',
+    accentColor: Color(0xFFA78BFA),
+    plainLanguageSummary:
+        'Visualizes congenital holes or abnormal connections in the heart (ASD, VSD, PDA, Tetralogy of Fallot, Eisenmenger) and shows oxygen saturation (SaO2%) in every chamber so you can spot exactly where oxygenated and deoxygenated blood mix.',
+    advancedMechanism:
+        'Quantifies intracardiac shunting using the Fick Oximetry Run and Pulmonary-to-Systemic Flow Ratio:\n'
+        '• Qp / Qs Formula: Qp/Qs = (SaO2 - SvO2) / (SpvO2 - SpaO2), where SvO2 is mixed venous saturation (~75%), SpvO2 is pulmonary venous saturation (~99%), and SpaO2 is pulmonary artery saturation.\n'
+        '• Diagnostic Oximetry Step-Ups (Left-to-Right Shunts): Secundum ASD causes an O2 step-up in the Right Atrium (RA >= 85%); Membranous VSD causes an O2 step-up in the Right Ventricle (RV >= 84%); Patent Ductus Arteriosus (PDA) causes an O2 step-up in the Pulmonary Artery (PA >= 83%) with continuous "machinery" murmur.\n'
+        '• Right-to-Left Shunts (Qp/Qs < 1.0, Cyanotic): Tetralogy of Fallot (PROVe: Pulmonic stenosis, RVH, Overriding aorta, VSD) and Eisenmenger Syndrome (chronic L→R shunt induces plexiform pulmonary hypertension until PVR > SVR, reversing the shunt to R→L).',
+    normalReferenceRange:
+        'Normal Qp/Qs: 1.0 | Surgical Shunt Threshold: Qp/Qs >= 1.5 | Normal SaO2: RA/RV/PA = 75%, LA/LV/Ao = 98–99%',
+    clinicalBoardPearl:
+        'Ductus Arteriosus Pharmacology: Prostaglandin E1 (Alprostadil) keeps the PDA OPEN in ductal-dependent congenital lesions, whereas NSAIDs (Indomethacin / Ibuprofen) inhibit COX prostaglandin synthesis to CLOSE a symptomatic PDA in preterm neonates!',
+    howToInteract:
+        'Select any congenital lesion (Normal, ASD, VSD, PDA, Tetralogy of Fallot, Eisenmenger) and test pharmacological/physiological interventions (Indomethacin, PGE1 Alprostadil, or Knee-Chest Squatting for Tet Spells).',
+  ),
+  'diag_neuro_tilt': CardiacInfoTopic(
+    id: 'diag_neuro_tilt',
+    title: 'Neuro-Cardiology Head-Up Tilt-Table (HUTT) Syncope & Frontal EEG Lab',
+    category: 'CARDIAC DIAGNOSTIC WORKSTATION',
+    accentColor: Color(0xFFFB923C),
+    plainLanguageSummary:
+        'Simulates tilting a patient from flat (0°) to upright (70°) on a motorized table while monitoring blood pressure, heart rate, and brainwaves (EEG) to diagnose why a patient faints (Vasovagal Syncope, Orthostatic Hypotension, or POTS).',
+    advancedMechanism:
+        'Couples baroreceptor autonomic reflex physiology with cerebral autoregulation and cortical electroencephalography (EEG):\n'
+        '• Gravitational Venous Pooling: Tilting to 70° shifts 500–800 mL of blood into the splanchnic and lower-extremity capacitance veins, reducing RV/LV preload. Normally, carotid/aortic baroreceptors trigger sympathetic α1 vasoconstriction and β1 mild tachycardia (+10–15 bpm) to maintain Mean Arterial Pressure (MAP) and Cerebral Perfusion Pressure (CPP).\n'
+        '• Autonomic Syndromes: (1) Vasovagal (Neurocardiogenic) Syncope — Bezold-Jarisch mechanoreceptor paradoxical reflex causes abrupt cardioinhibition (bradycardia/asystole) and vasodepression (hypotension); (2) POTS — sustained HR increase >= 30 bpm (or > 120 bpm) within 10 min of tilt without orthostatic hypotension; (3) Neurogenic Orthostatic Hypotension — SBP drop >= 20 mmHg or DBP drop >= 10 mmHg with blunted HR response.\n'
+        '• ECG–EEG Coupling: When upright MAP falls below the lower limit of cerebral autoregulation (~50–55 mmHg), frontal EEG transitions from normal awake Alpha (8–12 Hz) to high-amplitude Theta/Delta (1–4 Hz) slowing, followed by transient background flattening during frank syncope.',
+    normalReferenceRange:
+        'Tilt Angle: 60°–70° | POTS Criterion: ΔHR >= +30 bpm without BP drop | Orthostatic Hypotension: ΔSBP <= -20 or ΔDBP <= -10 mmHg',
+    clinicalBoardPearl:
+        'Physical Counter-Pressure Maneuvers (leg crossing with muscle tensing or isometric handgrip) during the prodromal phase of vasovagal syncope acutely boost venous return and SVR, aborting loss of consciousness and restoring normal alpha EEG activity.',
+    howToInteract:
+        'Adjust the Tilt Table Angle (0° Supine to 70° Head-Up Tilt), switch between Autonomic Profiles (Normal, Vasovagal Syncope, POTS, Orthostatic Hypotension), and trigger "Leg-Cross Counter-Pressure Maneuver".',
+  ),
+
+  // ── 11. COMPUTATIONAL CARDIOLOGY RESEARCH WORKSTATION ────────────────────
+  'research_cipa_ap': CardiacInfoTopic(
+    id: 'research_cipa_ap',
+    title: 'CardioElectrophys-Net: CiPA Ventricular Action Potential & hERG/IKr Coupling',
+    category: 'COMPUTATIONAL RESEARCH WORKSTATION',
+    accentColor: Color(0xFFA78BFA),
+    plainLanguageSummary:
+        'Chains our 5-member CardioNephroGNN drug affinity predictions directly into our 1D Temporal ResNet cardiomyocyte model to simulate how a drug changes the 600 ms electrical pulse of a single human heart muscle cell—revealing QT prolongation, Early Afterdepolarizations (EADs), and Torsades de Pointes risk.',
+    advancedMechanism:
+        'Couples multi-channel Hill pore-blockade equations b_i = 1 / (1 + (IC50_i / [C])^n) across IKr (hERG/Kv11.1, CHEMBL240), ICaL (Cav1.2), INaL (Nav1.5), IKs, and IK1 with our custom PyTorch 1D Temporal ResNet trained on O\'Hara-Rudy (ORd) human ventricular cardiomyocyte trajectories on Apple Silicon M1 Pro Metal GPU:\n'
+        '• Action Potential Duration (APD50 & APD90): Selective IKr block (e.g., Terfenadine) delays Phase 3 repolarization, markedly prolonging APD90.\n'
+        '• Early Afterdepolarizations (EADs): When Phase 2/3 plateau is prolonged inside the -30 to +10 mV window, L-type Ca2+ channels (ICaL) recover from inactivation and re-open, generating a secondary depolarizing oscillation that triggers Torsades de Pointes (TdP).\n'
+        '• CiPA qNet (uC/uF): Integrates net inward/outward electronic charge across the action potential plateau. Drugs with balanced IKr + ICaL block (e.g., Amiodarone, Verapamil) preserve qNet and suppress EADs despite QTc prolongation.',
+    normalReferenceRange:
+        'Control APD90 (70 bpm): ~280 ms | ΔAPD90 Alert: >= +30 ms | CiPA qNet Low TdP Risk: > 0.060 uC/uF | High TdP Risk: < 0.050 uC/uF',
+    clinicalBoardPearl:
+        'Under the FDA/ICH S7B & E14 CiPA (Comprehensive in vitro Proarrhythmia Assay) paradigm, hERG block alone does not equal Torsades risk! Amiodarone blocks hERG potently yet has low TdP incidence because its concomitant L-type Ca2+ (ICaL) and late Na+ (INaL) blockade prevent Phase 2/3 EADs.',
+    howToInteract:
+        'Select any clinical reference molecule (Terfenadine, Amiodarone, Enalaprilat, Bisoprolol, Empagliflozin, Losartan), drag the Free Plasma Concentration slider (0.01–100 uM) and Pacing Heart Rate slider, and compare Control vs. Drug Vm(t) traces.',
+  ),
+  'research_pinn_wss': CardiacInfoTopic(
+    id: 'research_pinn_wss',
+    title: 'CardioPINN-Hemodynamics: 1D-0D Navier-Stokes TAWSS, OSI & Reynolds Profiler',
+    category: 'COMPUTATIONAL RESEARCH WORKSTATION',
+    accentColor: Color(0xFF00E5FF),
+    plainLanguageSummary:
+        'Uses a custom Physics-Informed Neural Network (PINN) trained on Apple Silicon MPS to compute blood pressure drop, frictional wall shear stress (TAWSS), flow reversal (OSI), and turbulence (Reynolds number) millimeter-by-millimeter along a narrowed coronary artery.',
+    advancedMechanism:
+        'Solves 1D Poiseuille/Navier-Stokes momentum conservation coupled with Kirkeeide viscous resistance, Borda-Carnot convective flow separation, and 3-Element Windkessel (Rp, C, Rd) distal microvascular impedance:\n'
+        '• Time-Averaged Wall Shear Stress (TAWSS = (1/T) ∫ |τ_w(x,t)| dt): Scales with 1/r(x)³, spiking > 100 dynes/cm² at the stenotic throat (high risk of fibrous cap fissuring and platelet vWF activation).\n'
+        '• Oscillatory Shear Index (OSI = 0.5 × [1 - |∫ τ_w dt| / ∫ |τ_w| dt]): Quantifies directional flow reversal (0.0 = unidirectional laminar; 0.5 = purely oscillatory). Post-stenotic recirculation zones exhibit high OSI (> 0.20) and low TAWSS (< 4 dynes/cm²), driving endothelial VCAM-1/NF-κB activation and plaque progression.',
+    normalReferenceRange:
+        'Physiologic TAWSS: 15–35 dynes/cm² | Plaque Rupture Throat TAWSS: > 70 dynes/cm² | Atherogenic Post-Stenotic OSI: > 0.20 | Laminar Re: < 400',
+    clinicalBoardPearl:
+        'High throat TAWSS (> 70 dynes/cm²) promotes acute fibrous cap rupture and platelet-rich white thrombus at the stenosis apex, whereas post-stenotic high OSI (> 0.20) + low TAWSS (< 4 dynes/cm²) drives downstream lipid accumulation and negative vessel remodeling.',
+    howToInteract:
+        'Adjust Diameter Stenosis %, Lesion Length (mm), and Reference Vessel Diameter (mm), inspect the spatial P(x), TAWSS(x), and OSI(x) curves, and toggle "Project 3D Coronary WSS Heatmap" to visualize shear stress on the 3D coronary tree.',
+  ),
+  'research_virtual_cohort': CardiacInfoTopic(
+    id: 'research_virtual_cohort',
+    title: 'Monte Carlo Virtual Patient Cohort (N=50–500) & Sobol Sensitivity Tornado Plot',
+    category: 'COMPUTATIONAL RESEARCH WORKSTATION',
+    accentColor: Color(0xFF10B981),
+    plainLanguageSummary:
+        'Runs an instant in-silico clinical trial across up to 500 synthetic patients in under 10 milliseconds using our CardioPINN neural operator, comparing pre-stent vs. post-stent FFR/iFR distributions and ranking which anatomical factors matter most.',
+    advancedMechanism:
+        'Executes vectorized PyTorch tensor inference across N = 50 to 500 Monte Carlo virtual patients sampled from physiological distributions of stenosis severity, lesion length, reference vessel caliber, microvascular resistance (IMR), heart rate, and arterial blood pressure:\n'
+        '• Pre- vs. Post-PCI Population Distributions: Computes mean, standard deviation (SD), and 5th/50th/95th percentiles for FFR, iFR, throat TAWSS, post-stenotic OSI, and ischemic burden (fraction of cohort with FFR <= 0.80).\n'
+        '• First-Order Variance Decomposition (Sobol S1 Sensitivity Tornado): Ranks the relative variance contribution of each anatomical and hemodynamic input parameter to distal coronary ischemia.',
+    normalReferenceRange:
+        'Cohort Inference Latency: < 10 ms (500 Patients on MPS/CPU) | Target Post-PCI FFR: >= 0.90 | Primary Variance Driver: % Diameter Stenosis (S1 ~ 0.65–0.78)',
+    clinicalBoardPearl:
+        'Diffuse moderate disease (long lesion length in a small-caliber 2.2 mm vessel) can produce an ischemic FFR <= 0.80 even when focal percent diameter stenosis appears < 60%, whereas elevated microvascular resistance (high IMR) blunts hyperemic flow and artificially elevates FFR.',
+    howToInteract:
+        'Select Cohort Size (N = 50, 100, 250, or 500 Virtual Patients), click "Run Batch In-Silico Trial", and inspect the Baseline vs. Post-PCI histograms and Sobol Sensitivity Tornado chart.',
+  ),
+  'research_provenance_export': CardiacInfoTopic(
+    id: 'research_provenance_export',
+    title: 'Reproducible Data Export, SHA-256 Provenance Ledger & 5-Member GNN Epistemic Uncertainty',
+    category: 'COMPUTATIONAL RESEARCH WORKSTATION',
+    accentColor: Color(0xFFFFD600),
+    plainLanguageSummary:
+        'Provides peer-review-ready scientific transparency: exports 1,000 Hz waveform CSVs, deterministic SHA-256 parameter hashes, copyable Python/cURL reproduction scripts, verified ChEMBL target IDs, and 5-member GNN bootstrap epistemic uncertainty (σ) with RDKit Tanimoto applicability domain badges.',
+    advancedMechanism:
+        'Enforces computational reproducibility and chemoinformatics applicability domain standards:\n'
+        '• 5-Member Bootstrap Ensemble (member_0.pt..member_4.pt): Quantifies epistemic model uncertainty (σ_pIC50) across 5 independently scaffold-split & bootstrapped GNN models trained on Apple Silicon MPS.\n'
+        '• RDKit Morgan Fingerprint (r=2, 2048-bit) Tanimoto Applicability Domain: Flags Out-of-Distribution (OOD) chemical structures when maximum Tanimoto similarity to the ChEMBL training set falls below 0.35 or mean σ > 0.65.\n'
+        '• Verified ChEMBL Target Provenance: KCNH2/hERG (CHEMBL240), ACE (CHEMBL1824), AGTR1 (CHEMBL233), ADRB1 (CHEMBL213), and SLC5A2/SGLT2 (CHEMBL5251).',
+    normalReferenceRange:
+        'Ensemble Committee: 5 PyTorch MPS Checkpoints | In-Domain Tanimoto Threshold: >= 0.35 | High-Confidence Epistemic σ: <= 0.35 pIC50 units',
+    clinicalBoardPearl:
+        'In regulatory QSAR and computational pharmacology (OECD QSAR Validation Principles), a prediction without a defined Applicability Domain (Tanimoto similarity) and Uncertainty Quantification (bootstrap ensemble σ) is scientifically incomplete.',
+    howToInteract:
+        'Click "Copy 1,000 Hz CSV Telemetry", "Copy SHA-256 JSON Manifest", or "Copy Python Reproduction Script" to export deterministic research artifacts for notebooks and publications.',
+  ),
 };
 
 /// Sleek, reusable `ⓘ` Info Button that supports BOTH:
@@ -970,6 +1161,8 @@ class _CardiacInteractiveGuideDialogState extends State<_CardiacInteractiveGuide
 
   static const List<String> _categories = [
     'ALL',
+    'COMPUTATIONAL RESEARCH WORKSTATION',
+    'CARDIAC DIAGNOSTIC WORKSTATION',
     '3D HEART VIEWPORT MODE',
     'INCOMING VENOUS CIRCULATION',
     'INCOMING OXYGENATED CIRCULATION',

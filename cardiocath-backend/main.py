@@ -383,9 +383,27 @@ async def predict_cardio_nephro_compound(req: CompoundPredictRequest):
         raise HTTPException(status_code=400, detail="SMILES string cannot be empty.")
 
     try:
-        from cardio_nephro_gnn.predict import predict_compound
+        try:
+            from cardio_nephro_gnn.predict import predict_compound
+            result = predict_compound(req.smiles.strip(), req.name)
+        except ImportError:
+            import subprocess
+            from pathlib import Path
+            venv_py = Path(__file__).resolve().parent.parent / ".venv" / "bin" / "python"
+            cmd = [str(venv_py), "-m", "cardio_nephro_gnn.predict", "--smiles", req.smiles.strip()]
+            if req.name:
+                cmd.extend(["--name", req.name])
+            proc = subprocess.run(
+                cmd,
+                cwd=str(Path(__file__).resolve().parent),
+                capture_output=True,
+                text=True,
+                check=True,
+            )
+            stdout = proc.stdout.strip()
+            json_start = stdout.find("{")
+            result = json.loads(stdout[json_start:])
 
-        result = predict_compound(req.smiles.strip(), req.name)
         if "error" in result:
             raise HTTPException(
                 status_code=400,
@@ -404,5 +422,254 @@ async def predict_cardio_nephro_compound(req: CompoundPredictRequest):
     except Exception as e:
         logger.error(f"CardioNephroGNN prediction failed for SMILES '{req.smiles}': {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Inference error: {str(e)}")
+
+
+# ==============================================================================
+# 6-Module Cardiovascular Sciences & Diagnostic Workstation Endpoints
+# ==============================================================================
+
+class EchoDopplerRequest(BaseModel):
+    window: str = "PLAX"
+    phenotype: str = "normal"
+
+
+class AuscultationPcgRequest(BaseModel):
+    listening_post: str = "mitral"
+    profile: str = "normal"
+    maneuver: str = "baseline"
+
+
+class EpStudyRequest(BaseModel):
+    rhythm: str = "normal_sinus"
+    rf_ablated: bool = False
+    pacemaker_mode: str = "OFF"
+
+
+class PvLoopRequest(BaseModel):
+    preload_edv_ml: float = 120.0
+    afterload_ea: float = 1.8
+    contractility_emax: float = 2.0
+    drug_preset: Optional[str] = None
+
+
+class ChdShuntRequest(BaseModel):
+    defect: str = "secundum_asd"
+    intervention: str = "none"
+
+
+class NeuroTiltRequest(BaseModel):
+    profile: str = "vasovagal_syncope"
+    tilt_angle_deg: float = 70.0
+    counter_maneuver: bool = False
+
+
+@app.post("/api/cardiac/echo-doppler")
+async def api_echo_doppler(req: EchoDopplerRequest):
+    solver = CoronaryHemodynamicsSolver()
+    return solver.solve_echo_doppler(window=req.window, phenotype=req.phenotype)
+
+
+@app.post("/api/cardiac/auscultation-pcg")
+async def api_auscultation_pcg(req: AuscultationPcgRequest):
+    solver = CoronaryHemodynamicsSolver()
+    return solver.solve_auscultation_pcg(
+        listening_post=req.listening_post,
+        profile=req.profile,
+        maneuver=req.maneuver,
+    )
+
+
+@app.post("/api/cardiac/ep-study")
+async def api_ep_study(req: EpStudyRequest):
+    solver = CoronaryHemodynamicsSolver()
+    return solver.solve_ep_study(
+        rhythm=req.rhythm,
+        rf_ablated=req.rf_ablated,
+        pacemaker_mode=req.pacemaker_mode,
+    )
+
+
+@app.post("/api/cardiac/pv-loop")
+async def api_pv_loop(req: PvLoopRequest):
+    solver = CoronaryHemodynamicsSolver()
+    return solver.solve_pv_loop(
+        preload_edv_ml=req.preload_edv_ml,
+        afterload_ea=req.afterload_ea,
+        contractility_emax=req.contractility_emax,
+        drug_preset=req.drug_preset,
+    )
+
+
+@app.post("/api/cardiac/chd-shunt")
+async def api_chd_shunt(req: ChdShuntRequest):
+    solver = CoronaryHemodynamicsSolver()
+    return solver.solve_chd_shunt(defect=req.defect, intervention=req.intervention)
+
+
+@app.post("/api/cardiac/neuro-tilt")
+async def api_neuro_tilt(req: NeuroTiltRequest):
+    solver = CoronaryHemodynamicsSolver()
+    return solver.solve_neuro_tilt(
+        profile=req.profile,
+        tilt_angle_deg=req.tilt_angle_deg,
+        counter_maneuver=req.counter_maneuver,
+    )
+
+
+# ==============================================================================
+# In-House Apple Silicon M1 Pro PyTorch Research Workstation Endpoints
+#   1. POST /api/cardiac/cipa-ap         (CardioNephroGNN -> CardioElectrophys-Net)
+#   2. POST /api/cardiac/research-cohort (CardioPINN-Hemodynamics N=50-500 Cohort)
+# ==============================================================================
+
+class CipaActionPotentialRequest(BaseModel):
+    smiles: Optional[str] = None
+    compound_name: Optional[str] = "Terfenadine"
+    plasma_conc_uM: float = Field(1.0, gt=0.0, le=500.0)
+    heart_rate_bpm: float = Field(70.0, ge=40.0, le=160.0)
+    herg_ic50_nM: Optional[float] = None
+    nav15_ic50_nM: Optional[float] = None
+    cav12_ic50_nM: Optional[float] = None
+
+
+class ResearchCohortRequest(BaseModel):
+    n_patients: int = Field(500, ge=10, le=1000)
+    mean_stenosis_pct: float = Field(70.0, ge=5.0, le=95.0)
+    stenosis_std_pct: float = Field(8.0, ge=1.0, le=25.0)
+    mean_lesion_length_mm: float = Field(18.0, ge=2.0, le=45.0)
+    mean_reference_diameter_mm: float = Field(3.0, ge=1.8, le=4.5)
+    mean_heart_rate_bpm: float = Field(72.0, ge=45.0, le=150.0)
+    mean_sbp_mmhg: float = Field(128.0, ge=85.0, le=195.0)
+    mean_dbp_mmhg: float = Field(78.0, ge=45.0, le=120.0)
+    post_pci_residual_stenosis_pct: float = Field(12.0, ge=1.0, le=35.0)
+    seed: int = 42
+
+
+@app.post("/api/cardiac/cipa-ap")
+async def api_cipa_action_potential(req: CipaActionPotentialRequest):
+    """
+    Chains the 5-member CardioNephroGNN ensemble with CardioElectrophys-Net (1D Temporal ResNet)
+    to simulate dose-dependent 600 ms human ventricular action potential waveforms Vm(t),
+    APD50/APD90 prolongation, Early Afterdepolarizations (EADs), and CiPA qNet TdP risk.
+    """
+    try:
+        try:
+            from cardio_electrophys.predict import predict_cipa_action_potential
+            result = predict_cipa_action_potential(
+                smiles=req.smiles,
+                compound_name=req.compound_name,
+                plasma_conc_uM=req.plasma_conc_uM,
+                heart_rate_bpm=req.heart_rate_bpm,
+                herg_ic50_nM=req.herg_ic50_nM,
+                nav15_ic50_nM=req.nav15_ic50_nM,
+                cav12_ic50_nM=req.cav12_ic50_nM,
+            )
+        except ImportError:
+            import subprocess
+            from pathlib import Path
+            venv_py = Path(__file__).resolve().parent.parent / ".venv" / "bin" / "python"
+            inline_code = (
+                "import json, sys; "
+                "from cardio_electrophys.predict import predict_cipa_action_potential; "
+                "payload = json.loads(sys.argv[1]); "
+                "res = predict_cipa_action_potential(**payload); "
+                "print(json.dumps(res))"
+            )
+            payload_str = json.dumps({
+                "smiles": req.smiles,
+                "compound_name": req.compound_name,
+                "plasma_conc_uM": req.plasma_conc_uM,
+                "heart_rate_bpm": req.heart_rate_bpm,
+                "herg_ic50_nM": req.herg_ic50_nM,
+                "nav15_ic50_nM": req.nav15_ic50_nM,
+                "cav12_ic50_nM": req.cav12_ic50_nM,
+            })
+            proc = subprocess.run(
+                [str(venv_py), "-c", inline_code, payload_str],
+                cwd=str(Path(__file__).resolve().parent),
+                capture_output=True,
+                text=True,
+                check=True,
+            )
+            stdout = proc.stdout.strip()
+            result = json.loads(stdout[stdout.find("{"):])
+
+        result["status"] = "success"
+        result["samd_legal_notice"] = (
+            "EDUCATIONAL SIMULATION ONLY — In-silico CiPA neural surrogate estimate. "
+            "Not for clinical diagnosis, patient management, or prescribing."
+        )
+        return result
+    except Exception as e:
+        logger.error(f"CardioElectrophys-Net CiPA error: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"CiPA inference error: {str(e)}")
+
+
+@app.post("/api/cardiac/research-cohort")
+async def api_research_cohort(req: ResearchCohortRequest):
+    """
+    Executes CardioPINN-Hemodynamics across N=50-500 virtual Monte Carlo patients in < 10 ms,
+    returning Baseline vs. Post-PCI Stent distributions (FFR, iFR, TAWSS, OSI, Reynolds),
+    1D spatial profile, and First-Order Sobol sensitivity tornado rankings.
+    """
+    try:
+        try:
+            from cardio_pinn.predict import predict_virtual_cohort
+            result = predict_virtual_cohort(
+                n_patients=req.n_patients,
+                mean_stenosis_pct=req.mean_stenosis_pct,
+                stenosis_std_pct=req.stenosis_std_pct,
+                mean_lesion_length_mm=req.mean_lesion_length_mm,
+                mean_reference_diameter_mm=req.mean_reference_diameter_mm,
+                mean_heart_rate_bpm=req.mean_heart_rate_bpm,
+                mean_sbp_mmhg=req.mean_sbp_mmhg,
+                mean_dbp_mmhg=req.mean_dbp_mmhg,
+                post_pci_residual_stenosis_pct=req.post_pci_residual_stenosis_pct,
+                seed=req.seed,
+            )
+        except ImportError:
+            import subprocess
+            from pathlib import Path
+            venv_py = Path(__file__).resolve().parent.parent / ".venv" / "bin" / "python"
+            inline_code = (
+                "import json, sys; "
+                "from cardio_pinn.predict import predict_virtual_cohort; "
+                "payload = json.loads(sys.argv[1]); "
+                "res = predict_virtual_cohort(**payload); "
+                "print(json.dumps(res))"
+            )
+            payload_str = json.dumps({
+                "n_patients": req.n_patients,
+                "mean_stenosis_pct": req.mean_stenosis_pct,
+                "stenosis_std_pct": req.stenosis_std_pct,
+                "mean_lesion_length_mm": req.mean_lesion_length_mm,
+                "mean_reference_diameter_mm": req.mean_reference_diameter_mm,
+                "mean_heart_rate_bpm": req.mean_heart_rate_bpm,
+                "mean_sbp_mmhg": req.mean_sbp_mmhg,
+                "mean_dbp_mmhg": req.mean_dbp_mmhg,
+                "post_pci_residual_stenosis_pct": req.post_pci_residual_stenosis_pct,
+                "seed": req.seed,
+            })
+            proc = subprocess.run(
+                [str(venv_py), "-c", inline_code, payload_str],
+                cwd=str(Path(__file__).resolve().parent),
+                capture_output=True,
+                text=True,
+                check=True,
+            )
+            stdout = proc.stdout.strip()
+            result = json.loads(stdout[stdout.find("{"):])
+
+        result["status"] = "success"
+        result["samd_legal_notice"] = (
+            "EDUCATIONAL SIMULATION ONLY — In-silico CardioPINN neural operator estimate. "
+            "Not for clinical diagnosis or interventional decision-making."
+        )
+        return result
+    except Exception as e:
+        logger.error(f"CardioPINN research cohort error: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"CardioPINN cohort error: {str(e)}")
+
+
 
 

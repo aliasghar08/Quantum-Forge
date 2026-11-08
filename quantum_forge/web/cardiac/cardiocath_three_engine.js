@@ -1685,8 +1685,82 @@
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // Export Global Singleton to Window
+  // Export Global Singleton to Window + Web Audio API Heart Sound Synthesizer
   // ─────────────────────────────────────────────────────────────────────────────
-  window.CardioCathThree = new CardioCathEngineHub();
+  const engineHub = new CardioCathEngineHub();
+  engineHub.audioCtx = null;
+  engineHub.playHeartSoundCycle = function (splitMs, s3Amp, s4Amp, sysMurmurAmp, diasMurmurAmp) {
+    try {
+      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContextClass) return;
+      if (!this.audioCtx) {
+        this.audioCtx = new AudioContextClass();
+      }
+      if (this.audioCtx.state === 'suspended') {
+        this.audioCtx.resume();
+      }
+      const ctx = this.audioCtx;
+      const now = ctx.currentTime;
+
+      const triggerThump = (timeOffset, freq, duration, gainVal) => {
+        if (gainVal <= 0.01) return;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, now + timeOffset);
+        osc.frequency.exponentialRampToValueAtTime(28, now + timeOffset + duration);
+        gain.gain.setValueAtTime(0.001, now + timeOffset);
+        gain.gain.linearRampToValueAtTime(gainVal, now + timeOffset + 0.012);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + timeOffset + duration);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now + timeOffset);
+        osc.stop(now + timeOffset + duration + 0.01);
+      };
+
+      const triggerMurmur = (timeOffset, duration, gainVal) => {
+        if (gainVal <= 0.02) return;
+        const bufferSize = Math.floor(ctx.sampleRate * duration);
+        const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+          const env = Math.sin((i / bufferSize) * Math.PI);
+          data[i] = (Math.random() * 2 - 1) * env;
+        }
+        const noise = ctx.createBufferSource();
+        noise.buffer = buffer;
+        const filter = ctx.createBiquadFilter();
+        filter.type = 'bandpass';
+        filter.frequency.value = 260;
+        filter.Q.value = 2.2;
+        const gain = ctx.createGain();
+        gain.gain.value = gainVal * 0.35;
+        noise.connect(filter);
+        filter.connect(gain);
+        gain.connect(ctx.destination);
+        noise.start(now + timeOffset);
+      };
+
+      // S4 (if present, presystolic)
+      triggerThump(0.02, 55, 0.055, s4Amp * 0.45);
+      // S1 ("Lub" - M1/T1 closure)
+      triggerThump(0.10, 75, 0.085, 0.65);
+      // Systolic murmur (between S1 and S2)
+      triggerMurmur(0.16, 0.22, sysMurmurAmp);
+      // S2 ("Dub" - A2 + P2 split)
+      const a2Time = 0.40;
+      const p2Time = Math.max(0.35, a2Time + (splitMs || 25) * 0.001);
+      triggerThump(a2Time, 95, 0.065, 0.55);
+      triggerThump(p2Time, 88, 0.065, 0.48);
+      // S3 (early diastolic ventricular filling gallop)
+      triggerThump(0.52, 52, 0.065, s3Amp * 0.5);
+      // Diastolic rumble
+      triggerMurmur(0.54, 0.24, diasMurmurAmp);
+    } catch (e) {
+      // Ignore audio autoplay blocks in headless tests
+    }
+  };
+
+  window.CardioCathThree = engineHub;
 
 })(typeof window !== 'undefined' ? window : this);

@@ -653,3 +653,269 @@ class CoronaryHemodynamicsSolver:
             "is_ischemic": ffr <= 0.80,
             "trajectory_frames": frames,
         }
+
+    # ==========================================================================
+    # 6-MODULE CARDIOVASCULAR SCIENCES & DIAGNOSTIC WORKSTATION SOLVERS
+    # ==========================================================================
+
+    def solve_echo_doppler(
+        self,
+        window: str = "PLAX",
+        phenotype: str = "normal",
+    ) -> Dict[str, Any]:
+        """
+        Module 1: Virtual 2D/3D Echocardiography & Color Flow Doppler Lab.
+        Computes LVEF = (EDV - ESV) / EDV, EPSS, TAPSE, Mitral E/A ratio,
+        and Simplified Bernoulli Pressure Gradient (Delta P = 4 * v^2).
+        """
+        profiles = {
+            "normal": {"edv": 120.0, "esv": 48.0, "epss": 4.2, "tapse": 22.0, "e": 0.85, "a": 0.55, "vmax": 1.3},
+            "hfref": {"edv": 210.0, "esv": 151.0, "epss": 14.5, "tapse": 13.0, "e": 1.15, "a": 0.42, "vmax": 0.9},
+            "hfpef": {"edv": 105.0, "esv": 42.0, "epss": 4.8, "tapse": 19.0, "e": 0.52, "a": 0.88, "vmax": 1.4},
+            "severe_as": {"edv": 115.0, "esv": 48.0, "epss": 5.1, "tapse": 20.0, "e": 0.62, "a": 0.90, "vmax": 4.5},
+            "severe_mr": {"edv": 175.0, "esv": 55.0, "epss": 6.0, "tapse": 21.0, "e": 1.45, "a": 0.50, "vmax": 5.2},
+            "hocm": {"edv": 95.0, "esv": 24.0, "epss": 1.5, "tapse": 23.0, "e": 0.58, "a": 0.92, "vmax": 4.2},
+        }
+        p = profiles.get(phenotype.lower(), profiles["normal"])
+        sv = p["edv"] - p["esv"]
+        lvef = (sv / p["edv"]) * 100.0
+        ea_ratio = p["e"] / p["a"]
+        bernoulli_dp = 4.0 * (p["vmax"] ** 2)
+
+        return {
+            "status": "success",
+            "window": window.upper(),
+            "phenotype": phenotype.lower(),
+            "edv_ml": p["edv"],
+            "esv_ml": p["esv"],
+            "stroke_volume_ml": round(sv, 1),
+            "lvef_percent": round(lvef, 1),
+            "epss_mm": p["epss"],
+            "tapse_mm": p["tapse"],
+            "mitral_e_m_s": p["e"],
+            "mitral_a_m_s": p["a"],
+            "ea_ratio": round(ea_ratio, 2),
+            "peak_velocity_m_s": p["vmax"],
+            "bernoulli_delta_p_mmhg": round(bernoulli_dp, 1),
+            "nyquist_aliasing": p["vmax"] > 2.0,
+        }
+
+    def solve_auscultation_pcg(
+        self,
+        listening_post: str = "mitral",
+        profile: str = "normal",
+        maneuver: str = "baseline",
+    ) -> Dict[str, Any]:
+        """
+        Module 2: Cardiac Auscultation & Phonocardiography (PCG) Simulator.
+        Computes S1/S2 splitting intervals (physiologic, fixed ASD, paradoxical LBBB),
+        S3/S4 gallop intensities, and bedside maneuver murmur modulation.
+        """
+        base_splits = {
+            "normal": 25.0,
+            "asd_fixed": 55.0,
+            "lbbb_paradoxical": -40.0,
+            "aortic_stenosis": 15.0,
+            "mitral_regurg": 35.0,
+            "mitral_stenosis": 25.0,
+            "hocm": 20.0,
+        }
+        split_ms = base_splits.get(profile.lower(), 25.0)
+        mult = 1.0
+
+        m = maneuver.lower()
+        p = profile.lower()
+        if m == "inspiration":
+            if p != "asd_fixed":
+                split_ms += 20.0
+            mult = 1.15
+        elif m == "valsalva":
+            mult = 1.55 if p == "hocm" else 0.55
+        elif m == "squatting":
+            mult = 0.45 if p == "hocm" else 1.35
+        elif m == "handgrip":
+            mult = 1.45 if p == "mitral_regurg" else (0.60 if p in ["hocm", "aortic_stenosis"] else 1.0)
+
+        return {
+            "status": "success",
+            "listening_post": listening_post,
+            "profile": p,
+            "maneuver": m,
+            "a2_p2_split_ms": round(split_ms, 1),
+            "is_paradoxical_split": split_ms < 0,
+            "murmur_amplitude_multiplier": round(mult, 2),
+            "s3_present": p == "mitral_regurg",
+            "s4_present": p in ["aortic_stenosis", "hocm", "lbbb_paradoxical"],
+        }
+
+    def solve_ep_study(
+        self,
+        rhythm: str = "normal_sinus",
+        rf_ablated: bool = False,
+        pacemaker_mode: str = "OFF",
+    ) -> Dict[str, Any]:
+        """
+        Module 3: Electrophysiology (EP) Study, Arrhythmia & Pacemaker Lab.
+        Computes intracardiac intervals (PA, AH, HV, QTc), RF catheter ablation
+        restoration, and Dual-Chamber DDD/VVI pacemaker capture.
+        """
+        r = rhythm.lower()
+        if rf_ablated and r in ["wpw", "avnrt", "atrial_flutter"]:
+            r = "normal_sinus"
+
+        table = {
+            "normal_sinus": {"hr": 72, "pa": 35, "ah": 85, "hv": 45, "qtc": 410, "herg": False},
+            "wpw": {"hr": 88, "pa": 30, "ah": 75, "hv": 15, "qtc": 425, "herg": False},
+            "avnrt": {"hr": 175, "pa": 30, "ah": 210, "hv": 45, "qtc": 430, "herg": False},
+            "atrial_flutter": {"hr": 150, "pa": 25, "ah": 95, "hv": 45, "qtc": 420, "herg": False},
+            "complete_heart_block": {"hr": 38, "pa": 35, "ah": 90, "hv": 140, "qtc": 460, "herg": False},
+            "torsades_herg": {"hr": 220, "pa": 35, "ah": 90, "hv": 50, "qtc": 565, "herg": True},
+        }
+        cfg = table.get(r, table["normal_sinus"])
+        effective_hr = 72 if (pacemaker_mode.upper() in ["VVI", "DDD"] and cfg["hr"] < 60) else cfg["hr"]
+
+        return {
+            "status": "success",
+            "effective_rhythm": r,
+            "rf_ablated": rf_ablated,
+            "pacemaker_mode": pacemaker_mode.upper(),
+            "ventricular_rate_bpm": effective_hr,
+            "pa_interval_ms": cfg["pa"],
+            "ah_interval_ms": cfg["ah"],
+            "hv_interval_ms": cfg["hv"],
+            "qtc_ms": cfg["qtc"],
+            "herg_ikr_block_linked": cfg["herg"],
+        }
+
+    def solve_pv_loop(
+        self,
+        preload_edv_ml: float = 120.0,
+        afterload_ea: float = 1.8,
+        contractility_emax: float = 2.0,
+        drug_preset: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """
+        Module 4: Left Ventricular Pressure-Volume (P-V) Loop & Sagawa Elastance Solver.
+        Computes EDV, ESV, SV, LVEF%, ESP, EDP, Stroke Work (SW), and PVA (MVO2).
+        """
+        presets = {
+            "dobutamine": (122.0, 1.65, 3.2),
+            "norepinephrine": (118.0, 2.75, 2.4),
+            "nitroglycerin": (92.0, 1.50, 2.0),
+            "metoprolol": (126.0, 1.70, 1.45),
+            "furosemide": (142.0, 1.95, 1.15),
+            "sacubitril_valsartan": (130.0, 1.40, 1.85),
+        }
+        if drug_preset and drug_preset.lower() in presets:
+            preload_edv_ml, afterload_ea, contractility_emax = presets[drug_preset.lower()]
+
+        v0 = 10.0
+        sv = max(15.0, min(130.0, (preload_edv_ml - v0) * contractility_emax / (contractility_emax + afterload_ea)))
+        esv = max(15.0, preload_edv_ml - sv)
+        esp = sv * afterload_ea
+        edp = 3.0 + 0.8 * math.exp(0.022 * preload_edv_ml)
+        lvef = (sv / preload_edv_ml) * 100.0
+        stroke_work = sv * (esp * 0.82 - edp)
+        pva_mvo2 = stroke_work + 0.5 * (esv - v0) * esp
+
+        return {
+            "status": "success",
+            "drug_preset": drug_preset or "custom",
+            "edv_ml": round(preload_edv_ml, 1),
+            "esv_ml": round(esv, 1),
+            "stroke_volume_ml": round(sv, 1),
+            "lvef_percent": round(lvef, 1),
+            "esp_mmhg": round(esp, 1),
+            "edp_mmhg": round(edp, 1),
+            "emax_mmhg_ml": round(contractility_emax, 2),
+            "ea_mmhg_ml": round(afterload_ea, 2),
+            "stroke_work_mmhg_ml": round(stroke_work, 1),
+            "pva_mvo2_mmhg_ml": round(pva_mvo2, 1),
+        }
+
+    def solve_chd_shunt(
+        self,
+        defect: str = "secundum_asd",
+        intervention: str = "none",
+    ) -> Dict[str, Any]:
+        """
+        Module 5: Congenital Heart Disease (CHD) & Oximetry Step-Up Shunt Lab.
+        Computes 6-chamber oxygen saturations (SaO2%) and Fick Qp/Qs ratio.
+        """
+        d = defect.lower()
+        intv = intervention.lower()
+        if d == "pda" and intv == "indomethacin":
+            d = "normal"
+
+        sats = {
+            "normal": {"svc": 75.0, "ra": 75.0, "rv": 75.0, "pa": 75.0, "la": 98.0, "lv": 98.0, "ao": 98.0},
+            "secundum_asd": {"svc": 74.0, "ra": 86.0, "rv": 86.0, "pa": 86.0, "la": 98.0, "lv": 98.0, "ao": 98.0},
+            "membranous_vsd": {"svc": 75.0, "ra": 75.0, "rv": 87.0, "pa": 87.0, "la": 98.0, "lv": 98.0, "ao": 98.0},
+            "pda": {"svc": 75.0, "ra": 75.0, "rv": 75.0, "pa": 86.0, "la": 98.0, "lv": 98.0, "ao": 98.0},
+            "tetralogy_of_fallot": {"svc": 70.0, "ra": 70.0, "rv": 71.0, "pa": 71.0, "la": 98.0, "lv": 83.0, "ao": 81.0},
+            "eisenmenger": {"svc": 68.0, "ra": 68.0, "rv": 70.0, "pa": 70.0, "la": 97.0, "lv": 82.0, "ao": 79.0},
+        }
+        s = dict(sats.get(d, sats["normal"]))
+        if d == "tetralogy_of_fallot" and intv == "knee_chest_squat":
+            s["ao"] = 92.0
+            s["lv"] = 92.0
+
+        qp_qs = max(0.3, (s["ao"] - s["svc"]) / max(4.0, 98.0 - s["pa"]))
+        return {
+            "status": "success",
+            "defect": d,
+            "intervention": intv,
+            "oximetry_sao2_percent": s,
+            "qp_qs_ratio": round(qp_qs, 2),
+            "is_cyanotic_right_to_left": s["ao"] < 90.0,
+        }
+
+    def solve_neuro_tilt(
+        self,
+        profile: str = "vasovagal_syncope",
+        tilt_angle_deg: float = 70.0,
+        counter_maneuver: bool = False,
+    ) -> Dict[str, Any]:
+        """
+        Module 6: Neuro-Cardiology Head-Up Tilt-Table (HUTT) & Frontal EEG Coupling Lab.
+        Computes orthostatic BP, HR, Cerebral Perfusion Pressure (CPP), and EEG band.
+        """
+        frac = max(0.0, min(1.0, tilt_angle_deg / 70.0))
+        boost = 1.0 if counter_maneuver else 0.0
+        p = profile.lower()
+
+        if p == "vasovagal_syncope":
+            sbp = 120.0 - 62.0 * frac + 38.0 * boost
+            dbp = 78.0 - 38.0 * frac + 22.0 * boost
+            hr = 72.0 - 30.0 * frac + 22.0 * boost
+        elif p == "pots":
+            sbp = 116.0 - 5.0 * frac + 5.0 * boost
+            dbp = 76.0 + 2.0 * frac
+            hr = 75.0 + 48.0 * frac - 18.0 * boost
+        elif p == "orthostatic_hypotension":
+            sbp = 122.0 - 38.0 * frac + 20.0 * boost
+            dbp = 78.0 - 20.0 * frac + 12.0 * boost
+            hr = 70.0 + 4.0 * frac
+        else:
+            sbp = 118.0 - 4.0 * frac + 6.0 * boost
+            dbp = 78.0 + 5.0 * frac + 4.0 * boost
+            hr = 72.0 + 12.0 * frac
+
+        map_mmhg = dbp + (sbp - dbp) / 3.0
+        cpp_mmhg = max(20.0, map_mmhg - 12.0)
+        eeg_band = "theta_delta_slowing" if cpp_mmhg < 50.0 else "alpha_awake_8_12hz"
+
+        return {
+            "status": "success",
+            "profile": p,
+            "tilt_angle_deg": round(tilt_angle_deg, 1),
+            "counter_maneuver": counter_maneuver,
+            "sbp_mmhg": round(sbp, 1),
+            "dbp_mmhg": round(dbp, 1),
+            "map_mmhg": round(map_mmhg, 1),
+            "heart_rate_bpm": round(hr, 1),
+            "cerebral_perfusion_pressure_mmhg": round(cpp_mmhg, 1),
+            "frontal_eeg_state": eeg_band,
+            "syncope_imminent": cpp_mmhg < 50.0,
+        }
+

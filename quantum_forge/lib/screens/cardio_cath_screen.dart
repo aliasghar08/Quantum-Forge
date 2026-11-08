@@ -27,6 +27,8 @@ import '../features/cardiac/presentation/widgets/cardiac_hemodynamic_ecg_strip.d
 import '../features/cardiac/presentation/widgets/cardiac_drug_mechanism_dialog.dart';
 import '../features/cardiac/presentation/widgets/cardio_nephro_gnn_dialog.dart';
 import '../features/cardiac/presentation/widgets/cardiac_clinical_info_system.dart';
+import '../features/cardiac/presentation/widgets/cardiac_diagnostic_workstation_panel.dart';
+import '../features/cardiac/presentation/widgets/cardiac_research_workstation_panel.dart';
 
 class CardioCathScreen extends StatefulWidget {
   final String? initialScenarioId;
@@ -757,6 +759,26 @@ class _CardioCathScreenState extends State<CardioCathScreen>
               ffrValue: hemo.ffr,
               ifrValue: hemo.ifr,
               wssDynes: hemo.peakWssDynes,
+            ),
+
+            const SizedBox(height: 12),
+
+            // ── View 5: 6-Module Cardiovascular Sciences & Diagnostic Workstation ──
+            CardiacDiagnosticWorkstationPanel(
+              scenario: _activeScenario,
+              cardiacPhase: _cardiacAnimController.value,
+              bpm: _bpm,
+              onBpmChanged: _updateBpm,
+            ),
+
+            const SizedBox(height: 12),
+
+            // ── View 6: In-House PyTorch Computational Research Workstation ──
+            CardiacResearchWorkstationPanel(
+              initialStenosisPercent: _activeScenario.ladStenosisFraction > 0
+                  ? _activeScenario.ladStenosisFraction * 100.0
+                  : 72.0,
+              initialHeartRate: _bpm,
             ),
 
             const SizedBox(height: 12),

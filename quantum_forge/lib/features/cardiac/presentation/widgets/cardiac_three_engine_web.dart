@@ -210,6 +210,27 @@ class CardioCathThreeBridge {
     } catch (_) {}
   }
 
+  static void playHeartSoundCycle({
+    required double splitMs,
+    required double s3Amp,
+    required double s4Amp,
+    required double sysMurmurAmp,
+    required double diasMurmurAmp,
+  }) {
+    try {
+      final global = web.window as JSObject;
+      if (!global.has('CardioCathThree')) return;
+      final hub = global.getProperty('CardioCathThree'.toJS) as JSObject?;
+      hub?.callMethodVarArgs('playHeartSoundCycle'.toJS, [
+        splitMs.toJS,
+        s3Amp.toJS,
+        s4Amp.toJS,
+        sysMurmurAmp.toJS,
+        diasMurmurAmp.toJS,
+      ]);
+    } catch (_) {}
+  }
+
   void dispose() {
     _disposed = true;
     if (_viewer != null) {
