@@ -24,6 +24,7 @@ import 'package:quantum_forge/core/theme/theme_provider.dart';
 import '../../data/cardiac_pathology_models.dart';
 import '../../data/coronary_hemodynamics_engine.dart';
 import 'cardiac_three_engine.dart';
+import 'cardiac_clinical_info_system.dart';
 
 enum HeartViewMode {
   anatomy('Anatomy'),
@@ -222,37 +223,58 @@ class _Cardiac3DAnatomicalHeartViewportState
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Row 1: Header Badge + Quick Actions
+                  // Row 1: Header Badge + Mode Info `i` Button + Quick Actions
                   Row(
                     children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 7, vertical: 3.5),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFEF4444).withValues(alpha: 0.2),
-                          borderRadius: BorderRadius.circular(6),
-                          border: Border.all(
-                              color: const Color(0xFFEF4444).withValues(alpha: 0.5)),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(Icons.favorite_rounded,
-                                color: Color(0xFFEF4444), size: 12),
-                            const SizedBox(width: 4),
-                            Text(
-                              'HEART 3D | ${widget.bpm.round()} BPM',
-                              style: const TextStyle(
-                                color: Color(0xFFEF4444),
-                                fontSize: 9.5,
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 0.6,
+                      Flexible(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 6, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFEF4444).withValues(alpha: 0.2),
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(
+                                color: const Color(0xFFEF4444).withValues(alpha: 0.5)),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.favorite_rounded,
+                                  color: Color(0xFFEF4444), size: 11),
+                              const SizedBox(width: 4),
+                              Flexible(
+                                child: Text(
+                                  'HEART 3D | ${widget.bpm.round()} BPM',
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    color: Color(0xFFEF4444),
+                                    fontSize: 9.0,
+                                    fontWeight: FontWeight.bold,
+                                    letterSpacing: 0.4,
+                                  ),
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
+                      const SizedBox(width: 5),
+                      CardiacInfoButton(
+                        topicId: 'mode_${_viewMode.name}',
+                        customLabel: 'Info',
+                        size: 12,
+                      ),
                       const Spacer(),
+
+                      // Interactive Master Guide Button
+                      _actionButton(
+                        icon: Icons.menu_book_rounded,
+                        tooltip: 'Open Complete Cath Lab & Dual-Circulation Guide',
+                        isActive: false,
+                        onTap: () => showCardiacInteractiveGuideDialog(context),
+                        palette: palette,
+                      ),
+                      const SizedBox(width: 4),
 
                       // Toggle Labels Button
                       _actionButton(
@@ -284,36 +306,43 @@ class _Cardiac3DAnatomicalHeartViewportState
                     runSpacing: 4,
                     children: HeartViewMode.values.map((mode) {
                       final isSel = mode == _viewMode;
-                      return GestureDetector(
-                        behavior: HitTestBehavior.opaque,
-                        onTap: () {
-                          setState(() => _viewMode = mode);
-                          _threeBridge?.setViewMode(mode.name);
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 6.5, vertical: 3.0),
-                          decoration: BoxDecoration(
-                            color: isSel
-                                ? const Color(0xFF00E5FF).withValues(alpha: 0.25)
-                                : palette.scaffold.withValues(alpha: 0.75),
-                            borderRadius: BorderRadius.circular(6),
-                            border: Border.all(
+                      final topic = kCardiacInfoTopics['mode_${mode.name}'];
+                      return Tooltip(
+                        waitDuration: const Duration(milliseconds: 220),
+                        message: topic != null
+                            ? '${topic.title}: ${topic.plainLanguageSummary}'
+                            : mode.label,
+                        child: GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: () {
+                            setState(() => _viewMode = mode);
+                            _threeBridge?.setViewMode(mode.name);
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 6.5, vertical: 3.0),
+                            decoration: BoxDecoration(
                               color: isSel
-                                  ? const Color(0xFF00E5FF)
-                                  : palette.border,
-                              width: isSel ? 1.2 : 0.8,
+                                  ? const Color(0xFF00E5FF).withValues(alpha: 0.25)
+                                  : palette.scaffold.withValues(alpha: 0.75),
+                              borderRadius: BorderRadius.circular(6),
+                              border: Border.all(
+                                color: isSel
+                                    ? const Color(0xFF00E5FF)
+                                    : palette.border,
+                                width: isSel ? 1.2 : 0.8,
+                              ),
                             ),
-                          ),
-                          child: Text(
-                            mode.label,
-                            style: TextStyle(
-                              color: isSel
-                                  ? const Color(0xFF00E5FF)
-                                  : palette.textSecondary,
-                              fontSize: 9.0,
-                              fontWeight:
-                                  isSel ? FontWeight.bold : FontWeight.normal,
+                            child: Text(
+                              mode.label,
+                              style: TextStyle(
+                                color: isSel
+                                    ? const Color(0xFF00E5FF)
+                                    : palette.textSecondary,
+                                fontSize: 9.0,
+                                fontWeight:
+                                    isSel ? FontWeight.bold : FontWeight.normal,
+                              ),
                             ),
                           ),
                         ),
@@ -324,46 +353,108 @@ class _Cardiac3DAnatomicalHeartViewportState
               ),
             ),
 
-            // ── Dynamic Legend Badge (Mode Sensitive) ───────────────────────
+            // ── Bottom Dual-Circulation Structure Info Bar & Dynamic Legend ─
             Positioned(
-              bottom: 10,
-              left: 10,
-              right: 10,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              bottom: 8,
+              left: 8,
+              right: 8,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Flexible(
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
-                      decoration: BoxDecoration(
-                        color: palette.scaffold.withValues(alpha: 0.88),
-                        borderRadius: BorderRadius.circular(6),
-                        border: Border.all(color: palette.border),
-                      ),
-                      child: SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: _buildLegendItems(),
-                        ),
+                  // Interactive Structure & Dual-Circulation Hover/Click `i` Bar
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3.5),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF0B111A).withValues(alpha: 0.86),
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(color: Colors.white12),
+                    ),
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.swap_vert_circle_rounded,
+                              color: Color(0xFF00E5FF), size: 12),
+                          const SizedBox(width: 4),
+                          Text(
+                            _liveValveStatusLabel(widget.cardiacPhase),
+                            style: const TextStyle(
+                              color: Color(0xFF00E5FF),
+                              fontSize: 8.8,
+                              fontFamily: 'monospace',
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          const CardiacInfoButton(
+                            topicId: 'struct_venous_inflow',
+                            customLabel: 'Venous In (SVC/IVC/CS)',
+                            size: 11,
+                          ),
+                          const SizedBox(width: 5),
+                          const CardiacInfoButton(
+                            topicId: 'struct_pulmonary_inflow',
+                            customLabel: 'Pulm Veins In (LA)',
+                            size: 11,
+                          ),
+                          const SizedBox(width: 5),
+                          const CardiacInfoButton(
+                            topicId: 'struct_aortic_outflow',
+                            customLabel: 'Aorta/PA Out',
+                            size: 11,
+                          ),
+                          const SizedBox(width: 5),
+                          const CardiacInfoButton(
+                            topicId: 'struct_coronary_tree',
+                            customLabel: 'Coronary Tree',
+                            size: 11,
+                          ),
+                        ],
                       ),
                     ),
                   ),
-                  const SizedBox(width: 6),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.6),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Text(
-                      '360° Orbit',
-                      style: TextStyle(
-                        color: palette.textMuted,
-                        fontSize: 9.5,
-                        fontStyle: FontStyle.italic,
+                  const SizedBox(height: 4),
+
+                  // Mode-Sensitive Color Legend + 360° Orbit Badge
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Flexible(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+                          decoration: BoxDecoration(
+                            color: palette.scaffold.withValues(alpha: 0.88),
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(color: palette.border),
+                          ),
+                          child: SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: _buildLegendItems(),
+                            ),
+                          ),
+                        ),
                       ),
-                    ),
+                      const SizedBox(width: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.6),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          '360° Orbit',
+                          style: TextStyle(
+                            color: palette.textMuted,
+                            fontSize: 9.5,
+                            fontStyle: FontStyle.italic,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -372,6 +463,19 @@ class _Cardiac3DAnatomicalHeartViewportState
         ),
       ),
     );
+  }
+
+  String _liveValveStatusLabel(double phase) {
+    final phi = phase % 1.0;
+    if (phi >= 0.255 && phi < 0.330) {
+      return 'ISOVOLUMETRIC CONTRACTION (All 4 Valves Closed)';
+    } else if (phi >= 0.330 && phi <= 0.560) {
+      return 'SYSTOLIC EJECTION (Ao/Pulm OPEN • Mitral/Tri CLOSED)';
+    } else if (phi > 0.560 && phi <= 0.620) {
+      return 'ISOVOLUMETRIC RELAXATION (Dicrotic Notch • Coronary Surge)';
+    } else {
+      return 'DIASTOLIC FILLING (Mitral/Tri OPEN • Coronary Perfusion)';
+    }
   }
 
   Widget _actionButton({

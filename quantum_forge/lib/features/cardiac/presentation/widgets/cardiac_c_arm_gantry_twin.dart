@@ -10,6 +10,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:quantum_forge/core/theme/theme_provider.dart';
 import '../../data/cardiac_pathology_models.dart';
+import 'cardiac_clinical_info_system.dart';
 
 class CardiacCArmGantryTwin extends StatelessWidget {
   final double laoRaoAngle;
@@ -69,6 +70,11 @@ class CardiacCArmGantryTwin extends StatelessWidget {
                             ),
                             overflow: TextOverflow.ellipsis,
                           ),
+                        ),
+                        const SizedBox(width: 6),
+                        const CardiacInfoButton(
+                          topicId: 'viewport_c_arm',
+                          size: 12,
                         ),
                       ],
                     ),
@@ -226,28 +232,33 @@ class CardiacCArmGantryTwin extends StatelessWidget {
                                     1.0;
                         return Padding(
                           padding: const EdgeInsets.only(right: 6),
-                          child: ActionChip(
-                            label: Text(
-                              '${preset.name} (${preset.clinicalNickname})',
-                              style: TextStyle(
-                                fontSize: 10.5,
-                                fontWeight:
-                                    isSel ? FontWeight.bold : FontWeight.w500,
+                          child: Tooltip(
+                            waitDuration: const Duration(milliseconds: 200),
+                            message:
+                                '${preset.formattedAngles} — Optimizes: ${preset.vesselsOptimized}\n${preset.educationalRationale}',
+                            child: ActionChip(
+                              label: Text(
+                                '${preset.name} (${preset.clinicalNickname})',
+                                style: TextStyle(
+                                  fontSize: 10.5,
+                                  fontWeight:
+                                      isSel ? FontWeight.bold : FontWeight.w500,
+                                  color: isSel
+                                      ? const Color(0xFF00E5FF)
+                                      : palette.textSecondary,
+                                ),
+                              ),
+                              backgroundColor: isSel
+                                  ? const Color(0xFF00E5FF).withValues(alpha: 0.15)
+                                  : palette.panelAlt,
+                              side: BorderSide(
                                 color: isSel
                                     ? const Color(0xFF00E5FF)
-                                    : palette.textSecondary,
+                                    : palette.border,
                               ),
+                              padding: const EdgeInsets.symmetric(horizontal: 4),
+                              onPressed: () => onSelectPreset(preset),
                             ),
-                            backgroundColor: isSel
-                                ? const Color(0xFF00E5FF).withValues(alpha: 0.15)
-                                : palette.panelAlt,
-                            side: BorderSide(
-                              color: isSel
-                                  ? const Color(0xFF00E5FF)
-                                  : palette.border,
-                            ),
-                            padding: const EdgeInsets.symmetric(horizontal: 4),
-                            onPressed: () => onSelectPreset(preset),
                           ),
                         );
                       }).toList(),

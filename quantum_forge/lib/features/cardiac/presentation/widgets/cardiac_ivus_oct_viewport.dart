@@ -19,6 +19,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:quantum_forge/core/theme/theme_provider.dart';
 import '../../data/cardiac_pathology_models.dart';
+import 'cardiac_clinical_info_system.dart';
 
 enum IntravascularModality {
   oct('OCT (10 µm High-Res)'),
@@ -171,6 +172,11 @@ class _CardiacIvusOctViewportState extends State<CardiacIvusOctViewport> {
                         fontFamily: 'monospace',
                         fontWeight: FontWeight.bold,
                       ),
+                    ),
+                    const SizedBox(width: 6),
+                    const CardiacInfoButton(
+                      topicId: 'tool_ivus_oct',
+                      size: 12,
                     ),
                   ],
                 ),

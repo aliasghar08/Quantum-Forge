@@ -7,6 +7,7 @@ import 'package:quantum_forge/features/cardiac/presentation/widgets/cardiac_c_ar
 import 'package:quantum_forge/features/cardiac/presentation/widgets/cardiac_hemodynamic_ecg_strip.dart';
 import 'package:quantum_forge/features/cardiac/presentation/widgets/cardiac_drug_mechanism_dialog.dart';
 import 'package:quantum_forge/features/cardiac/presentation/widgets/cardio_nephro_gnn_dialog.dart';
+import 'package:quantum_forge/features/cardiac/presentation/widgets/cardiac_clinical_info_system.dart';
 
 void main() {
   group('CardioCath 3D: Coronary Angiography & Hemodynamic Lab Tests', () {
@@ -535,6 +536,78 @@ void main() {
       // Dialog should now be open
       expect(find.byType(CardioNephroGnnDialog), findsOneWidget);
       expect(find.text('PyTorch MPS GNN'), findsOneWidget);
+    });
+
+    testWidgets('CardiacInfoButton (ⓘ), Interactive Guide, and 7-Pillar Legal Shield dialogs render and function',
+        (tester) async {
+      tester.view.physicalSize = const Size(1440, 1000);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(buildTestScreen(size: const Size(1440, 1000)));
+      await tester.pump();
+
+      // 1. Verify multiple interactive CardiacInfoButton (ⓘ) widgets are rendered across panels
+      expect(find.byType(CardiacInfoButton), findsWidgets);
+      expect(find.text('Venous In (SVC/IVC/CS)'), findsOneWidget);
+      expect(find.text('Pulm Veins In (LA)'), findsOneWidget);
+      expect(find.text('Aorta/PA Out'), findsOneWidget);
+      expect(find.text('Coronary Tree'), findsOneWidget);
+
+      // 2. Tap on "Legal Info" (CardiacInfoButton) in the top SaMD banner to open detailed modal
+      final legalInfoBtn = find.text('Legal Info');
+      expect(legalInfoBtn, findsOneWidget);
+      await tester.tap(legalInfoBtn);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 250));
+
+      expect(
+        find.textContaining('Regulatory, SaMD, Malpractice & IP Legal Protection Shield'),
+        findsOneWidget,
+      );
+      expect(find.text('PLAIN-ENGLISH SUMMARY (EASY TO UNDERSTAND)'), findsOneWidget);
+      expect(find.text('ADVANCED PHYSIOLOGY, BIOPHYSICS & MECHANISM'), findsOneWidget);
+
+      // Close topic modal
+      await tester.tap(find.text('Got It'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 250));
+
+      // 3. Open the 7-Pillar Legal & Regulatory Protection Shield from banner
+      final legalShieldBtn = find.text('7-Pillar Legal Shield');
+      expect(legalShieldBtn, findsOneWidget);
+      await tester.tap(legalShieldBtn);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 250));
+
+      expect(
+        find.text('7-PILLAR LEGAL, REGULATORY & LIABILITY PROTECTION SHIELD'),
+        findsOneWidget,
+      );
+      expect(
+        find.textContaining('21 U.S.C. § 360j(o)'),
+        findsWidgets,
+      );
+
+      // Acknowledge & close Legal Shield
+      await tester.tap(find.text('I Understand & Acknowledge (Educational Use Only)'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 250));
+
+      // 4. Open the Interactive Cath Lab & Dual-Circulation Master Guide from banner
+      final cathGuideBtn = find.text('Cath Guide');
+      expect(cathGuideBtn, findsOneWidget);
+      await tester.tap(cathGuideBtn);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 250));
+
+      expect(
+        find.text('CardioCath 3D Interactive Clinical & Biophysical Guide'),
+        findsOneWidget,
+      );
+      await tester.tap(find.text('Close Guide'));
+      await tester.pump();
     });
   });
 }

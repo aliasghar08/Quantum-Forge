@@ -26,6 +26,7 @@ import '../features/cardiac/presentation/widgets/cardiac_ivus_oct_viewport.dart'
 import '../features/cardiac/presentation/widgets/cardiac_hemodynamic_ecg_strip.dart';
 import '../features/cardiac/presentation/widgets/cardiac_drug_mechanism_dialog.dart';
 import '../features/cardiac/presentation/widgets/cardio_nephro_gnn_dialog.dart';
+import '../features/cardiac/presentation/widgets/cardiac_clinical_info_system.dart';
 
 class CardioCathScreen extends StatefulWidget {
   final String? initialScenarioId;
@@ -778,20 +779,83 @@ class _CardioCathScreenState extends State<CardioCathScreen>
           color: const Color(0xFFFFB300).withValues(alpha: 0.45),
         ),
       ),
-      child: const Row(
+      child: Row(
         children: [
-          Icon(Icons.warning_amber_rounded,
+          const Icon(Icons.warning_amber_rounded,
               color: Color(0xFFFFB300), size: 18),
-          SizedBox(width: 10),
-          Expanded(
+          const SizedBox(width: 10),
+          const Expanded(
             child: Text(
               'Educational Simulation Only — Not for Clinical Diagnosis, Interventional Planning, or Patient Care. '
-              'Coronary fluoroscopy projections and contrast advection are simplified pedagogical models.',
+              'Coronary fluoroscopy projections and contrast advection are simplified pedagogical models. '
+              'Exempt under 21 U.S.C. § 360j(o) & EU MDR • 100% Synthetic Zero-PHI • Independent Nominative Fair-Use.',
               style: TextStyle(
                 color: Color(0xFFFFB300),
                 fontSize: 11,
                 fontWeight: FontWeight.w600,
                 height: 1.35,
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          const CardiacInfoButton(
+            topicId: 'legal_samd_shield',
+            customLabel: 'Legal Info',
+            size: 13,
+          ),
+          const SizedBox(width: 6),
+          InkWell(
+            onTap: () => showCardiacInteractiveGuideDialog(context),
+            borderRadius: BorderRadius.circular(6),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: const Color(0xFF38BDF8).withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(color: const Color(0xFF38BDF8)),
+              ),
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.menu_book_rounded, color: Color(0xFF38BDF8), size: 12),
+                  SizedBox(width: 4),
+                  Text(
+                    'Cath Guide',
+                    style: TextStyle(
+                      color: Color(0xFF38BDF8),
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(width: 6),
+          InkWell(
+            onTap: () => showCardiacLegalShieldDialog(context),
+            borderRadius: BorderRadius.circular(6),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFFB300).withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(color: const Color(0xFFFFB300)),
+              ),
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.gavel_rounded, color: Color(0xFFFFB300), size: 12),
+                  SizedBox(width: 4),
+                  Text(
+                    '7-Pillar Legal Shield',
+                    style: TextStyle(
+                      color: Color(0xFFFFB300),
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -814,27 +878,41 @@ class _CardioCathScreenState extends State<CardioCathScreen>
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'CLINICAL SCENARIO & PATHOLOGY PRESETS:',
-                style: TextStyle(
-                  color: palette.textMuted,
-                  fontSize: 10.5,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 0.8,
-                ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'CLINICAL SCENARIO & PATHOLOGY PRESETS:',
+                    style: TextStyle(
+                      color: palette.textMuted,
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 0.8,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  const CardiacInfoButton(
+                    topicId: 'section_scenarios',
+                    customLabel: 'Scenario Info',
+                    size: 12,
+                  ),
+                ],
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF00E5FF).withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Text(
-                  _activeScenario.title,
-                  style: const TextStyle(
-                    fontSize: 10.5,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF00E5FF),
+              Flexible(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF00E5FF).withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    _activeScenario.title,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF00E5FF),
+                    ),
                   ),
                 ),
               ),
@@ -849,22 +927,26 @@ class _CardioCathScreenState extends State<CardioCathScreen>
                 final isSel = idx == _selectedScenarioIndex;
                 return Padding(
                   padding: const EdgeInsets.only(right: 8),
-                  child: ChoiceChip(
-                    label: Text(s.title.split(' (').first),
-                    selected: isSel,
-                    selectedColor: const Color(0xFF00E5FF).withValues(alpha: 0.25),
-                    backgroundColor: palette.panelAlt,
-                    labelStyle: TextStyle(
-                      color: isSel ? const Color(0xFF00E5FF) : palette.textMuted,
-                      fontWeight: isSel ? FontWeight.bold : FontWeight.w500,
-                      fontSize: 11.5,
+                  child: Tooltip(
+                    waitDuration: const Duration(milliseconds: 220),
+                    message: '${s.title}\nLesion: ${s.anatomicalLesion}\nECG: ${s.ecgFindings}',
+                    child: ChoiceChip(
+                      label: Text(s.title.split(' (').first),
+                      selected: isSel,
+                      selectedColor: const Color(0xFF00E5FF).withValues(alpha: 0.25),
+                      backgroundColor: palette.panelAlt,
+                      labelStyle: TextStyle(
+                        color: isSel ? const Color(0xFF00E5FF) : palette.textMuted,
+                        fontWeight: isSel ? FontWeight.bold : FontWeight.w500,
+                        fontSize: 11.5,
+                      ),
+                      side: BorderSide(
+                        color: isSel ? const Color(0xFF00E5FF) : palette.border,
+                      ),
+                      onSelected: (selected) {
+                        if (selected) _onSelectScenario(idx);
+                      },
                     ),
-                    side: BorderSide(
-                      color: isSel ? const Color(0xFF00E5FF) : palette.border,
-                    ),
-                    onSelected: (selected) {
-                      if (selected) _onSelectScenario(idx);
-                    },
                   ),
                 );
               }),
@@ -889,14 +971,25 @@ class _CardioCathScreenState extends State<CardioCathScreen>
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'CORONARY ARTERIAL DOMINANCE (PDA ORIGIN):',
-                style: TextStyle(
-                  color: palette.textMuted,
-                  fontSize: 10.5,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 0.8,
-                ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'CORONARY ARTERIAL DOMINANCE (PDA ORIGIN):',
+                    style: TextStyle(
+                      color: palette.textMuted,
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 0.8,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  const CardiacInfoButton(
+                    topicId: 'section_dominance',
+                    customLabel: 'Dominance Info',
+                    size: 12,
+                  ),
+                ],
               ),
               Text(
                 _dominance == CoronaryDominance.rightDominant
@@ -920,24 +1013,28 @@ class _CardioCathScreenState extends State<CardioCathScreen>
                 final isSel = dom == _dominance;
                 return Padding(
                   padding: const EdgeInsets.only(right: 8),
-                  child: ChoiceChip(
-                    label: Text(dom.label),
-                    selected: isSel,
-                    selectedColor: const Color(0xFF00E5FF).withValues(alpha: 0.25),
-                    backgroundColor: palette.panelAlt,
-                    labelStyle: TextStyle(
-                      color: isSel ? const Color(0xFF00E5FF) : palette.textMuted,
-                      fontWeight: isSel ? FontWeight.bold : FontWeight.w500,
-                      fontSize: 11,
+                  child: Tooltip(
+                    waitDuration: const Duration(milliseconds: 220),
+                    message: '${dom.label}: ${dom.description}',
+                    child: ChoiceChip(
+                      label: Text(dom.label),
+                      selected: isSel,
+                      selectedColor: const Color(0xFF00E5FF).withValues(alpha: 0.25),
+                      backgroundColor: palette.panelAlt,
+                      labelStyle: TextStyle(
+                        color: isSel ? const Color(0xFF00E5FF) : palette.textMuted,
+                        fontWeight: isSel ? FontWeight.bold : FontWeight.w500,
+                        fontSize: 11,
+                      ),
+                      side: BorderSide(
+                        color: isSel ? const Color(0xFF00E5FF) : palette.border,
+                      ),
+                      onSelected: (selected) {
+                        if (selected) {
+                          setState(() => _dominance = dom);
+                        }
+                      },
                     ),
-                    side: BorderSide(
-                      color: isSel ? const Color(0xFF00E5FF) : palette.border,
-                    ),
-                    onSelected: (selected) {
-                      if (selected) {
-                        setState(() => _dominance = dom);
-                      }
-                    },
                   ),
                 );
               }).toList(),
@@ -962,14 +1059,25 @@ class _CardioCathScreenState extends State<CardioCathScreen>
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'INTERVENTIONAL CATH LAB TOOLKIT & PHYSIOLOGY:',
-                style: TextStyle(
-                  color: palette.textMuted,
-                  fontSize: 10.5,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 0.8,
-                ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'INTERVENTIONAL CATH LAB TOOLKIT & PHYSIOLOGY:',
+                    style: TextStyle(
+                      color: palette.textMuted,
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 0.8,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  const CardiacInfoButton(
+                    topicId: 'section_toolkit',
+                    customLabel: 'Toolkit Guide',
+                    size: 12,
+                  ),
+                ],
               ),
               Text(
                 'Live FFR: ${hemo.ffr.toStringAsFixed(2)} | iFR: ${hemo.ifr.toStringAsFixed(2)} | TIMI ${hemo.timiGrade}',
@@ -987,8 +1095,13 @@ class _CardioCathScreenState extends State<CardioCathScreen>
             scrollDirection: Axis.horizontal,
             child: Row(
               children: [
-                // Guide Catheter Selector
+                // Guide Catheter Selector + Info Button
                 const Text('Guide: ', style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold)),
+                const CardiacInfoButton(
+                  topicId: 'tool_catheters',
+                  size: 11,
+                ),
+                const SizedBox(width: 6),
                 ...GuideCatheterType.values.map((cat) {
                   final isSel = cat == _catheterType;
                   return Padding(
@@ -1012,7 +1125,7 @@ class _CardioCathScreenState extends State<CardioCathScreen>
 
                 const SizedBox(width: 8),
 
-                // Wire Type Selector (PressureWire X)
+                // Wire Type Selector (PressureWire X) + Info Button
                 ChoiceChip(
                   avatar: Icon(
                     Icons.cable_rounded,
@@ -1034,10 +1147,15 @@ class _CardioCathScreenState extends State<CardioCathScreen>
                     });
                   },
                 ),
+                const SizedBox(width: 4),
+                const CardiacInfoButton(
+                  topicId: 'tool_pressure_wire',
+                  size: 11,
+                ),
 
                 const SizedBox(width: 8),
 
-                // Rotablator Atherectomy Button
+                // Rotablator Atherectomy Button + Info Button
                 ActionChip(
                   avatar: Icon(
                     Icons.rotate_right_rounded,
@@ -1056,10 +1174,15 @@ class _CardioCathScreenState extends State<CardioCathScreen>
                   side: BorderSide(color: _isRotablated ? const Color(0xFF10B981) : const Color(0xFF38BDF8)),
                   onPressed: _activateRotablator,
                 ),
+                const SizedBox(width: 4),
+                const CardiacInfoButton(
+                  topicId: 'tool_rotablator',
+                  size: 11,
+                ),
 
                 const SizedBox(width: 8),
 
-                // IABP Counterpulsation Toggle
+                // IABP Counterpulsation Toggle + Info Button
                 FilterChip(
                   avatar: const Icon(Icons.favorite_border_rounded, size: 14, color: Color(0xFFA78BFA)),
                   label: Text('IABP 1:1 ${_iabpActive ? "Active" : "Off"}'),
@@ -1073,10 +1196,15 @@ class _CardioCathScreenState extends State<CardioCathScreen>
                   ),
                   onSelected: (val) => setState(() => _iabpActive = val),
                 ),
+                const SizedBox(width: 4),
+                const CardiacInfoButton(
+                  topicId: 'tool_iabp',
+                  size: 11,
+                ),
 
                 const SizedBox(width: 8),
 
-                // IVUS / OCT Toggle Viewport
+                // IVUS / OCT Toggle Viewport + Info Button
                 ActionChip(
                   avatar: Icon(
                     Icons.radar_rounded,
@@ -1096,6 +1224,11 @@ class _CardioCathScreenState extends State<CardioCathScreen>
                       : palette.panelAlt,
                   side: BorderSide(color: _showIvusOctViewport ? const Color(0xFF00E5FF) : palette.border),
                   onPressed: () => setState(() => _showIvusOctViewport = !_showIvusOctViewport),
+                ),
+                const SizedBox(width: 4),
+                const CardiacInfoButton(
+                  topicId: 'tool_ivus_oct',
+                  size: 11,
                 ),
               ],
             ),
@@ -1126,7 +1259,13 @@ class _CardioCathScreenState extends State<CardioCathScreen>
               'ALARA SAFETY & CONTRAST STEWARDSHIP:',
               style: TextStyle(color: Color(0xFF10B981), fontSize: 10, fontWeight: FontWeight.bold),
             ),
-            const SizedBox(width: 14),
+            const SizedBox(width: 6),
+            const CardiacInfoButton(
+              topicId: 'section_alara',
+              customLabel: 'Safety Limits',
+              size: 11,
+            ),
+            const SizedBox(width: 12),
             _alaraPill('Fluo Time', '${(_fluroSeconds / 60).floor()}:${(_fluroSeconds % 60).round().toString().padLeft(2, '0')}', Colors.white70),
             const SizedBox(width: 10),
             _alaraPill('Air Kerma', '${_airKermaMgy.round()} mGy', _airKermaMgy > 2000 ? const Color(0xFFFF1744) : Colors.white70),
@@ -1320,6 +1459,12 @@ class _CardioCathScreenState extends State<CardioCathScreen>
                 ),
               ],
             ),
+          ),
+          const SizedBox(width: 6),
+          const CardiacInfoButton(
+            topicId: 'section_fsi',
+            customLabel: 'FSI Info',
+            size: 12,
           ),
         ],
       ),
@@ -1699,14 +1844,29 @@ class _CardioCathScreenState extends State<CardioCathScreen>
               const Icon(Icons.school_rounded,
                   color: Color(0xFFFFD600), size: 18),
               const SizedBox(width: 8),
-              Text(
-                'HIGH-YIELD BOARD & CATH LAB LEARNING PEARLS',
-                style: TextStyle(
-                  color: palette.textPrimary,
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 0.5,
+              Expanded(
+                child: Text(
+                  'HIGH-YIELD BOARD & CATH LAB LEARNING PEARLS',
+                  style: TextStyle(
+                    color: palette.textPrimary,
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 0.5,
+                  ),
                 ),
+              ),
+              TextButton.icon(
+                icon: const Icon(Icons.menu_book_rounded,
+                    color: Color(0xFF00E5FF), size: 15),
+                label: const Text(
+                  'Open Complete Cath Lab Guide (ⓘ)',
+                  style: TextStyle(
+                    color: Color(0xFF00E5FF),
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                onPressed: () => showCardiacInteractiveGuideDialog(context),
               ),
             ],
           ),
@@ -1742,6 +1902,66 @@ class _CardioCathScreenState extends State<CardioCathScreen>
                       height: 1.4,
                       fontWeight: FontWeight.w500,
                     ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+
+          // ── Comprehensive Legal, Regulatory, Malpractice & IP Protection Box ──
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: const Color(0xFF0A0F16),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: const Color(0xFFFFB300).withValues(alpha: 0.4),
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    const Icon(Icons.verified_user_rounded,
+                        color: Color(0xFFFFB300), size: 16),
+                    const SizedBox(width: 8),
+                    const Expanded(
+                      child: Text(
+                        'STATUTORY REGULATORY, MALPRACTICE, TRADEMARK & ZERO-PHI PROTECTION NOTICE',
+                        style: TextStyle(
+                          color: Color(0xFFFFB300),
+                          fontSize: 10.5,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 0.6,
+                        ),
+                      ),
+                    ),
+                    InkWell(
+                      onTap: () => showCardiacLegalShieldDialog(context),
+                      child: const Text(
+                        'Read Full 7-Pillar Legal Terms →',
+                        style: TextStyle(
+                          color: Color(0xFF00E5FF),
+                          fontSize: 10.5,
+                          fontWeight: FontWeight.bold,
+                          decoration: TextDecoration.underline,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                const Text(
+                  '1. Non-Device Exemption (21 U.S.C. § 360j(o) / EU MDR 2017/745): Strictly an educational & mathematical simulation—never a Medical Device or Clinical Decision Support (CDS) system.\n'
+                  '2. No Clinical Reliance or Malpractice Duty: No physician-patient relationship is created. Never rely on simulated drug dosages, stent strategies, or GNN predictions for patient care.\n'
+                  '3. Nominative Fair-Use & Non-Affiliation: Catheter/device names (JL4, JR4, EBU, AL1, PressureWire, Rotablator, IVUS, OCT) are used strictly for descriptive academic instruction. Quantum Forge (© 2026 Ali Asghar) is independent and unaffiliated with any medical device or pharmaceutical manufacturer.\n'
+                  '4. Zero-PHI Guarantee: 100% synthetic mathematical waveforms; zero real patient data is collected or stored.',
+                  style: TextStyle(
+                    color: Colors.white60,
+                    fontSize: 10.2,
+                    height: 1.42,
                   ),
                 ),
               ],

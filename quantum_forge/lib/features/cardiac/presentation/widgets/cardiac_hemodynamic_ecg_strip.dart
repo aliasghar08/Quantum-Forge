@@ -14,6 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:quantum_forge/core/theme/theme_provider.dart';
 import '../../data/cardiac_pathology_models.dart';
 import '../../data/coronary_hemodynamics_engine.dart';
+import 'cardiac_clinical_info_system.dart';
 
 class CardiacHemodynamicEcgStrip extends StatefulWidget {
   final CardiacPathologyScenario scenario;
@@ -293,6 +294,12 @@ class _CardiacHemodynamicEcgStripState extends State<CardiacHemodynamicEcgStrip>
                         letterSpacing: 0.8,
                       ),
                     ),
+                    const SizedBox(width: 6),
+                    const CardiacInfoButton(
+                      topicId: 'viewport_telemetry',
+                      customLabel: 'Wiggers & ECG Info',
+                      size: 12,
+                    ),
                     const SizedBox(width: 12),
 
                     // Heart Rate with live R-Wave QRS Sync LED
@@ -366,6 +373,11 @@ class _CardiacHemodynamicEcgStripState extends State<CardiacHemodynamicEcgStrip>
                         color: widget.wssDynes! > 70.0
                             ? const Color(0xFFFFB300)
                             : const Color(0xFF38BDF8),
+                      ),
+                      const SizedBox(width: 4),
+                      const CardiacInfoButton(
+                        topicId: 'metric_wss',
+                        size: 11,
                       ),
                     ],
 

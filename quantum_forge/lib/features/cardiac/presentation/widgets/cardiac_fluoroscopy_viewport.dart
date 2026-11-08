@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 import '../../data/cardiac_pathology_models.dart';
 import '../../data/coronary_hemodynamics_engine.dart';
 import 'cardiac_three_engine.dart';
+import 'cardiac_clinical_info_system.dart';
 
 class CardiacFluoroscopyViewport extends StatefulWidget {
   final CardiacPathologyScenario scenario;
@@ -207,6 +208,12 @@ class _CardiacFluoroscopyViewportState extends State<CardiacFluoroscopyViewport>
                         ],
                       ),
                     ),
+                  ),
+                  const SizedBox(width: 6),
+                  const CardiacInfoButton(
+                    topicId: 'viewport_fluoroscopy',
+                    customLabel: 'X-Ray Info',
+                    size: 12,
                   ),
                   const SizedBox(width: 6),
                   Container(
