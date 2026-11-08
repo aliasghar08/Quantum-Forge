@@ -29,6 +29,7 @@ import '../features/cardiac/presentation/widgets/cardio_nephro_gnn_dialog.dart';
 import '../features/cardiac/presentation/widgets/cardiac_clinical_info_system.dart';
 import '../features/cardiac/presentation/widgets/cardiac_diagnostic_workstation_panel.dart';
 import '../features/cardiac/presentation/widgets/cardiac_research_workstation_panel.dart';
+import '../features/cardiac/presentation/widgets/cardiac_fellowship_suite_panel.dart';
 
 class CardioCathScreen extends StatefulWidget {
   final String? initialScenarioId;
@@ -779,6 +780,16 @@ class _CardioCathScreenState extends State<CardioCathScreen>
                   ? _activeScenario.ladStenosisFraction * 100.0
                   : 72.0,
               initialHeartRate: _bpm,
+            ),
+
+            const SizedBox(height: 12),
+
+            // ── View 7: Interventional Fellowship, Digital Twin & Grand Rounds Suite ──
+            CardiacFellowshipSuitePanel(
+              animationPhase: _cardiacAnimController.value,
+              heartRateBpm: _bpm,
+              initialRoomCode: Uri.base.queryParameters['room'],
+              onSyncHeartRate: _updateBpm,
             ),
 
             const SizedBox(height: 12),

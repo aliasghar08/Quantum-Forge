@@ -671,5 +671,72 @@ async def api_research_cohort(req: ResearchCohortRequest):
         raise HTTPException(status_code=500, detail=f"CardioPINN cohort error: {str(e)}")
 
 
+class ComplexInterventionRequest(BaseModel):
+    procedure_type: str = Field(default="bifurcation_pci")
+    lesion_subtype: str = Field(default="medina_1_1_1_lm")
+    technique: str = Field(default="dk_crush")
+    deployed: bool = Field(default=True)
+
+
+class InverseDigitalTwinRequest(BaseModel):
+    preset_id: str = Field(default="mimic_iii_normal_radial")
+    custom_sbp_mmhg: Optional[float] = None
+    custom_dbp_mmhg: Optional[float] = None
+    custom_hr_bpm: Optional[float] = None
+
+
+class GrandRoundsSessionRequest(BaseModel):
+    room_id: str = Field(default="CATH-ROUNDS-101")
+    active_emergency: str = Field(default="none")
+    fellow_action: str = Field(default="none")
+    catheter_holder: str = Field(default="Attending Professor")
+
+
+@app.post("/api/cardiac/complex-intervention")
+async def api_complex_intervention(req: ComplexInterventionRequest):
+    """
+    Upgrade 1: Complex Interventional Cardiology & Structural Heart Suite
+    (Bifurcation PCI DK-Crush/Culotte/Provisional, CTO Crossing, TAVR & MitraClip TEER).
+    """
+    solver = CoronaryHemodynamicsSolver()
+    return solver.solve_complex_intervention(
+        procedure_type=req.procedure_type,
+        lesion_subtype=req.lesion_subtype,
+        technique=req.technique,
+        deployed=req.deployed,
+    )
+
+
+@app.post("/api/cardiac/inverse-twin")
+async def api_inverse_digital_twin(req: InverseDigitalTwinRequest):
+    """
+    Upgrade 2: Real ECG & Hemodynamic Waveform Ingestion (CardioPINN Inverse Digital Twin).
+    100% Zero-PHI parameter inversion for arterial compliance (C), IMR, and contractility (Emax).
+    """
+    solver = CoronaryHemodynamicsSolver()
+    return solver.solve_inverse_digital_twin(
+        preset_id=req.preset_id,
+        custom_sbp_mmhg=req.custom_sbp_mmhg,
+        custom_dbp_mmhg=req.custom_dbp_mmhg,
+        custom_hr_bpm=req.custom_hr_bpm,
+    )
+
+
+@app.post("/api/cardiac/grand-rounds")
+async def api_grand_rounds(req: GrandRoundsSessionRequest):
+    """
+    Upgrade 3: Live Multiplayer Cath Lab & Cardiology Grand Rounds Room.
+    Synchronized room telemetry, Attending Emergency Triggers & Fellow OSCE Rescue Scoring.
+    """
+    solver = CoronaryHemodynamicsSolver()
+    return solver.solve_grand_rounds_session(
+        room_id=req.room_id,
+        active_emergency=req.active_emergency,
+        fellow_action=req.fellow_action,
+        catheter_holder=req.catheter_holder,
+    )
+
+
+
 
 

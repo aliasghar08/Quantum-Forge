@@ -756,6 +756,65 @@ const Map<String, CardiacInfoTopic> kCardiacInfoTopics = {
     howToInteract:
         'Click "Copy 1,000 Hz CSV Telemetry", "Copy SHA-256 JSON Manifest", or "Copy Python Reproduction Script" to export deterministic research artifacts for notebooks and publications.',
   ),
+
+  // ── 12. INTERVENTIONAL FELLOWSHIP, DIGITAL TWIN & MULTIPLAYER GRAND ROUNDS ─
+  'fellowship_bifurcation_cto_structural': CardiacInfoTopic(
+    id: 'fellowship_bifurcation_cto_structural',
+    title: 'Complex Interventional PCI (DK-Crush vs. Culotte, CTO Crossing) & Structural Heart (TAVR & MitraClip)',
+    category: 'FELLOWSHIP & STRUCTURAL SUITE',
+    accentColor: Color(0xFF38BDF8),
+    plainLanguageSummary:
+        'Simulates advanced fellowship-level heart procedures: stenting a Y-shaped arterial fork (Medina 1,1,1 Bifurcation), crossing a 100% chronically blocked artery (CTO) through tiny collateral channels, replacing a calcified aortic valve via catheter (TAVR), and clipping a leaky mitral valve (MitraClip TEER).',
+    advancedMechanism:
+        'Models complex coronary and structural hemodynamics:\n'
+        '• Medina 1,1,1 Bifurcation PCI (DK-Crush vs. Culotte vs. Provisional): Double-Kissing Crush (DK-Crush) with Proximal Optimization Technique (POT) eliminates carina shift, normalizes carina Time-Averaged Wall Shear Stress (TAWSS ~18 dynes/cm²), minimizes recirculation OSI (<0.10), and preserves side-branch FFR (>= 0.94) compared to Provisional crossover (pinched side-branch ostium, FFR ~0.74).\n'
+        '• Chronic Total Occlusion (CTO) Hybrid Algorithm: Grades J-CTO difficulty (blunt stump, calcification, >20° bend, length >=20 mm, retry) and models Retrograde Septal Collateral Surfing (Sion/Suoh 03 wire + Corsair microcatheter + Reverse CART).\n'
+        '• Structural Heart (TAVR & MitraClip): TAVR (SAPIEN 3 / Evolut FX) expands effective aortic valve area from 0.65 cm² to >2.0 cm², dropping Bernoulli peak pressure gradient ΔP = 4v² from >64 mmHg to <10 mmHg. MitraClip TEER grasps A2–P2 scallops, dropping regurgitant fraction from >50% to <15% and normalizing giant LA V-waves.',
+    normalReferenceRange:
+        'Post-DK-Crush SB FFR: >= 0.90 | Post-TAVR Mean Gradient: < 10 mmHg (AVA > 1.8 cm²) | Post-MitraClip MR Grade: <= 1+ (Transmitral ΔP < 5 mmHg)',
+    clinicalBoardPearl:
+        'DKCRUSH-V Trial Pearl: For complex distal Left Main true bifurcations (Medina 1,1,1 or 0,1,1), planned 2-stent DK-Crush significantly reduces target lesion failure and stent thrombosis compared to provisional stenting.',
+    howToInteract:
+        'Switch between Bifurcation PCI (Provisional, DK-Crush, Culotte), CTO Crossing (Antegrade Escalation, Dissection Re-Entry, Retrograde Reverse CART), and Structural Heart (TAVR SAPIEN 3, TAVR Evolut FX, MitraClip TEER) and toggle Deployment.',
+  ),
+  'fellowship_inverse_digital_twin': CardiacInfoTopic(
+    id: 'fellowship_inverse_digital_twin',
+    title: 'Real ECG & Hemodynamic Waveform Ingestion (CardioPINN Zero-PHI Inverse Digital Twin)',
+    category: 'FELLOWSHIP & STRUCTURAL SUITE',
+    accentColor: Color(0xFF10B981),
+    plainLanguageSummary:
+        'Lets you load anonymized real-world ICU/Cath Lab waveforms (PhysioNet MIMIC-III, PTB-XL STEMI, MIT-BIH) or paste a CSV trace directly in your browser. CardioPINN works backward from the waveform to discover the patient\'s arterial stiffness (C), microvascular resistance (IMR), and heart squeeze (Emax)—without any patient data ever leaving your device.',
+    advancedMechanism:
+        'Executes 100% browser-local Zero-PHI parsing (HIPAA Safe Harbor / GDPR compliant) followed by CardioPINN 3-Element Windkessel parameter inversion:\n'
+        '• Windkessel Arterial Compliance (C = SV / [SBP - DBP]): Estimates aortic elastic buffering from pulse pressure decay time constant τ = R_d × C during diastole.\n'
+        '• Microvascular Resistance (IMR) & Systemic Vascular Resistance (SVR): Fits distal coronary microvascular impedance and systemic afterload from Mean Arterial Pressure (MAP) and ST-segment ischemic shift.\n'
+        '• Time-Varying Elastance Contractility (E_max): Inverts end-systolic pressure-volume slope to synchronize the 3D beating heart and P–V loop to the ingested waveform.',
+    normalReferenceRange:
+        'Arterial Compliance C: 1.4–2.2 mL/mmHg | Normal IMR: < 25 units | Normal E_max: 1.8–2.5 mmHg/mL | Waveform Fit R²: >= 0.96',
+    clinicalBoardPearl:
+        'Isolated Systolic Hypertension in elderly/HFpEF patients reflects reduced Windkessel aortic compliance (low C): stroke volume is ejected into a rigid aorta, spiking Systolic BP (>160 mmHg) while accelerating diastolic runoff (low Diastolic BP, wide Pulse Pressure), which compromises diastolic coronary perfusion.',
+    howToInteract:
+        'Select a PhysioNet/MIMIC anonymized waveform preset or paste custom CSV samples (time_ms,ecg_mv,pa_mmhg), click "Invert Digital Twin Parameters", and click "Sync Twin to 3D Beating Heart".',
+  ),
+  'fellowship_multiplayer_grand_rounds': CardiacInfoTopic(
+    id: 'fellowship_multiplayer_grand_rounds',
+    title: 'Live Multiplayer Cath Lab & Cardiology Grand Rounds Room ("Pass Catheter" OSCE Mode)',
+    category: 'FELLOWSHIP & STRUCTURAL SUITE',
+    accentColor: Color(0xFFF43F5E),
+    plainLanguageSummary:
+        'Creates a synchronized teaching room (`quantumforgeapp.com/#/cardiac?room=...`) where an Attending Professor and fellows share the same live Cath Lab state, trigger sudden life-threatening emergencies, and hand over catheter/defibrillator controls to rescue the patient.',
+    advancedMechanism:
+        'Synchronizes multi-user Cath Lab state (room ID, active operator, C-arm projection, vitals, and complication state) and scores time-critical interventional bailout drills:\n'
+        '• Ellis Type III Coronary Perforation & Tamponade: High-pressure jet extravasation into the pericardium equalizes diastolic pressures (RA = RV = PCWP) and collapses RV filling; rescued by prolonged balloon tamponade, PK Papyrus covered stent deployment, and emergent pericardiocentesis.\n'
+        '• Acute Coronary No-Reflow (TIMI 0–1): Distal atherothrombotic microembolization and microvascular spasm after stent deployment; rescued by distal intracoronary Adenosine / Nicardipine / Verapamil.\n'
+        '• Drug-Induced Torsades de Pointes (CardioElectrophys-Net hERG Crisis): Polymorphic VT with twisting QRS axis; rescued by 200J biphasic defibrillation + IV Magnesium Sulfate 2g bolus.',
+    normalReferenceRange:
+        'Target Bailout Time: < 60 sec | Pericardial Tamponade Beck\'s Triad: Hypotension + JVD + Muffled Heart Sounds | Target OSCE Score: 100/100',
+    clinicalBoardPearl:
+        'In acute coronary No-Reflow after stenting, never administer intracoronary Nitroglycerin expecting microvascular relief—nitroglycerin dilates epicardial conductance arteries (>200 um) but is ineffective on distal resistance arterioles (<100 um). Use intracoronary Adenosine, Nicardipine, Verapamil, or Nitroprusside instead!',
+    howToInteract:
+        'Copy the shareable Grand Rounds Room URL, click "Pass Catheter to Fellow", trigger an Attending Emergency (Perforation/Tamponade, Acute No-Reflow, or Torsades de Pointes), and execute the matching lifesaving bailout intervention.',
+  ),
 };
 
 /// Sleek, reusable `ⓘ` Info Button that supports BOTH:
@@ -1161,6 +1220,7 @@ class _CardiacInteractiveGuideDialogState extends State<_CardiacInteractiveGuide
 
   static const List<String> _categories = [
     'ALL',
+    'FELLOWSHIP & STRUCTURAL SUITE',
     'COMPUTATIONAL RESEARCH WORKSTATION',
     'CARDIAC DIAGNOSTIC WORKSTATION',
     '3D HEART VIEWPORT MODE',

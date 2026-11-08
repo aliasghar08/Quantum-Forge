@@ -367,5 +367,82 @@ def test_cardio_pinn_hemodynamics_virtual_cohort_and_sobol_tornado():
     assert "spatial_profile" in data
 
 
+def test_upgrade_1_complex_intervention_bifurcation_cto_tavr_mitraclip():
+    """Verify DK-Crush outperforms Provisional SB FFR, CTO retrograde restores TIMI 3, and TAVR drops Bernoulli DeltaP < 10 mmHg."""
+    prov = client.post(
+        "/api/cardiac/complex-intervention",
+        json={"procedure_type": "bifurcation_pci", "technique": "provisional", "deployed": True},
+    ).json()
+    dk = client.post(
+        "/api/cardiac/complex-intervention",
+        json={"procedure_type": "bifurcation_pci", "technique": "dk_crush", "deployed": True},
+    ).json()
+    assert dk["side_branch_ffr"] > prov["side_branch_ffr"]
+    assert dk["carina_tawss_dynes_cm2"] < prov["carina_tawss_dynes_cm2"]
+
+    cto = client.post(
+        "/api/cardiac/complex-intervention",
+        json={"procedure_type": "cto_crossing", "technique": "retrograde_septal_reverse_cart", "deployed": True},
+    ).json()
+    assert cto["timi_flow_post"] == 3
+    assert cto["distal_ffr_post"] > 0.85
+
+    tavr = client.post(
+        "/api/cardiac/complex-intervention",
+        json={"procedure_type": "structural_heart", "technique": "tavr_sapien3", "deployed": True},
+    ).json()
+    assert tavr["pre_bernoulli_delta_p_mmhg"] > 60.0
+    assert tavr["post_bernoulli_delta_p_mmhg"] < 10.0
+
+    teer = client.post(
+        "/api/cardiac/complex-intervention",
+        json={"procedure_type": "structural_heart", "technique": "mitraclip_teer", "deployed": True},
+    ).json()
+    assert teer["post_regurgitant_fraction_pct"] < 15.0
+
+
+def test_upgrade_2_inverse_digital_twin_parameter_inversion():
+    """Verify CardioPINN Inverse Digital Twin fits Windkessel C, IMR, and Emax with R2 >= 0.96 and Zero-PHI."""
+    norm = client.post(
+        "/api/cardiac/inverse-twin",
+        json={"preset_id": "mimic_iii_normal_radial"},
+    ).json()
+    stiff = client.post(
+        "/api/cardiac/inverse-twin",
+        json={"preset_id": "mit_bih_hypertensive_hfpef"},
+    ).json()
+    assert norm["zero_phi_browser_parsed"] is True
+    assert norm["waveform_fit_r2"] >= 0.96
+    assert stiff["fitted_windkessel_compliance_c_ml_mmhg"] < norm["fitted_windkessel_compliance_c_ml_mmhg"]
+
+
+def test_upgrade_3_multiplayer_grand_rounds_and_osce_rescue():
+    """Verify Grand Rounds room state sync, Attending emergency trigger, and Fellow OSCE bailout scoring."""
+    crisis = client.post(
+        "/api/cardiac/grand-rounds",
+        json={
+            "room_id": "CATH-ROUNDS-101",
+            "active_emergency": "coronary_perforation_tamponade",
+            "fellow_action": "none",
+        },
+    ).json()
+    assert crisis["emergency_resolved"] is False
+    assert crisis["sbp_mmhg"] < 75.0
+
+    rescued = client.post(
+        "/api/cardiac/grand-rounds",
+        json={
+            "room_id": "CATH-ROUNDS-101",
+            "active_emergency": "coronary_perforation_tamponade",
+            "fellow_action": "covered_stent_pericardiocentesis",
+            "catheter_holder": "Interventional Fellow",
+        },
+    ).json()
+    assert rescued["emergency_resolved"] is True
+    assert rescued["osce_rescue_score"] == 100
+    assert rescued["sbp_mmhg"] > 110.0
+
+
+
 
 

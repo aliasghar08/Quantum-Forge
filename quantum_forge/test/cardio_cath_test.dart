@@ -10,6 +10,7 @@ import 'package:quantum_forge/features/cardiac/presentation/widgets/cardio_nephr
 import 'package:quantum_forge/features/cardiac/presentation/widgets/cardiac_clinical_info_system.dart';
 import 'package:quantum_forge/features/cardiac/presentation/widgets/cardiac_diagnostic_workstation_panel.dart';
 import 'package:quantum_forge/features/cardiac/presentation/widgets/cardiac_research_workstation_panel.dart';
+import 'package:quantum_forge/features/cardiac/presentation/widgets/cardiac_fellowship_suite_panel.dart';
 
 void main() {
   group('CardioCath 3D: Coronary Angiography & Hemodynamic Lab Tests', () {
@@ -718,6 +719,66 @@ void main() {
       expect(find.textContaining('SHA-256 REPRODUCIBILITY DIGEST:'), findsOneWidget);
       expect(find.text('Copy 1,000 Hz Waveform CSV'), findsOneWidget);
       expect(find.text('Copy SHA-256 JSON Manifest'), findsOneWidget);
+    });
+
+    testWidgets('Fellowship Suite Panel renders Bifurcation/CTO/Structural Heart, Inverse Digital Twin, and Multiplayer Grand Rounds Room',
+        (tester) async {
+      tester.view.physicalSize = const Size(1440, 1600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(buildTestScreen(size: const Size(1440, 1600)));
+      await tester.pump();
+
+      expect(find.byType(CardiacFellowshipSuitePanel), findsOneWidget);
+      expect(
+        find.text('INTERVENTIONAL FELLOWSHIP, DIGITAL TWIN & MULTIPLAYER GRAND ROUNDS SUITE'),
+        findsOneWidget,
+      );
+
+      // Tab 1 (Default): Complex PCI (DK-Crush / CTO) & Structural (TAVR / MitraClip)
+      expect(find.text('DK-Crush (2-Stent + Final POT)'), findsOneWidget);
+      expect(find.text('0.94 (Patent)'), findsOneWidget);
+
+      // Switch to Structural Heart (TAVR & MitraClip TEER)
+      final structPill = find.text('Structural Heart (TAVR & MitraClip TEER)');
+      await tester.ensureVisible(structPill);
+      await tester.pump();
+      await tester.tap(structPill);
+      await tester.pump();
+      expect(find.text('TAVR Balloon-Expandable (SAPIEN 3 Ultra)'), findsOneWidget);
+      expect(find.textContaining('Bernoulli ΔP = 7.6 mmHg'), findsOneWidget);
+
+      // Switch to Tab 2: Real ECG/Waveform Inverse Digital Twin (CardioPINN)
+      final tab2 = find.text('2. Real ECG/Waveform Inverse Digital Twin (CardioPINN)');
+      await tester.ensureVisible(tab2);
+      await tester.pump();
+      await tester.tap(tab2);
+      await tester.pump();
+      expect(find.text('PhysioNet MIMIC-III Radial/Aortic Line'), findsOneWidget);
+      expect(find.text('Invert Digital Twin Parameters (CardioPINN)'), findsOneWidget);
+      expect(find.text('Sync Fitted Twin to 3D Beating Heart'), findsOneWidget);
+
+      // Switch to Tab 3: Multiplayer Cath Lab & Grand Rounds ("Pass Catheter" OSCE)
+      final tab3 = find.text('3. Multiplayer Cath Lab & Grand Rounds ("Pass Catheter" OSCE)');
+      await tester.ensureVisible(tab3);
+      await tester.pump();
+      await tester.tap(tab3);
+      await tester.pump();
+      expect(find.text('https://quantumforgeapp.com/#/cardiac?room=CATH-ROUNDS-101'), findsOneWidget);
+      expect(find.text('Pass Catheter to Fellow'), findsOneWidget);
+
+      // Trigger Coronary Perforation / Tamponade and rescue with Covered Stent + Pericardiocentesis
+      final perfBtn = find.text('Trigger Coronary Perforation / Tamponade');
+      await tester.tap(perfBtn);
+      await tester.pump();
+      expect(find.text('0 / 100 (CRISIS ACTIVE)'), findsOneWidget);
+
+      final rescueBtn = find.text('PK Papyrus Covered Stent + Pericardiocentesis');
+      await tester.tap(rescueBtn);
+      await tester.pump();
+      expect(find.text('100 / 100 (RESCUED / STABLE)'), findsOneWidget);
     });
   });
 }
