@@ -1,0 +1,20 @@
+FROM python:3.10-slim
+
+WORKDIR /app
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential libxrender1 libxext6 sqlite3 && rm -rf /var/lib/apt/lists/*
+
+# Install lightweight CPU-only PyTorch, RDKit, ASE, and Google Auth/Firestore
+RUN pip install --no-cache-dir torch --extra-index-url https://download.pytorch.org/whl/cpu && \
+    pip install --no-cache-dir rdkit ase numpy requests google-auth google-cloud-firestore
+
+# Copy autonomous trainer scripts, ledger, and backend GNN models
+COPY scripts/autonomous_trainer/ ./scripts/autonomous_trainer/
+COPY data/autonomous_training/literature_ledger.sqlite ./data/autonomous_training/literature_ledger.sqlite
+COPY tx1-fastapi-backend/app/ ./tx1-fastapi-backend/app/
+COPY tx1-fastapi-backend/models/ ./tx1-fastapi-backend/models/
+COPY tx1-fastapi-backend/t1x_model_checkpoint_v2b.pt ./tx1-fastapi-backend/
+
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONPATH=/app/scripts/autonomous_trainer:/app/tx1-fastapi-backend
+CMD ["python3", "scripts/autonomous_trainer/daemon.py", "--run-once"]

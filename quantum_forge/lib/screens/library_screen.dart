@@ -59,6 +59,16 @@ class _LibraryScreenState extends State<LibraryScreen> {
   String _error = '';
 
   Timer? _debounce;
+  Timer? _countSyncDebounce;
+
+  void _scheduleBackgroundCountSync() {
+    _countSyncDebounce?.cancel();
+    _countSyncDebounce = Timer(const Duration(seconds: 5), () {
+      if (!mounted) return;
+      _fetchCloudCount();
+      _fetchCategoryCounts();
+    });
+  }
 
   // ── Lifecycle ──────────────────────────────────────────────────────────────
 
@@ -87,6 +97,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
   @override
   void dispose() {
     _debounce?.cancel();
+    _countSyncDebounce?.cancel();
     _scrollController.dispose();
     super.dispose();
   }
@@ -729,9 +740,21 @@ class _LibraryScreenState extends State<LibraryScreen> {
 
                       setState(() {
                         _items.insertAll(0, newVariants);
+                        if (seededCount > 0) {
+                          if (_cloudCount != null && _cloudCount! >= 0) {
+                            _cloudCount = _cloudCount! + seededCount;
+                          }
+                          if (_cloudCategoryCounts != null) {
+                            _cloudCategoryCounts![null] =
+                                (_cloudCategoryCounts![null] ?? 0) + seededCount;
+                            for (final v in newVariants) {
+                              _cloudCategoryCounts![v.category] =
+                                  (_cloudCategoryCounts![v.category] ?? 0) + 1;
+                            }
+                          }
+                        }
                       });
-                      _fetchCloudCount();
-                      _fetchCategoryCounts();
+                      _scheduleBackgroundCountSync();
 
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
@@ -976,9 +999,17 @@ class _LibraryScreenState extends State<LibraryScreen> {
                 if (saved) {
                   setState(() {
                     _items.insert(0, template);
+                    if (_cloudCount != null && _cloudCount! >= 0) {
+                      _cloudCount = _cloudCount! + 1;
+                    }
+                    if (_cloudCategoryCounts != null) {
+                      _cloudCategoryCounts![null] =
+                          (_cloudCategoryCounts![null] ?? 0) + 1;
+                      _cloudCategoryCounts![template.category] =
+                          (_cloudCategoryCounts![template.category] ?? 0) + 1;
+                    }
                   });
-                  _fetchCloudCount();
-                  _fetchCategoryCounts();
+                  _scheduleBackgroundCountSync();
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text(

@@ -135,15 +135,18 @@ class AutonomousDaemon:
             else:
                 self.harvester.update_paper_status(doi, "skipped_no_coordinates")
 
+        # Flush all buffered reaction records into massive_reactions.json in one single atomic write
+        self.ingester.flush_massive_reactions_json()
+
         if not extracted_paths:
             logger.warning("No valid structures extracted from pending papers.")
             return False
 
-        # Build zero-leakage training and validation splits with replay buffer
+        # Build zero-leakage training and validation splits with replay buffer (once per batch)
         logger.info("Building zero-leakage continual learning splits...")
         train_path, val_path = self.ingester.build_continual_training_splits(extracted_paths)
 
-        # Execute training on Apple Silicon Metal GPU / multi-core CPU
+        # Execute training on Apple Silicon Metal GPU / multi-core CPU (once per batch)
         trigger_label = processed_dois[0] if len(processed_dois) == 1 else f"batch_{len(processed_dois)}_papers"
         logger.info("Triggering MPS continual training cycle for: %s", trigger_label)
 
@@ -155,6 +158,14 @@ class AutonomousDaemon:
             epochs=15,
             batch_size=8,
         )
+
+        try:
+            import torch
+            if hasattr(torch, "mps") and hasattr(torch.mps, "empty_cache"):
+                torch.mps.empty_cache()
+                logger.debug("Emptied torch.mps cache to release Metal unified memory.")
+        except Exception:
+            pass
 
         if results.get("status") == "success":
             logger.info("✅ Training completed successfully. Marking papers as trained in ledger.")

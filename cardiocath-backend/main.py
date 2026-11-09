@@ -737,6 +737,87 @@ async def api_grand_rounds(req: GrandRoundsSessionRequest):
     )
 
 
+class StrainBullseyeRequest(BaseModel):
+    pathology: str = Field(default="normal")
+    lad_stenosis: float = Field(default=0.0)
+    rca_stenosis: float = Field(default=0.0)
+    lcx_stenosis: float = Field(default=0.0)
+    is_revascularized: bool = Field(default=False)
+
+
+class RotorMappingRequest(BaseModel):
+    rhythm_state: str = Field(default="ventricular_tachycardia")
+    scar_burden_pct: float = Field(default=35.0)
+    rf_ablated: bool = Field(default=False)
+    crt_pacing_active: bool = Field(default=False)
+
+
+class StructuralSizingRequest(BaseModel):
+    annulus_diameter_mm: float = Field(default=24.5)
+    sinus_valsalva_width_mm: float = Field(default=30.0)
+    coronary_ostial_height_mm: float = Field(default=11.0)
+    procedure_type: str = Field(default="viv_tavr")
+    device_size_mm: float = Field(default=26.0)
+    basilica_performed: bool = Field(default=False)
+
+
+class RhcCpetRequest(BaseModel):
+    catheter_chamber: str = Field(default="pcwp")
+    exercise_state: str = Field(default="rest")
+    shock_phenotype: str = Field(default="none")
+
+
+@app.post("/api/cardiac/strain-bullseye")
+async def api_strain_bullseye(req: StrainBullseyeRequest):
+    """Next-Gen Engine 1: CardioFNO-3D Myocardial Strain & 17-Segment AHA Bullseye."""
+    solver = CoronaryHemodynamicsSolver()
+    return solver.solve_strain_bullseye(
+        pathology=req.pathology,
+        lad_stenosis=req.lad_stenosis,
+        rca_stenosis=req.rca_stenosis,
+        lcx_stenosis=req.lcx_stenosis,
+        is_revascularized=req.is_revascularized,
+    )
+
+
+@app.post("/api/cardiac/rotor-mapping")
+async def api_rotor_mapping(req: RotorMappingRequest):
+    """Next-Gen Engine 2: CardioRotor-3D Tissue Wave Propagation & Rotor Mapping."""
+    solver = CoronaryHemodynamicsSolver()
+    return solver.solve_rotor_mapping(
+        rhythm_state=req.rhythm_state,
+        scar_burden_pct=req.scar_burden_pct,
+        rf_ablated=req.rf_ablated,
+        crt_pacing_active=req.crt_pacing_active,
+    )
+
+
+@app.post("/api/cardiac/structural-sizing")
+async def api_structural_sizing(req: StructuralSizingRequest):
+    """Next-Gen Engine 3: 3D Structural Heart Morphometry & Valve-to-Coronary (VTC) Sizing."""
+    solver = CoronaryHemodynamicsSolver()
+    return solver.solve_structural_sizing(
+        annulus_diameter_mm=req.annulus_diameter_mm,
+        sinus_valsalva_width_mm=req.sinus_valsalva_width_mm,
+        coronary_ostial_height_mm=req.coronary_ostial_height_mm,
+        procedure_type=req.procedure_type,
+        device_size_mm=req.device_size_mm,
+        basilica_performed=req.basilica_performed,
+    )
+
+
+@app.post("/api/cardiac/rhc-cpet")
+async def api_rhc_cpet(req: RhcCpetRequest):
+    """Next-Gen Engine 4: Invasive Right-Heart Catheterization (Swan-Ganz) & CPET Exercise Lab."""
+    solver = CoronaryHemodynamicsSolver()
+    return solver.solve_rhc_cpet(
+        catheter_chamber=req.catheter_chamber,
+        exercise_state=req.exercise_state,
+        shock_phenotype=req.shock_phenotype,
+    )
+
+
+
 
 
 

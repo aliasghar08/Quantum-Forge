@@ -49,3 +49,5 @@ app.*.map.json
 
 # Firebase CLI deploy cache — regenerated on every `firebase deploy`
 /.firebase/
+# Widget Preview related
+.widget_preview/

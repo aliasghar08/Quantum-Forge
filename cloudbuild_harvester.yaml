@@ -1,0 +1,6 @@
+steps:
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['build', '-f', 'scripts/autonomous_trainer/Dockerfile.harvester', '-t', 'us-central1-docker.pkg.dev/quantom-forge/quantom-forge-repo/quantum-forge-harvester:latest', '.']
+images:
+- 'us-central1-docker.pkg.dev/quantom-forge/quantom-forge-repo/quantum-forge-harvester:latest'
+

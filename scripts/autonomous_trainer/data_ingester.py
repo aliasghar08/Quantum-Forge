@@ -20,6 +20,8 @@ import os
 from pathlib import Path
 import random
 import sqlite3
+import subprocess
+import time
 
 import numpy as np
 try:
@@ -94,7 +96,22 @@ class DataIngester:
         self.db_path = db_path
         self.conn = get_db(db_path)
         self.verifier = ScholarlyReactionVerifier()
+        self._cached_token: str | None = None
+        self._token_expires_at: float = 0.0
+        self._pending_json_records: list[dict[str, Any]] = []
         AUTONOMOUS_DATA_DIR.mkdir(parents=True, exist_ok=True)
+
+    def get_gcloud_auth_token(self, force_refresh: bool = False) -> str | None:
+        """Retrieve an active Google Cloud / Firebase bearer token with 45-minute TTL caching."""
+        now = time.monotonic()
+        if not force_refresh and self._cached_token and now < self._token_expires_at:
+            return self._cached_token
+        from scholarly_verifier import get_gcloud_auth_token as verifier_get_token
+        token = verifier_get_token(force_refresh=force_refresh)
+        if token:
+            self._cached_token = token
+            self._token_expires_at = now + 2700  # 45-minute TTL
+        return self._cached_token
 
     def select_reaction_archetype(self, text: str) -> str:
         """Classify paper topic into specific chemical reaction mechanism classes."""
@@ -425,33 +442,46 @@ class DataIngester:
             published = publish_reaction_to_firebase(reaction_data)
             if published:
                 logger.info("✨ Successfully verified and published reaction %s to Firestore /library!", safe_id)
-                # Also save to massive_reactions.json local cache
-                cache_path = Path("quantum_forge/assets/massive_reactions.json")
-                if cache_path.exists():
-                    try:
-                        with open(cache_path, "r") as f:
-                            local_list = json.load(f)
-                        local_list.insert(0, {
-                            "id": safe_id,
-                            "name": title[:85],
-                            "iupacName": reaction_data["iupac_equation"],
-                            "description": reaction_data["description"],
-                            "category": category,
-                            "reactantXyz": r_xyz,
-                            "productXyz": p_xyz,
-                            "referenceEa": round(ea_kcal, 2),
-                            "doi": doi,
-                            "journalRef": journal,
-                            "tags": tags,
-                        })
-                        with open(cache_path, "w") as f:
-                            json.dump(local_list, f, indent=2)
-                    except Exception as e:
-                        logger.debug("Could not update local massive_reactions.json: %s", e)
+                # Buffer record for single-flush write to massive_reactions.json
+                self._pending_json_records.append({
+                    "id": safe_id,
+                    "name": title[:85],
+                    "iupacName": reaction_data["iupac_equation"],
+                    "description": reaction_data["description"],
+                    "category": category,
+                    "reactantXyz": r_xyz,
+                    "productXyz": p_xyz,
+                    "referenceEa": round(ea_kcal, 2),
+                    "doi": doi,
+                    "journalRef": journal,
+                    "tags": tags,
+                })
                 return True
         except Exception as e:
             logger.warning("Could not auto-publish %s to Firestore /library: %s", doi, e)
         return False
+
+    def flush_massive_reactions_json(self) -> int:
+        """Flushes buffered reaction records into massive_reactions.json in a single atomic I/O write."""
+        if not self._pending_json_records:
+            return 0
+        cache_path = Path("quantum_forge/assets/massive_reactions.json")
+        if not cache_path.exists():
+            return 0
+        flushed_count = len(self._pending_json_records)
+        try:
+            with open(cache_path, "r", encoding="utf-8") as f:
+                local_list = json.load(f)
+            # Prepend all pending records preserving harvest order
+            local_list = self._pending_json_records + local_list
+            with open(cache_path, "w", encoding="utf-8") as f:
+                json.dump(local_list, f, indent=2)
+            logger.info("💾 Flushed %d buffered reaction records into %s", flushed_count, cache_path)
+            self._pending_json_records.clear()
+            return flushed_count
+        except Exception as e:
+            logger.warning("Could not flush buffered reactions to %s: %s", cache_path, e)
+            return 0
 
     def build_continual_training_splits(
         self,
@@ -534,6 +564,7 @@ def main():
             print(f"Error: DOI {args.doi} not found in ledger. Register it first.")
             return
         out = ingester.ingest_paper(row)
+        ingester.flush_massive_reactions_json()
         print(f"Ingested {args.doi} -> {out}")
     elif args.ingest_pending:
         conn = get_db()
@@ -545,6 +576,7 @@ def main():
             p = ingester.ingest_paper(r)
             if p:
                 paths.append(p)
+        ingester.flush_massive_reactions_json()
         if paths:
             tr, val = ingester.build_continual_training_splits(paths)
             print(f"Built continual splits:\n  Train: {tr}\n  Val: {val}")

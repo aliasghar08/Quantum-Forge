@@ -443,6 +443,68 @@ def test_upgrade_3_multiplayer_grand_rounds_and_osce_rescue():
     assert rescued["sbp_mmhg"] > 110.0
 
 
+def test_frontier_engine_1_cardio_fno_3d_strain_bullseye():
+    """Verify CardioFNO-3D computes 17-segment strain and detects Amyloid apical sparing."""
+    norm = client.post("/api/cardiac/strain-bullseye", json={"pathology": "normal"}).json()
+    assert norm["status"] == "success"
+    assert len(norm["segments"]) == 17
+    assert norm["global_longitudinal_strain_gls_pct"] < -17.0
+
+    amyloid = client.post("/api/cardiac/strain-bullseye", json={"pathology": "cardiac_amyloidosis"}).json()
+    assert amyloid["has_apical_sparing_flag"] is True
+    assert amyloid["apical_sparing_ratio"] > 1.5
+
+
+def test_frontier_engine_2_cardio_rotor_3d_mapping_and_ablation():
+    """Verify CardioRotor-3D detects re-entrant rotor and terminates it post-RF scar ablation."""
+    vt = client.post(
+        "/api/cardiac/rotor-mapping",
+        json={"rhythm_state": "ventricular_tachycardia", "scar_burden_pct": 35.0, "rf_ablated": False},
+    ).json()
+    assert vt["vt_vf_vulnerability_index"] > 0.50
+    assert len(vt["rotor_cores"]) > 0
+
+    ablated = client.post(
+        "/api/cardiac/rotor-mapping",
+        json={"rhythm_state": "ventricular_tachycardia", "scar_burden_pct": 35.0, "rf_ablated": True},
+    ).json()
+    assert ablated["vt_vf_vulnerability_index"] < 0.20
+    assert len(ablated["rotor_cores"]) == 0
+
+
+def test_frontier_engine_3_structural_sizing_vtc_and_basilica():
+    """Verify VTC distance detects high obstruction risk (<4 mm) and BASILICA provides clearance."""
+    tight = client.post(
+        "/api/cardiac/structural-sizing",
+        json={"sinus_valsalva_width_mm": 27.0, "device_size_mm": 26.0, "coronary_ostial_height_mm": 7.0, "basilica_performed": False},
+    ).json()
+    assert tight["valve_to_coronary_vtc_mm"] < 4.0
+    assert tight["is_high_risk_coronary_obstruction"] is True
+
+    basilica = client.post(
+        "/api/cardiac/structural-sizing",
+        json={"sinus_valsalva_width_mm": 27.0, "device_size_mm": 26.0, "coronary_ostial_height_mm": 7.0, "basilica_performed": True},
+    ).json()
+    assert basilica["valve_to_coronary_vtc_mm"] > tight["valve_to_coronary_vtc_mm"]
+
+
+def test_frontier_engine_4_rhc_cpet_swan_ganz_and_exercise():
+    """Verify Swan-Ganz chamber pressures, Group 1 PAH vs Group 2 HFpEF, and exercise PCWP unmasking."""
+    pah = client.post(
+        "/api/cardiac/rhc-cpet",
+        json={"catheter_chamber": "pa", "shock_phenotype": "pre_capillary_pah", "exercise_state": "rest"},
+    ).json()
+    assert pah["pulmonary_vascular_resistance_pvr_wood"] > 3.0
+    assert "Group 1" in pah["hemodynamic_classification"]
+
+    hfpef = client.post(
+        "/api/cardiac/rhc-cpet",
+        json={"catheter_chamber": "pcwp", "shock_phenotype": "hfpef", "exercise_state": "peak_exercise"},
+    ).json()
+    assert hfpef["pcwp_mean_mmhg"] > 25.0
+
+
+
 
 
 

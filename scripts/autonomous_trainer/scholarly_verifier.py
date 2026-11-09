@@ -379,30 +379,68 @@ class ScholarlyReactionVerifier:
         return True, "Authentic reaction verified with conserved mass and valid physical coordinates."
 
 
-def get_gcloud_auth_token() -> str | None:
-    """Retrieve an active Google Cloud / Firebase bearer token."""
+_cached_token: str | None = None
+_token_expires_at: float = 0.0
+
+
+def get_gcloud_auth_token(force_refresh: bool = False) -> str | None:
+    """Retrieve an active Google Cloud / Firebase bearer token with 45-minute TTL caching.
+    
+    Tries Application Default Credentials (ADC) first (standard on Cloud Run),
+    falling back to gcloud CLI and firebase-tools.json when running locally on macOS.
+    """
+    global _cached_token, _token_expires_at
+    now = time.monotonic()
+    if not force_refresh and _cached_token and now < _token_expires_at:
+        return _cached_token
+
+    token: str | None = None
+
+    # 1. Try Google Application Default Credentials (ADC) - standard on Cloud Run
     try:
-        proc = subprocess.run(
-            ["gcloud", "auth", "print-access-token"],
-            capture_output=True,
-            text=True,
-            timeout=8,
+        import google.auth
+        from google.auth.transport.requests import Request as GoogleAuthRequest
+        creds, _ = google.auth.default(
+            scopes=["https://www.googleapis.com/auth/datastore"]
         )
-        if proc.returncode == 0 and proc.stdout.strip():
-            return proc.stdout.strip()
+        if not creds.valid or force_refresh:
+            creds.refresh(GoogleAuthRequest())
+        if creds.token:
+            token = creds.token
     except Exception:
         pass
 
-    cfg = Path.home() / ".config/configstore/firebase-tools.json"
-    if cfg.exists():
+    # 2. Local fallback: gcloud CLI
+    if not token:
         try:
-            with open(cfg, "r") as f:
-                d = json.load(f)
-                token = d.get("tokens", {}).get("access_token")
-                if token:
-                    return token
+            proc = subprocess.run(
+                ["gcloud", "auth", "print-access-token"],
+                capture_output=True,
+                text=True,
+                timeout=8,
+            )
+            if proc.returncode == 0 and proc.stdout.strip():
+                token = proc.stdout.strip()
         except Exception:
             pass
+
+    # 3. Local fallback: firebase-tools.json
+    if not token:
+        cfg = Path.home() / ".config/configstore/firebase-tools.json"
+        if cfg.exists():
+            try:
+                with open(cfg, "r") as f:
+                    d = json.load(f)
+                    tok = d.get("tokens", {}).get("access_token")
+                    if tok:
+                        token = tok
+            except Exception:
+                pass
+
+    if token:
+        _cached_token = token
+        _token_expires_at = now + 2700  # 45-minute TTL
+        return _cached_token
     return None
 
 
@@ -458,7 +496,8 @@ def publish_reaction_to_firebase(
                     return True
         except urllib.error.HTTPError as http_err:
             if http_err.code == 401:
-                logger.warning("OAuth token expired (HTTP 401). Refreshing token for attempt %d/%d...", attempt + 1, max_retries)
+                logger.warning("OAuth token expired (HTTP 401). Force-refreshing token for attempt %d/%d...", attempt + 1, max_retries)
+                get_gcloud_auth_token(force_refresh=True)
                 time.sleep(1.0)
                 continue
             elif http_err.code == 429:

@@ -815,6 +815,86 @@ const Map<String, CardiacInfoTopic> kCardiacInfoTopics = {
     howToInteract:
         'Copy the shareable Grand Rounds Room URL, click "Pass Catheter to Fellow", trigger an Attending Emergency (Perforation/Tamponade, Acute No-Reflow, or Torsades de Pointes), and execute the matching lifesaving bailout intervention.',
   ),
+
+  // ── 13. NEXT-GEN FRONTIER CARDIOLOGY & BIOMECHANICAL ENGINES ──────────────
+  'frontier_fno_strain': CardiacInfoTopic(
+    id: 'frontier_fno_strain',
+    title: 'CardioFNO-3D: 3D Myocardial Strain, Torsion & 17-Segment AHA Polar Bullseye Map',
+    category: 'FRONTIER CARDIOLOGY ENGINES',
+    accentColor: Color(0xFF00E5FF),
+    plainLanguageSummary:
+        'Maps heart muscle squeeze across all 17 American Heart Association (AHA) segments on a circular "bullseye" target. Reveals heart muscle stiffness, twisting motion (torsion), and distinctive disease signatures like "apical sparing" in cardiac amyloidosis.',
+    advancedMechanism:
+        'Computed via our custom PyTorch CardioFNO-3D (Fourier Neural Operator with SpectralConv1d layers) trained on Apple Silicon MPS:\n'
+        '• Global Longitudinal Strain (GLS %): Sums peak systolic shortening across basal, mid, and apical layers. Normal is more negative than -18% (typically -20% to -22%). Early cardiotoxicity or subendocardial ischemia blunts GLS to > -16% before EF drops.\n'
+        '• 17-Segment AHA Polar Map: Basal (1–6), Mid-cavity (7–12), Apical (13–16), and Apex (17).\n'
+        '• Apical Sparing Pattern ("Cherry on Top"): In cardiac amyloidosis, amyloid fibrils infiltrate basal and mid segments causing severe strain impairment (-6% to -10%), while the apex remains relatively preserved (-20%), yielding an Apical Sparing Ratio > 1.8.\n'
+        '• Septal Flash & Dyssynchrony: Left Bundle Branch Block (LBBB) causes early pre-ejection inward motion of the septum ("flash") followed by late stretching during lateral wall contraction.',
+    normalReferenceRange:
+        'Normal GLS: < -18.0% | Normal LV Torsion: 12°–16° | Apical Sparing Ratio: < 1.0 (Amyloid alert: > 1.8)',
+    clinicalBoardPearl:
+        'In heart failure with preserved ejection fraction (HFpEF) and concentric LV hypertrophy, normal LVEF (60%) can be deceptive. A "cherry-on-top" strain bullseye (apical sparing) with apical-to-basal strain ratio > 2.0 has 93% sensitivity and 82% specificity for Cardiac Amyloidosis (AL or ATTR)!',
+    howToInteract:
+        'Switch between Pathology presets (Normal, Anterior STEMI, Inferior MI, Amyloidosis, LBBB), inspect the 17-segment color bullseye and torsion gauges, and click "Deploy Revascularization" to see regional strain restoration.',
+  ),
+  'frontier_rotor_mapping': CardiacInfoTopic(
+    id: 'frontier_rotor_mapping',
+    title: 'CardioRotor-3D: 3D Reaction-Diffusion Wave Propagation & Re-Entrant Rotor Ablation',
+    category: 'FRONTIER CARDIOLOGY ENGINES',
+    accentColor: Color(0xFFFFD600),
+    plainLanguageSummary:
+        'Simulates chaotic electrical tornado waves ("rotors") spinning around heart attack scar tissue that cause Ventricular Tachycardia (VT) and Fibrillation (VF). Lets you burn the scar border (RF Ablation) or pace both ventricles (CRT) to restore synchronous rhythm.',
+    advancedMechanism:
+        'Models 3D myocardial action potential propagation using our PyTorch CardioRotor-3D spatiotemporal reaction-diffusion network:\n'
+        '• Conduction Anisotropy & Scar Slowing: Dense fibrotic core (0% conduction) bordered by an electrophysiologic border zone (slow conduction velocity < 0.2 m/s, heterogeneous refractoriness) generates functional conduction block.\n'
+        '• Phase Singularities & Rotors: Spiral waves anchor to scar boundaries with dominant frequencies ~5–7 Hz. Rotor breakup leads to polymorphic VT and ventricular fibrillation.\n'
+        '• Interventions: (1) Substrate Homogenization RF Ablation — creates linear transmural unexcitable barrier across the isthmus, eliminating rotor anchor points; (2) Cardiac Resynchronization Therapy (CRT) — biventricular pacing reduces total activation time by >40 ms.',
+    normalReferenceRange:
+        'Normal Activation Time: < 100 ms | VT/VF Vulnerability Index: < 0.20 | Target CRT Resynchronization: > 35 ms shortening',
+    clinicalBoardPearl:
+        'VT Catheter Ablation Pearl: In post-infarct VT, targeting only clinical VT morphology frequently fails due to pleomorphic induction. Substrate-based scar homogenization (targeting all abnormal late and fragmented endocardial electrograms within the border zone) yields superior long-term freedom from VT recurrence.',
+    howToInteract:
+        'Adjust Scar Burden %, toggle between Sinus Rhythm, Ventricular Tachycardia, and VF, click "Deliver Substrate RF Scar Ablation" to eliminate phase singularities, or toggle "Activate CRT Biventricular Pacing".',
+  ),
+  'frontier_structural_vtc': CardiacInfoTopic(
+    id: 'frontier_structural_vtc',
+    title: '3D Structural Heart Morphometry & Valve-to-Coronary (VTC) Distance Simulator (TAVR / ViV / LAAO)',
+    category: 'FRONTIER CARDIOLOGY ENGINES',
+    accentColor: Color(0xFF10B981),
+    plainLanguageSummary:
+        'Pre-screens transcatheter valve replacement patients to prevent fatal coronary artery pinching during Valve-in-Valve (ViV) TAVR by computing the exact Valve-to-Coronary (VTC) clearance in millimeters. Also sizes Left Atrial Appendage (Watchman/Amulet) clot filters to prevent stroke.',
+    advancedMechanism:
+        'Simulates multi-detector CT (MDCT) aortic root morphometry and transcatheter device interactions:\n'
+        '• Valve-to-Coronary (VTC) Distance: Distance from the anticipated neo-skirt of the displaced bioprosthetic leaflet to the coronary ostium (LCA / RCA). VTC < 4.0 mm is an independent predictor of acute fatal coronary artery occlusion (odds ratio > 12.0).\n'
+        '• BASILICA Protection: Bioprosthetic Aortic Scallop Intentional Laceration to prevent Iatrogenic Coronary Artery obstruction — electrified guidewire punctures and splits the leaflet midline, allowing blood to flow through the triangular tear into the coronary sinus.\n'
+        '• Left Atrial Appendage Occlusion (LAAO): Watchman FLX / Amplatzer Amulet sizing requiring 10–25% device compression to ensure anchor stability and eliminate peri-device leaks (PDL < 3 mm).',
+    normalReferenceRange:
+        'Safe VTC Distance: >= 4.0 mm | Coronary Ostial Height: >= 10.0 mm | Optimal LAAO Compression: 10%–25%',
+    clinicalBoardPearl:
+        'Coronary Ostium Anatomy: Low coronary ostial take-off (< 10 mm from aortic annulus) combined with shallow Sinuses of Valsalva (< 30 mm) is the deadly combination for ViV TAVR. Elective BASILICA leaflet laceration or chimney stenting must be planned upfront!',
+    howToInteract:
+        'Drag Annulus Diameter, Sinus of Valsalva Width, and Coronary Ostial Height sliders, watch the live VTC risk gauge, toggle "BASILICA Leaflet Laceration", or switch to LAAO Watchman mode.',
+  ),
+  'frontier_rhc_cpet': CardiacInfoTopic(
+    id: 'frontier_rhc_cpet',
+    title: 'Invasive Right-Heart Catheterization (Swan-Ganz) & Cardiopulmonary Exercise (CPET) Lab',
+    category: 'FRONTIER CARDIOLOGY ENGINES',
+    accentColor: Color(0xFFF43F5E),
+    plainLanguageSummary:
+        'Walks a Swan-Ganz catheter through the heart (RA → RV → PA → PCWP wedge) while patients rest or exercise on a bike. Accurately diagnoses pulmonary hypertension, unmasks hidden HFpEF, and separates heart pump failure from septic shock.',
+    advancedMechanism:
+        'Couples right-heart pressure manometry with alveolar-capillary breath-by-breath gas exchange:\n'
+        '• Hemodynamic Calculations: Pulmonary Vascular Resistance PVR = (Mean PA - PCWP) / CO (Wood Units, normal < 2.0 WU, abnormal > 3.0 WU). Transpulmonary Gradient TPG = Mean PA - PCWP.\n'
+        '• Diagnostic Classifications: (1) Group 1 Pre-Capillary PAH (Mean PA > 20, PCWP <= 15, PVR > 3 WU); (2) Group 2 Post-Capillary PH / HFpEF (PCWP > 15 mmHg, PVR <= 3 WU);\n'
+        '• Exercise Unmasking: In early HFpEF, resting PCWP may be normal (11 mmHg), but 50W exercise spikes PCWP > 25 mmHg due to steep LV diastolic pressure-volume curves.\n'
+        '• CPET Biomarkers: Peak VO2 (< 14 mL/kg/min indicates advanced heart failure and heart transplant candidacy); VE/VCO2 slope (> 34 indicates severe ventilatory inefficiency and high mortality).',
+    normalReferenceRange:
+        'RA Mean: 2–6 mmHg | RV: 15–30 / 2–8 mmHg | PA: 15–30 / 4–12 mmHg | PCWP: 6–12 mmHg | PVR: < 2.0 Wood Units | Peak VO2: > 20 mL/kg/min',
+    clinicalBoardPearl:
+        'Swan-Ganz Waveform Pearl: Giant "v" waves on the PCWP tracing signify severe acute Mitral Regurgitation (retrograde left ventricular systolic pressure transmission into the pulmonary veins and left atrium). Giant "a" waves in RA indicate Tricuspid Stenosis or Pulmonary Arterial Hypertension.',
+    howToInteract:
+        'Drag the Catheter Advancement slider (RA → RV → PA → PCWP), switch between Rest and Peak Exercise to unmask HFpEF, and test Cardiogenic vs. Vasoplegic shock profiles.',
+  ),
 };
 
 /// Sleek, reusable `ⓘ` Info Button that supports BOTH:
@@ -1220,6 +1300,7 @@ class _CardiacInteractiveGuideDialogState extends State<_CardiacInteractiveGuide
 
   static const List<String> _categories = [
     'ALL',
+    'FRONTIER CARDIOLOGY ENGINES',
     'FELLOWSHIP & STRUCTURAL SUITE',
     'COMPUTATIONAL RESEARCH WORKSTATION',
     'CARDIAC DIAGNOSTIC WORKSTATION',

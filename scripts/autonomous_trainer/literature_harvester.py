@@ -270,12 +270,57 @@ class LiteratureHarvester:
             })
         return discovered
 
+    def is_doi_in_firestore(self, clean_doi: str, project_id: str = "quantom-forge") -> bool:
+        """Checks if DOI is already published to Firestore /library (for ephemeral cloud containers)."""
+        safe_id = "lit_" + clean_doi.replace("/", "_").replace(":", "_").replace(".", "_")
+        url = f"https://firestore.googleapis.com/v1/projects/{project_id}/databases/(default)/documents/library/{safe_id}"
+        try:
+            from scholarly_verifier import get_gcloud_auth_token
+            token = get_gcloud_auth_token()
+            if not token:
+                return False
+            req = urllib.request.Request(
+                url,
+                headers={"Authorization": f"Bearer {token}"},
+                method="GET",
+            )
+            with urllib.request.urlopen(req, timeout=5) as resp:
+                if resp.status == 200:
+                    return True
+        except urllib.error.HTTPError as e:
+            if e.code == 404:
+                return False
+        except Exception:
+            pass
+        return False
+
     def register_doi(self, doi: str, title: str | None = None, source: str = "Manual-DOI") -> bool:
         """Manually register a user-provided DOI to trigger automated training."""
         clean_doi = doi.strip().replace("https://doi.org/", "")
         now = datetime.datetime.now(datetime.timezone.utc).isoformat()
-        
-        # Verify academic authenticity, peer review, and citation metrics
+
+        # 1. Fast local SQLite check FIRST (0 network overhead)
+        with self.conn:
+            cur = self.conn.cursor()
+            cur.execute("PRAGMA journal_mode=WAL;")
+            cur.execute("SELECT status FROM papers WHERE LOWER(doi) = LOWER(?)", (clean_doi,))
+            row = cur.fetchone()
+            if row:
+                logger.info("DOI %s already in ledger with status: %s", clean_doi, row["status"])
+                return False
+
+        # 2. Cloud Firestore check (for ephemeral Cloud Run containers where local sqlite is fresh)
+        if self.is_doi_in_firestore(clean_doi):
+            logger.info("DOI %s already exists in Firestore /library. Recording as trained in local ledger.", clean_doi)
+            with self.conn:
+                self.conn.execute(
+                    "INSERT OR REPLACE INTO papers (doi, title, published_date, source, url, status, discovered_at, updated_at) "
+                    "VALUES (?, ?, ?, ?, ?, 'trained', ?, ?)",
+                    (clean_doi, title or f"Research Paper ({clean_doi})", str(datetime.date.today()), source, f"https://doi.org/{clean_doi}", now, now),
+                )
+            return False
+
+        # 3. Only hit CrossRef + OpenAlex for genuinely unseen DOIs
         verified = self.verifier.verify_doi_and_citations(clean_doi)
         citation_count = 0
         journal = ""
@@ -297,12 +342,6 @@ class LiteratureHarvester:
 
         with self.conn:
             cur = self.conn.cursor()
-            cur.execute("SELECT status FROM papers WHERE doi = ?", (clean_doi,))
-            row = cur.fetchone()
-            if row:
-                logger.info("DOI %s already in ledger with status: %s", clean_doi, row["status"])
-                return False
-
             cur.execute(
                 """
                 INSERT INTO papers (doi, title, published_date, source, url, status, discovered_at, updated_at, citation_count, journal, is_peer_reviewed)
@@ -404,9 +443,18 @@ class LiteratureHarvester:
                     logger.info("Skipping non-clinical or non-pharmaceutical work: %s ('%s')", doi, title[:60])
                     continue
 
-                cur.execute("SELECT doi FROM papers WHERE doi = ?", (doi,))
+                cur.execute("SELECT doi FROM papers WHERE LOWER(doi) = LOWER(?)", (doi,))
                 if cur.fetchone() is not None:
                     continue  # Already seen and tracked
+
+                if self.is_doi_in_firestore(doi):
+                    logger.info("DOI %s already in Firestore /library. Skipping.", doi)
+                    cur.execute(
+                        "INSERT OR REPLACE INTO papers (doi, title, published_date, source, url, status, discovered_at, updated_at) "
+                        "VALUES (?, ?, ?, ?, ?, 'trained', ?, ?)",
+                        (doi, title or f"Research Paper ({doi})", str(datetime.date.today()), cand.get("source", "Crossref"), f"https://doi.org/{doi}", now, now),
+                    )
+                    continue
 
                 # Verify DOI authenticity and citations
                 v = self.verifier.verify_doi_and_citations(doi)

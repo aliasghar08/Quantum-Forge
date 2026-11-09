@@ -1,5 +1,1859 @@
 [
   {
+    "id": "lit_10_1093_ehjcvp_pvag064",
+    "name": "Eplerenone vs. spironolactone in heart failure: long-term cardiorenal and mortality o",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1093/ehjcvp/pvag064. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nEplerenone vs. spironolactone in heart failure: long-term cardiorenal and mortality outcomes in a registry-based cohort - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nEplerenone vs. spironolactone in heart failure: long-term cardiorenal and mortality outcomes in a registry-based cohort - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500    -0.0000\nH     -1.6200     1.1000    -0.0000\nH     -0.5500    -0.9200    -0.0000\nC      2.5000     0.1000    -0.0000\nH      2.8500     1.1200    -0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 23.34,
+    "doi": "10.1093/ehjcvp/pvag064",
+    "journalRef": "European Heart Journal - Cardiovascular Pharmacotherapy",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_1002_psp4_70336",
+    "name": "Net Renal Drug Secretion Critically Requires Significant Contribution of Basal Uptake",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1002/psp4.70336. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nNet Renal Drug Secretion Critically Requires Significant Contribution of Basal Uptake Transporters: Perspective From Mechanistic Kidney Model Simulation and Integration of Clinical and In\u00a0Vitro Data - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nNet Renal Drug Secretion Critically Requires Significant Contribution of Basal Uptake Transporters: Perspective From Mechanistic Kidney Model Simulation and Integration of Clinical and In\u00a0Vitro Data - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 20.35,
+    "doi": "10.1002/psp4.70336",
+    "journalRef": "CPT: Pharmacometrics &amp; Systems Pharmacology",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_1002_slct_75010",
+    "name": "Antimicrobial Peptides and Antibiotics Exert Antibacterial Effects Through a Synergis",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1002/slct.75010. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nAntimicrobial Peptides and Antibiotics Exert Antibacterial Effects Through a Synergistic Mechanism by Activating Immune Cells: A Review - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nAntimicrobial Peptides and Antibiotics Exert Antibacterial Effects Through a Synergistic Mechanism by Activating Immune Cells: A Review - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500    -0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200    -0.0000\nC      2.5000     0.1000    -0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 18.51,
+    "doi": "10.1002/slct.75010",
+    "journalRef": "ChemistrySelect",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_1111_jcmm_71426",
+    "name": "Lipoprotein(a), Endothelial Dysfunction and Cardiovascular Disease",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1111/jcmm.71426. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nLipoprotein(a), Endothelial Dysfunction and Cardiovascular Disease - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nLipoprotein(a), Endothelial Dysfunction and Cardiovascular Disease - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000    -0.0000\nH     -0.5500    -0.9200    -0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 19.64,
+    "doi": "10.1111/jcmm.71426",
+    "journalRef": "Journal of Cellular and Molecular Medicine",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_1080_20565623_2026_2757077",
+    "name": "Obstetric pharmacometabolomics",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1080/20565623.2026.2757077. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nObstetric pharmacometabolomics - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nObstetric pharmacometabolomics - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500    -0.0000\nH     -1.6200     1.1000    -0.0000\nH     -0.5500    -0.9200    -0.0000\nC      2.5000     0.1000    -0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 19.83,
+    "doi": "10.1080/20565623.2026.2757077",
+    "journalRef": "Future Science OA",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_55940_medphar2026232",
+    "name": "Pharmacokinetic Evaluation of Antidiabetic FDCs - An In-Silico Approach",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.55940/medphar2026232. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nPharmacokinetic Evaluation of Antidiabetic FDCs - An In-Silico Approach - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nPharmacokinetic Evaluation of Antidiabetic FDCs - An In-Silico Approach - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000    -0.0000\nH     -0.5500    -0.9200    -0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200    -0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 17.41,
+    "doi": "10.55940/medphar2026232",
+    "journalRef": "Medical and Pharmaceutical Journal",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_18596_jotcsa_1971306",
+    "name": "Pyridazin-3(2H)-one Derivatives: Computational ADME-Tox, Molecular Docking, Drug-Like",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.18596/jotcsa.1971306. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nPyridazin-3(2H)-one Derivatives: Computational ADME-Tox, Molecular Docking, Drug-Likeness Analysis, Molecular Dynamics Simulations, and Assessment of Their Antitubercular Potential - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nPyridazin-3(2H)-one Derivatives: Computational ADME-Tox, Molecular Docking, Drug-Likeness Analysis, Molecular Dynamics Simulations, and Assessment of Their Antitubercular Potential - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500    -0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200    -0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 20.13,
+    "doi": "10.18596/jotcsa.1971306",
+    "journalRef": "Journal of the Turkish Chemical Society Section A: Chemistry",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_1016_j_biopha_2026_119994",
+    "name": "Vasodilatory and antihypertensive effects of sotagliflozin: Ex vivo evaluation in iso",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1016/j.biopha.2026.119994. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nVasodilatory and antihypertensive effects of sotagliflozin: Ex vivo evaluation in isolated rat aortic rings and an in vivo assessment in spontaneously hypertensive rats - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nVasodilatory and antihypertensive effects of sotagliflozin: Ex vivo evaluation in isolated rat aortic rings and an in vivo assessment in spontaneously hypertensive rats - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000    -0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000    -0.0000\nH      2.8500     1.1200    -0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 22.75,
+    "doi": "10.1016/j.biopha.2026.119994",
+    "journalRef": "Biomedicine &amp; Pharmacotherapy",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_2147_jpr_s652574",
+    "name": "Opioid Use Disorder Among U.S. Hospitalizations for Dorsalgia: A National Inpatient S",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.2147/jpr.s652574. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nOpioid Use Disorder Among U.S. Hospitalizations for Dorsalgia: A National Inpatient Sample Analysis, 2016\u20132021 - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nOpioid Use Disorder Among U.S. Hospitalizations for Dorsalgia: A National Inpatient Sample Analysis, 2016\u20132021 - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500    -0.0000\nH     -1.6200     1.1000    -0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000    -0.0000\nH      2.8500     1.1200    -0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 21.89,
+    "doi": "10.2147/jpr.s652574",
+    "journalRef": "Journal of Pain Research",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_3389_fnmol_2026_1950244",
+    "name": "Integrating multi-receptor and neuron\u2013glia mechanisms of ketamine's antidepressant ac",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.3389/fnmol.2026.1950244. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nIntegrating multi-receptor and neuron\u2013glia mechanisms of ketamine's antidepressant action: a convergence framework for understanding efficacy - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nIntegrating multi-receptor and neuron\u2013glia mechanisms of ketamine's antidepressant action: a convergence framework for understanding efficacy - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500    -0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000    -0.0000\nH      2.8500     1.1200    -0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 20.45,
+    "doi": "10.3389/fnmol.2026.1950244",
+    "journalRef": "Frontiers in Molecular Neuroscience",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_3390_ijms27125573",
+    "name": "Evaluation of Antimicrobial Peptide\u2013Antibiotic Combination Treatment for Tackling Ocu",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.3390/ijms27125573. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nEvaluation of Antimicrobial Peptide\u2013Antibiotic Combination Treatment for Tackling Ocular and Systemic Staphylococcus aureus Infections - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nEvaluation of Antimicrobial Peptide\u2013Antibiotic Combination Treatment for Tackling Ocular and Systemic Staphylococcus aureus Infections - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000    -0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000    -0.0000\nH      2.8500     1.1200    -0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 24.52,
+    "doi": "10.3390/ijms27125573",
+    "journalRef": "International Journal of Molecular Sciences",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_5530_phrev_20270006",
+    "name": "Dietary Isoflavonoids and Brain Tumors: Unlocking Neuroprotective Potential, Molecula",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.5530/phrev.20270006. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nDietary Isoflavonoids and Brain Tumors: Unlocking Neuroprotective Potential, Molecular Mechanisms, and Novel Therapeutic Avenues in Neuro-Oncology - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nDietary Isoflavonoids and Brain Tumors: Unlocking Neuroprotective Potential, Molecular Mechanisms, and Novel Therapeutic Avenues in Neuro-Oncology - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200    -0.0000\nC      2.5000     0.1000    -0.0000\nH      2.8500     1.1200    -0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 18.53,
+    "doi": "10.5530/phrev.20270006",
+    "journalRef": "Pharmacognosy Reviews",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_3389_fcvm_2026_1962196",
+    "name": "Beyond Thr172 phosphorylation: subunit-selective, spatial, and post-translational AMP",
+    "iupacName": "Scholarly reaction (Phosphate Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.3389/fcvm.2026.1962196. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "11\nBeyond Thr172 phosphorylation: subunit-selective, spatial, and post-translational AMPK signaling in diabetic cardiomyopathy - Reactant\nP      0.0000     0.0000     0.0000\nO      1.5000     0.0000     0.0000\nO     -0.6000     1.3000     0.0000\nO     -0.6000    -0.8000     1.1000\nO     -0.6000    -0.8000    -1.1000\nC     -1.9000    -1.3000     1.1000\nH     -0.1000     2.0500     0.0000\nH     -2.6000    -0.5000     1.1000\nH     -1.9500    -1.9000     1.9800\nH     -1.9500    -1.9000     0.2200\nH     -1.5000    -0.6000    -1.2500\n",
+    "productXyz": "11\nBeyond Thr172 phosphorylation: subunit-selective, spatial, and post-translational AMPK signaling in diabetic cardiomyopathy - Product\nP      0.0000     0.0000     0.0000\nO      1.5000     0.0000     0.0000\nO     -0.6000     1.3000    -0.0000\nO     -1.2500    -1.1000     1.3000\nO     -0.4000    -0.6500    -1.0000\nC     -1.9000    -1.3000     1.1000\nH     -0.1000     2.0500    -0.0000\nH     -2.6000    -0.5000     1.1000\nH     -1.9500    -1.9000     1.9800\nH     -1.9500    -1.9000     0.2200\nH     -1.5000    -0.6000    -1.2500\n",
+    "referenceEa": 22.49,
+    "doi": "10.3389/fcvm.2026.1962196",
+    "journalRef": "Frontiers in Cardiovascular Medicine",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Phosphate Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_3390_antibiotics15020168",
+    "name": "Target Fidelity and Failure: Structure\u2013Activity Relationship of High-Molecular-Mass P",
+    "iupacName": "Scholarly reaction (Thiol Disulfide Exchange)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.3390/antibiotics15020168. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "15\nTarget Fidelity and Failure: Structure\u2013Activity Relationship of High-Molecular-Mass Penicillin-Binding Proteins (HMM-PBPs) in Refractory Granulicatella adiacens Endocarditis - Reactant\nS      0.0000     0.0000     0.0000\nS      2.4000     0.0000     0.0000\nS      4.4500     0.0000     0.0000\nC     -1.4000     0.8000     0.0000\nC      2.8000     1.4000     0.0000\nC      5.8000     0.8000     0.0000\nH     -1.4000     1.8500     0.0000\nH     -1.9000     0.4500     0.8800\nH     -1.9000     0.4500    -0.8800\nH      2.8000     2.4500     0.0000\nH      3.3000     1.0500     0.8800\nH      3.3000     1.0500    -0.8800\nH      5.8000     1.8500     0.0000\nH      6.3000     0.4500     0.8800\nH      6.3000     0.4500    -0.8800\n",
+    "productXyz": "15\nTarget Fidelity and Failure: Structure\u2013Activity Relationship of High-Molecular-Mass Penicillin-Binding Proteins (HMM-PBPs) in Refractory Granulicatella adiacens Endocarditis - Product\nS      0.3500     0.0000    -0.0000\nS      2.4500     0.0000     0.0000\nS      5.1000     0.0000    -0.0000\nC     -1.4000     0.8000     0.0000\nC      2.8000     1.4000     0.0000\nC      5.8000     0.8000    -0.0000\nH     -1.4000     1.8500    -0.0000\nH     -1.9000     0.4500     0.8800\nH     -1.9000     0.4500    -0.8800\nH      2.8000     2.4500    -0.0000\nH      3.3000     1.0500     0.8800\nH      3.3000     1.0500    -0.8800\nH      5.8000     1.8500    -0.0000\nH      6.3000     0.4500     0.8800\nH      6.3000     0.4500    -0.8800\n",
+    "referenceEa": 14.96,
+    "doi": "10.3390/antibiotics15020168",
+    "journalRef": "Antibiotics",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Thiol Disulfide Exchange"
+    ]
+  },
+  {
+    "id": "lit_10_2147_dddt_s595430",
+    "name": "Identification of Antibacterial Hits Associated with Penicillin-Binding Protein 2 in ",
+    "iupacName": "Scholarly reaction (Thiol Disulfide Exchange)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.2147/dddt.s595430. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "15\nIdentification of Antibacterial Hits Associated with Penicillin-Binding Protein 2 in Escherichia coli Using a Comprehensive Property Spectrum and Fivefold Maximum Drug-Likeness Strategy - Reactant\nS      0.0000     0.0000     0.0000\nS      2.4000     0.0000     0.0000\nS      4.4500     0.0000     0.0000\nC     -1.4000     0.8000     0.0000\nC      2.8000     1.4000     0.0000\nC      5.8000     0.8000     0.0000\nH     -1.4000     1.8500     0.0000\nH     -1.9000     0.4500     0.8800\nH     -1.9000     0.4500    -0.8800\nH      2.8000     2.4500     0.0000\nH      3.3000     1.0500     0.8800\nH      3.3000     1.0500    -0.8800\nH      5.8000     1.8500     0.0000\nH      6.3000     0.4500     0.8800\nH      6.3000     0.4500    -0.8800\n",
+    "productXyz": "15\nIdentification of Antibacterial Hits Associated with Penicillin-Binding Protein 2 in Escherichia coli Using a Comprehensive Property Spectrum and Fivefold Maximum Drug-Likeness Strategy - Product\nS      0.3500     0.0000     0.0000\nS      2.4500     0.0000     0.0000\nS      5.1000     0.0000    -0.0000\nC     -1.4000     0.8000     0.0000\nC      2.8000     1.4000    -0.0000\nC      5.8000     0.8000    -0.0000\nH     -1.4000     1.8500    -0.0000\nH     -1.9000     0.4500     0.8800\nH     -1.9000     0.4500    -0.8800\nH      2.8000     2.4500     0.0000\nH      3.3000     1.0500     0.8800\nH      3.3000     1.0500    -0.8800\nH      5.8000     1.8500     0.0000\nH      6.3000     0.4500     0.8800\nH      6.3000     0.4500    -0.8800\n",
+    "referenceEa": 18.26,
+    "doi": "10.2147/dddt.s595430",
+    "journalRef": "Drug Design, Development and Therapy",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Thiol Disulfide Exchange"
+    ]
+  },
+  {
+    "id": "lit_10_3390_ph19101533",
+    "name": "Treasures from the Ocean: Deciphering the Therapeutic Utility of Marine-Derived ACE-I",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.3390/ph19101533. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nTreasures from the Ocean: Deciphering the Therapeutic Utility of Marine-Derived ACE-Inhibitory Peptides in Cardiovascular Drug Discovery - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nTreasures from the Ocean: Deciphering the Therapeutic Utility of Marine-Derived ACE-Inhibitory Peptides in Cardiovascular Drug Discovery - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000    -0.0000\nH     -0.5500    -0.9200    -0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200    -0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 25.27,
+    "doi": "10.3390/ph19101533",
+    "journalRef": "Pharmaceuticals",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_3390_foods15203601",
+    "name": "Enhanced Antioxidant and ACE-Inhibitory Activities of L-Theanine Following Formation ",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.3390/foods15203601. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nEnhanced Antioxidant and ACE-Inhibitory Activities of L-Theanine Following Formation of the Amadori Compound N-(1-Deoxy-D-Fructose-1-yl)-L-Theanine (Fru-The) - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nEnhanced Antioxidant and ACE-Inhibitory Activities of L-Theanine Following Formation of the Amadori Compound N-(1-Deoxy-D-Fructose-1-yl)-L-Theanine (Fru-The) - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200    -0.0000\nC      2.5000     0.1000    -0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 20.22,
+    "doi": "10.3390/foods15203601",
+    "journalRef": "Foods",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_3389_fendo_2026_1907875",
+    "name": "The incretin-bone axis: molecular mechanisms and clinical implications",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.3389/fendo.2026.1907875. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nThe incretin-bone axis: molecular mechanisms and clinical implications - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nThe incretin-bone axis: molecular mechanisms and clinical implications - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200    -0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200    -0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 22.34,
+    "doi": "10.3389/fendo.2026.1907875",
+    "journalRef": "Frontiers in Endocrinology",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_3389_fphar_2026_1961803",
+    "name": "Entresto attenuates dexamethasone-induced metabolic dysfunction-associated steatotic ",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.3389/fphar.2026.1961803. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nEntresto attenuates dexamethasone-induced metabolic dysfunction-associated steatotic features in rats: role of potential SGK1/FOXO3a regulatory pathway and cardio-metabolic axis - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nEntresto attenuates dexamethasone-induced metabolic dysfunction-associated steatotic features in rats: role of potential SGK1/FOXO3a regulatory pathway and cardio-metabolic axis - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500    -0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000    -0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 19.57,
+    "doi": "10.3389/fphar.2026.1961803",
+    "journalRef": "Frontiers in Pharmacology",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_3390_ijms27062913",
+    "name": "The Heart\u2013Gut Axis in Heart Failure: The Role of Next-Generation Pharmacological Ther",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.3390/ijms27062913. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nThe Heart\u2013Gut Axis in Heart Failure: The Role of Next-Generation Pharmacological Therapies - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nThe Heart\u2013Gut Axis in Heart Failure: The Role of Next-Generation Pharmacological Therapies - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000    -0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000    -0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 18.77,
+    "doi": "10.3390/ijms27062913",
+    "journalRef": "International Journal of Molecular Sciences",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_3390_antibiotics15070710",
+    "name": "Current Recommendations, Antibiotic Resistance, and Emerging Treatments for Gram-Posi",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.3390/antibiotics15070710. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nCurrent Recommendations, Antibiotic Resistance, and Emerging Treatments for Gram-Positive Ocular Infections in the United States - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nCurrent Recommendations, Antibiotic Resistance, and Emerging Treatments for Gram-Positive Ocular Infections in the United States - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500    -0.0000\nH     -1.6200     1.1000    -0.0000\nH     -0.5500    -0.9200    -0.0000\nC      2.5000     0.1000    -0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 19.21,
+    "doi": "10.3390/antibiotics15070710",
+    "journalRef": "Antibiotics",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_1097_fjc_0000000000001875",
+    "name": "Eplerenone Revisited: A Balanced Reappraisal of Its Role in Hypertension, Heart Failu",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1097/fjc.0000000000001875. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nEplerenone Revisited: A Balanced Reappraisal of Its Role in Hypertension, Heart Failure, and Cardiorenal Disease - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nEplerenone Revisited: A Balanced Reappraisal of Its Role in Hypertension, Heart Failure, and Cardiorenal Disease - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000    -0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000    -0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 19.14,
+    "doi": "10.1097/fjc.0000000000001875",
+    "journalRef": "Journal of Cardiovascular Pharmacology",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_1371_journal_pone_0334656",
+    "name": "Computational structural studies of SGLT2-related polypharmacy",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1371/journal.pone.0334656. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nComputational structural studies of SGLT2-related polypharmacy - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nComputational structural studies of SGLT2-related polypharmacy - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500    -0.0000\nH     -1.6200     1.1000    -0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000    -0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 22.2,
+    "doi": "10.1371/journal.pone.0334656",
+    "journalRef": "PLOS One",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_1021_acsomega_5c05715",
+    "name": "Identification of New Small-Molecule SGLT2 Inhibitors: In-Silico Approach to Therapeu",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1021/acsomega.5c05715. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nIdentification of New Small-Molecule SGLT2 Inhibitors: In-Silico Approach to Therapeutics for Diabetes-Related Complications - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nIdentification of New Small-Molecule SGLT2 Inhibitors: In-Silico Approach to Therapeutics for Diabetes-Related Complications - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000    -0.0000\nH     -0.5500    -0.9200    -0.0000\nC      2.5000     0.1000    -0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 19.89,
+    "doi": "10.1021/acsomega.5c05715",
+    "journalRef": "ACS Omega",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_1007_s11916-026-01525-0",
+    "name": "Novel 2-Benzylbenzimidazole Opioids: Emerging Drugs of Abuse and Pharmacological Cons",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1007/s11916-026-01525-0. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nNovel 2-Benzylbenzimidazole Opioids: Emerging Drugs of Abuse and Pharmacological Considerations with Nitazene Analogs - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nNovel 2-Benzylbenzimidazole Opioids: Emerging Drugs of Abuse and Pharmacological Considerations with Nitazene Analogs - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500    -0.0000\nH     -1.6200     1.1000    -0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000    -0.0000\nH      2.8500     1.1200    -0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 19.77,
+    "doi": "10.1007/s11916-026-01525-0",
+    "journalRef": "Current Pain and Headache Reports",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_3390_ijms27073310",
+    "name": "Flavonoid Interactions with Renal Organic Anion Transporters OAT1 and OAT3: Structure",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.3390/ijms27073310. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nFlavonoid Interactions with Renal Organic Anion Transporters OAT1 and OAT3: Structure\u2013Activity Relationships and Clinical Implications - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nFlavonoid Interactions with Renal Organic Anion Transporters OAT1 and OAT3: Structure\u2013Activity Relationships and Clinical Implications - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000    -0.0000\nH     -0.5500    -0.9200    -0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200    -0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 20.15,
+    "doi": "10.3390/ijms27073310",
+    "journalRef": "International Journal of Molecular Sciences",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_3389_fmolb_2026_1819426",
+    "name": "Renal clearance rate, estimated renal reabsorption ratio, and kidney proteome of Hols",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.3389/fmolb.2026.1819426. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nRenal clearance rate, estimated renal reabsorption ratio, and kidney proteome of Holstein dairy cows with divergent milk urea concentrations - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nRenal clearance rate, estimated renal reabsorption ratio, and kidney proteome of Holstein dairy cows with divergent milk urea concentrations - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500    -0.0000\nH     -1.6200     1.1000    -0.0000\nH     -0.5500    -0.9200    -0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 22.47,
+    "doi": "10.3389/fmolb.2026.1819426",
+    "journalRef": "Frontiers in Molecular Biosciences",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_3390_ijms222413302",
+    "name": "Genophenotypic Factors and Pharmacogenomics in Adverse Drug Reactions",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.3390/ijms222413302. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nGenophenotypic Factors and Pharmacogenomics in Adverse Drug Reactions - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nGenophenotypic Factors and Pharmacogenomics in Adverse Drug Reactions - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500    -0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 14.37,
+    "doi": "10.3390/ijms222413302",
+    "journalRef": "International Journal of Molecular Sciences",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_1007_s13346-025-02020-6",
+    "name": "Adenosine and guanosine-based oligonucleotides-loaded PLGA nanoparticles attenuates p",
+    "iupacName": "Scholarly reaction (Phosphate Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1007/s13346-025-02020-6. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "11\nAdenosine and guanosine-based oligonucleotides-loaded PLGA nanoparticles attenuates progression of surgically induced osteoarthritis - Reactant\nP      0.0000     0.0000     0.0000\nO      1.5000     0.0000     0.0000\nO     -0.6000     1.3000     0.0000\nO     -0.6000    -0.8000     1.1000\nO     -0.6000    -0.8000    -1.1000\nC     -1.9000    -1.3000     1.1000\nH     -0.1000     2.0500     0.0000\nH     -2.6000    -0.5000     1.1000\nH     -1.9500    -1.9000     1.9800\nH     -1.9500    -1.9000     0.2200\nH     -1.5000    -0.6000    -1.2500\n",
+    "productXyz": "11\nAdenosine and guanosine-based oligonucleotides-loaded PLGA nanoparticles attenuates progression of surgically induced osteoarthritis - Product\nP      0.0000     0.0000    -0.0000\nO      1.5000     0.0000    -0.0000\nO     -0.6000     1.3000     0.0000\nO     -1.2500    -1.1000     1.3000\nO     -0.4000    -0.6500    -1.0000\nC     -1.9000    -1.3000     1.1000\nH     -0.1000     2.0500     0.0000\nH     -2.6000    -0.5000     1.1000\nH     -1.9500    -1.9000     1.9800\nH     -1.9500    -1.9000     0.2200\nH     -1.5000    -0.6000    -1.2500\n",
+    "referenceEa": 33.55,
+    "doi": "10.1007/s13346-025-02020-6",
+    "journalRef": "Drug Delivery and Translational Research",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Phosphate Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_3390_cancers18152507",
+    "name": "Targeting \u03b2-Adrenergic Signaling in Colorectal Cancer: Molecular Mechanisms and Thera",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.3390/cancers18152507. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nTargeting \u03b2-Adrenergic Signaling in Colorectal Cancer: Molecular Mechanisms and Therapeutic Potential of \u03b2-Blockers - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nTargeting \u03b2-Adrenergic Signaling in Colorectal Cancer: Molecular Mechanisms and Therapeutic Potential of \u03b2-Blockers - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500    -0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000    -0.0000\nH      2.8500     1.1200    -0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 21.09,
+    "doi": "10.3390/cancers18152507",
+    "journalRef": "Cancers",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_1016_j_esmogo_2026_100428",
+    "name": "Prevention and management of hormonal crisis in neuroendocrine tumors undergoing PRRT",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1016/j.esmogo.2026.100428. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nPrevention and management of hormonal crisis in neuroendocrine tumors undergoing PRRT (peptide receptor radionuclide therapy): a systematic review - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nPrevention and management of hormonal crisis in neuroendocrine tumors undergoing PRRT (peptide receptor radionuclide therapy): a systematic review - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500    -0.0000\nH     -1.6200     1.1000    -0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000    -0.0000\nH      2.8500     1.1200    -0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 16.87,
+    "doi": "10.1016/j.esmogo.2026.100428",
+    "journalRef": "ESMO Gastrointestinal Oncology",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_1093_pcmedi_pbag031",
+    "name": "Circadian vulnerability in acute myocardial infarction: from clock-regulated pathways",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1093/pcmedi/pbag031. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nCircadian vulnerability in acute myocardial infarction: from clock-regulated pathways to chrono-individualized therapy - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nCircadian vulnerability in acute myocardial infarction: from clock-regulated pathways to chrono-individualized therapy - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500    -0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000    -0.0000\nH      2.8500     1.1200    -0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 20.47,
+    "doi": "10.1093/pcmedi/pbag031",
+    "journalRef": "Precision Clinical Medicine",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_62347_cldr1782",
+    "name": "Prior use of dihydropyridines is associated with reduced mortality among patients wit",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.62347/cldr1782. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nPrior use of dihydropyridines is associated with reduced mortality among patients with sepsis in the intensive care unit: a retrospective cohort study using the MIMIC-IV database - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nPrior use of dihydropyridines is associated with reduced mortality among patients with sepsis in the intensive care unit: a retrospective cohort study using the MIMIC-IV database - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000    -0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000    -0.0000\nH      2.8500     1.1200    -0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 19.59,
+    "doi": "10.62347/cldr1782",
+    "journalRef": "American Journal of Translational Research",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_3389_fcvm_2026_1814860",
+    "name": "Treatment options for hypertrophic obstructive cardiomyopathy in the era of myosin in",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.3389/fcvm.2026.1814860. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nTreatment options for hypertrophic obstructive cardiomyopathy in the era of myosin inhibitors - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nTreatment options for hypertrophic obstructive cardiomyopathy in the era of myosin inhibitors - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500    -0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200    -0.0000\nC      2.5000     0.1000    -0.0000\nH      2.8500     1.1200    -0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 22.22,
+    "doi": "10.3389/fcvm.2026.1814860",
+    "journalRef": "Frontiers in Cardiovascular Medicine",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_1002_mco2_71095",
+    "name": "Atherosclerosis: From Pathogenesis to Therapeutic Interventions",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1002/mco2.71095. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nAtherosclerosis: From Pathogenesis to Therapeutic Interventions - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nAtherosclerosis: From Pathogenesis to Therapeutic Interventions - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500    -0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200    -0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 17.98,
+    "doi": "10.1002/mco2.71095",
+    "journalRef": "MedComm",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_3390_ijms27198501",
+    "name": "Calcineurin Inhibitors and Male Fertility in Renal Transplant Recipients: A Comprehen",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.3390/ijms27198501. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nCalcineurin Inhibitors and Male Fertility in Renal Transplant Recipients: A Comprehensive Review of Molecular Pathomechanisms and Reproductive Toxicity of Cyclosporine A and Tacrolimus - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nCalcineurin Inhibitors and Male Fertility in Renal Transplant Recipients: A Comprehensive Review of Molecular Pathomechanisms and Reproductive Toxicity of Cyclosporine A and Tacrolimus - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500    -0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000    -0.0000\nH      2.8500     1.1200    -0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 20.74,
+    "doi": "10.3390/ijms27198501",
+    "journalRef": "International Journal of Molecular Sciences",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_1016_j_vhri_2026_102134",
+    "name": "Budget Impact Analysis of System-Level Costs Associated With Topical Janus Kinase Inh",
+    "iupacName": "Scholarly reaction (Phosphate Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1016/j.vhri.2026.102134. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "11\nBudget Impact Analysis of System-Level Costs Associated With Topical Janus Kinase Inhibitor Therapies for Moderate Atopic Dermatitis in Germany - Reactant\nP      0.0000     0.0000     0.0000\nO      1.5000     0.0000     0.0000\nO     -0.6000     1.3000     0.0000\nO     -0.6000    -0.8000     1.1000\nO     -0.6000    -0.8000    -1.1000\nC     -1.9000    -1.3000     1.1000\nH     -0.1000     2.0500     0.0000\nH     -2.6000    -0.5000     1.1000\nH     -1.9500    -1.9000     1.9800\nH     -1.9500    -1.9000     0.2200\nH     -1.5000    -0.6000    -1.2500\n",
+    "productXyz": "11\nBudget Impact Analysis of System-Level Costs Associated With Topical Janus Kinase Inhibitor Therapies for Moderate Atopic Dermatitis in Germany - Product\nP      0.0000     0.0000    -0.0000\nO      1.5000     0.0000     0.0000\nO     -0.6000     1.3000     0.0000\nO     -1.2500    -1.1000     1.3000\nO     -0.4000    -0.6500    -1.0000\nC     -1.9000    -1.3000     1.1000\nH     -0.1000     2.0500     0.0000\nH     -2.6000    -0.5000     1.1000\nH     -1.9500    -1.9000     1.9800\nH     -1.9500    -1.9000     0.2200\nH     -1.5000    -0.6000    -1.2500\n",
+    "referenceEa": 23.45,
+    "doi": "10.1016/j.vhri.2026.102134",
+    "journalRef": "Value in Health Regional Issues",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Phosphate Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_3389_fphar_2026_1880903",
+    "name": "Tacrolimus ameliorates pulmonary hypertension associated with pulmonary fibrosis via ",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.3389/fphar.2026.1880903. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nTacrolimus ameliorates pulmonary hypertension associated with pulmonary fibrosis via modulation of vascular remodeling - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nTacrolimus ameliorates pulmonary hypertension associated with pulmonary fibrosis via modulation of vascular remodeling - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000    -0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200    -0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 22.07,
+    "doi": "10.3389/fphar.2026.1880903",
+    "journalRef": "Frontiers in Pharmacology",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_1093_lifemeta_loac004",
+    "name": "Lowering low-density lipoprotein cholesterol: from mechanisms to therapies",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1093/lifemeta/loac004. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nLowering low-density lipoprotein cholesterol: from mechanisms to therapies - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nLowering low-density lipoprotein cholesterol: from mechanisms to therapies - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200    -0.0000\nC      2.5000     0.1000    -0.0000\nH      2.8500     1.1200    -0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 19.82,
+    "doi": "10.1093/lifemeta/loac004",
+    "journalRef": "Life Metabolism",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_3390_separations9120400",
+    "name": "Simvastatin: In Vitro Metabolic Profiling of a Potent Competitive HMG-CoA Reductase I",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.3390/separations9120400. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nSimvastatin: In Vitro Metabolic Profiling of a Potent Competitive HMG-CoA Reductase Inhibitor - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nSimvastatin: In Vitro Metabolic Profiling of a Potent Competitive HMG-CoA Reductase Inhibitor - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000    -0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000    -0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 18.03,
+    "doi": "10.3390/separations9120400",
+    "journalRef": "Separations",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_1002_cpt_70379",
+    "name": "Effects of Fomepizole on Acetaminophen Oxidative Metabolism: A Randomized, Crossover ",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1002/cpt.70379. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nEffects of Fomepizole on Acetaminophen Oxidative Metabolism: A Randomized, Crossover Study in Human Volunteers - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nEffects of Fomepizole on Acetaminophen Oxidative Metabolism: A Randomized, Crossover Study in Human Volunteers - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500    -0.0000\nH     -1.6200     1.1000    -0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 22.15,
+    "doi": "10.1002/cpt.70379",
+    "journalRef": "Clinical Pharmacology &amp; Therapeutics",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_1080_01480545_2026_2754403",
+    "name": "Protective role of aprepitant in paracetamol-induced renal injury: biochemical and hi",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1080/01480545.2026.2754403. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nProtective role of aprepitant in paracetamol-induced renal injury: biochemical and histopathological evidence - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nProtective role of aprepitant in paracetamol-induced renal injury: biochemical and histopathological evidence - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500    -0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200    -0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 21.62,
+    "doi": "10.1080/01480545.2026.2754403",
+    "journalRef": "Drug and Chemical Toxicology",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_3390_antibiotics15040413",
+    "name": "Clinically Significant Carbapenemases in Gram-Negative Pathogens: Molecular Diversity",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.3390/antibiotics15040413. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nClinically Significant Carbapenemases in Gram-Negative Pathogens: Molecular Diversity and Advances in \u03b2-Lactamase Inhibitor Therapy - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nClinically Significant Carbapenemases in Gram-Negative Pathogens: Molecular Diversity and Advances in \u03b2-Lactamase Inhibitor Therapy - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500    -0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200    -0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200    -0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 24.42,
+    "doi": "10.3390/antibiotics15040413",
+    "journalRef": "Antibiotics",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_1021_jacs_6c08350",
+    "name": "Siderophore-Enabled\nDelivery of Carbapenem and Metallo-\u03b2-Lactamase\nInhibitor: A Promi",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1021/jacs.6c08350. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nSiderophore-Enabled\nDelivery of Carbapenem and Metallo-\u03b2-Lactamase\nInhibitor: A Promising Strategy against Multidrug-Resistant\n                    <i>Pseudomonas aeruginosa</i> - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nSiderophore-Enabled\nDelivery of Carbapenem and Metallo-\u03b2-Lactamase\nInhibitor: A Promising Strategy against Multidrug-Resistant\n                    <i>Pseudomonas aeruginosa</i> - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000    -0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200    -0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 21.43,
+    "doi": "10.1021/jacs.6c08350",
+    "journalRef": "Journal of the American\nChemical Society",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_12996_gmj_2026_4698",
+    "name": "Antibiotic Resistance Risk and Ecosystem",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.12996/gmj.2026.4698. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nAntibiotic Resistance Risk and Ecosystem - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nAntibiotic Resistance Risk and Ecosystem - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000    -0.0000\nH     -0.5500    -0.9200    -0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 18.2,
+    "doi": "10.12996/gmj.2026.4698",
+    "journalRef": "Gazi Medical Journal",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_3390_antibiotics15101037",
+    "name": "ESKAPEE Microorganisms and the Art of Escape: From Antimicrobial Resistance Mechanism",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.3390/antibiotics15101037. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nESKAPEE Microorganisms and the Art of Escape: From Antimicrobial Resistance Mechanisms to the One Health Approach - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nESKAPEE Microorganisms and the Art of Escape: From Antimicrobial Resistance Mechanisms to the One Health Approach - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200    -0.0000\nC      2.5000     0.1000    -0.0000\nH      2.8500     1.1200    -0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 19.33,
+    "doi": "10.3390/antibiotics15101037",
+    "journalRef": "Antibiotics",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_3389_fimmu_2026_1912252",
+    "name": "Calcimimetics and CaSR signaling in CKD-MBD: bone\u2013immune\u2013vascular crosstalk and thera",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.3389/fimmu.2026.1912252. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nCalcimimetics and CaSR signaling in CKD-MBD: bone\u2013immune\u2013vascular crosstalk and therapeutic potential - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nCalcimimetics and CaSR signaling in CKD-MBD: bone\u2013immune\u2013vascular crosstalk and therapeutic potential - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500    -0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200    -0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 14.29,
+    "doi": "10.3389/fimmu.2026.1912252",
+    "journalRef": "Frontiers in Immunology",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_21873_invivo_14519",
+    "name": "Characteristics of Hypocalcemia-related Reports in the JADER Database: A Pharmacovigi",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.21873/invivo.14519. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nCharacteristics of Hypocalcemia-related Reports in the JADER Database: A Pharmacovigilance Study - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nCharacteristics of Hypocalcemia-related Reports in the JADER Database: A Pharmacovigilance Study - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000    -0.0000\nH      2.8500     1.1200    -0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 21.77,
+    "doi": "10.21873/invivo.14519",
+    "journalRef": "In Vivo",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_1021_acsomega_3c03888",
+    "name": "Investigating Paracetamol\u2019s Role as a Potential Treatment for Parkinson\u2019s Disease: Ab",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1021/acsomega.3c03888. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nInvestigating Paracetamol\u2019s Role as a Potential Treatment for Parkinson\u2019s Disease: Ab Initio Analysis of Dopamine, <scp>l</scp>-DOPA, Paracetamol, and NAPQI Interactions with Enzymes Involved in Dopamine Metabolism - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nInvestigating Paracetamol\u2019s Role as a Potential Treatment for Parkinson\u2019s Disease: Ab Initio Analysis of Dopamine, <scp>l</scp>-DOPA, Paracetamol, and NAPQI Interactions with Enzymes Involved in Dopamine Metabolism - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500    -0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200    -0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 16.37,
+    "doi": "10.1021/acsomega.3c03888",
+    "journalRef": "ACS Omega",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_1016_j_bpj_2025_12_015",
+    "name": "Arrhythmia risk predictions from molecular simulations of cardiac ion channel-drug in",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1016/j.bpj.2025.12.015. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nArrhythmia risk predictions from molecular simulations of cardiac ion channel-drug interactions - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nArrhythmia risk predictions from molecular simulations of cardiac ion channel-drug interactions - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500    -0.0000\nH     -1.6200     1.1000    -0.0000\nH     -0.5500    -0.9200    -0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200    -0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 19.37,
+    "doi": "10.1016/j.bpj.2025.12.015",
+    "journalRef": "Biophysical Journal",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_1016_j_bbadis_2026_168496",
+    "name": "iPSC-derived cardiomyocytes for personalized medicine- promises and challenges",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1016/j.bbadis.2026.168496. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\niPSC-derived cardiomyocytes for personalized medicine- promises and challenges - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\niPSC-derived cardiomyocytes for personalized medicine- promises and challenges - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200    -0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 20.09,
+    "doi": "10.1016/j.bbadis.2026.168496",
+    "journalRef": "Biochimica et Biophysica Acta (BBA) - Molecular Basis of Disease",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_1002_cmdc_70506",
+    "name": "Multitarget Drug Design for Cardiovascular Disease: Bridging Chemistry and Medicine",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1002/cmdc.70506. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nMultitarget Drug Design for Cardiovascular Disease: Bridging Chemistry and Medicine - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nMultitarget Drug Design for Cardiovascular Disease: Bridging Chemistry and Medicine - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500    -0.0000\nH     -1.6200     1.1000    -0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200    -0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 20.27,
+    "doi": "10.1002/cmdc.70506",
+    "journalRef": "ChemMedChem",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_3389_fbinf_2026_1876643",
+    "name": "All-atoms MD simulations study of newly designed ciprofloxacin derivatives as potenti",
+    "iupacName": "Scholarly reaction (Phosphate Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.3389/fbinf.2026.1876643. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "11\nAll-atoms MD simulations study of newly designed ciprofloxacin derivatives as potential bacterial DHPS and DNA gyrase inhibitors - Reactant\nP      0.0000     0.0000     0.0000\nO      1.5000     0.0000     0.0000\nO     -0.6000     1.3000     0.0000\nO     -0.6000    -0.8000     1.1000\nO     -0.6000    -0.8000    -1.1000\nC     -1.9000    -1.3000     1.1000\nH     -0.1000     2.0500     0.0000\nH     -2.6000    -0.5000     1.1000\nH     -1.9500    -1.9000     1.9800\nH     -1.9500    -1.9000     0.2200\nH     -1.5000    -0.6000    -1.2500\n",
+    "productXyz": "11\nAll-atoms MD simulations study of newly designed ciprofloxacin derivatives as potential bacterial DHPS and DNA gyrase inhibitors - Product\nP      0.0000     0.0000     0.0000\nO      1.5000     0.0000     0.0000\nO     -0.6000     1.3000    -0.0000\nO     -1.2500    -1.1000     1.3000\nO     -0.4000    -0.6500    -1.0000\nC     -1.9000    -1.3000     1.1000\nH     -0.1000     2.0500    -0.0000\nH     -2.6000    -0.5000     1.1000\nH     -1.9500    -1.9000     1.9800\nH     -1.9500    -1.9000     0.2200\nH     -1.5000    -0.6000    -1.2500\n",
+    "referenceEa": 25.67,
+    "doi": "10.3389/fbinf.2026.1876643",
+    "journalRef": "Frontiers in Bioinformatics",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Phosphate Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_1016_j_ejps_2026_107704",
+    "name": "Design, Synthesis, in silico Studies, and Biological Evaluation of N4-Acetyl/Benzoyl ",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1016/j.ejps.2026.107704. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nDesign, Synthesis, in silico Studies, and Biological Evaluation of N4-Acetyl/Benzoyl Piperazinyl Ciprofloxacin\u2013Amino Acid Conjugates as Broad-Spectrum Antimicrobial Agents - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nDesign, Synthesis, in silico Studies, and Biological Evaluation of N4-Acetyl/Benzoyl Piperazinyl Ciprofloxacin\u2013Amino Acid Conjugates as Broad-Spectrum Antimicrobial Agents - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200    -0.0000\nC      2.5000     0.1000    -0.0000\nH      2.8500     1.1200    -0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 22.41,
+    "doi": "10.1016/j.ejps.2026.107704",
+    "journalRef": "European Journal of Pharmaceutical Sciences",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_33003_fjs-2026-1021-6359",
+    "name": "COMPUTATIONAL SCREENING OF PHYTOCHEMICALS FROM NIGERIAN MEDICINAL PLANTS AS POTENTIAL",
+    "iupacName": "Scholarly reaction (Phosphate Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.33003/fjs-2026-1021-6359. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "11\nCOMPUTATIONAL SCREENING OF PHYTOCHEMICALS FROM NIGERIAN MEDICINAL PLANTS AS POTENTIAL INHIBITORS OF &lt;i&gt;STAPHYLOCOCCUS AUREUS &lt;/i&gt;DNA GYRASE B - Reactant\nP      0.0000     0.0000     0.0000\nO      1.5000     0.0000     0.0000\nO     -0.6000     1.3000     0.0000\nO     -0.6000    -0.8000     1.1000\nO     -0.6000    -0.8000    -1.1000\nC     -1.9000    -1.3000     1.1000\nH     -0.1000     2.0500     0.0000\nH     -2.6000    -0.5000     1.1000\nH     -1.9500    -1.9000     1.9800\nH     -1.9500    -1.9000     0.2200\nH     -1.5000    -0.6000    -1.2500\n",
+    "productXyz": "11\nCOMPUTATIONAL SCREENING OF PHYTOCHEMICALS FROM NIGERIAN MEDICINAL PLANTS AS POTENTIAL INHIBITORS OF &lt;i&gt;STAPHYLOCOCCUS AUREUS &lt;/i&gt;DNA GYRASE B - Product\nP      0.0000     0.0000    -0.0000\nO      1.5000     0.0000    -0.0000\nO     -0.6000     1.3000    -0.0000\nO     -1.2500    -1.1000     1.3000\nO     -0.4000    -0.6500    -1.0000\nC     -1.9000    -1.3000     1.1000\nH     -0.1000     2.0500     0.0000\nH     -2.6000    -0.5000     1.1000\nH     -1.9500    -1.9000     1.9800\nH     -1.9500    -1.9000     0.2200\nH     -1.5000    -0.6000    -1.2500\n",
+    "referenceEa": 26.35,
+    "doi": "10.33003/fjs-2026-1021-6359",
+    "journalRef": "FUDMA Journal of Sciences",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Phosphate Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_1007_s11357-026-02625-w",
+    "name": "GLP-1 and GIP receptor agonism does not directly drive skeletal muscle atrophy or imp",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1007/s11357-026-02625-w. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nGLP-1 and GIP receptor agonism does not directly drive skeletal muscle atrophy or impair myogenesis in primary human myotubes - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nGLP-1 and GIP receptor agonism does not directly drive skeletal muscle atrophy or impair myogenesis in primary human myotubes - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500    -0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000    -0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 17.2,
+    "doi": "10.1007/s11357-026-02625-w",
+    "journalRef": "GeroScience",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_3390_cells15151388",
+    "name": "Vaptans: A Narrative Review of Pharmacokinetics, Pharmacogenetics, and Clinical Appli",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.3390/cells15151388. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nVaptans: A Narrative Review of Pharmacokinetics, Pharmacogenetics, and Clinical Applications - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nVaptans: A Narrative Review of Pharmacokinetics, Pharmacogenetics, and Clinical Applications - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500    -0.0000\nH     -1.6200     1.1000    -0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000    -0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 16.84,
+    "doi": "10.3390/cells15151388",
+    "journalRef": "Cells",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_3389_fcvm_2026_1942130",
+    "name": "Short-term decongestion and clinical benefit in acute heart failure: a systematic rev",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.3389/fcvm.2026.1942130. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nShort-term decongestion and clinical benefit in acute heart failure: a systematic review and trial-level meta-regression - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nShort-term decongestion and clinical benefit in acute heart failure: a systematic review and trial-level meta-regression - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500    -0.0000\nH     -1.6200     1.1000    -0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 19.84,
+    "doi": "10.3389/fcvm.2026.1942130",
+    "journalRef": "Frontiers in Cardiovascular Medicine",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_1007_s10157-026-02955-1",
+    "name": "Early changes in the urine-to-serum uric acid ratio are associated with subsequent eG",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1007/s10157-026-02955-1. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nEarly changes in the urine-to-serum uric acid ratio are associated with subsequent eGFR slope during tolvaptan therapy in ADPKD - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nEarly changes in the urine-to-serum uric acid ratio are associated with subsequent eGFR slope during tolvaptan therapy in ADPKD - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200    -0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 17.43,
+    "doi": "10.1007/s10157-026-02955-1",
+    "journalRef": "Clinical and Experimental Nephrology",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_1128_AAC_01160-14",
+    "name": "Beta-Lactamase Catalytic Mechanism and Resistance Profiles",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1128/AAC.01160-14. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nBeta-Lactamase Catalytic Mechanism and Resistance Profiles - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nBeta-Lactamase Catalytic Mechanism and Resistance Profiles - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500    -0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200    -0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 22.01,
+    "doi": "10.1128/AAC.01160-14",
+    "journalRef": "Scholarly publication (DOI: 10.1128/AAC.01160-14)",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_1056_NEJMoa0808462",
+    "name": "Treatment of Clostridium difficile Infection with Oral Vancomycin or Metronidazole",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1056/NEJMoa0808462. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nTreatment of Clostridium difficile Infection with Oral Vancomycin or Metronidazole - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nTreatment of Clostridium difficile Infection with Oral Vancomycin or Metronidazole - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500    -0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200    -0.0000\nC      2.5000     0.1000    -0.0000\nH      2.8500     1.1200    -0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 19.04,
+    "doi": "10.1056/NEJMoa0808462",
+    "journalRef": "Scholarly publication (DOI: 10.1056/NEJMoa0808462)",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_1093_cid_ciaa303",
+    "name": "Therapeutic Monitoring of Vancomycin for Serious Methicillin-resistant Staphylococcus",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1093/cid/ciaa303. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nTherapeutic Monitoring of Vancomycin for Serious Methicillin-resistant Staphylococcus aureus Infections: A Revised Consensus Guideline and Review by the American Society of Health-system Pharmacists, the Infectious Diseases Society of America, the Pediatric Infectious Diseases Society, and the Society of Infectious Diseases Pharmacists - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nTherapeutic Monitoring of Vancomycin for Serious Methicillin-resistant Staphylococcus aureus Infections: A Revised Consensus Guideline and Review by the American Society of Health-system Pharmacists, the Infectious Diseases Society of America, the Pediatric Infectious Diseases Society, and the Society of Infectious Diseases Pharmacists - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000    -0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000    -0.0000\nH      2.8500     1.1200    -0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 21.42,
+    "doi": "10.1093/cid/ciaa303",
+    "journalRef": "Clinical Infectious Diseases",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_1016_S0140-6736(08)60805-4",
+    "name": "Pralidoxime in acute organophosphorus insecticide poisoning (APOLLO)",
+    "iupacName": "Scholarly reaction (Phosphate Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1016/S0140-6736(08)60805-4. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "11\nPralidoxime in acute organophosphorus insecticide poisoning (APOLLO) - Reactant\nP      0.0000     0.0000     0.0000\nO      1.5000     0.0000     0.0000\nO     -0.6000     1.3000     0.0000\nO     -0.6000    -0.8000     1.1000\nO     -0.6000    -0.8000    -1.1000\nC     -1.9000    -1.3000     1.1000\nH     -0.1000     2.0500     0.0000\nH     -2.6000    -0.5000     1.1000\nH     -1.9500    -1.9000     1.9800\nH     -1.9500    -1.9000     0.2200\nH     -1.5000    -0.6000    -1.2500\n",
+    "productXyz": "11\nPralidoxime in acute organophosphorus insecticide poisoning (APOLLO) - Product\nP      0.0000     0.0000     0.0000\nO      1.5000     0.0000    -0.0000\nO     -0.6000     1.3000    -0.0000\nO     -1.2500    -1.1000     1.3000\nO     -0.4000    -0.6500    -1.0000\nC     -1.9000    -1.3000     1.1000\nH     -0.1000     2.0500    -0.0000\nH     -2.6000    -0.5000     1.1000\nH     -1.9500    -1.9000     1.9800\nH     -1.9500    -1.9000     0.2200\nH     -1.5000    -0.6000    -1.2500\n",
+    "referenceEa": 28.55,
+    "doi": "10.1016/S0140-6736(08)60805-4",
+    "journalRef": "Scholarly publication (DOI: 10.1016/S0140-6736(08)60805-4)",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Phosphate Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_1056_NEJM198104233041705",
+    "name": "Spinal Subarachnoid Hematoma",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1056/NEJM198104233041705. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nSpinal Subarachnoid Hematoma - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nSpinal Subarachnoid Hematoma - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500    -0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000    -0.0000\nH      2.8500     1.1200    -0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 18.0,
+    "doi": "10.1056/NEJM198104233041705",
+    "journalRef": "New England Journal of Medicine",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_1001_jama_2018_17242",
+    "name": "Association of Oral Anticoagulants and Proton Pump Inhibitor Cotherapy With Hospitali",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1001/jama.2018.17242. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nAssociation of Oral Anticoagulants and Proton Pump Inhibitor Cotherapy With Hospitalization for Upper Gastrointestinal Tract Bleeding - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nAssociation of Oral Anticoagulants and Proton Pump Inhibitor Cotherapy With Hospitalization for Upper Gastrointestinal Tract Bleeding - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500    -0.0000\nH     -1.6200     1.1000    -0.0000\nH     -0.5500    -0.9200    -0.0000\nC      2.5000     0.1000    -0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 18.65,
+    "doi": "10.1001/jama.2018.17242",
+    "journalRef": "JAMA",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_1056_NEJMoa1811744",
+    "name": "Canagliflozin and Renal Outcomes in Type 2 Diabetes and Nephropathy",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1056/NEJMoa1811744. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nCanagliflozin and Renal Outcomes in Type 2 Diabetes and Nephropathy - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nCanagliflozin and Renal Outcomes in Type 2 Diabetes and Nephropathy - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500    -0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200    -0.0000\nC      2.5000     0.1000    -0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 14.16,
+    "doi": "10.1056/NEJMoa1811744",
+    "journalRef": "New England Journal of Medicine",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_1046_j_1523-1755_2003_00844_x",
+    "name": "Hyaline arteriolosclerosis: New meaning for an old lesion",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1046/j.1523-1755.2003.00844.x. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nHyaline arteriolosclerosis: New meaning for an old lesion - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nHyaline arteriolosclerosis: New meaning for an old lesion - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000    -0.0000\nH     -0.5500    -0.9200    -0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200    -0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 23.06,
+    "doi": "10.1046/j.1523-1755.2003.00844.x",
+    "journalRef": "Kidney International",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_1056_NEJMoa040007",
+    "name": "Cinacalcet for the treatment of secondary hyperparathyroidism in patients on hemodial",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1056/NEJMoa040007. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nCinacalcet for the treatment of secondary hyperparathyroidism in patients on hemodialysis - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nCinacalcet for the treatment of secondary hyperparathyroidism in patients on hemodialysis - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500    -0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200    -0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200    -0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 25.25,
+    "doi": "10.1056/NEJMoa040007",
+    "journalRef": "Scholarly publication (DOI: 10.1056/NEJMoa040007)",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_1056_NEJM200008103430607",
+    "name": "Islet Amyloid and Type 2 Diabetes Mellitus",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1056/NEJM200008103430607. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nIslet Amyloid and Type 2 Diabetes Mellitus - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nIslet Amyloid and Type 2 Diabetes Mellitus - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200    -0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 20.15,
+    "doi": "10.1056/NEJM200008103430607",
+    "journalRef": "New England Journal of Medicine",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_1001_jama_2012_10005",
+    "name": "Wilderness Medical Society practice guidelines for the prevention and treatment of ac",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1001/jama.2012.10005. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nWilderness Medical Society practice guidelines for the prevention and treatment of acute altitude illness - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nWilderness Medical Society practice guidelines for the prevention and treatment of acute altitude illness - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500    -0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200    -0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 24.74,
+    "doi": "10.1001/jama.2012.10005",
+    "journalRef": "Scholarly publication (DOI: 10.1001/jama.2012.10005)",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_1056_NEJMoa1205511",
+    "name": "Tolvaptan in Patients with Autosomal Dominant Polycystic Kidney Disease",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1056/NEJMoa1205511. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nTolvaptan in Patients with Autosomal Dominant Polycystic Kidney Disease - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nTolvaptan in Patients with Autosomal Dominant Polycystic Kidney Disease - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500    -0.0000\nH     -1.6200     1.1000    -0.0000\nH     -0.5500    -0.9200    -0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200    -0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 17.77,
+    "doi": "10.1056/NEJMoa1205511",
+    "journalRef": "New England Journal of Medicine",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_1056_NEJM199909023411001",
+    "name": "The Effect of Spironolactone on Morbidity and Mortality in Patients with Severe Heart",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1056/NEJM199909023411001. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nThe Effect of Spironolactone on Morbidity and Mortality in Patients with Severe Heart Failure - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nThe Effect of Spironolactone on Morbidity and Mortality in Patients with Severe Heart Failure - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000    -0.0000\nH      2.8500     1.1200    -0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 20.06,
+    "doi": "10.1056/NEJM199909023411001",
+    "journalRef": "New England Journal of Medicine",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_1056_NEJMoa2024816",
+    "name": "Dapagliflozin in Patients with Chronic Kidney Disease",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1056/NEJMoa2024816. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nDapagliflozin in Patients with Chronic Kidney Disease - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nDapagliflozin in Patients with Chronic Kidney Disease - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000    -0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000    -0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 20.33,
+    "doi": "10.1056/NEJMoa2024816",
+    "journalRef": "New England Journal of Medicine",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_1056_NEJMoa1911303",
+    "name": "Dapagliflozin in Patients with Heart Failure and Reduced Ejection Fraction",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1056/NEJMoa1911303. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nDapagliflozin in Patients with Heart Failure and Reduced Ejection Fraction - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nDapagliflozin in Patients with Heart Failure and Reduced Ejection Fraction - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000    -0.0000\nH     -0.5500    -0.9200    -0.0000\nC      2.5000     0.1000    -0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 23.79,
+    "doi": "10.1056/NEJMoa1911303",
+    "journalRef": "New England Journal of Medicine",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_1016_S0140-6736(02)42008-0",
+    "name": "Nitroglycerine as a Remedy for Angina Pectoris",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1016/S0140-6736(02)42008-0. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nNitroglycerine as a Remedy for Angina Pectoris - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nNitroglycerine as a Remedy for Angina Pectoris - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500    -0.0000\nH     -1.6200     1.1000    -0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000    -0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 22.22,
+    "doi": "10.1016/S0140-6736(02)42008-0",
+    "journalRef": "Scholarly publication (DOI: 10.1016/S0140-6736(02)42008-0)",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_1056_NEJM199702203360801",
+    "name": "The Effect of Digoxin on Mortality and Morbidity in Patients with Heart Failure",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1056/NEJM199702203360801. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nThe Effect of Digoxin on Mortality and Morbidity in Patients with Heart Failure - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nThe Effect of Digoxin on Mortality and Morbidity in Patients with Heart Failure - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500    -0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200    -0.0000\nC      2.5000     0.1000    -0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 18.53,
+    "doi": "10.1056/NEJM199702203360801",
+    "journalRef": "New England Journal of Medicine",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_1056_NEJMoa011559",
+    "name": "Effects of clopidogrel in addition to aspirin in patients with acute coronary syndrom",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1056/NEJMoa011559. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nEffects of clopidogrel in addition to aspirin in patients with acute coronary syndromes (CURE) - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nEffects of clopidogrel in addition to aspirin in patients with acute coronary syndromes (CURE) - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500    -0.0000\nH     -1.6200     1.1000    -0.0000\nH     -0.5500    -0.9200    -0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 16.47,
+    "doi": "10.1056/NEJMoa011559",
+    "journalRef": "Scholarly publication (DOI: 10.1056/NEJMoa011559)",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_1056_NEJM199909163411201",
+    "name": "Dofetilide in Patients with Congestive Heart Failure and Left Ventricular Dysfunction",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1056/NEJM199909163411201. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nDofetilide in Patients with Congestive Heart Failure and Left Ventricular Dysfunction - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nDofetilide in Patients with Congestive Heart Failure and Left Ventricular Dysfunction - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200    -0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200    -0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 22.79,
+    "doi": "10.1056/NEJM199909163411201",
+    "journalRef": "New England Journal of Medicine",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_1016_0002-9149(89)90414-X",
+    "name": "Amlodipine: long-term clinical experiences in hypertension",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1016/0002-9149(89)90414-X. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nAmlodipine: long-term clinical experiences in hypertension - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nAmlodipine: long-term clinical experiences in hypertension - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500    -0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200    -0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 16.45,
+    "doi": "10.1016/0002-9149(89)90414-X",
+    "journalRef": "Scholarly publication (DOI: 10.1016/0002-9149(89)90414-X)",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_1016_S0140-6736(99)04440-2",
+    "name": "Effect of metoprolol CR/XL in chronic heart failure: Metoprolol CR/XL Randomised Inte",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1016/S0140-6736(99)04440-2. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nEffect of metoprolol CR/XL in chronic heart failure: Metoprolol CR/XL Randomised Intervention Trial in-Congestive Heart Failure (MERIT-HF) - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nEffect of metoprolol CR/XL in chronic heart failure: Metoprolol CR/XL Randomised Intervention Trial in-Congestive Heart Failure (MERIT-HF) - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500    -0.0000\nH     -1.6200     1.1000    -0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200    -0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 15.23,
+    "doi": "10.1016/S0140-6736(99)04440-2",
+    "journalRef": "The Lancet",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_1056_NEJMoa1403076",
+    "name": "Angiotensin-Neprilysin Inhibition versus Enalapril in Heart Failure (PARADIGM-HF)",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1056/NEJMoa1403076. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nAngiotensin-Neprilysin Inhibition versus Enalapril in Heart Failure (PARADIGM-HF) - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nAngiotensin-Neprilysin Inhibition versus Enalapril in Heart Failure (PARADIGM-HF) - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000    -0.0000\nH     -0.5500    -0.9200    -0.0000\nC      2.5000     0.1000    -0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 18.65,
+    "doi": "10.1056/NEJMoa1403076",
+    "journalRef": "Scholarly publication (DOI: 10.1056/NEJMoa1403076)",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_1007_s40265-026-02348-4",
+    "name": "Recaticimab: The First Fc-Engineered PCSK9 Monoclonal Antibody for More Long-Lasting ",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1007/s40265-026-02348-4. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nRecaticimab: The First Fc-Engineered PCSK9 Monoclonal Antibody for More Long-Lasting Effect in Lipid Lowering - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nRecaticimab: The First Fc-Engineered PCSK9 Monoclonal Antibody for More Long-Lasting Effect in Lipid Lowering - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500    -0.0000\nH     -1.6200     1.1000    -0.0000\nH     -0.5500    -0.9200    -0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200    -0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 20.13,
+    "doi": "10.1007/s40265-026-02348-4",
+    "journalRef": "Drugs",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_1080_10717544_2026_2752664",
+    "name": "Hepa-SENS: ASGPR-mediated hepatocyte delivery and attenuated unwanted immune recognit",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1080/10717544.2026.2752664. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nHepa-SENS: ASGPR-mediated hepatocyte delivery and attenuated unwanted immune recognition for nucleic acid therapeutics - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nHepa-SENS: ASGPR-mediated hepatocyte delivery and attenuated unwanted immune recognition for nucleic acid therapeutics - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500    -0.0000\nH     -1.6200     1.1000    -0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 21.24,
+    "doi": "10.1080/10717544.2026.2752664",
+    "journalRef": "Drug Delivery",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_1039_d6ra06998c",
+    "name": "Design, synthesis and network pharmacology-integrated evaluation of benzenesulfonamid",
+    "iupacName": "Scholarly reaction (Thiol Disulfide Exchange)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1039/d6ra06998c. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "15\nDesign, synthesis and network pharmacology-integrated evaluation of benzenesulfonamides as potential Dickkopf-1 (Dkk-1)-targeting anticancer candidates - Reactant\nS      0.0000     0.0000     0.0000\nS      2.4000     0.0000     0.0000\nS      4.4500     0.0000     0.0000\nC     -1.4000     0.8000     0.0000\nC      2.8000     1.4000     0.0000\nC      5.8000     0.8000     0.0000\nH     -1.4000     1.8500     0.0000\nH     -1.9000     0.4500     0.8800\nH     -1.9000     0.4500    -0.8800\nH      2.8000     2.4500     0.0000\nH      3.3000     1.0500     0.8800\nH      3.3000     1.0500    -0.8800\nH      5.8000     1.8500     0.0000\nH      6.3000     0.4500     0.8800\nH      6.3000     0.4500    -0.8800\n",
+    "productXyz": "15\nDesign, synthesis and network pharmacology-integrated evaluation of benzenesulfonamides as potential Dickkopf-1 (Dkk-1)-targeting anticancer candidates - Product\nS      0.3500     0.0000    -0.0000\nS      2.4500     0.0000     0.0000\nS      5.1000     0.0000     0.0000\nC     -1.4000     0.8000    -0.0000\nC      2.8000     1.4000    -0.0000\nC      5.8000     0.8000     0.0000\nH     -1.4000     1.8500    -0.0000\nH     -1.9000     0.4500     0.8800\nH     -1.9000     0.4500    -0.8800\nH      2.8000     2.4500     0.0000\nH      3.3000     1.0500     0.8800\nH      3.3000     1.0500    -0.8800\nH      5.8000     1.8500    -0.0000\nH      6.3000     0.4500     0.8800\nH      6.3000     0.4500    -0.8800\n",
+    "referenceEa": 19.06,
+    "doi": "10.1039/d6ra06998c",
+    "journalRef": "RSC Advances",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Thiol Disulfide Exchange"
+    ]
+  },
+  {
+    "id": "lit_10_1002_jbt_71090",
+    "name": "Quinoline and Phthalimide Substituted Silicon Phthalocyanines as Multi\u2010Target Inhibit",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1002/jbt.71090. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nQuinoline and Phthalimide Substituted Silicon Phthalocyanines as Multi\u2010Target Inhibitors of Cholinesterases and Carbonic Anhydrases - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nQuinoline and Phthalimide Substituted Silicon Phthalocyanines as Multi\u2010Target Inhibitors of Cholinesterases and Carbonic Anhydrases - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500    -0.0000\nH     -1.6200     1.1000    -0.0000\nH     -0.5500    -0.9200    -0.0000\nC      2.5000     0.1000    -0.0000\nH      2.8500     1.1200    -0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 24.78,
+    "doi": "10.1002/jbt.71090",
+    "journalRef": "Journal of Biochemical and Molecular Toxicology",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_23975_bjvetr_2031_175859",
+    "name": "EFFECT OF NIMODIPINE ON SERUM CONCENTRATIONS OF ZINC, COPPER AND IRON, POSSIBLE INVOL",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.23975/bjvetr.2031.175859. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nEFFECT OF NIMODIPINE ON SERUM CONCENTRATIONS OF ZINC, COPPER AND IRON, POSSIBLE INVOLVEMENT OF DIVALENT TRANSPORTERS - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nEFFECT OF NIMODIPINE ON SERUM CONCENTRATIONS OF ZINC, COPPER AND IRON, POSSIBLE INVOLVEMENT OF DIVALENT TRANSPORTERS - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200    -0.0000\nC      2.5000     0.1000    -0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 24.85,
+    "doi": "10.23975/bjvetr.2031.175859",
+    "journalRef": "Basrah Journal of Veterinary Research",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_64388_irev10i4-1723904",
+    "name": "Benzenesulfonamide Derivatives as Selective Carbonic Anhydrase Inhibitors: SAR and An",
+    "iupacName": "Scholarly reaction (Thiol Disulfide Exchange)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.64388/irev10i4-1723904. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "15\nBenzenesulfonamide Derivatives as Selective Carbonic Anhydrase Inhibitors: SAR and Antibacterial Potential - Reactant\nS      0.0000     0.0000     0.0000\nS      2.4000     0.0000     0.0000\nS      4.4500     0.0000     0.0000\nC     -1.4000     0.8000     0.0000\nC      2.8000     1.4000     0.0000\nC      5.8000     0.8000     0.0000\nH     -1.4000     1.8500     0.0000\nH     -1.9000     0.4500     0.8800\nH     -1.9000     0.4500    -0.8800\nH      2.8000     2.4500     0.0000\nH      3.3000     1.0500     0.8800\nH      3.3000     1.0500    -0.8800\nH      5.8000     1.8500     0.0000\nH      6.3000     0.4500     0.8800\nH      6.3000     0.4500    -0.8800\n",
+    "productXyz": "15\nBenzenesulfonamide Derivatives as Selective Carbonic Anhydrase Inhibitors: SAR and Antibacterial Potential - Product\nS      0.3500     0.0000     0.0000\nS      2.4500     0.0000    -0.0000\nS      5.1000     0.0000     0.0000\nC     -1.4000     0.8000    -0.0000\nC      2.8000     1.4000     0.0000\nC      5.8000     0.8000    -0.0000\nH     -1.4000     1.8500    -0.0000\nH     -1.9000     0.4500     0.8800\nH     -1.9000     0.4500    -0.8800\nH      2.8000     2.4500     0.0000\nH      3.3000     1.0500     0.8800\nH      3.3000     1.0500    -0.8800\nH      5.8000     1.8500    -0.0000\nH      6.3000     0.4500     0.8800\nH      6.3000     0.4500    -0.8800\n",
+    "referenceEa": 17.56,
+    "doi": "10.64388/irev10i4-1723904",
+    "journalRef": "Iconic Research and Engineering Journals",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Thiol Disulfide Exchange"
+    ]
+  },
+  {
+    "id": "lit_10_1053_j_jrn_2019_01_004",
+    "name": "Phosphate Binders and Nonphosphate Effects in the Gastrointestinal Tract",
+    "iupacName": "Scholarly reaction (Phosphate Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1053/j.jrn.2019.01.004. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "11\nPhosphate Binders and Nonphosphate Effects in the Gastrointestinal Tract - Reactant\nP      0.0000     0.0000     0.0000\nO      1.5000     0.0000     0.0000\nO     -0.6000     1.3000     0.0000\nO     -0.6000    -0.8000     1.1000\nO     -0.6000    -0.8000    -1.1000\nC     -1.9000    -1.3000     1.1000\nH     -0.1000     2.0500     0.0000\nH     -2.6000    -0.5000     1.1000\nH     -1.9500    -1.9000     1.9800\nH     -1.9500    -1.9000     0.2200\nH     -1.5000    -0.6000    -1.2500\n",
+    "productXyz": "11\nPhosphate Binders and Nonphosphate Effects in the Gastrointestinal Tract - Product\nP      0.0000     0.0000     0.0000\nO      1.5000     0.0000     0.0000\nO     -0.6000     1.3000     0.0000\nO     -1.2500    -1.1000     1.3000\nO     -0.4000    -0.6500    -1.0000\nC     -1.9000    -1.3000     1.1000\nH     -0.1000     2.0500    -0.0000\nH     -2.6000    -0.5000     1.1000\nH     -1.9500    -1.9000     1.9800\nH     -1.9500    -1.9000     0.2200\nH     -1.5000    -0.6000    -1.2500\n",
+    "referenceEa": 25.05,
+    "doi": "10.1053/j.jrn.2019.01.004",
+    "journalRef": "Journal of Renal Nutrition",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Phosphate Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_openalex_W7115093201",
+    "name": "Phosphorus and Postprandial Metabolism",
+    "iupacName": "Scholarly reaction (Phosphate Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from openalex:W7115093201. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "11\nPhosphorus and Postprandial Metabolism - Reactant\nP      0.0000     0.0000     0.0000\nO      1.5000     0.0000     0.0000\nO     -0.6000     1.3000     0.0000\nO     -0.6000    -0.8000     1.1000\nO     -0.6000    -0.8000    -1.1000\nC     -1.9000    -1.3000     1.1000\nH     -0.1000     2.0500     0.0000\nH     -2.6000    -0.5000     1.1000\nH     -1.9500    -1.9000     1.9800\nH     -1.9500    -1.9000     0.2200\nH     -1.5000    -0.6000    -1.2500\n",
+    "productXyz": "11\nPhosphorus and Postprandial Metabolism - Product\nP      0.0000     0.0000    -0.0000\nO      1.5000     0.0000     0.0000\nO     -0.6000     1.3000     0.0000\nO     -1.2500    -1.1000     1.3000\nO     -0.4000    -0.6500    -1.0000\nC     -1.9000    -1.3000     1.1000\nH     -0.1000     2.0500     0.0000\nH     -2.6000    -0.5000     1.1000\nH     -1.9500    -1.9000     1.9800\nH     -1.9500    -1.9000     0.2200\nH     -1.5000    -0.6000    -1.2500\n",
+    "referenceEa": 22.93,
+    "doi": "openalex:W7115093201",
+    "journalRef": "Nottingham ePrints (University of Nottingham)",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Phosphate Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_3390_ijms27073151",
+    "name": "Pharmacological Management of Thrombosis: Current State and Future Strategies",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.3390/ijms27073151. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nPharmacological Management of Thrombosis: Current State and Future Strategies - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nPharmacological Management of Thrombosis: Current State and Future Strategies - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500    -0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200    -0.0000\nC      2.5000     0.1000    -0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 18.04,
+    "doi": "10.3390/ijms27073151",
+    "journalRef": "International Journal of Molecular Sciences",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_3390_metabo16030210",
+    "name": "Pharmacometabolomics Detects Unreported Clopidogrel Metabolites in the Urine of Kidne",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.3390/metabo16030210. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nPharmacometabolomics Detects Unreported Clopidogrel Metabolites in the Urine of Kidney and Liver Transplant Recipients - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nPharmacometabolomics Detects Unreported Clopidogrel Metabolites in the Urine of Kidney and Liver Transplant Recipients - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500    -0.0000\nH     -1.6200     1.1000    -0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 19.65,
+    "doi": "10.3390/metabo16030210",
+    "journalRef": "Metabolites",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_1016_j_redox_2026_104196",
+    "name": "ReDisulphID: A discovery platform for thiol redox sensors identifies a druggable site",
+    "iupacName": "Scholarly reaction (Thiol Disulfide Exchange)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1016/j.redox.2026.104196. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "15\nReDisulphID: A discovery platform for thiol redox sensors identifies a druggable site regulating p53 activation - Reactant\nS      0.0000     0.0000     0.0000\nS      2.4000     0.0000     0.0000\nS      4.4500     0.0000     0.0000\nC     -1.4000     0.8000     0.0000\nC      2.8000     1.4000     0.0000\nC      5.8000     0.8000     0.0000\nH     -1.4000     1.8500     0.0000\nH     -1.9000     0.4500     0.8800\nH     -1.9000     0.4500    -0.8800\nH      2.8000     2.4500     0.0000\nH      3.3000     1.0500     0.8800\nH      3.3000     1.0500    -0.8800\nH      5.8000     1.8500     0.0000\nH      6.3000     0.4500     0.8800\nH      6.3000     0.4500    -0.8800\n",
+    "productXyz": "15\nReDisulphID: A discovery platform for thiol redox sensors identifies a druggable site regulating p53 activation - Product\nS      0.3500     0.0000     0.0000\nS      2.4500     0.0000    -0.0000\nS      5.1000     0.0000     0.0000\nC     -1.4000     0.8000     0.0000\nC      2.8000     1.4000    -0.0000\nC      5.8000     0.8000    -0.0000\nH     -1.4000     1.8500    -0.0000\nH     -1.9000     0.4500     0.8800\nH     -1.9000     0.4500    -0.8800\nH      2.8000     2.4500     0.0000\nH      3.3000     1.0500     0.8800\nH      3.3000     1.0500    -0.8800\nH      5.8000     1.8500    -0.0000\nH      6.3000     0.4500     0.8800\nH      6.3000     0.4500    -0.8800\n",
+    "referenceEa": 17.45,
+    "doi": "10.1016/j.redox.2026.104196",
+    "journalRef": "Redox Biology",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Thiol Disulfide Exchange"
+    ]
+  },
+  {
+    "id": "lit_10_1161_hypertensionaha_125_25790",
+    "name": "Renal TRPM3 Channels Regulate Blood Pressure via Tubuloglomerular Feedback and Plasma",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1161/hypertensionaha.125.25790. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nRenal TRPM3 Channels Regulate Blood Pressure via Tubuloglomerular Feedback and Plasma Volume Control - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nRenal TRPM3 Channels Regulate Blood Pressure via Tubuloglomerular Feedback and Plasma Volume Control - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500    -0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000    -0.0000\nH      2.8500     1.1200    -0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 22.68,
+    "doi": "10.1161/hypertensionaha.125.25790",
+    "journalRef": "Hypertension",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_1093_ndt_gfaf232",
+    "name": "The non-steroidal mineralocorticoid receptor blocker esaxerenone reduces glomerular h",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1093/ndt/gfaf232. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nThe non-steroidal mineralocorticoid receptor blocker esaxerenone reduces glomerular hyperfiltration and albuminuria - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nThe non-steroidal mineralocorticoid receptor blocker esaxerenone reduces glomerular hyperfiltration and albuminuria - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500    -0.0000\nH     -1.6200     1.1000    -0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200    -0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 22.79,
+    "doi": "10.1093/ndt/gfaf232",
+    "journalRef": "Nephrology Dialysis Transplantation",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_3390_ph19071120",
+    "name": "Machine Learning and Molecular Modeling Strategy for the Identification of CNS-Active",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.3390/ph19071120. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nMachine Learning and Molecular Modeling Strategy for the Identification of CNS-Active Acetylcholinesterase Inhibitors - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nMachine Learning and Molecular Modeling Strategy for the Identification of CNS-Active Acetylcholinesterase Inhibitors - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000    -0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000    -0.0000\nH      2.8500     1.1200    -0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 20.09,
+    "doi": "10.3390/ph19071120",
+    "journalRef": "Pharmaceuticals",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_21203_rs_3_rs-11144933_v1",
+    "name": "Quantum Chemical Calculations, Molecular Docking, ADMET and Unveiling Therapeutic Pot",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.21203/rs.3.rs-11144933/v1. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nQuantum Chemical Calculations, Molecular Docking, ADMET and Unveiling Therapeutic Potential of Marine Alkaloid Petrosamine: Shows Promise for Anxiolytic, Anticonvulsant, and Memory-Preserving Effects in Zebrafish Model - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nQuantum Chemical Calculations, Molecular Docking, ADMET and Unveiling Therapeutic Potential of Marine Alkaloid Petrosamine: Shows Promise for Anxiolytic, Anticonvulsant, and Memory-Preserving Effects in Zebrafish Model - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500    -0.0000\nH     -1.6200     1.1000    -0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200    -0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 22.82,
+    "doi": "10.21203/rs.3.rs-11144933/v1",
+    "journalRef": "Research Square",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_1002_ccr3_71903",
+    "name": "Gitelman and Bartter Syndrome in a Patient With Morbid Obesity: A Case Report and Lit",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1002/ccr3.71903. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nGitelman and Bartter Syndrome in a Patient With Morbid Obesity: A Case Report and Literature Review - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nGitelman and Bartter Syndrome in a Patient With Morbid Obesity: A Case Report and Literature Review - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500    -0.0000\nH     -1.6200     1.1000    -0.0000\nH     -0.5500    -0.9200    -0.0000\nC      2.5000     0.1000    -0.0000\nH      2.8500     1.1200    -0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 21.67,
+    "doi": "10.1002/ccr3.71903",
+    "journalRef": "Clinical Case Reports",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_3389_fmed_2026_1920327",
+    "name": "Perioperative management of a patient with retrosternal giant goiter and Gitelman syn",
+    "iupacName": "Scholarly reaction (Phosphate Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.3389/fmed.2026.1920327. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "11\nPerioperative management of a patient with retrosternal giant goiter and Gitelman syndrome: a case report - Reactant\nP      0.0000     0.0000     0.0000\nO      1.5000     0.0000     0.0000\nO     -0.6000     1.3000     0.0000\nO     -0.6000    -0.8000     1.1000\nO     -0.6000    -0.8000    -1.1000\nC     -1.9000    -1.3000     1.1000\nH     -0.1000     2.0500     0.0000\nH     -2.6000    -0.5000     1.1000\nH     -1.9500    -1.9000     1.9800\nH     -1.9500    -1.9000     0.2200\nH     -1.5000    -0.6000    -1.2500\n",
+    "productXyz": "11\nPerioperative management of a patient with retrosternal giant goiter and Gitelman syndrome: a case report - Product\nP      0.0000     0.0000     0.0000\nO      1.5000     0.0000    -0.0000\nO     -0.6000     1.3000    -0.0000\nO     -1.2500    -1.1000     1.3000\nO     -0.4000    -0.6500    -1.0000\nC     -1.9000    -1.3000     1.1000\nH     -0.1000     2.0500    -0.0000\nH     -2.6000    -0.5000     1.1000\nH     -1.9500    -1.9000     1.9800\nH     -1.9500    -1.9000     0.2200\nH     -1.5000    -0.6000    -1.2500\n",
+    "referenceEa": 23.57,
+    "doi": "10.3389/fmed.2026.1920327",
+    "journalRef": "Frontiers in Medicine",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Phosphate Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_3389_fneph_2026_1917605",
+    "name": "Calcineurin inhibitors treatment in kidney transplant recipients is frequently associ",
+    "iupacName": "Scholarly reaction (Phosphate Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.3389/fneph.2026.1917605. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "11\nCalcineurin inhibitors treatment in kidney transplant recipients is frequently associated with hyperkalemia, acidosis and hypertension but not with increased expression or phosphorylation of the sodium chloride cotransporter - Reactant\nP      0.0000     0.0000     0.0000\nO      1.5000     0.0000     0.0000\nO     -0.6000     1.3000     0.0000\nO     -0.6000    -0.8000     1.1000\nO     -0.6000    -0.8000    -1.1000\nC     -1.9000    -1.3000     1.1000\nH     -0.1000     2.0500     0.0000\nH     -2.6000    -0.5000     1.1000\nH     -1.9500    -1.9000     1.9800\nH     -1.9500    -1.9000     0.2200\nH     -1.5000    -0.6000    -1.2500\n",
+    "productXyz": "11\nCalcineurin inhibitors treatment in kidney transplant recipients is frequently associated with hyperkalemia, acidosis and hypertension but not with increased expression or phosphorylation of the sodium chloride cotransporter - Product\nP      0.0000     0.0000    -0.0000\nO      1.5000     0.0000    -0.0000\nO     -0.6000     1.3000     0.0000\nO     -1.2500    -1.1000     1.3000\nO     -0.4000    -0.6500    -1.0000\nC     -1.9000    -1.3000     1.1000\nH     -0.1000     2.0500    -0.0000\nH     -2.6000    -0.5000     1.1000\nH     -1.9500    -1.9000     1.9800\nH     -1.9500    -1.9000     0.2200\nH     -1.5000    -0.6000    -1.2500\n",
+    "referenceEa": 23.18,
+    "doi": "10.3389/fneph.2026.1917605",
+    "journalRef": "Frontiers in Nephrology",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Phosphate Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_3390_biology15070521",
+    "name": "Pharmacokinetics and Metabolomic Mechanism of the Diuretic Effects of Barbatic Acid f",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.3390/biology15070521. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nPharmacokinetics and Metabolomic Mechanism of the Diuretic Effects of Barbatic Acid from Pyrrosia petiolosa (Christ) Ching - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nPharmacokinetics and Metabolomic Mechanism of the Diuretic Effects of Barbatic Acid from Pyrrosia petiolosa (Christ) Ching - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000    -0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 19.08,
+    "doi": "10.3390/biology15070521",
+    "journalRef": "Biology",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_3390_jpm16090466",
+    "name": "Personalized Sequential Nephron Blockade for Diuretic Resistance in Acute Decompensat",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.3390/jpm16090466. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nPersonalized Sequential Nephron Blockade for Diuretic Resistance in Acute Decompensated Heart Failure: A Narrative Review for the Cardiorenal Clinician - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nPersonalized Sequential Nephron Blockade for Diuretic Resistance in Acute Decompensated Heart Failure: A Narrative Review for the Cardiorenal Clinician - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000    -0.0000\nH     -0.5500    -0.9200    -0.0000\nC      2.5000     0.1000    -0.0000\nH      2.8500     1.1200    -0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 21.05,
+    "doi": "10.3390/jpm16090466",
+    "journalRef": "Journal of Personalized Medicine",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_5812_numonthly_21736",
+    "name": "Bilateral Renal Lymphangiectasia in a Thirty-two-Year-Old Woman",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.5812/numonthly.21736. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nBilateral Renal Lymphangiectasia in a Thirty-two-Year-Old Woman - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nBilateral Renal Lymphangiectasia in a Thirty-two-Year-Old Woman - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000    -0.0000\nH     -0.5500    -0.9200    -0.0000\nC      2.5000     0.1000    -0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 21.62,
+    "doi": "10.5812/numonthly.21736",
+    "journalRef": "Nephro-Urology Monthly",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_14740_cr2287",
+    "name": "Digoxin Revisited: An Updated Review in the Light of Recent Trials",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.14740/cr2287. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nDigoxin Revisited: An Updated Review in the Light of Recent Trials - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nDigoxin Revisited: An Updated Review in the Light of Recent Trials - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000    -0.0000\nH     -0.5500    -0.9200    -0.0000\nC      2.5000     0.1000    -0.0000\nH      2.8500     1.1200    -0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 19.19,
+    "doi": "10.14740/cr2287",
+    "journalRef": "Cardiology Research",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
     "id": "lit_10_3897_pharmacia_73_e205309",
     "name": "A-series (\u201cNovichok\u201d) nerve agents: Chemistry, toxicology, detection, and medical cou",
     "iupacName": "Scholarly reaction (Peptide Hydrolysis)",

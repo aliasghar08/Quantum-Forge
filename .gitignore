@@ -56,3 +56,10 @@ eval/results/*.json
 
 SESSION_STATE.md
 RECOVERED_SESSION_CONTEXT.md
+
+# Autonomous training ephemeral files
+data/autonomous_training/*.extxyz
+data/autonomous_training/*.sqlite-shm
+data/autonomous_training/*.sqlite-wal
+scratch/
+
