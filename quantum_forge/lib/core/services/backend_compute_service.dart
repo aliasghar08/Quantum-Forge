@@ -183,11 +183,13 @@ class BackendComputeService {
     String backendUrl,
     String reactionId, {
     int maxAttempts = 600,
-    Duration interval = const Duration(seconds: 2),
+    Duration initialDelay = const Duration(milliseconds: 250),
+    Duration interval = const Duration(milliseconds: 500),
   }) async* {
     final base = _base(backendUrl);
     for (var i = 0; i < maxAttempts; i++) {
-      await Future<void>.delayed(interval);
+      final delay = i == 0 ? initialDelay : interval;
+      await Future<void>.delayed(delay);
       final raw = await _guard(
         base,
         () => WebServices.fetchString('$base/reactions/$reactionId'),

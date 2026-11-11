@@ -128,14 +128,14 @@ extension ReactionProviderDispatchExt on ReactionNotifier {
         );
 
         // Simulate fast restoration progress
-        for (int i = 1; i <= 10; i++) {
-          await Future.delayed(const Duration(milliseconds: 100));
-          playbackProgressNotifier.value = i / 10.0;
+        for (int i = 1; i <= 5; i++) {
+          await Future.delayed(const Duration(milliseconds: 25));
+          playbackProgressNotifier.value = i / 5.0;
           if (value == null || value!.message != 'Restoring trajectory frames...') {
             value = ReactionStatusResponse(
               reactionId: cachedReaction.reactionId,
               state: ReactionState.optimizing,
-              progress: i / 10.0,
+              progress: i / 5.0,
               message: 'Restoring trajectory frames...',
             );
           }

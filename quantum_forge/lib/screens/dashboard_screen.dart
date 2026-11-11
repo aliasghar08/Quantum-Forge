@@ -260,6 +260,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     ReactionTemplate template,
   ) {
     if (mounted) {
+      context.read<ReactionNotifier>().errorNotifier.value = null;
       context.read<QuantumSettingsNotifier>().update((q) => q.copyWith(
         charge: template.defaults.charge,
         spinMultiplicity: template.defaults.spinMultiplicity,
@@ -276,8 +277,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
     if (hasCompletedData) {
       _viewModel.loadTemplateForView(template);
       context.read<ReactionNotifier>().value = reaction;
+      context.read<ReactionNotifier>().playbackProgressNotifier.value = 1.0;
     } else {
-      _viewModel.loadTemplate(template);
+      _onTemplateSelected(template);
       if (reaction.reactionId.isNotEmpty && reaction.state != ReactionState.completed) {
         context.read<ReactionNotifier>().value = reaction;
       }

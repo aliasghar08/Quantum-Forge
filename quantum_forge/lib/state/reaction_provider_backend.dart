@@ -108,12 +108,16 @@ extension ReactionProviderBackendExt on ReactionNotifier {
             modelUsed: result.modelUsed,
           );
           value = completed;
-          if (await _auth.isAuthenticated()) {
-            final uid = await _auth.getUserId();
-            if (uid.isNotEmpty) {
-              await _repo.saveCompletedReaction(completed, uid);
+          isLoadingNotifier.value = false;
+          playbackProgressNotifier.value = 1.0;
+          unawaited(() async {
+            if (await _auth.isAuthenticated()) {
+              final uid = await _auth.getUserId();
+              if (uid.isNotEmpty) {
+                await _repo.saveCompletedReaction(completed, uid);
+              }
             }
-          }
+          }());
         } else {
           playbackProgressNotifier.value = result.progress;
           // Only update value if message or state changes

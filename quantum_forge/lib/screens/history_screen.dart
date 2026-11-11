@@ -757,6 +757,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
               template: template,
               trajectoryFrames: reaction.trajectoryFrames,
               energyProfile: reaction.energyProfile,
+              onTap: () => _selectReaction(reaction, template),
               onLoad: () => _selectReaction(reaction, template),
               onDelete: () => _deleteReaction(reaction.reactionId),
             ),

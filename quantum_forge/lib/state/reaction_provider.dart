@@ -17,6 +17,7 @@ import 'package:quantum_forge/core/utils/uuid_util.dart';
 import 'package:quantum_forge/core/services/local_history_service.dart';
 import 'package:quantum_forge/core/algorithms/transformer_reaction_compressor.dart';
 import 'dart:convert';
+import 'dart:async';
 
 part 'reaction_provider_dispatch.dart';
 part 'reaction_provider_simulation.dart';

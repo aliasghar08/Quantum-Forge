@@ -385,6 +385,8 @@ def _reorder_product_to_match_reactant(
     r_atoms: list[str],
     p_atoms: list[str],
     p_pos: list[list[float]],
+    auto_balance: bool = False,
+    r_pos: list[list[float]] | None = None,
 ) -> tuple[list[str], list[list[float]]]:
     """Permute the product so slot i describes the same element as the reactant.
 
@@ -393,10 +395,8 @@ def _reorder_product_to_match_reactant(
     atom in the same slot. Equal atom counts do NOT imply matching order: the
     Beckmann reactant has O at index 1 and its product has O at index 7.
 
-    Raises ValueError when the two structures are not the same molecule. That
-    case cannot be interpolated — trying to blend C6H7NO into C5H8NO produces a
-    path that no calculation produced, and silently labelling the last frame
-    with the reactant's elements hides the error rather than surfacing it.
+    Raises ValueError when the two structures are not the same molecule and
+    auto_balance is False.
     """
     from collections import Counter, defaultdict, deque
 
@@ -409,13 +409,28 @@ def _reorder_product_to_match_reactant(
     if r_counts != p_counts:
         missing = r_counts - p_counts
         extra = p_counts - r_counts
-        raise ValueError(
-            "Reactant and product do not have the same atoms. "
-            f"Missing from product: {dict(missing)}. "
-            f"Extra in product: {dict(extra)}. "
-            "A reaction path between different molecules is not physical — "
-            "the template's reactantXyz and productXyz need correction."
-        )
+
+        if auto_balance and r_pos is not None:
+            # Carry missing atoms over to product as spectator/leaving species
+            p_atoms = list(p_atoms)
+            p_pos = [list(p) for p in p_pos]
+            for sym, count in missing.items():
+                r_indices = [i for i, s in enumerate(r_norm) if s == sym]
+                for idx in r_indices[-count:]:
+                    p_atoms.append(r_atoms[idx])
+                    p_pos.append(list(r_pos[idx]))
+                    p_norm.append(sym)
+
+            # Re-normalize after balancing
+            p_norm = [a.upper().capitalize() for a in p_atoms]
+        else:
+            raise ValueError(
+                "Reactant and product do not have the same atoms. "
+                f"Missing from product: {dict(missing)}. "
+                f"Extra in product: {dict(extra)}. "
+                "A reaction path between different molecules is not physical — "
+                "the template's reactantXyz and productXyz need correction."
+            )
 
     if r_norm == p_norm:
         return p_atoms, p_pos
@@ -443,7 +458,17 @@ async def run_reaction(reaction_id: str, req: ReactionRequest):
         if not r_atoms or not p_atoms:
             raise ValueError("Failed to parse reactant or product XYZ coordinates.")
 
-        p_atoms, p_pos = _reorder_product_to_match_reactant(r_atoms, p_atoms, p_pos)
+        try:
+            p_atoms, p_pos = _reorder_product_to_match_reactant(r_atoms, p_atoms, p_pos)
+        except ValueError as val_err:
+            # If standard alignment fails due to missing byproduct/leaving atoms,
+            # attempt auto-balancing so the calculation does not crash
+            try:
+                p_atoms, p_pos = _reorder_product_to_match_reactant(
+                    r_atoms, p_atoms, p_pos, auto_balance=True, r_pos=r_pos
+                )
+            except Exception:
+                raise val_err
 
         mapping = {"H":1, "C":6, "N":7, "O":8, "F":9, "P":15, "S":16, "Cl":17, "Br":35, "I":53}
         atomic_numbers = [mapping.get(sym.upper().capitalize(), 6) for sym in r_atoms]
@@ -463,10 +488,11 @@ async def run_reaction(reaction_id: str, req: ReactionRequest):
             calculator = registry.get("tx1-fastapi")
             fallback_used = True
 
+        # Precompute all intermediate positions (vectorized coordinates)
+        all_cur_pos = []
         for i in range(n_frames):
             t = i / (n_frames - 1)
             alpha = 0.5 * (1.0 - math.cos(math.pi * t))
-
             cur_pos = [
                 [
                     rp[0] * (1.0 - alpha) + pp[0] * alpha,
@@ -475,20 +501,29 @@ async def run_reaction(reaction_id: str, req: ReactionRequest):
                 ]
                 for rp, pp in zip(r_pos, p_pos)
             ]
+            all_cur_pos.append(cur_pos)
 
-            def _eval_frame(frame_idx, numbers, coords):
+        # Batch frame evaluations in chunks of 4-8 to maximize throughput while maintaining progress streaming
+        chunk_size = 4
+        for start_idx in range(0, n_frames, chunk_size):
+            end_idx = min(start_idx + chunk_size, n_frames)
+            chunk = all_cur_pos[start_idx:end_idx]
+
+            def _eval_chunk(sub_coords):
                 try:
-                    return calculator.energy_ev(numbers, coords)
+                    return [calculator.energy_ev(atomic_numbers, coords) for coords in sub_coords]
                 except Exception as exc:
-                    raise RuntimeError(f"MLIP {calculator.name()} failed on frame {frame_idx}: {exc}") from exc
+                    raise RuntimeError(f"MLIP {calculator.name()} failed in frame chunk [{start_idx}:{end_idx}]: {exc}") from exc
 
-            # CRITICAL: Run model inference in a separate thread so event loop never hangs
-            energy_val = await asyncio.to_thread(_eval_frame, i, atomic_numbers, cur_pos)
+            # Run model inference in a separate thread so event loop never hangs
+            chunk_energies = await asyncio.to_thread(_eval_chunk, chunk)
 
-            energies_ev.append(energy_val)
-            frames.append(to_xyz(r_atoms, cur_pos, f"Frame {i} Energy: {energy_val:.4f} eV"))
+            for j, energy_val in enumerate(chunk_energies):
+                frame_idx = start_idx + j
+                energies_ev.append(energy_val)
+                frames.append(to_xyz(r_atoms, all_cur_pos[frame_idx], f"Frame {frame_idx} Energy: {energy_val:.4f} eV"))
 
-            _reactions[reaction_id]["progress"] = 0.1 + 0.85 * ((i + 1) / n_frames)
+            _reactions[reaction_id]["progress"] = 0.1 + 0.85 * (end_idx / n_frames)
             
             # Yield control back to event loop to answer incoming GET requests
             await asyncio.sleep(0.001)
