@@ -16,6 +16,8 @@ class ReactionCardWidget extends StatefulWidget {
   final VoidCallback? onDelete;
   final VoidCallback? onTap;
   final Widget? trailingBadge;
+  final List<String>? trajectoryFrames;
+  final List<double>? energyProfile;
 
   const ReactionCardWidget({
     super.key,
@@ -24,6 +26,8 @@ class ReactionCardWidget extends StatefulWidget {
     this.onDelete,
     this.onTap,
     this.trailingBadge,
+    this.trajectoryFrames,
+    this.energyProfile,
   });
 
   static Color categoryColor(ReactionCategory c) {
@@ -108,7 +112,10 @@ class _ReactionCardWidgetState extends State<ReactionCardWidget> {
                   widget.onTap!();
                   return;
                 }
-                final user = FirebaseAuth.instance.currentUser;
+                User? user;
+                try {
+                  user = FirebaseAuth.instance.currentUser;
+                } catch (_) {}
                 if (user == null) {
                   Navigator.of(context).push(
                     MaterialPageRoute<void>(
@@ -122,6 +129,8 @@ class _ReactionCardWidgetState extends State<ReactionCardWidget> {
                               builder: (context) => TemplateDetailScreen(
                                 template: template,
                                 onLoad: widget.onLoad,
+                                initialTrajectoryFrames: widget.trajectoryFrames,
+                                initialEnergyProfile: widget.energyProfile,
                               ),
                             ),
                           );
@@ -136,6 +145,8 @@ class _ReactionCardWidgetState extends State<ReactionCardWidget> {
                     builder: (context) => TemplateDetailScreen(
                       template: template,
                       onLoad: widget.onLoad,
+                      initialTrajectoryFrames: widget.trajectoryFrames,
+                      initialEnergyProfile: widget.energyProfile,
                     ),
                   ),
                 );

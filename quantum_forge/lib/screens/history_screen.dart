@@ -14,8 +14,13 @@ import 'package:quantum_forge/features/reaction_library/presentation/widgets/rea
 import 'package:quantum_forge/core/widgets/animations/staggered_animation_list_item.dart';
 import 'package:quantum_forge/core/widgets/adsense_banner_web.dart';
 
+typedef HistoryReactionSelectedCallback = void Function(
+  ReactionStatusResponse reaction,
+  ReactionTemplate template,
+);
+
 class HistoryScreen extends StatefulWidget {
-  final ValueChanged<ReactionStatusResponse>? onReactionSelected;
+  final HistoryReactionSelectedCallback? onReactionSelected;
   final VoidCallback? onNavigateToRun;
   final VoidCallback? onNavigateToLibrary;
 
@@ -148,13 +153,13 @@ class _HistoryScreenState extends State<HistoryScreen> {
     }
   }
 
-  void _selectReaction(ReactionStatusResponse reaction) {
+  void _selectReaction(ReactionStatusResponse reaction, ReactionTemplate template) {
     if (widget.onReactionSelected != null) {
-      widget.onReactionSelected!(reaction);
+      widget.onReactionSelected!(reaction, template);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Selected reaction: ${reaction.reactionId}'),
+          content: Text('Selected reaction: ${template.name}'),
           duration: const Duration(seconds: 2),
         ),
       );
@@ -532,6 +537,19 @@ class _HistoryScreenState extends State<HistoryScreen> {
       }
     }
 
+    if (matched == null && reaction.reactionName != null && reaction.reactionName!.isNotEmpty && !_isStatusMessage(reaction.reactionName!)) {
+      final rxNameLower = reaction.reactionName!.toLowerCase().trim();
+      for (final t in kReactionTemplates) {
+        final tName = t.name.toLowerCase().trim();
+        if (tName == rxNameLower ||
+            tName.contains(rxNameLower) ||
+            rxNameLower.contains(tName)) {
+          matched = t;
+          break;
+        }
+      }
+    }
+
     if (matched == null && xyzTitle != null && xyzTitle.isNotEmpty) {
       for (final t in kReactionTemplates) {
         if (t.name.toLowerCase().contains(xyzTitle.toLowerCase()) ||
@@ -572,6 +590,11 @@ class _HistoryScreenState extends State<HistoryScreen> {
           journalRef: 'Quantum Forge Pharmacopeia',
           tags: ['Gyrase', 'Pharm-D', 'cloud'],
         );
+      } else if (atomCount == 78) {
+        matched = kReactionTemplates.firstWhere(
+          (t) => t.id == 'med-atorvastatin-01',
+          orElse: () => kReactionTemplates.first,
+        );
       } else if (atomCount == 28) {
         matched = kReactionTemplates.firstWhere(
           (t) => t.id == 'med-paracetamol-01',
@@ -599,6 +622,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
         }
         matched = closest;
       }
+    }
+
+    if (matched != null) {
+      return matched;
     }
 
     // 4. Resolve reaction name (Never use solver status like "TS Search Converged")
@@ -728,8 +755,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
             child: ReactionCardWidget(
               key: ValueKey(reaction.reactionId),
               template: template,
-              onLoad: () => _selectReaction(reaction),
-              onTap: () => _selectReaction(reaction),
+              trajectoryFrames: reaction.trajectoryFrames,
+              energyProfile: reaction.energyProfile,
+              onLoad: () => _selectReaction(reaction, template),
               onDelete: () => _deleteReaction(reaction.reactionId),
             ),
           );

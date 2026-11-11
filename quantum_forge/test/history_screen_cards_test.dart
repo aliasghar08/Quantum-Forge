@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:quantum_forge/core/services/auth_service.dart';
+import 'package:quantum_forge/core/services/local_auth_service.dart';
+import 'package:quantum_forge/core/state/quantum_provider.dart';
+import 'package:quantum_forge/core/theme/theme_provider.dart';
 import 'package:quantum_forge/features/reaction_library/data/reaction_templates.dart';
 import 'package:quantum_forge/features/reaction_library/presentation/widgets/reaction_card_widget.dart';
+import 'package:quantum_forge/screens/auth_screen.dart';
 
 void main() {
   group('ReactionCardWidget History Support', () {
@@ -97,6 +102,51 @@ void main() {
 
       await tester.tap(find.text('LST completed successfully (121 frames)'));
       expect(tapCalled, isTrue);
+    });
+
+    testWidgets('tapping card without custom onTap opens TemplateDetailScreen', (tester) async {
+      const template = ReactionTemplate(
+        id: 'med-paracetamol-01',
+        name: 'Paracetamol (Acetaminophen) Synthesis & CYP2E1 Toxicology',
+        iupacName: '4-aminophenol + acetic anhydride → N-(4-hydroxyphenyl)acetamide + acetic acid',
+        description: 'Foundational drug synthesis for Pharm-D students.',
+        category: ReactionCategory.pharmaceutical,
+        reactantXyz: '28\nReactants\nC 0 0 0\n',
+        productXyz: '28\nProducts\nC 0 0 0\n',
+        referenceEa: 14.5,
+        doi: '10.1159/000136547',
+        journalRef: 'Pharmacology 1974, 12, 251-260',
+        tags: ['Pharm-D', 'Paracetamol'],
+      );
+
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider(create: (_) => ThemeNotifier()),
+            Provider<AuthService>(create: (_) => LocalAuthService()),
+          ],
+          child: MaterialApp(
+            home: Scaffold(
+              body: SizedBox(
+                width: 380,
+                height: 255,
+                child: ReactionCardWidget(
+                  template: template,
+                  onLoad: () {},
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Paracetamol (Acetaminophen) Synthesis & CYP2E1 Toxicology'));
+      await tester.pumpAndSettle();
+
+      // If user is unauthenticated, clicking requires authentication
+      expect(find.byType(AuthScreen), findsOneWidget);
+      expect(find.textContaining('Sign in required'), findsOneWidget);
     });
   });
 }

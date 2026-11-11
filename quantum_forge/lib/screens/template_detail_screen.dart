@@ -17,15 +17,22 @@ import 'package:quantum_forge/core/services/url_service.dart';
 class TemplateDetailScreen extends StatelessWidget {
   final ReactionTemplate template;
   final VoidCallback onLoad;
+  final List<String>? initialTrajectoryFrames;
+  final List<double>? initialEnergyProfile;
 
   const TemplateDetailScreen({
     super.key,
     required this.template,
     required this.onLoad,
+    this.initialTrajectoryFrames,
+    this.initialEnergyProfile,
   });
 
   void _onSimulatePressed(BuildContext context) {
-    final user = FirebaseAuth.instance.currentUser;
+    User? user;
+    try {
+      user = FirebaseAuth.instance.currentUser;
+    } catch (_) {}
     if (user == null) {
       Navigator.of(context).push(
         MaterialPageRoute<void>(
@@ -105,15 +112,17 @@ class TemplateDetailScreen extends StatelessWidget {
                         // publication-grade TS work that is what should be used.
                         // The preview exists so a researcher can see the mechanism
                         // before committing cluster time.
-                        trajectoryFrames: _previewTrajectory(template),
-                        energyProfile: _generateSyntheticProfile(
-                          template.referenceEa,
-                        ),
-                        // Marks the exact TS frame so the readout and the phase
-                        // timeline agree on where the barrier is.
-                        maxEnergyIndex: _tsFrame,
-                        // Deliberately slower than Avogadro's 5 FPS default: this
-                        // path is meant to be read frame by frame, not skimmed.
+                        trajectoryFrames: (initialTrajectoryFrames != null && initialTrajectoryFrames!.isNotEmpty)
+                            ? initialTrajectoryFrames!
+                            : _previewTrajectory(template),
+                        energyProfile: (initialEnergyProfile != null && initialEnergyProfile!.isNotEmpty)
+                            ? initialEnergyProfile!
+                            : _generateSyntheticProfile(
+                                template.referenceEa,
+                              ),
+                        maxEnergyIndex: (initialEnergyProfile != null && initialEnergyProfile!.isNotEmpty)
+                            ? initialEnergyProfile!.indexOf(initialEnergyProfile!.reduce(math.max))
+                            : _tsFrame,
                         frameRateOverride: _previewFps,
                       )
                     : LockedAnimationPlaceholder(

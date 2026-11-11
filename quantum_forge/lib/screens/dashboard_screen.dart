@@ -255,6 +255,48 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 
+  void _loadReactionFromHistory(
+    ReactionStatusResponse reaction,
+    ReactionTemplate template,
+  ) {
+    if (mounted) {
+      context.read<QuantumSettingsNotifier>().update((q) => q.copyWith(
+        charge: template.defaults.charge,
+        spinMultiplicity: template.defaults.spinMultiplicity,
+        mlipModel: reaction.modelUsed ?? template.defaults.mlipModel,
+        optimizerAlgorithm: template.defaults.optimizerAlgorithm,
+        catalyst: template.defaultCatalystName ?? q.catalyst,
+      ));
+    }
+
+    final hasCompletedData = reaction.state == ReactionState.completed &&
+        ((reaction.trajectoryFrames != null && reaction.trajectoryFrames!.isNotEmpty) ||
+         (reaction.energyProfile != null && reaction.energyProfile!.isNotEmpty));
+
+    if (hasCompletedData) {
+      _viewModel.loadTemplateForView(template);
+      context.read<ReactionNotifier>().value = reaction;
+    } else {
+      _viewModel.loadTemplate(template);
+      if (reaction.reactionId.isNotEmpty && reaction.state != ReactionState.completed) {
+        context.read<ReactionNotifier>().value = reaction;
+      }
+    }
+
+    setState(() => _selectedFrameIndex = null);
+    _viewModel.setNavDestination(NavDestination.newReaction);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          'Loaded reaction "${template.name}" into workspace.',
+        ),
+        backgroundColor: const Color(0xFF00B0FF),
+        duration: const Duration(seconds: 3),
+      ),
+    );
+  }
+
   ReactionTemplate? _findTemplateById(String id) {
     for (final t in kReactionTemplates) {
       if (t.id.toLowerCase() == id.toLowerCase() || t.doi.toLowerCase() == id.toLowerCase()) {
@@ -932,19 +974,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
         NavDestination.library  =>
             LibraryScreen(onTemplateSelected: _onTemplateSelected),
         NavDestination.history  => HistoryScreen(
-              onReactionSelected: (reaction) {
-                context.read<ReactionNotifier>().value = reaction;
-                setState(() => _selectedFrameIndex = null);
-                _viewModel.setNavDestination(NavDestination.newReaction);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      'Loaded reaction ${reaction.reactionId.length > 8 ? reaction.reactionId.substring(0, 8) : reaction.reactionId} into workspace.',
-                    ),
-                    backgroundColor: const Color(0xFF00B0FF),
-                    duration: const Duration(seconds: 3),
-                  ),
-                );
+              onReactionSelected: (reaction, template) {
+                _loadReactionFromHistory(reaction, template);
               },
               onNavigateToRun: () {
                 _viewModel.setNavDestination(NavDestination.newReaction);
