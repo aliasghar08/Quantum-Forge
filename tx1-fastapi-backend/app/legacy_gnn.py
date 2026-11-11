@@ -156,6 +156,24 @@ class Tx1Calculator:
             energy = self._model(z, pos, mask)
         return float(energy.item())
 
+    def batch_energy_ev(
+        self,
+        atomic_numbers: list[int],
+        positions_list: list[list[list[float]]],
+    ) -> list[float]:
+        if self._model is None:
+            raise RuntimeError("Model is not loaded")
+        if not positions_list:
+            return []
+        dev = next(self._model.parameters()).device
+        b = len(positions_list)
+        z = torch.tensor(atomic_numbers, dtype=torch.long, device=dev).unsqueeze(0).expand(b, -1)
+        pos = torch.tensor(positions_list, dtype=torch.float32, device=dev)
+        mask = (z != 0).float()
+        with torch.no_grad():
+            energies = self._model(z, pos, mask)
+        return [float(e.item()) for e in energies]
+
     def name(self) -> str:
         if self.use_rbf:
             return "tx1-v2a"

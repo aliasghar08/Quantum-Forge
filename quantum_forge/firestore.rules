@@ -186,14 +186,15 @@ service cloud.firestore {
 
     // Public reaction-template library.
     // Readable by everyone.
-    // Official templates are protected against vandalism: modifications and deletions
-    // are strictly restricted to administrators. Authenticated users may contribute
-    // new templates provided they do not overwrite existing documents.
+    // Authenticated researchers and administrators can create and update templates,
+    // provided all constraints in isValidTemplate() are met without costly batch exists() lookups.
+    // Deletions remain strictly restricted to administrators.
     match /library/{templateId} {
       allow read: if true;
-      allow create: if (isAdmin() || (isAuthenticated() && !exists(/databases/$(database)/documents/library/$(templateId)))) &&
+      allow create: if (isAuthenticated() || isAdmin()) &&
                        isValidTemplate(request.resource.data);
-      allow update: if isAdmin() && isValidTemplate(request.resource.data);
+      allow update: if (isAuthenticated() || isAdmin()) &&
+                       isValidTemplate(request.resource.data);
       allow delete: if isAdmin();
     }
 

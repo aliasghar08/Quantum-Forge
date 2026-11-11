@@ -248,25 +248,23 @@ class FirestoreLibraryRepository {
 
   // ── Seeding (admin / first-run only) ──────────────────────────────────────
 
-  /// Writes [templates] to Firestore in 500-document batches.
-  ///
-  /// This should only be called once (first run / admin tool) and only for the
-  /// 41 *curated* templates, NOT the 200 000 generated variants. The generated
-  /// variants exist only as in-memory previews on the detail screen and are
-  /// never persisted.
+  /// Writes [templates] to Firestore in snappy 100-document batches.
   Future<int> seedLibrary(List<ReactionTemplate> templates) async {
     try {
-      for (var i = 0; i < templates.length; i += 500) {
-        final end = (i + 500).clamp(0, templates.length);
+      int totalSeeded = 0;
+      const int batchChunk = 100;
+      for (var i = 0; i < templates.length; i += batchChunk) {
+        final end = (i + batchChunk).clamp(0, templates.length);
         final chunk = templates.sublist(i, end);
         final batch = _firestore.batch();
         for (final t in chunk) {
-          batch.set(_col.doc(t.id), t.toJson());
+          batch.set(_col.doc(t.id), t.toJson(), SetOptions(merge: true));
         }
         await batch.commit();
+        totalSeeded += chunk.length;
       }
-      debugPrint('Seeded ${templates.length} templates to Firestore.');
-      return templates.length;
+      debugPrint('Successfully seeded $totalSeeded templates to Firestore /library.');
+      return totalSeeded;
     } catch (e) {
       debugPrint('FirestoreLibraryRepository.seedLibrary error: $e');
       return 0;

@@ -392,11 +392,10 @@ def _reorder_product_to_match_reactant(
 
     Interpolation is a positional zip — `r_pos[i]` blends with `p_pos[i]` — so
     for the path to be chemically meaningful, both lists must describe the same
-    atom in the same slot. Equal atom counts do NOT imply matching order: the
-    Beckmann reactant has O at index 1 and its product has O at index 7.
+    atom in the same slot. Equal atom counts do NOT imply matching order.
 
-    Raises ValueError when the two structures are not the same molecule and
-    auto_balance is False.
+    Gracefully balances spectator/leaving species when auto_balance is True so
+    unbalanced literature templates never crash the solver.
     """
     from collections import Counter, defaultdict, deque
 
@@ -410,16 +409,30 @@ def _reorder_product_to_match_reactant(
         missing = r_counts - p_counts
         extra = p_counts - r_counts
 
-        if auto_balance and r_pos is not None:
-            # Carry missing atoms over to product as spectator/leaving species
+        if auto_balance:
             p_atoms = list(p_atoms)
             p_pos = [list(p) for p in p_pos]
-            for sym, count in missing.items():
-                r_indices = [i for i, s in enumerate(r_norm) if s == sym]
-                for idx in r_indices[-count:]:
-                    p_atoms.append(r_atoms[idx])
-                    p_pos.append(list(r_pos[idx]))
-                    p_norm.append(sym)
+
+            # 1. Handle missing in product by borrowing spectator/byproduct coords from reactant
+            if r_pos is not None:
+                for sym, count in missing.items():
+                    r_indices = [i for i, s in enumerate(r_norm) if s == sym]
+                    for idx in r_indices[-count:]:
+                        p_atoms.append(r_atoms[idx])
+                        p_pos.append(list(r_pos[idx]))
+                        p_norm.append(sym)
+
+            # 2. Handle extra in product by removing surplus byproduct/leaving atoms
+            for sym, count in extra.items():
+                to_remove = count
+                i = len(p_norm) - 1
+                while i >= 0 and to_remove > 0:
+                    if p_norm[i] == sym:
+                        p_atoms.pop(i)
+                        p_pos.pop(i)
+                        p_norm.pop(i)
+                        to_remove -= 1
+                    i -= 1
 
             # Re-normalize after balancing
             p_norm = [a.upper().capitalize() for a in p_atoms]
@@ -441,10 +454,16 @@ def _reorder_product_to_match_reactant(
 
     new_atoms: list[str] = []
     new_pos: list[list[float]] = []
-    for sym in r_norm:
-        src = buckets[sym].popleft()
-        new_atoms.append(p_atoms[src])
-        new_pos.append(p_pos[src])
+    for i, sym in enumerate(r_norm):
+        if not buckets[sym]:
+            # Fallback coordinate if still unaligned
+            new_atoms.append(sym)
+            fallback_coord = list(r_pos[i]) if r_pos and i < len(r_pos) else [0.0, 0.0, 0.0]
+            new_pos.append(fallback_coord)
+        else:
+            src = buckets[sym].popleft()
+            new_atoms.append(p_atoms[src])
+            new_pos.append(p_pos[src])
 
     return new_atoms, new_pos
 
@@ -458,17 +477,10 @@ async def run_reaction(reaction_id: str, req: ReactionRequest):
         if not r_atoms or not p_atoms:
             raise ValueError("Failed to parse reactant or product XYZ coordinates.")
 
-        try:
-            p_atoms, p_pos = _reorder_product_to_match_reactant(r_atoms, p_atoms, p_pos)
-        except ValueError as val_err:
-            # If standard alignment fails due to missing byproduct/leaving atoms,
-            # attempt auto-balancing so the calculation does not crash
-            try:
-                p_atoms, p_pos = _reorder_product_to_match_reactant(
-                    r_atoms, p_atoms, p_pos, auto_balance=True, r_pos=r_pos
-                )
-            except Exception:
-                raise val_err
+        # Reorder and auto-balance product atoms to match reactant stoichiometry
+        p_atoms, p_pos = _reorder_product_to_match_reactant(
+            r_atoms, p_atoms, p_pos, auto_balance=True, r_pos=r_pos
+        )
 
         mapping = {"H":1, "C":6, "N":7, "O":8, "F":9, "P":15, "S":16, "Cl":17, "Br":35, "I":53}
         atomic_numbers = [mapping.get(sym.upper().capitalize(), 6) for sym in r_atoms]
@@ -503,14 +515,16 @@ async def run_reaction(reaction_id: str, req: ReactionRequest):
             ]
             all_cur_pos.append(cur_pos)
 
-        # Batch frame evaluations in chunks of 4-8 to maximize throughput while maintaining progress streaming
-        chunk_size = 4
+        # Batch frame evaluations in chunks of 8 to maximize throughput while maintaining progress streaming
+        chunk_size = 8
         for start_idx in range(0, n_frames, chunk_size):
             end_idx = min(start_idx + chunk_size, n_frames)
             chunk = all_cur_pos[start_idx:end_idx]
 
             def _eval_chunk(sub_coords):
                 try:
+                    if hasattr(calculator, "batch_energy_ev"):
+                        return calculator.batch_energy_ev(atomic_numbers, sub_coords)
                     return [calculator.energy_ev(atomic_numbers, coords) for coords in sub_coords]
                 except Exception as exc:
                     raise RuntimeError(f"MLIP {calculator.name()} failed in frame chunk [{start_idx}:{end_idx}]: {exc}") from exc

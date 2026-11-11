@@ -116,16 +116,25 @@ def is_proper_clinical_medicine(title: str, journal: str = "") -> bool:
     if any(d in text for d in disallowed):
         return False
         
-    # 2. Positive clinical pharmacology & doctor-prescribed medicine keywords
+    # 2. Positive clinical pharmacology & doctor-prescribed medicine keywords + WHO INN drug stems
     clinical_keywords = [
-        "pharmac", "drug", "receptor", "inhibitor", "antagonist", "agonist",
-        "cardio", "renal", "nephro", "heart failure", "hypertension", "diuretic",
+        "pharmac", "drug", "medicin", "receptor", "inhibitor", "inhibit", "antagonist", "agonist",
+        "cardio", "cardiac", "cardiovascular", "renal", "nephro", "heart failure", "hypertension", "diuretic",
         "myocardial", "arrhythmia", "statin", "calcineurin", "transplant",
         "antibiotic", "antimicrobial", "antiviral", "chemotherapy", "oncology",
         "endocrin", "diabetes", "insulin", "sglt2", "glp-1", "beta-blocker",
-        "calcium channel", "toxicology", "antidote", "metabolism", "cyp450",
-        "clearance", "plasma", "serum", "clinical trial", "patient", "pathophysiology",
-        "vasodilat", "vasoconstrict", "adverse effect", "dosing", "therapeutic"
+        "calcium channel", "toxicology", "toxic", "poison", "antidote", "metabolism", "cyp450", "cyp", "cytochrome",
+        "clearance", "plasma", "serum", "clinical", "patient", "pathophysiology",
+        "vasodilat", "vasoconstrict", "adverse", "dosing", "therapeutic", "therapy",
+        "acetylcholinesterase", "cholinesterase", "kinase", "synthase", "biochem",
+        "synthesis", "derivative", "analog", "congener", "transporter", "channel",
+        # Standard WHO INN pharmacological drug stems & active moieties
+        "sartan", "pril", "olol", "dipine", "gliflozin", "glutide", "cillin", "mycin",
+        "floxacin", "oxacin", "mab", "nib", "zole", "prazole", "tidine", "terol",
+        "sacubitril", "valsartan", "enalapril", "metoprolol", "amlodipine", "atorvastatin",
+        "dapagliflozin", "spironolactone", "tacrolimus", "vancomycin", "ceftriaxone",
+        "aspirin", "warfarin", "apixaban", "amiodarone", "digoxin", "furosemide",
+        "naloxone", "atropine", "paracetamol", "acetaminophen", "metformin"
     ]
     return any(ck in text for ck in clinical_keywords)
 
@@ -143,7 +152,7 @@ class LiteratureHarvester:
         req = urllib.request.Request(
             url,
             headers={
-                "User-Agent": "QuantumForge-AutoResearcher/2.0 (mailto:research@quantumforge.org)",
+                "User-Agent": "QuantumForge-AutoResearcher/2.0 (mailto:aliasgharinnocent@yahoo.com)",
                 "Accept": "application/json",
             },
         )
@@ -163,7 +172,8 @@ class LiteratureHarvester:
             f"https://api.openalex.org/works?"
             f"search={encoded_q}&"
             f"sort=publication_date:desc&"
-            f"per_page={limit}"
+            f"per_page={limit}&"
+            f"mailto=aliasgharinnocent@yahoo.com"
         )
         data = self.fetch_json(url)
         if not data or "results" not in data:

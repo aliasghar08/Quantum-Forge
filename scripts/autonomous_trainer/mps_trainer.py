@@ -28,9 +28,18 @@ except Exception:
     pass
 
 import numpy as np
-import torch
-import torch.nn as nn
-from torch.utils.data import DataLoader, Dataset, Subset
+try:
+    import torch
+    import torch.nn as nn
+    from torch.utils.data import DataLoader, Dataset, Subset
+    TORCH_AVAILABLE = True
+except Exception as _torch_err:
+    torch = None
+    nn = None
+    DataLoader = None
+    Dataset = object
+    Subset = None
+    TORCH_AVAILABLE = False
 import random
 import shutil
 
@@ -38,14 +47,14 @@ class MPSTrainer:
     def __init__(
         self,
         model_dir: str = "tx1-fastapi-backend/models/ensemble_v2",
-        device: str = "mps" if torch.backends.mps.is_available() else "cpu",
+        device: str = "mps" if (torch is not None and torch.backends.mps.is_available()) else "cpu",
         num_members: int = 5,
         epochs_per_member: int = 10,
         batch_size: int = 8,
         lr: float = 1e-4,
     ):
         self.model_dir = Path(model_dir)
-        self.device = torch.device(device)
+        self.device = torch.device(device) if torch is not None else "cpu"
         self.num_members = num_members
         self.epochs_per_member = epochs_per_member
         self.batch_size = batch_size
@@ -212,8 +221,10 @@ CHECKPOINT_DIR = Path("models/continual_learning")
 CHECKPOINT_DIR.mkdir(parents=True, exist_ok=True)
 
 
-def get_device() -> torch.device:
+def get_device() -> torch.device | str:
     """Detect and validate Apple Silicon Metal GPU or fallback to multi-core CPU."""
+    if torch is None:
+        return "cpu"
     if torch.backends.mps.is_available():
         try:
             # Quick tensor test on MPS

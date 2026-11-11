@@ -183,8 +183,8 @@ class BackendComputeService {
     String backendUrl,
     String reactionId, {
     int maxAttempts = 600,
-    Duration initialDelay = const Duration(milliseconds: 250),
-    Duration interval = const Duration(milliseconds: 500),
+    Duration initialDelay = const Duration(milliseconds: 100),
+    Duration interval = const Duration(milliseconds: 200),
   }) async* {
     final base = _base(backendUrl);
     for (var i = 0; i < maxAttempts; i++) {

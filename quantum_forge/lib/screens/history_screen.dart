@@ -706,23 +706,32 @@ class _HistoryScreenState extends State<HistoryScreen> {
         reaction.state.name,
     ];
 
+    final templateId = (reaction.templateId != null && reaction.templateId!.isNotEmpty)
+        ? reaction.templateId!
+        : (matched?.id ?? reaction.reactionId);
+
     return ReactionTemplate(
-      id: reaction.reactionId,
+      id: templateId,
       name: name,
       iupacName: iupac,
       description: desc,
       category: category,
-      reactantXyz: matched?.reactantXyz ??
-          (frames > 0 ? reaction.trajectoryFrames!.first : ''),
-      productXyz: matched?.productXyz ??
-          (frames > 1 ? reaction.trajectoryFrames!.last : ''),
-      referenceEa: barrier,
-      literatureBarrierKcalMol: barrier > 0 ? barrier : null,
+      reactantXyz: (matched?.reactantXyz.isNotEmpty == true)
+          ? matched!.reactantXyz
+          : (frames > 0 ? reaction.trajectoryFrames!.first : ''),
+      productXyz: (matched?.productXyz.isNotEmpty == true)
+          ? matched!.productXyz
+          : (frames > 1 ? reaction.trajectoryFrames!.last : ''),
+      referenceEa: barrier > 0 ? barrier : (matched?.referenceEa ?? 15.0),
+      literatureBarrierKcalMol: barrier > 0 ? barrier : matched?.literatureBarrierKcalMol,
       doi: matched?.doi ?? '',
       journalRef:
           matched?.journalRef.isNotEmpty == true ? matched!.journalRef : dateStr,
       tags: tags,
       defaultCatalystName: matched?.defaultCatalystName,
+      catalystXyz: matched?.catalystXyz,
+      hasLiteratureCatalyst: matched?.hasLiteratureCatalyst,
+      literatureDoi: matched?.literatureDoi,
     );
   }
 

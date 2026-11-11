@@ -20,16 +20,35 @@ Usage:
 """
 
 import argparse
+import concurrent.futures
 import json
+import math
 import os
 import subprocess
 import sys
+import threading
 import time
 import urllib.request
 import urllib.error
 import urllib.parse
 
 PROJECT_ID = "quantom-forge"
+
+_token_lock = threading.Lock()
+_cached_token = None
+_token_expiry = 0
+
+def get_auth_token_threadsafe():
+    """Thread-safe retrieval of Google OAuth access token with TTL cache."""
+    global _cached_token, _token_expiry
+    with _token_lock:
+        now = time.time()
+        if _cached_token and now < _token_expiry:
+            return _cached_token
+        token = get_auth_token()
+        _cached_token = token
+        _token_expiry = now + 1800  # 30 minute cache
+        return token
 
 def get_auth_token():
     """Reads access token from gcloud CLI first, then falls back to firebase-tools.json."""
@@ -471,8 +490,8 @@ def generate_combinatorial_reactions(offset, count, category_mode="all"):
 
     return reactions
 
-def run_upload_pipeline(target_count=None, batch_size=200, continuous=False, dry_run=False, category_mode="all", target_total=None):
-    token = get_auth_token()
+def run_upload_pipeline(target_count=None, batch_size=200, continuous=False, dry_run=False, category_mode="all", target_total=None, workers=4):
+    token = get_auth_token_threadsafe()
     initial_count = get_total_count(token)
     print(f"Current Firestore /library live count: {initial_count:,} reactions")
     
@@ -485,64 +504,72 @@ def run_upload_pipeline(target_count=None, batch_size=200, continuous=False, dry
     uploaded = 0
     start_time = time.time()
     
-    backoff_delay = 5  # Base sleep on rate-limit / quota reached
-    max_backoff = 300  # 5 minutes max wait before checking quota reset
-
     mode_label = f"[{category_mode.upper()} MODE]"
     print(f"\n🚀 Starting Reaction Auto-Uploader {mode_label} {'[CONTINUOUS]' if continuous else f'[Target: {target_count:,}]'}...")
-    print(f"Batch size: {batch_size} reactions per commit.")
+    print(f"Batch size: {batch_size} reactions per commit | Workers: {workers} concurrent threads.")
 
-    while True:
-        if not continuous and target_count is not None and uploaded >= target_count:
-            break
-            
-        chunk_size = batch_size
-        if not continuous and target_count is not None:
-            chunk_size = min(batch_size, target_count - uploaded)
+    uploaded_lock = threading.Lock()
 
-        chunk = generate_combinatorial_reactions(offset + uploaded, chunk_size, category_mode=category_mode)
-        
+    def _worker_commit(batch_offset, current_chunk_size):
+        nonlocal uploaded
+        chunk = generate_combinatorial_reactions(batch_offset, current_chunk_size, category_mode=category_mode)
         if dry_run:
-            print(f"  [Dry Run] Prepared batch {uploaded + 1}-{uploaded + chunk_size}")
-            uploaded += chunk_size
-            time.sleep(0.1)
-            continue
+            with uploaded_lock:
+                uploaded += current_chunk_size
+            return True
 
+        worker_token = get_auth_token_threadsafe()
         try:
-            # Refresh token periodically if needed
-            token = get_auth_token()
-            success = commit_batch(token, chunk)
+            success = commit_batch(worker_token, chunk)
             if success:
-                uploaded += chunk_size
-                elapsed = time.time() - start_time
-                rate = uploaded / elapsed if elapsed > 0 else 0
-                total_live = initial_count + uploaded
-                sys.stdout.write(f"\r  [✓] Live in Firebase: {total_live:,} (+{uploaded:,}) | Speed: {rate:.1f} rxns/sec...")
-                sys.stdout.flush()
-                backoff_delay = 5  # Reset backoff on successful commit
-                time.sleep(0.3)
+                with uploaded_lock:
+                    uploaded += current_chunk_size
+                    elapsed = time.time() - start_time
+                    rate = uploaded / elapsed if elapsed > 0 else 0
+                    total_live = initial_count + uploaded
+                    sys.stdout.write(f"\r  [✓] Live in Firebase: {total_live:,} (+{uploaded:,}) | Speed: {rate:.1f} rxns/sec...")
+                    sys.stdout.flush()
+                return True
             else:
-                print(f"\n  [!] Batch at offset {offset + uploaded} did not return 200/201.")
-                time.sleep(3)
+                return False
         except urllib.error.HTTPError as e:
-            err_msg = str(e)
-            print(f"\n  [!] HTTP {e.code}: {e.reason}")
-            if e.code in (429, 403, 503) or "RESOURCE_EXHAUSTED" in err_msg or "Quota exceeded" in err_msg:
-                print(f"  ⏳ Firestore rate/quota limit reached. Waiting {backoff_delay}s before retrying automatically...")
-                time.sleep(backoff_delay)
-                backoff_delay = min(backoff_delay * 2, max_backoff)
-            elif e.code == 401:
-                print("  🔑 Token expired. Refreshing OAuth credentials...")
+            if e.code in (429, 403, 503):
                 time.sleep(2)
-            else:
-                print(f"  [Error] {e}. Retrying in 10s...")
-                time.sleep(10)
-        except Exception as e:
-            print(f"\n  [Network/IO] {e}. Retrying in 10s...")
-            time.sleep(10)
+            return False
+        except Exception:
+            return False
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as executor:
+        while True:
+            if not continuous and target_count is not None and uploaded >= target_count:
+                break
+
+            futures = []
+            for _ in range(workers):
+                if not continuous and target_count is not None and (offset + uploaded >= initial_count + target_count):
+                    break
+                chunk_sz = batch_size
+                if not continuous and target_count is not None:
+                    remaining = (initial_count + target_count) - (offset + uploaded)
+                    if remaining <= 0:
+                        break
+                    chunk_sz = min(batch_size, remaining)
+                
+                batch_off = offset + uploaded
+                offset += chunk_sz
+                futures.append(executor.submit(_worker_commit, batch_off, chunk_sz))
+
+            if not futures:
+                break
+
+            for f in concurrent.futures.as_completed(futures):
+                pass
+
+            if continuous:
+                time.sleep(0.05)
 
     print("\n")
-    final_count = get_total_count(token)
+    final_count = get_total_count(get_auth_token_threadsafe())
     print(f"Finished! Firestore live count is now: {final_count:,} reactions (+{final_count - initial_count:,} added).")
 
 def main():
@@ -550,14 +577,15 @@ def main():
     parser.add_argument("--status", action="store_true", help="Check current live count in Firestore.")
     parser.add_argument("--count", type=int, default=1000, help="Number of new reactions to generate & upload.")
     parser.add_argument("--target-total", type=int, default=None, help="Target total reactions in Firestore (e.g. 200000 for 2 Lacs).")
-    parser.add_argument("--batch-size", type=int, default=500, help="Batch size per write commit (max 500).")
+    parser.add_argument("--batch-size", type=int, default=200, help="Batch size per write commit (max 500).")
+    parser.add_argument("--workers", type=int, default=4, help="Number of concurrent upload worker threads.")
     parser.add_argument("--category", choices=["all", "medical", "veterinary", "polymer", "biochemical", "pharmaceutical"], default="all", help="Target category of reactions.")
     parser.add_argument("--continuous", action="store_true", help="Keep uploading continuously, pausing when quota limit is reached and resuming when limit allows.")
     parser.add_argument("--dry-run", action="store_true", help="Generate reactions without committing to Firebase.")
     args = parser.parse_args()
 
     if args.status:
-        token = get_auth_token()
+        token = get_auth_token_threadsafe()
         count = get_total_count(token)
         print(f"==================================================")
         print(f"🔥 Current Firestore /library Total: {count:,} reactions")
@@ -577,6 +605,7 @@ def main():
         target_count=args.count,
         target_total=args.target_total,
         batch_size=args.batch_size,
+        workers=args.workers,
         continuous=args.continuous,
         category_mode=args.category,
         dry_run=args.dry_run,

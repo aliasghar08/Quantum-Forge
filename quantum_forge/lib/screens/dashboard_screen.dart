@@ -271,13 +271,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
 
     final hasCompletedData = reaction.state == ReactionState.completed &&
-        ((reaction.trajectoryFrames != null && reaction.trajectoryFrames!.isNotEmpty) ||
-         (reaction.energyProfile != null && reaction.energyProfile!.isNotEmpty));
+        reaction.trajectoryFrames != null &&
+        reaction.trajectoryFrames!.isNotEmpty;
 
     if (hasCompletedData) {
       _viewModel.loadTemplateForView(template);
-      context.read<ReactionNotifier>().value = reaction;
-      context.read<ReactionNotifier>().playbackProgressNotifier.value = 1.0;
+      final reactionNotifier = context.read<ReactionNotifier>();
+      reactionNotifier.value = reaction;
+      reactionNotifier.playbackProgressNotifier.value = 1.0;
+      reactionNotifier.playbackFrameNotifier.value = 0;
     } else {
       _onTemplateSelected(template);
       if (reaction.reactionId.isNotEmpty && reaction.state != ReactionState.completed) {

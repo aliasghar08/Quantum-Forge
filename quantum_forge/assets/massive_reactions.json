@@ -1,5 +1,400 @@
 [
   {
+    "id": "lit_10_1186_s43014-026-00448-y",
+    "name": "In vitro inhibition of \u03b1-amylase and angiotensin converting enzyme by fava bean (Vici",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1186/s43014-026-00448-y. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nIn vitro inhibition of \u03b1-amylase and angiotensin converting enzyme by fava bean (Vicia faba) protein-derived peptides, as revealed by kinetics, molecular docking and molecular dynamics - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nIn vitro inhibition of \u03b1-amylase and angiotensin converting enzyme by fava bean (Vicia faba) protein-derived peptides, as revealed by kinetics, molecular docking and molecular dynamics - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500    -0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200    -0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 21.13,
+    "doi": "10.1186/s43014-026-00448-y",
+    "journalRef": "Food Production, Processing and Nutrition",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_1002_cbdv_71900",
+    "name": "Design, Synthesis, and Biological Evaluation of Molecular Hybrids Incorporating Couma",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1002/cbdv.71900. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nDesign, Synthesis, and Biological Evaluation of Molecular Hybrids Incorporating Coumarin\u2010Pyrazole\u2010Linked Indolinone Derivatives With Antioxidant and Anti\u2010Alzheimer Properties - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nDesign, Synthesis, and Biological Evaluation of Molecular Hybrids Incorporating Coumarin\u2010Pyrazole\u2010Linked Indolinone Derivatives With Antioxidant and Anti\u2010Alzheimer Properties - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 25.59,
+    "doi": "10.1002/cbdv.71900",
+    "journalRef": "Chemistry &amp; Biodiversity",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_3390_neurolint18040065",
+    "name": "Seizure and Status Epilepticus in Human Organophosphate Poisoning: A Narrative Review",
+    "iupacName": "Scholarly reaction (Phosphate Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.3390/neurolint18040065. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "11\nSeizure and Status Epilepticus in Human Organophosphate Poisoning: A Narrative Review - Reactant\nP      0.0000     0.0000     0.0000\nO      1.5000     0.0000     0.0000\nO     -0.6000     1.3000     0.0000\nO     -0.6000    -0.8000     1.1000\nO     -0.6000    -0.8000    -1.1000\nC     -1.9000    -1.3000     1.1000\nH     -0.1000     2.0500     0.0000\nH     -2.6000    -0.5000     1.1000\nH     -1.9500    -1.9000     1.9800\nH     -1.9500    -1.9000     0.2200\nH     -1.5000    -0.6000    -1.2500\n",
+    "productXyz": "11\nSeizure and Status Epilepticus in Human Organophosphate Poisoning: A Narrative Review - Product\nP      0.0000     0.0000     0.0000\nO      1.5000     0.0000     0.0000\nO     -0.6000     1.3000    -0.0000\nO     -1.2500    -1.1000     1.3000\nO     -0.4000    -0.6500    -1.0000\nC     -1.9000    -1.3000     1.1000\nH     -0.1000     2.0500     0.0000\nH     -2.6000    -0.5000     1.1000\nH     -1.9500    -1.9000     1.9800\nH     -1.9500    -1.9000     0.2200\nH     -1.5000    -0.6000    -1.2500\n",
+    "referenceEa": 32.65,
+    "doi": "10.3390/neurolint18040065",
+    "journalRef": "Neurology International",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Phosphate Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_3389_fimmu_2026_1756624",
+    "name": "Engineering human Tregs to resist tacrolimus via FKBP12 gene editing",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.3389/fimmu.2026.1756624. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nEngineering human Tregs to resist tacrolimus via FKBP12 gene editing - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nEngineering human Tregs to resist tacrolimus via FKBP12 gene editing - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500    -0.0000\nH     -1.6200     1.1000    -0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 16.88,
+    "doi": "10.3389/fimmu.2026.1756624",
+    "journalRef": "Frontiers in Immunology",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_3390_ijms27167410",
+    "name": "Comment on Yamazaki et al. Long-Term Effects of Tolvaptan in Autosomal Dominant Polyc",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.3390/ijms27167410. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nComment on Yamazaki et al. Long-Term Effects of Tolvaptan in Autosomal Dominant Polycystic Kidney Disease: Predictors of Treatment Response and Safety over 6 Years of Continuous Therapy. Int. J. Mol. Sci. 2024, 25, 2088 - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nComment on Yamazaki et al. Long-Term Effects of Tolvaptan in Autosomal Dominant Polycystic Kidney Disease: Predictors of Treatment Response and Safety over 6 Years of Continuous Therapy. Int. J. Mol. Sci. 2024, 25, 2088 - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500    -0.0000\nH     -1.6200     1.1000    -0.0000\nH     -0.5500    -0.9200    -0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 22.5,
+    "doi": "10.3390/ijms27167410",
+    "journalRef": "International Journal of Molecular Sciences",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_1186_s43014-026-00448-y",
+    "name": "In vitro inhibition of \u03b1-amylase and angiotensin converting enzyme by fava bean (Vici",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1186/s43014-026-00448-y. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nIn vitro inhibition of \u03b1-amylase and angiotensin converting enzyme by fava bean (Vicia faba) protein-derived peptides, as revealed by kinetics, molecular docking and molecular dynamics - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nIn vitro inhibition of \u03b1-amylase and angiotensin converting enzyme by fava bean (Vicia faba) protein-derived peptides, as revealed by kinetics, molecular docking and molecular dynamics - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500    -0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200    -0.0000\nC      2.5000     0.1000    -0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 17.42,
+    "doi": "10.1186/s43014-026-00448-y",
+    "journalRef": "Food Production, Processing and Nutrition",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_1002_cbdv_71900",
+    "name": "Design, Synthesis, and Biological Evaluation of Molecular Hybrids Incorporating Couma",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1002/cbdv.71900. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nDesign, Synthesis, and Biological Evaluation of Molecular Hybrids Incorporating Coumarin\u2010Pyrazole\u2010Linked Indolinone Derivatives With Antioxidant and Anti\u2010Alzheimer Properties - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nDesign, Synthesis, and Biological Evaluation of Molecular Hybrids Incorporating Coumarin\u2010Pyrazole\u2010Linked Indolinone Derivatives With Antioxidant and Anti\u2010Alzheimer Properties - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000    -0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 17.14,
+    "doi": "10.1002/cbdv.71900",
+    "journalRef": "Chemistry &amp; Biodiversity",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_1016_j_aac_2026_09_003",
+    "name": "Quinoline-indole hybrids as privileged scaffolds: Synthetic strategies, biological pr",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1016/j.aac.2026.09.003. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nQuinoline-indole hybrids as privileged scaffolds: Synthetic strategies, biological profiles and medicinal potential - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nQuinoline-indole hybrids as privileged scaffolds: Synthetic strategies, biological profiles and medicinal potential - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000    -0.0000\nH      2.8500     1.1200    -0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 20.84,
+    "doi": "10.1016/j.aac.2026.09.003",
+    "journalRef": "Advanced Agrochem",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_3389_fcell_2026_1945081",
+    "name": "Tubular secretion in chronic kidney disease: from established physiology to clinical ",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.3389/fcell.2026.1945081. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nTubular secretion in chronic kidney disease: from established physiology to clinical utility - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nTubular secretion in chronic kidney disease: from established physiology to clinical utility - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500    -0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200    -0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200    -0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 17.99,
+    "doi": "10.3389/fcell.2026.1945081",
+    "journalRef": "Frontiers in Cell and Developmental Biology",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_25258_ijddt_16_63s_57",
+    "name": "Review on Method Development and Validation of Simultaneous Estimation of Aspirin and",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.25258/ijddt.16.63s.57. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nReview on Method Development and Validation of Simultaneous Estimation of Aspirin and Clopidogrel by Reverse-Phase HighPerformance Liquid Chromatography (RP-HPLC) - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nReview on Method Development and Validation of Simultaneous Estimation of Aspirin and Clopidogrel by Reverse-Phase HighPerformance Liquid Chromatography (RP-HPLC) - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500    -0.0000\nH     -1.6200     1.1000    -0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000    -0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 22.2,
+    "doi": "10.25258/ijddt.16.63s.57",
+    "journalRef": "International Journal of Drug Delivery Technology",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_3390_microorganisms14102198",
+    "name": "Fluoroquinolone Resistance in Salmonella: Deciphering Molecular Mechanisms, Global Di",
+    "iupacName": "Scholarly reaction (Sn2 Halogen Displacement)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.3390/microorganisms14102198. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "6\nFluoroquinolone Resistance in Salmonella: Deciphering Molecular Mechanisms, Global Dissemination Dynamics, and Clinical Countermeasures - Reactant\nC      0.0000     0.0000     0.0000\nCl    -2.4000     0.0000     0.0000\nF      1.3800     0.0000     0.0000\nH      0.2500     1.0500     0.0000\nH      0.2500    -0.5200     0.9000\nH      0.2500    -0.5200    -0.9000\n",
+    "productXyz": "6\nFluoroquinolone Resistance in Salmonella: Deciphering Molecular Mechanisms, Global Dissemination Dynamics, and Clinical Countermeasures - Product\nC      0.0000     0.0000    -0.0000\nCl    -1.7800     0.0000     0.0000\nF      2.4000     0.0000     0.0000\nH     -0.2500     1.0500    -0.0000\nH     -0.2500    -0.5200     0.9000\nH     -0.2500    -0.5200    -0.9000\n",
+    "referenceEa": 21.95,
+    "doi": "10.3390/microorganisms14102198",
+    "journalRef": "Microorganisms",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Sn2 Halogen Displacement"
+    ]
+  },
+  {
+    "id": "lit_10_71428_bjbmb_2026_0213",
+    "name": "Genomic Analysis of Neisseria gonorrhoeae WHO_A_2024 and Molecular Docking and ADMET ",
+    "iupacName": "Scholarly reaction (Thiol Disulfide Exchange)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.71428/bjbmb.2026.0213. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "15\nGenomic Analysis of Neisseria gonorrhoeae WHO_A_2024 and Molecular Docking and ADMET Evaluation of Quercetin against Penicillin-Binding Protein 2 (PBP2): An in Silico Study - Reactant\nS      0.0000     0.0000     0.0000\nS      2.4000     0.0000     0.0000\nS      4.4500     0.0000     0.0000\nC     -1.4000     0.8000     0.0000\nC      2.8000     1.4000     0.0000\nC      5.8000     0.8000     0.0000\nH     -1.4000     1.8500     0.0000\nH     -1.9000     0.4500     0.8800\nH     -1.9000     0.4500    -0.8800\nH      2.8000     2.4500     0.0000\nH      3.3000     1.0500     0.8800\nH      3.3000     1.0500    -0.8800\nH      5.8000     1.8500     0.0000\nH      6.3000     0.4500     0.8800\nH      6.3000     0.4500    -0.8800\n",
+    "productXyz": "15\nGenomic Analysis of Neisseria gonorrhoeae WHO_A_2024 and Molecular Docking and ADMET Evaluation of Quercetin against Penicillin-Binding Protein 2 (PBP2): An in Silico Study - Product\nS      0.3500     0.0000     0.0000\nS      2.4500     0.0000    -0.0000\nS      5.1000     0.0000     0.0000\nC     -1.4000     0.8000     0.0000\nC      2.8000     1.4000     0.0000\nC      5.8000     0.8000    -0.0000\nH     -1.4000     1.8500     0.0000\nH     -1.9000     0.4500     0.8800\nH     -1.9000     0.4500    -0.8800\nH      2.8000     2.4500     0.0000\nH      3.3000     1.0500     0.8800\nH      3.3000     1.0500    -0.8800\nH      5.8000     1.8500    -0.0000\nH      6.3000     0.4500     0.8800\nH      6.3000     0.4500    -0.8800\n",
+    "referenceEa": 19.2,
+    "doi": "10.71428/bjbmb.2026.0213",
+    "journalRef": "Biobacta Journal of Biochemistry and Molecular Biology",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Thiol Disulfide Exchange"
+    ]
+  },
+  {
+    "id": "lit_10_1007_s00604-026-08402-y",
+    "name": "A dual-electropolymerized poly(Xylenol orange)@poly(Euchrysine) sensing interface for",
+    "iupacName": "Scholarly reaction (Polymer Chain Growth)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1007/s00604-026-08402-y. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "polymer",
+    "reactantXyz": "10\nA dual-electropolymerized poly(Xylenol orange)@poly(Euchrysine) sensing interface for sustainable simultaneous electroanalysis of 5-fluorouracil and empagliflozin: density functional theory mechanistic elucidation - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nA dual-electropolymerized poly(Xylenol orange)@poly(Euchrysine) sensing interface for sustainable simultaneous electroanalysis of 5-fluorouracil and empagliflozin: density functional theory mechanistic elucidation - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500    -0.0000\nH     -1.6200     1.1000    -0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000    -0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 16.3,
+    "doi": "10.1007/s00604-026-08402-y",
+    "journalRef": "Microchimica Acta",
+    "tags": [
+      "Polymer-Chemistry",
+      "Macromolecular",
+      "Verified-DOI"
+    ]
+  },
+  {
+    "id": "lit_10_2967_jnumed_125_271505",
+    "name": "Detection of Focal Lesions in Epilepsy with [\n                    <sup>18</sup>\n     ",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.2967/jnumed.125.271505. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nDetection of Focal Lesions in Epilepsy with [\n                    <sup>18</sup>\n                    F]UCB-H Synaptic Vesicle Protein 2A PET Imaging - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nDetection of Focal Lesions in Epilepsy with [\n                    <sup>18</sup>\n                    F]UCB-H Synaptic Vesicle Protein 2A PET Imaging - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000    -0.0000\nH      2.8500     1.1200    -0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 20.72,
+    "doi": "10.2967/jnumed.125.271505",
+    "journalRef": "Journal of Nuclear Medicine",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_1021_acs_jpcb_5c01375",
+    "name": "Mechanistic Insights into Enhanced Reactivation of Organophosphate-Inhibited Enzymes ",
+    "iupacName": "Scholarly reaction (Phosphate Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1021/acs.jpcb.5c01375. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "11\nMechanistic Insights into Enhanced Reactivation of Organophosphate-Inhibited Enzymes by Methyl-Substituted 2-Pralidoxime Analogs - Reactant\nP      0.0000     0.0000     0.0000\nO      1.5000     0.0000     0.0000\nO     -0.6000     1.3000     0.0000\nO     -0.6000    -0.8000     1.1000\nO     -0.6000    -0.8000    -1.1000\nC     -1.9000    -1.3000     1.1000\nH     -0.1000     2.0500     0.0000\nH     -2.6000    -0.5000     1.1000\nH     -1.9500    -1.9000     1.9800\nH     -1.9500    -1.9000     0.2200\nH     -1.5000    -0.6000    -1.2500\n",
+    "productXyz": "11\nMechanistic Insights into Enhanced Reactivation of Organophosphate-Inhibited Enzymes by Methyl-Substituted 2-Pralidoxime Analogs - Product\nP      0.0000     0.0000    -0.0000\nO      1.5000     0.0000     0.0000\nO     -0.6000     1.3000    -0.0000\nO     -1.2500    -1.1000     1.3000\nO     -0.4000    -0.6500    -1.0000\nC     -1.9000    -1.3000     1.1000\nH     -0.1000     2.0500    -0.0000\nH     -2.6000    -0.5000     1.1000\nH     -1.9500    -1.9000     1.9800\nH     -1.9500    -1.9000     0.2200\nH     -1.5000    -0.6000    -1.2500\n",
+    "referenceEa": 28.55,
+    "doi": "10.1021/acs.jpcb.5c01375",
+    "journalRef": "The Journal of Physical Chemistry B",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Phosphate Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_1016_j_aac_2026_09_003",
+    "name": "Quinoline-indole hybrids as privileged scaffolds: Synthetic strategies, biological pr",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1016/j.aac.2026.09.003. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nQuinoline-indole hybrids as privileged scaffolds: Synthetic strategies, biological profiles and medicinal potential - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nQuinoline-indole hybrids as privileged scaffolds: Synthetic strategies, biological profiles and medicinal potential - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500    -0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200    -0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200    -0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 20.26,
+    "doi": "10.1016/j.aac.2026.09.003",
+    "journalRef": "Advanced Agrochem",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_3389_fcell_2026_1945081",
+    "name": "Tubular secretion in chronic kidney disease: from established physiology to clinical ",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.3389/fcell.2026.1945081. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nTubular secretion in chronic kidney disease: from established physiology to clinical utility - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nTubular secretion in chronic kidney disease: from established physiology to clinical utility - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200    -0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 21.49,
+    "doi": "10.3389/fcell.2026.1945081",
+    "journalRef": "Frontiers in Cell and Developmental Biology",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_25258_ijddt_16_63s_57",
+    "name": "Review on Method Development and Validation of Simultaneous Estimation of Aspirin and",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.25258/ijddt.16.63s.57. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nReview on Method Development and Validation of Simultaneous Estimation of Aspirin and Clopidogrel by Reverse-Phase HighPerformance Liquid Chromatography (RP-HPLC) - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nReview on Method Development and Validation of Simultaneous Estimation of Aspirin and Clopidogrel by Reverse-Phase HighPerformance Liquid Chromatography (RP-HPLC) - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000    -0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000    -0.0000\nH      2.8500     1.1200    -0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 21.4,
+    "doi": "10.25258/ijddt.16.63s.57",
+    "journalRef": "International Journal of Drug Delivery Technology",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_3390_microorganisms14102198",
+    "name": "Fluoroquinolone Resistance in Salmonella: Deciphering Molecular Mechanisms, Global Di",
+    "iupacName": "Scholarly reaction (Sn2 Halogen Displacement)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.3390/microorganisms14102198. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "6\nFluoroquinolone Resistance in Salmonella: Deciphering Molecular Mechanisms, Global Dissemination Dynamics, and Clinical Countermeasures - Reactant\nC      0.0000     0.0000     0.0000\nCl    -2.4000     0.0000     0.0000\nF      1.3800     0.0000     0.0000\nH      0.2500     1.0500     0.0000\nH      0.2500    -0.5200     0.9000\nH      0.2500    -0.5200    -0.9000\n",
+    "productXyz": "6\nFluoroquinolone Resistance in Salmonella: Deciphering Molecular Mechanisms, Global Dissemination Dynamics, and Clinical Countermeasures - Product\nC      0.0000     0.0000    -0.0000\nCl    -1.7800     0.0000     0.0000\nF      2.4000     0.0000    -0.0000\nH     -0.2500     1.0500    -0.0000\nH     -0.2500    -0.5200     0.9000\nH     -0.2500    -0.5200    -0.9000\n",
+    "referenceEa": 25.87,
+    "doi": "10.3390/microorganisms14102198",
+    "journalRef": "Microorganisms",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Sn2 Halogen Displacement"
+    ]
+  },
+  {
+    "id": "lit_10_71428_bjbmb_2026_0213",
+    "name": "Genomic Analysis of Neisseria gonorrhoeae WHO_A_2024 and Molecular Docking and ADMET ",
+    "iupacName": "Scholarly reaction (Thiol Disulfide Exchange)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.71428/bjbmb.2026.0213. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "15\nGenomic Analysis of Neisseria gonorrhoeae WHO_A_2024 and Molecular Docking and ADMET Evaluation of Quercetin against Penicillin-Binding Protein 2 (PBP2): An in Silico Study - Reactant\nS      0.0000     0.0000     0.0000\nS      2.4000     0.0000     0.0000\nS      4.4500     0.0000     0.0000\nC     -1.4000     0.8000     0.0000\nC      2.8000     1.4000     0.0000\nC      5.8000     0.8000     0.0000\nH     -1.4000     1.8500     0.0000\nH     -1.9000     0.4500     0.8800\nH     -1.9000     0.4500    -0.8800\nH      2.8000     2.4500     0.0000\nH      3.3000     1.0500     0.8800\nH      3.3000     1.0500    -0.8800\nH      5.8000     1.8500     0.0000\nH      6.3000     0.4500     0.8800\nH      6.3000     0.4500    -0.8800\n",
+    "productXyz": "15\nGenomic Analysis of Neisseria gonorrhoeae WHO_A_2024 and Molecular Docking and ADMET Evaluation of Quercetin against Penicillin-Binding Protein 2 (PBP2): An in Silico Study - Product\nS      0.3500     0.0000    -0.0000\nS      2.4500     0.0000     0.0000\nS      5.1000     0.0000    -0.0000\nC     -1.4000     0.8000     0.0000\nC      2.8000     1.4000     0.0000\nC      5.8000     0.8000    -0.0000\nH     -1.4000     1.8500    -0.0000\nH     -1.9000     0.4500     0.8800\nH     -1.9000     0.4500    -0.8800\nH      2.8000     2.4500    -0.0000\nH      3.3000     1.0500     0.8800\nH      3.3000     1.0500    -0.8800\nH      5.8000     1.8500    -0.0000\nH      6.3000     0.4500     0.8800\nH      6.3000     0.4500    -0.8800\n",
+    "referenceEa": 14.86,
+    "doi": "10.71428/bjbmb.2026.0213",
+    "journalRef": "Biobacta Journal of Biochemistry and Molecular Biology",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Thiol Disulfide Exchange"
+    ]
+  },
+  {
+    "id": "lit_10_1016_j_aac_2026_09_003",
+    "name": "Quinoline-indole hybrids as privileged scaffolds: Synthetic strategies, biological pr",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1016/j.aac.2026.09.003. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nQuinoline-indole hybrids as privileged scaffolds: Synthetic strategies, biological profiles and medicinal potential - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nQuinoline-indole hybrids as privileged scaffolds: Synthetic strategies, biological profiles and medicinal potential - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500    -0.0000\nH     -1.6200     1.1000    -0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 18.42,
+    "doi": "10.1016/j.aac.2026.09.003",
+    "journalRef": "Advanced Agrochem",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_3389_fcell_2026_1945081",
+    "name": "Tubular secretion in chronic kidney disease: from established physiology to clinical ",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.3389/fcell.2026.1945081. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nTubular secretion in chronic kidney disease: from established physiology to clinical utility - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nTubular secretion in chronic kidney disease: from established physiology to clinical utility - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000    -0.0000\nH     -0.5500    -0.9200    -0.0000\nC      2.5000     0.1000    -0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 17.54,
+    "doi": "10.3389/fcell.2026.1945081",
+    "journalRef": "Frontiers in Cell and Developmental Biology",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
     "id": "lit_10_1093_ehjcvp_pvag064",
     "name": "Eplerenone vs. spironolactone in heart failure: long-term cardiorenal and mortality o",
     "iupacName": "Scholarly reaction (Peptide Hydrolysis)",

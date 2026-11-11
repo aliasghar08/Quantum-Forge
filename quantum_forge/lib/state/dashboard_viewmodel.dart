@@ -212,12 +212,34 @@ class DashboardViewModel extends ChangeNotifier {
     _disposeEntries(_reactants);
     _disposeEntries(_products);
     _disposeEntries(_catalysts);
+
+    final reactantEntry = MoleculeEntry(id: 'r0');
+    if (template.reactantXyz.isNotEmpty) {
+      final rBytes = Uint8List.fromList(utf8.encode(template.reactantXyz));
+      reactantEntry.ctrl.text = '${template.name} (Reactant)';
+      reactantEntry.file = PickedFile(
+        name: '${template.id}_reactant.xyz',
+        size: rBytes.length,
+        bytes: rBytes,
+      );
+    }
     _reactants
       ..clear()
-      ..add(MoleculeEntry(id: 'r0'));
+      ..add(reactantEntry);
+
+    final productEntry = MoleculeEntry(id: 'p0');
+    if (template.productXyz.isNotEmpty) {
+      final pBytes = Uint8List.fromList(utf8.encode(template.productXyz));
+      productEntry.ctrl.text = '${template.name} (Product)';
+      productEntry.file = PickedFile(
+        name: '${template.id}_product.xyz',
+        size: pBytes.length,
+        bytes: pBytes,
+      );
+    }
     _products
       ..clear()
-      ..add(MoleculeEntry(id: 'p0'));
+      ..add(productEntry);
     
     final catalystEntry = MoleculeEntry(id: 'c0');
     if (template.defaultCatalystName != null && template.defaultCatalystName!.isNotEmpty) {
@@ -247,12 +269,34 @@ class DashboardViewModel extends ChangeNotifier {
     _disposeEntries(_reactants);
     _disposeEntries(_products);
     _disposeEntries(_catalysts);
+
+    final reactantEntry = MoleculeEntry(id: 'r0');
+    if (template.reactantXyz.isNotEmpty) {
+      final rBytes = Uint8List.fromList(utf8.encode(template.reactantXyz));
+      reactantEntry.ctrl.text = '${template.name} (Reactant)';
+      reactantEntry.file = PickedFile(
+        name: '${template.id}_reactant.xyz',
+        size: rBytes.length,
+        bytes: rBytes,
+      );
+    }
     _reactants
       ..clear()
-      ..add(MoleculeEntry(id: 'r0'));
+      ..add(reactantEntry);
+
+    final productEntry = MoleculeEntry(id: 'p0');
+    if (template.productXyz.isNotEmpty) {
+      final pBytes = Uint8List.fromList(utf8.encode(template.productXyz));
+      productEntry.ctrl.text = '${template.name} (Product)';
+      productEntry.file = PickedFile(
+        name: '${template.id}_product.xyz',
+        size: pBytes.length,
+        bytes: pBytes,
+      );
+    }
     _products
       ..clear()
-      ..add(MoleculeEntry(id: 'p0'));
+      ..add(productEntry);
     
     final catalystEntry = MoleculeEntry(id: 'c0');
     if (template.defaultCatalystName != null && template.defaultCatalystName!.isNotEmpty) {

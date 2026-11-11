@@ -13,20 +13,20 @@ extension ReactionProviderSimulationExt on ReactionNotifier {
     String? templateId,
   ]) async {
     // 1. Pending -> Optimizing (Snappy multi-step quantum pipeline)
-    await Future.delayed(const Duration(milliseconds: 100));
+    await Future.delayed(const Duration(milliseconds: 40));
     await _repo.updateReaction(reactionId, {
       'state': ReactionState.optimizing.name,
       'message': 'Transformer Attention: Encoding 3D point cloud & covalent topology…',
       'progress': 0.20,
     });
 
-    await Future.delayed(const Duration(milliseconds: 120));
+    await Future.delayed(const Duration(milliseconds: 50));
     await _repo.updateReaction(reactionId, {
       'message': 'Max-Pooling: Compressing invariant latent bottleneck features…',
       'progress': 0.55,
     });
 
-    await Future.delayed(const Duration(milliseconds: 120));
+    await Future.delayed(const Duration(milliseconds: 50));
     await _repo.updateReaction(reactionId, {
       'message': 'Rebuilding collision-free TS trajectory & vibrational modes…',
       'progress': 0.85,
@@ -39,7 +39,7 @@ extension ReactionProviderSimulationExt on ReactionNotifier {
       settings: settings,
     );
 
-    await Future.delayed(const Duration(milliseconds: 100));
+    await Future.delayed(const Duration(milliseconds: 40));
     await _repo.updateReaction(reactionId, {
       'state': ReactionState.completed.name,
       'message': 'TS Search Converged Successfully (Transformer-MP Engine).',
