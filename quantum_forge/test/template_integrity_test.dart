@@ -41,7 +41,6 @@ void main() {
         'med-glutathione-01',
         'med-prostaglandin-01',
         'med-captopril-01',
-        'med-atorvastatin-01',
         'med-nitroglycerin-01',
         'med-furosemide-01',
         'med-glimepiride-01',

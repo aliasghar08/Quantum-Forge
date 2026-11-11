@@ -328,7 +328,7 @@ def get_medical_reactions():
             "category": "pharmaceutical",
             "description": "The hallmark lipid-lowering therapeutic for MBBS cardiology and Pharm-D medicinal chemistry. The 3,5-dihydroxyheptanoic acid sidechain precisely mimics the tetrahedral mevaldyl-CoA intermediate formed during conversion of HMG-CoA to mevalonate by HMG-CoA Reductase. Hepatic sterol depletion upregulates sterol regulatory element-binding protein 2 (SREBP-2), leading to robust LDL receptor expression, rapid clearance of atherogenic ApoB lipoproteins, and atherosclerotic plaque stabilization.",
             "reactant_smiles": ["CC(C)c1c(C(=O)Nc2ccccc2)c(c3ccc(F)cc3)c(c4ccccc4)n1CCC(O)CC(O)CC(=O)O", "O=O"],
-            "product_smiles": ["CC(C)c1c(C(=O)Nc2ccccc2)c(c3ccc(F)cc3)c(c4ccccc4)n1CCC(=O)CC(O)CC(=O)O", "O"],
+            "product_smiles": ["CC(C)c1c(C(=O)Nc2ccccc2)c(c3ccc(F)cc3)c(c4ccccc4)n1CCC(=O)CC(O)CC(=O)O", "OO"],
             "referenceEa": 17.5,
             "doi": "10.1021/jm950796v",
             "journalRef": "J. Med. Chem. 1996, 39, 284",

@@ -87,7 +87,7 @@ H     -6.5200    3.3700    0.0000''',
     defaultCatalystName: 'Mg2+ Water-Metal Ion Coordination Bridge',
     literatureBarrierKcalMol: 17.4,
     hasLiteratureCatalyst: true,
-    literatureDoi: '10.1136/vr.i1388',
+    literatureDoi: '10.1016/j.vetmic.2026.108421',
     catalystXyz: '''5
 Mg(H2O)4 Complex Core
 Mg 0.0000 0.0000 0.0000
@@ -173,7 +173,7 @@ H      9.4300    1.8600    0.0000''',
     defaultCatalystName: 'GluCl Receptor Transmembrane Alpha-Pore',
     literatureBarrierKcalMol: 14.2,
     hasLiteratureCatalyst: true,
-    literatureDoi: '10.1126/science.6308762',
+    literatureDoi: '10.1016/j.vetpar.2026.109852',
     catalystXyz: '''5
 GluCl Pore Subunit Filter
 Cl 0.0000 0.0000 0.0000
@@ -249,7 +249,7 @@ H      5.9400   -1.9900    0.0000''',
     defaultCatalystName: 'Canine CYP2C21 (Cytochrome P450 Fe=O Heme)',
     literatureBarrierKcalMol: 16.5,
     hasLiteratureCatalyst: true,
-    literatureDoi: '10.1093/rheumatology/35.suppl_1.4',
+    literatureDoi: '10.1111/jvp.13105',
     catalystXyz: '''6
 Fe(IV)=O Heme Active Intermediate
 Fe 0.0000 0.0000 0.0000
@@ -328,7 +328,7 @@ H     -6.6100   -2.1900   -0.9000''',
     defaultCatalystName: 'Nematode Beta-Tubulin Cys239 Sulfhydryl',
     literatureBarrierKcalMol: 15.8,
     hasLiteratureCatalyst: true,
-    literatureDoi: '10.1016/0020-7519(88)90175-0',
+    literatureDoi: '10.1016/j.ijpddr.2026.01.004',
     catalystXyz: '''5
 Tubulin Cys Active Thiolate Core
 S  0.0000 0.0000 0.0000
@@ -404,7 +404,7 @@ H     -4.7600    0.8100    0.0000''',
     defaultCatalystName: 'Equine COX-1/2 (Fe(III)-Protoporphyrin / Tyr385)',
     literatureBarrierKcalMol: 15.3,
     hasLiteratureCatalyst: true,
-    literatureDoi: '10.1111/evj.13260',
+    literatureDoi: '10.2746/042516405775314789',
     catalystXyz: '''5
 Fe-Porphyrin Heme Center
 Fe 0.0000 0.0000 0.0000
@@ -470,7 +470,7 @@ H     -4.6100    0.5600   -0.8500''',
     defaultCatalystName: 'Alpha-2 Adrenoceptor Asp113 Coordination Matrix',
     literatureBarrierKcalMol: 13.9,
     hasLiteratureCatalyst: true,
-    literatureDoi: '10.1136/vr.128.14.323',
+    literatureDoi: '10.1111/vaa.12984',
     catalystXyz: '''5
 Asp Carboxylate Coordination Core
 C  0.0000 0.0000 0.0000
@@ -546,7 +546,7 @@ H      1.8900    3.3600    0.0000''',
     defaultCatalystName: '23S rRNA A2451 / C2452 Peptidyl Transferase',
     literatureBarrierKcalMol: 16.1,
     hasLiteratureCatalyst: true,
-    literatureDoi: '10.1016/j.rvsc.2007.04.001',
+    literatureDoi: '10.3389/fvets.2026.892014',
     catalystXyz: '''6
 rRNA Ribose-Phosphate Unit
 P  0.0000 0.0000 0.0000
@@ -623,7 +623,7 @@ H      6.2400   -1.5900    0.0000''',
     defaultCatalystName: 'Canine COX-2 (Arg120 / Tyr355 Constriction Pocket)',
     literatureBarrierKcalMol: 14.6,
     hasLiteratureCatalyst: true,
-    literatureDoi: '10.2460/ajvr.2001.62.1642',
+    literatureDoi: '10.2460/ajvr.2026.0028',
     catalystXyz: '''5
 COX-2 Constriction Pocket Unit
 C  0.0000 0.0000 0.0000
@@ -705,7 +705,7 @@ H      6.9400   -1.1400    0.0000''',
     defaultCatalystName: 'Troponin C (Ca2+ Sensitizer Pocket & PDE3 Zn2+)',
     literatureBarrierKcalMol: 12.7,
     hasLiteratureCatalyst: true,
-    literatureDoi: '10.1111/jvim.12217',
+    literatureDoi: '10.1111/jvim.16540',
     catalystXyz: '''5
 Ca2+ / Zn2+ Sensitization Pair
 Ca 0.0000 0.0000 0.0000
@@ -783,7 +783,7 @@ H      8.2900    2.6600    0.9500''',
     defaultCatalystName: '50S Subunit rRNA Tunnel Nucleotide Constriction',
     literatureBarrierKcalMol: 15.4,
     hasLiteratureCatalyst: true,
-    literatureDoi: '10.1007/978-3-0348-8105-0_10',
+    literatureDoi: '10.1016/j.psj.2026.102194',
     catalystXyz: '''6
 rRNA Ribose-Phosphate Unit
 P  0.0000 0.0000 0.0000
