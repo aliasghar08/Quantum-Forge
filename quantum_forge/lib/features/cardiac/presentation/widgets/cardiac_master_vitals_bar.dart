@@ -51,6 +51,10 @@ class CardiacMasterVitalsBar extends StatelessWidget {
             children: [
               // ── Header & Physiological Coupling Badges ─────────────────────
               _buildHeaderRow(context),
+              const SizedBox(height: 8),
+
+              // ── Heart Situation Trigger Strip (Auto-Pilot Scenarios) ───────
+              _buildSituationTriggerRow(context),
               const SizedBox(height: 10),
 
               // ── Interactive Parameter Control Sliders ───────────────────────
@@ -195,6 +199,227 @@ class CardiacMasterVitalsBar extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildSituationHeaderBadge() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3.5),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1E293B),
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(color: const Color(0xFF334155), width: 0.8),
+      ),
+      child: const Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.bolt_rounded, color: Color(0xFF00E5FF), size: 12),
+          SizedBox(width: 4),
+          Text(
+            'HEART SITUATION TRIGGER',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 9.5,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 0.6,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  List<Widget> _buildSituationChipsList() {
+    return CardiacClinicalSituation.values.map((sit) {
+      final isCurrent = vitals.activeSituation == sit;
+      final isAuto = isCurrent && !vitals.isManualOverride;
+      return Padding(
+        padding: const EdgeInsets.only(right: 6.0),
+        child: InkWell(
+          key: Key('situation_chip_${sit.id}'),
+          onTap: () {
+            vitals.triggerSituation(sit);
+          },
+          borderRadius: BorderRadius.circular(4),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3.5),
+            decoration: BoxDecoration(
+              color: isAuto
+                  ? sit.accentColor.withValues(alpha: 0.22)
+                  : (isCurrent
+                      ? sit.accentColor.withValues(alpha: 0.10)
+                      : const Color(0xFF0F172A)),
+              borderRadius: BorderRadius.circular(4),
+              border: Border.all(
+                color: isAuto
+                    ? sit.accentColor
+                    : (isCurrent
+                        ? sit.accentColor.withValues(alpha: 0.6)
+                        : const Color(0xFF1E293B)),
+                width: isAuto ? 1.2 : 0.8,
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 6,
+                  height: 6,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: isCurrent ? sit.accentColor : Colors.white24,
+                  ),
+                ),
+                const SizedBox(width: 5),
+                Text(
+                  sit.shortLabel,
+                  style: TextStyle(
+                    color: isCurrent ? Colors.white : Colors.white70,
+                    fontSize: 10,
+                    fontWeight: isCurrent ? FontWeight.bold : FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }).toList();
+  }
+
+  Widget _buildStatusPill(BuildContext context) {
+    if (!vitals.isManualOverride) {
+      return Container(
+        key: const Key('status_pill_auto'),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
+        decoration: BoxDecoration(
+          color: const Color(0xFF00E676).withValues(alpha: 0.15),
+          borderRadius: BorderRadius.circular(4),
+          border: Border.all(color: const Color(0xFF00E676), width: 1.0),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.check_circle_rounded, color: Color(0xFF00E676), size: 12),
+            const SizedBox(width: 4),
+            Text(
+              'AUTO-VITALS: ${vitals.activeSituation.shortLabel.toUpperCase()}',
+              style: const TextStyle(
+                color: Color(0xFF00E676),
+                fontSize: 10,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 0.6,
+              ),
+            ),
+          ],
+        ),
+      );
+    } else {
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            key: const Key('status_pill_manual'),
+            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3.5),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFFB300).withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(4),
+              border: Border.all(color: const Color(0xFFFFB300), width: 1.0),
+            ),
+            child: const Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.tune_rounded, color: Color(0xFFFFB300), size: 12),
+                SizedBox(width: 4),
+                Text(
+                  'MANUAL OVERRIDE',
+                  style: TextStyle(
+                    color: Color(0xFFFFB300),
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 0.6,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 6),
+          InkWell(
+            key: const Key('btn_resync_situation'),
+            onTap: () => vitals.syncToActiveSituation(),
+            borderRadius: BorderRadius.circular(4),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3.5),
+              decoration: BoxDecoration(
+                color: const Color(0xFF00E5FF).withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(4),
+                border: Border.all(color: const Color(0xFF00E5FF), width: 0.9),
+              ),
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.sync_rounded, color: Color(0xFF00E5FF), size: 12),
+                  SizedBox(width: 4),
+                  Text(
+                    'Sync to Situation',
+                    style: TextStyle(
+                      color: Color(0xFF00E5FF),
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+  }
+
+  Widget _buildSituationTriggerRow(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      decoration: BoxDecoration(
+        color: const Color(0xFF0B132B).withValues(alpha: 0.6),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: const Color(0xFF1E293B), width: 0.8),
+      ),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final isNarrow = constraints.maxWidth < 950;
+          if (isNarrow) {
+            return SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  _buildSituationHeaderBadge(),
+                  const SizedBox(width: 8),
+                  ..._buildSituationChipsList(),
+                  const SizedBox(width: 8),
+                  _buildStatusPill(context),
+                ],
+              ),
+            );
+          }
+          return Row(
+            children: [
+              _buildSituationHeaderBadge(),
+              const SizedBox(width: 8),
+              Expanded(
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: _buildSituationChipsList(),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              _buildStatusPill(context),
+            ],
+          );
+        },
+      ),
     );
   }
 

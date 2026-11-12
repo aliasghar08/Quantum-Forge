@@ -1154,12 +1154,15 @@ void main() {
       // Test scenario presets
       final stemi = kCardiacScenarios.firstWhere((s) => s.id.contains('anterior_stemi'));
       vitals.applyScenarioPreset(stemi);
-      expect(vitals.heartRateBpm, 95.0);
-      expect(vitals.lvefPct, 40.0);
+      expect(vitals.heartRateBpm, 104.0);
+      expect(vitals.lvefPct, 38.0);
+      expect(vitals.activeSituation, CardiacClinicalSituation.anteriorStemi);
+      expect(vitals.isManualOverride, isFalse);
 
       // Test drug effects
       vitals.applyIvDrugEffect(IvEmergencyMedication.adenosine);
       expect(vitals.heartRateBpm, 76.0);
+      expect(vitals.isManualOverride, isTrue);
 
       vitals.applyIvDrugEffect(IvEmergencyMedication.norepinephrine);
       expect(vitals.systolicBp, 125.0);
@@ -1178,6 +1181,8 @@ void main() {
       expect(vitals.heartRateBpm, 72.0);
       expect(vitals.systolicBp, 120.0);
       expect(vitals.diastolicBp, 80.0);
+      expect(vitals.activeSituation, CardiacClinicalSituation.normal);
+      expect(vitals.isManualOverride, isFalse);
     });
 
     testWidgets('CardiacMasterVitalsBar renders badges, interactive sliders, and Coupling Guide', (tester) async {
@@ -1220,6 +1225,91 @@ void main() {
       await tester.tap(find.text('Reset Vitals'));
       await tester.pump(const Duration(milliseconds: 100));
       expect(resetCalled, isTrue);
+    });
+
+    testWidgets('Clinical Heart Situation Trigger Engine: 1-tap disease auto-triggers and manual override synchronization', (tester) async {
+      tester.view.physicalSize = const Size(1400, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      final vitals = CardiacMasterVitalsState();
+
+      await tester.pumpWidget(MaterialApp(
+        home: Scaffold(
+          body: CardiacMasterVitalsBar(
+            vitals: vitals,
+          ),
+        ),
+      ));
+      await tester.pump(const Duration(milliseconds: 100));
+
+      // 1. Initial State: Normal Sinus Auto-Pilot
+      expect(vitals.activeSituation, CardiacClinicalSituation.normal);
+      expect(vitals.isManualOverride, isFalse);
+      expect(find.byKey(const Key('status_pill_auto')), findsOneWidget);
+      expect(find.textContaining('AUTO-VITALS: NORMAL'), findsOneWidget);
+
+      // 2. Click Cardiogenic Shock situation chip
+      final shockChip = find.byKey(const Key('situation_chip_cardiogenic_shock'));
+      expect(shockChip, findsOneWidget);
+      await tester.ensureVisible(shockChip);
+      await tester.tap(shockChip);
+      await tester.pump(const Duration(milliseconds: 100));
+
+      // Verify Cardiogenic Shock vitals atomically updated
+      expect(vitals.activeSituation, CardiacClinicalSituation.cardiogenicShock);
+      expect(vitals.isManualOverride, isFalse);
+      expect(vitals.heartRateBpm, 126.0);
+      expect(vitals.systolicBp, 76.0);
+      expect(vitals.diastolicBp, 48.0);
+      expect(vitals.spo2Pct, 88.0);
+      expect(vitals.respRate, 26.0);
+      expect(vitals.etco2MmHg, 26.0);
+      expect(vitals.lvefPct, 22.0);
+      expect(vitals.targetRhythm, OscilloscopeRhythmType.sinusTachy);
+      expect(find.textContaining('AUTO-VITALS: CARDIOGENIC SHOCK'), findsOneWidget);
+
+      // 3. Click Massive PE situation chip
+      final peChip = find.byKey(const Key('situation_chip_massive_pe'));
+      expect(peChip, findsOneWidget);
+      await tester.ensureVisible(peChip);
+      await tester.tap(peChip);
+      await tester.pump(const Duration(milliseconds: 100));
+
+      // Verify Massive PE vitals
+      expect(vitals.activeSituation, CardiacClinicalSituation.massivePe);
+      expect(vitals.isManualOverride, isFalse);
+      expect(vitals.heartRateBpm, 132.0);
+      expect(vitals.systolicBp, 86.0);
+      expect(vitals.diastolicBp, 54.0);
+      expect(vitals.spo2Pct, 85.0);
+      expect(vitals.respRate, 28.0);
+      expect(vitals.etco2MmHg, 22.0); // Classic EtCO2 drop
+      expect(vitals.lvefPct, 58.0);
+      expect(find.textContaining('AUTO-VITALS: MASSIVE PE'), findsOneWidget);
+
+      // 4. Manual Override: Adjust HR via setHeartRate
+      vitals.setHeartRate(148.0);
+      await tester.pump(const Duration(milliseconds: 100));
+
+      // Verify flipped to MANUAL OVERRIDE while preserving underlying situation
+      expect(vitals.isManualOverride, isTrue);
+      expect(vitals.activeSituation, CardiacClinicalSituation.massivePe);
+      expect(vitals.heartRateBpm, 148.0);
+      expect(find.byKey(const Key('status_pill_manual')), findsOneWidget);
+      expect(find.text('MANUAL OVERRIDE'), findsOneWidget);
+      expect(find.byKey(const Key('btn_resync_situation')), findsOneWidget);
+      expect(find.text('Sync to Situation'), findsOneWidget);
+
+      // 5. Tap 'Sync to Situation' to re-sync back to auto-pilot baseline
+      await tester.tap(find.byKey(const Key('btn_resync_situation')));
+      await tester.pump(const Duration(milliseconds: 100));
+
+      expect(vitals.isManualOverride, isFalse);
+      expect(vitals.heartRateBpm, 132.0);
+      expect(find.byKey(const Key('status_pill_auto')), findsOneWidget);
+      expect(find.textContaining('AUTO-VITALS: MASSIVE PE'), findsOneWidget);
     });
   });
 }

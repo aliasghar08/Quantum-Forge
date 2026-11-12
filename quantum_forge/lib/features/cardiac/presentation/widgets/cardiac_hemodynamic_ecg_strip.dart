@@ -378,6 +378,8 @@ class _CardiacHemodynamicEcgStripState extends State<CardiacHemodynamicEcgStrip>
     _generateBlindOptions();
     _updateAlertBanner();
 
+    widget.masterVitals?.addListener(_onMasterVitalsChanged);
+
     final sweepSec = _sweepSpeedMmS == 50 ? 5 : 10;
     _sweepController = AnimationController(
       vsync: this,
@@ -387,13 +389,34 @@ class _CardiacHemodynamicEcgStripState extends State<CardiacHemodynamicEcgStrip>
 
   @override
   void dispose() {
+    widget.masterVitals?.removeListener(_onMasterVitalsChanged);
     _sweepController.dispose();
     super.dispose();
+  }
+
+  void _onMasterVitalsChanged() {
+    if (!mounted) return;
+    final mv = widget.masterVitals;
+    if (mv != null) {
+      if (mv.targetRhythm != _currentRhythm) {
+        setState(() {
+          _currentRhythm = mv.targetRhythm;
+          _updateAlertBanner();
+        });
+        widget.onRhythmChanged?.call(_currentRhythm);
+      } else {
+        setState(() {});
+      }
+    }
   }
 
   @override
   void didUpdateWidget(covariant CardiacHemodynamicEcgStrip oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (oldWidget.masterVitals != widget.masterVitals) {
+      oldWidget.masterVitals?.removeListener(_onMasterVitalsChanged);
+      widget.masterVitals?.addListener(_onMasterVitalsChanged);
+    }
     if (!_isFrozen) {
       if (widget.cardiacPhase < _lastPhase && (_lastPhase - widget.cardiacPhase) > 0.5) {
         _beatParity = (_beatParity + 1) % 2;
@@ -663,7 +686,59 @@ class _CardiacHemodynamicEcgStripState extends State<CardiacHemodynamicEcgStrip>
 
   double _computeEffectiveStElevation() {
     double baseSt;
-    if (widget.scenario.id.contains('anterior_stemi')) {
+    final mv = widget.masterVitals;
+
+    if (mv != null && mv.activeSituation != CardiacClinicalSituation.normal) {
+      switch (mv.activeSituation) {
+        case CardiacClinicalSituation.anteriorStemi:
+          switch (widget.activeTerritory) {
+            case EcgTerritoryLead.v1V4Anterior:
+              baseSt = 4.5;
+              break;
+            case EcgTerritoryLead.inferiorLeads:
+              baseSt = -2.0;
+              break;
+            case EcgTerritoryLead.lateralLeads:
+              baseSt = 1.2;
+              break;
+            case EcgTerritoryLead.leadII:
+              baseSt = widget.scenario.stElevationMm > 0 ? widget.scenario.stElevationMm : 4.5;
+              break;
+          }
+          break;
+        case CardiacClinicalSituation.inferiorRvMi:
+          switch (widget.activeTerritory) {
+            case EcgTerritoryLead.inferiorLeads:
+              baseSt = 3.8;
+              break;
+            case EcgTerritoryLead.v1V4Anterior:
+              baseSt = -2.2;
+              break;
+            case EcgTerritoryLead.lateralLeads:
+              baseSt = -1.5;
+              break;
+            case EcgTerritoryLead.leadII:
+              baseSt = 3.8;
+              break;
+          }
+          break;
+        case CardiacClinicalSituation.hypertensiveCrisis:
+          baseSt = -1.5;
+          break;
+        case CardiacClinicalSituation.cardiogenicShock:
+          baseSt = 2.0;
+          break;
+        case CardiacClinicalSituation.tamponade:
+          baseSt = 1.0;
+          break;
+        case CardiacClinicalSituation.decompensatedHfref:
+          baseSt = -0.5;
+          break;
+        default:
+          baseSt = mv.stElevationMm;
+          break;
+      }
+    } else if (widget.scenario.id.contains('anterior_stemi')) {
       switch (widget.activeTerritory) {
         case EcgTerritoryLead.v1V4Anterior:
           baseSt = 4.5;

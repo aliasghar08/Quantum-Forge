@@ -15,6 +15,180 @@ import 'package:flutter/material.dart';
 import 'cardiac_pathology_models.dart';
 import 'coronary_hemodynamics_engine.dart';
 
+/// Bedside acute cardiac situations and disease states for auto-pilot simulation.
+enum CardiacClinicalSituation {
+  normal(
+    id: 'normal',
+    title: 'Normal Sinus Baseline',
+    shortLabel: 'Normal',
+    badge: 'NSR',
+    heartRateBpm: 72.0,
+    systolicBp: 120.0,
+    diastolicBp: 80.0,
+    spo2Pct: 99.0,
+    respRate: 14.0,
+    etco2MmHg: 38.0,
+    lvefPct: 60.0,
+    rhythm: OscilloscopeRhythmType.nsr,
+    stElevationMm: 0.0,
+    description: 'Euvolemic baseline, normal cardiac output (5.2 L/min) and tissue perfusion.',
+    accentColor: Color(0xFF00E676),
+  ),
+  anteriorStemi(
+    id: 'anterior_stemi',
+    title: 'Acute Anterior STEMI',
+    shortLabel: 'Anterior STEMI',
+    badge: 'STEMI',
+    heartRateBpm: 104.0,
+    systolicBp: 98.0,
+    diastolicBp: 64.0,
+    spo2Pct: 94.0,
+    respRate: 20.0,
+    etco2MmHg: 34.0,
+    lvefPct: 38.0,
+    rhythm: OscilloscopeRhythmType.sinusTachy,
+    stElevationMm: 4.5,
+    description: 'LAD occlusion, acute anterior wall hypokinesis, ST elevation in V1–V4, borderline cardiogenic perfusion.',
+    accentColor: Color(0xFFFF5252),
+  ),
+  inferiorRvMi(
+    id: 'inferior_rv_mi',
+    title: 'Inferior MI + RV Involvement',
+    shortLabel: 'Inferior/RV MI',
+    badge: 'RV-INFARCT',
+    heartRateBpm: 52.0,
+    systolicBp: 84.0,
+    diastolicBp: 50.0,
+    spo2Pct: 95.0,
+    respRate: 18.0,
+    etco2MmHg: 33.0,
+    lvefPct: 48.0,
+    rhythm: OscilloscopeRhythmType.sinusBrady,
+    stElevationMm: 3.8,
+    description: 'RCA occlusion, Bezold-Jarisch reflex bradycardia, preload-dependent (Nitroglycerin contraindicated).',
+    accentColor: Color(0xFFFF7043),
+  ),
+  cardiogenicShock(
+    id: 'cardiogenic_shock',
+    title: 'Cardiogenic Shock',
+    shortLabel: 'Cardiogenic Shock',
+    badge: 'SHOCK',
+    heartRateBpm: 126.0,
+    systolicBp: 76.0,
+    diastolicBp: 48.0,
+    spo2Pct: 88.0,
+    respRate: 26.0,
+    etco2MmHg: 26.0,
+    lvefPct: 22.0,
+    rhythm: OscilloscopeRhythmType.sinusTachy,
+    stElevationMm: 2.0,
+    description: 'Severe pump failure (LVEF 22%), high SVR compensatory vasoconstriction, critical hypoperfusion.',
+    accentColor: Color(0xFFFF1744),
+  ),
+  hypertensiveCrisis(
+    id: 'hypertensive_crisis',
+    title: 'Hypertensive Emergency',
+    shortLabel: 'Hypertensive Crisis',
+    badge: 'HYPERTENSION',
+    heartRateBpm: 96.0,
+    systolicBp: 210.0,
+    diastolicBp: 124.0,
+    spo2Pct: 97.0,
+    respRate: 18.0,
+    etco2MmHg: 39.0,
+    lvefPct: 55.0,
+    rhythm: OscilloscopeRhythmType.nsr,
+    stElevationMm: -1.5,
+    description: 'Acute severe afterload excess (MAP 153 mmHg), high wall tension, subendocardial strain.',
+    accentColor: Color(0xFFFF9100),
+  ),
+  massivePe(
+    id: 'massive_pe',
+    title: 'Acute Massive Pulmonary Embolism',
+    shortLabel: 'Massive PE',
+    badge: 'MASSIVE PE',
+    heartRateBpm: 132.0,
+    systolicBp: 86.0,
+    diastolicBp: 54.0,
+    spo2Pct: 85.0,
+    respRate: 28.0,
+    etco2MmHg: 22.0,
+    lvefPct: 58.0,
+    rhythm: OscilloscopeRhythmType.sinusTachy,
+    stElevationMm: 0.0,
+    description: 'Severe RV outflow obstruction, massive V/Q mismatch with acute EtCO2 drop to 22 mmHg, sinus tachycardia.',
+    accentColor: Color(0xFF00E5FF),
+  ),
+  tamponade(
+    id: 'tamponade',
+    title: 'Cardiac Tamponade (Beck\'s Triad)',
+    shortLabel: 'Tamponade',
+    badge: 'TAMPONADE',
+    heartRateBpm: 128.0,
+    systolicBp: 82.0,
+    diastolicBp: 62.0,
+    spo2Pct: 92.0,
+    respRate: 24.0,
+    etco2MmHg: 29.0,
+    lvefPct: 50.0,
+    rhythm: OscilloscopeRhythmType.sinusTachy,
+    stElevationMm: 1.0,
+    description: 'Pericardial fluid compression, narrow pulse pressure (20 mmHg), muffled sounds, pulsus paradoxus.',
+    accentColor: Color(0xFFA78BFA),
+  ),
+  decompensatedHfref(
+    id: 'decompensated_hfref',
+    title: 'Acute Decompensated HFrEF',
+    shortLabel: 'Acute HFrEF',
+    badge: 'HFrEF + AFIB',
+    heartRateBpm: 108.0,
+    systolicBp: 102.0,
+    diastolicBp: 68.0,
+    spo2Pct: 89.0,
+    respRate: 26.0,
+    etco2MmHg: 31.0,
+    lvefPct: 25.0,
+    rhythm: OscilloscopeRhythmType.afib,
+    stElevationMm: -0.5,
+    description: 'End-stage heart failure decompensation, rapid A-Fib, severe systolic impairment, pulmonary congestion.',
+    accentColor: Color(0xFFE040FB),
+  );
+
+  final String id;
+  final String title;
+  final String shortLabel;
+  final String badge;
+  final double heartRateBpm;
+  final double systolicBp;
+  final double diastolicBp;
+  final double spo2Pct;
+  final double respRate;
+  final double etco2MmHg;
+  final double lvefPct;
+  final OscilloscopeRhythmType rhythm;
+  final double stElevationMm;
+  final String description;
+  final Color accentColor;
+
+  const CardiacClinicalSituation({
+    required this.id,
+    required this.title,
+    required this.shortLabel,
+    required this.badge,
+    required this.heartRateBpm,
+    required this.systolicBp,
+    required this.diastolicBp,
+    required this.spo2Pct,
+    required this.respRate,
+    required this.etco2MmHg,
+    required this.lvefPct,
+    required this.rhythm,
+    required this.stElevationMm,
+    required this.description,
+    required this.accentColor,
+  });
+}
+
 /// Emergency intravenous medications for live bedside ward simulation.
 enum IvEmergencyMedication {
   adenosine(
@@ -68,6 +242,12 @@ class CardiacMasterVitalsState extends ChangeNotifier {
   double _etco2MmHg;
   double _lvefPct;
 
+  // ── Auto-Pilot vs. Manual Override State ────────────────────────────────────
+  CardiacClinicalSituation _activeSituation = CardiacClinicalSituation.normal;
+  bool _isManualOverride = false;
+  double _stElevationMm = 0.0;
+  OscilloscopeRhythmType _targetRhythm = OscilloscopeRhythmType.nsr;
+
   CardiacMasterVitalsState({
     double heartRateBpm = 72.0,
     double systolicBp = 120.0,
@@ -76,13 +256,20 @@ class CardiacMasterVitalsState extends ChangeNotifier {
     double respRate = 14.0,
     double etco2MmHg = 38.0,
     double lvefPct = 60.0,
+    CardiacClinicalSituation activeSituation = CardiacClinicalSituation.normal,
+    bool isManualOverride = false,
   })  : _heartRateBpm = heartRateBpm.clamp(30.0, 220.0),
         _systolicBp = systolicBp.clamp(60.0, 220.0),
         _diastolicBp = diastolicBp.clamp(35.0, 130.0),
         _spo2Pct = spo2Pct.clamp(60.0, 100.0),
         _respRate = respRate.clamp(6.0, 40.0),
         _etco2MmHg = etco2MmHg.clamp(10.0, 70.0),
-        _lvefPct = lvefPct.clamp(15.0, 75.0);
+        _lvefPct = lvefPct.clamp(15.0, 75.0),
+        _activeSituation = activeSituation,
+        _stElevationMm = activeSituation.stElevationMm,
+        _targetRhythm = activeSituation.rhythm {
+    _isManualOverride = isManualOverride;
+  }
 
   // ── Primary Getters ─────────────────────────────────────────────────────────
 
@@ -93,6 +280,11 @@ class CardiacMasterVitalsState extends ChangeNotifier {
   double get respRate => _respRate;
   double get etco2MmHg => _etco2MmHg;
   double get lvefPct => _lvefPct;
+
+  CardiacClinicalSituation get activeSituation => _activeSituation;
+  bool get isManualOverride => _isManualOverride;
+  double get stElevationMm => _stElevationMm;
+  OscilloscopeRhythmType get targetRhythm => _targetRhythm;
 
   // ── Derived Physiological Metrics ──────────────────────────────────────────
 
@@ -115,87 +307,105 @@ class CardiacMasterVitalsState extends ChangeNotifier {
   double get estimatedSvrDynes =>
       cardiacOutputLMin > 0 ? ((mapBp - 4.0) / cardiacOutputLMin) * 80.0 : 1200.0;
 
-  // ── Direct Interactive Setters ─────────────────────────────────────────────
+  // ── Auto-Pilot Clinical Situation Triggers ─────────────────────────────────
+
+  /// Triggers an acute clinical situation, atomically aligning all vitals,
+  /// rhythm, and ST-segment state while setting isManualOverride = false.
+  void triggerSituation(CardiacClinicalSituation situation) {
+    _activeSituation = situation;
+    _isManualOverride = false;
+    _heartRateBpm = situation.heartRateBpm;
+    _systolicBp = situation.systolicBp;
+    _diastolicBp = situation.diastolicBp;
+    _spo2Pct = situation.spo2Pct;
+    _respRate = situation.respRate;
+    _etco2MmHg = situation.etco2MmHg;
+    _lvefPct = situation.lvefPct;
+    _stElevationMm = situation.stElevationMm;
+    _targetRhythm = situation.rhythm;
+    notifyListeners();
+  }
+
+  /// Re-synchronizes manual adjustments back to the active auto-situation baseline.
+  void syncToActiveSituation() {
+    triggerSituation(_activeSituation);
+  }
+
+  /// Alias for syncToActiveSituation to support alternate prompt naming.
+  void resyncAutoVitals() {
+    triggerSituation(_activeSituation);
+  }
+
+  // ── Direct Interactive Setters (Manual Override) ───────────────────────────
 
   void setHeartRate(double bpm) {
     final clamped = bpm.clamp(30.0, 220.0);
-    if ((_heartRateBpm - clamped).abs() > 0.1) {
-      _heartRateBpm = clamped;
-      notifyListeners();
-    }
+    _isManualOverride = true;
+    _heartRateBpm = clamped;
+    notifyListeners();
   }
 
   void setBloodPressure(double sys, double dia) {
     final clampedSys = sys.clamp(60.0, 220.0);
     final clampedDia = dia.clamp(35.0, math.min<double>(130.0, clampedSys - 10.0)).toDouble();
-    if ((_systolicBp - clampedSys).abs() > 0.1 ||
-        (_diastolicBp - clampedDia).abs() > 0.1) {
-      _systolicBp = clampedSys;
-      _diastolicBp = clampedDia;
-      notifyListeners();
-    }
+    _isManualOverride = true;
+    _systolicBp = clampedSys;
+    _diastolicBp = clampedDia;
+    notifyListeners();
   }
 
   void setSystolicBp(double sys) {
     final clampedSys = sys.clamp(60.0, 220.0);
-    if ((_systolicBp - clampedSys).abs() > 0.1) {
-      _systolicBp = clampedSys;
-      if (_diastolicBp >= _systolicBp) {
-        _diastolicBp = (_systolicBp - 15.0).clamp(35.0, 130.0);
-      }
-      notifyListeners();
+    _isManualOverride = true;
+    _systolicBp = clampedSys;
+    if (_diastolicBp >= _systolicBp) {
+      _diastolicBp = (_systolicBp - 15.0).clamp(35.0, 130.0);
     }
+    notifyListeners();
   }
 
   void setDiastolicBp(double dia) {
     final clampedDia = dia.clamp(35.0, math.min<double>(130.0, _systolicBp - 10.0)).toDouble();
-    if ((_diastolicBp - clampedDia).abs() > 0.1) {
-      _diastolicBp = clampedDia;
-      notifyListeners();
-    }
+    _isManualOverride = true;
+    _diastolicBp = clampedDia;
+    notifyListeners();
   }
 
   void setSpo2(double pct) {
     final clamped = pct.clamp(60.0, 100.0);
-    if ((_spo2Pct - clamped).abs() > 0.1) {
-      _spo2Pct = clamped;
-      notifyListeners();
-    }
+    _isManualOverride = true;
+    _spo2Pct = clamped;
+    notifyListeners();
   }
 
   void setRespiration(double rr, double etco2) {
     final clampedRr = rr.clamp(6.0, 40.0);
     final clampedEtco2 = etco2.clamp(10.0, 70.0);
-    if ((_respRate - clampedRr).abs() > 0.1 ||
-        (_etco2MmHg - clampedEtco2).abs() > 0.1) {
-      _respRate = clampedRr;
-      _etco2MmHg = clampedEtco2;
-      notifyListeners();
-    }
+    _isManualOverride = true;
+    _respRate = clampedRr;
+    _etco2MmHg = clampedEtco2;
+    notifyListeners();
   }
 
   void setRespRate(double rr) {
     final clamped = rr.clamp(6.0, 40.0);
-    if ((_respRate - clamped).abs() > 0.1) {
-      _respRate = clamped;
-      notifyListeners();
-    }
+    _isManualOverride = true;
+    _respRate = clamped;
+    notifyListeners();
   }
 
   void setEtco2(double etco2) {
     final clamped = etco2.clamp(10.0, 70.0);
-    if ((_etco2MmHg - clamped).abs() > 0.1) {
-      _etco2MmHg = clamped;
-      notifyListeners();
-    }
+    _isManualOverride = true;
+    _etco2MmHg = clamped;
+    notifyListeners();
   }
 
   void setLvef(double ef) {
     final clamped = ef.clamp(15.0, 75.0);
-    if ((_lvefPct - clamped).abs() > 0.1) {
-      _lvefPct = clamped;
-      notifyListeners();
-    }
+    _isManualOverride = true;
+    _lvefPct = clamped;
+    notifyListeners();
   }
 
   // ── Bi-Directional Synchronizers ───────────────────────────────────────────
@@ -204,60 +414,27 @@ class CardiacMasterVitalsState extends ChangeNotifier {
   void applyScenarioPreset(CardiacPathologyScenario scenario) {
     final id = scenario.id;
     if (id.contains('anterior_stemi')) {
-      _heartRateBpm = 95.0;
-      _systolicBp = 105.0;
-      _diastolicBp = 70.0;
-      _spo2Pct = 94.0;
-      _respRate = 20.0;
-      _etco2MmHg = 35.0;
-      _lvefPct = 40.0;
+      triggerSituation(CardiacClinicalSituation.anteriorStemi);
     } else if (id.contains('inferior_mi')) {
-      _heartRateBpm = 42.0;
-      _systolicBp = 88.0;
-      _diastolicBp = 55.0;
-      _spo2Pct = 93.0;
-      _respRate = 18.0;
-      _etco2MmHg = 32.0;
-      _lvefPct = 50.0;
-    } else if (id.contains('bifurcation')) {
-      _heartRateBpm = 76.0;
-      _systolicBp = 135.0;
-      _diastolicBp = 85.0;
-      _spo2Pct = 98.0;
-      _respRate = 14.0;
-      _etco2MmHg = 38.0;
-      _lvefPct = 58.0;
-    } else if (id.contains('post_cabg')) {
-      _heartRateBpm = 84.0;
-      _systolicBp = 128.0;
-      _diastolicBp = 82.0;
-      _spo2Pct = 96.0;
-      _respRate = 16.0;
-      _etco2MmHg = 37.0;
-      _lvefPct = 45.0;
-    } else if (id.contains('aortic_stenosis')) {
-      _heartRateBpm = 78.0;
-      _systolicBp = 142.0;
-      _diastolicBp = 90.0;
-      _spo2Pct = 95.0;
-      _respRate = 16.0;
-      _etco2MmHg = 36.0;
-      _lvefPct = 48.0;
+      triggerSituation(CardiacClinicalSituation.inferiorRvMi);
+    } else if (id.contains('shock') || id.contains('cardiogenic')) {
+      triggerSituation(CardiacClinicalSituation.cardiogenicShock);
+    } else if (id.contains('hypertensive')) {
+      triggerSituation(CardiacClinicalSituation.hypertensiveCrisis);
+    } else if (id.contains('pulmonary_embolism') || id.contains('massive_pe')) {
+      triggerSituation(CardiacClinicalSituation.massivePe);
+    } else if (id.contains('tamponade')) {
+      triggerSituation(CardiacClinicalSituation.tamponade);
+    } else if (id.contains('hfref') || id.contains('heart_failure')) {
+      triggerSituation(CardiacClinicalSituation.decompensatedHfref);
     } else {
-      // Normal baseline
-      _heartRateBpm = scenario.baselineBpm;
-      _systolicBp = 120.0;
-      _diastolicBp = 80.0;
-      _spo2Pct = 99.0;
-      _respRate = 14.0;
-      _etco2MmHg = 38.0;
-      _lvefPct = 60.0;
+      triggerSituation(CardiacClinicalSituation.normal);
     }
-    notifyListeners();
   }
 
   /// Applies acute pharmacological hemodynamic shifts from emergency IV medications.
   void applyIvDrugEffect(IvEmergencyMedication drug) {
+    _isManualOverride = true;
     switch (drug) {
       case IvEmergencyMedication.adenosine:
         // Converts SVT to NSR with normal hemodynamics
@@ -268,6 +445,7 @@ class CardiacMasterVitalsState extends ChangeNotifier {
         _respRate = 14.0;
         _etco2MmHg = 38.0;
         _lvefPct = 60.0;
+        _targetRhythm = OscilloscopeRhythmType.nsr;
         break;
 
       case IvEmergencyMedication.atropine:
@@ -279,6 +457,7 @@ class CardiacMasterVitalsState extends ChangeNotifier {
         _respRate = 15.0;
         _etco2MmHg = 39.0;
         _lvefPct = 62.0;
+        _targetRhythm = OscilloscopeRhythmType.nsr;
         break;
 
       case IvEmergencyMedication.norepinephrine:
@@ -312,6 +491,7 @@ class CardiacMasterVitalsState extends ChangeNotifier {
         _respRate = 26.0;
         _etco2MmHg = 24.0;
         _lvefPct = 25.0;
+        _targetRhythm = OscilloscopeRhythmType.torsades;
         break;
 
       case IvEmergencyMedication.magnesiumSulfate:
@@ -323,6 +503,7 @@ class CardiacMasterVitalsState extends ChangeNotifier {
         _respRate = 14.0;
         _etco2MmHg = 38.0;
         _lvefPct = 58.0;
+        _targetRhythm = OscilloscopeRhythmType.nsr;
         break;
     }
     notifyListeners();
@@ -330,6 +511,8 @@ class CardiacMasterVitalsState extends ChangeNotifier {
 
   /// Updates vitals when an arrhythmia or conduction block is selected on the monitor.
   void applyRhythmOverride(OscilloscopeRhythmType rhythm) {
+    _targetRhythm = rhythm;
+    _isManualOverride = true;
     if (rhythm.defaultHr > 0) {
       _heartRateBpm = rhythm.defaultHr.toDouble();
     }
@@ -362,13 +545,6 @@ class CardiacMasterVitalsState extends ChangeNotifier {
 
   /// Resets patient vitals to textbook normal physiological parameters.
   void resetToNormalVitals() {
-    _heartRateBpm = 72.0;
-    _systolicBp = 120.0;
-    _diastolicBp = 80.0;
-    _spo2Pct = 99.0;
-    _respRate = 14.0;
-    _etco2MmHg = 38.0;
-    _lvefPct = 60.0;
-    notifyListeners();
+    triggerSituation(CardiacClinicalSituation.normal);
   }
 }

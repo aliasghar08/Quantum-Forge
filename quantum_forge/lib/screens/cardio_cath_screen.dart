@@ -169,9 +169,11 @@ class _CardioCathScreenState extends State<CardioCathScreen>
   void _onMasterVitalsChanged() {
     if ((_bpm - _masterVitals.heartRateBpm).abs() > 0.05) {
       _updateBpm(_masterVitals.heartRateBpm);
-    } else {
-      setState(() {});
     }
+    if (_oscilloscopeRhythm != _masterVitals.targetRhythm) {
+      _oscilloscopeRhythm = _masterVitals.targetRhythm;
+    }
+    setState(() {});
   }
 
   @override
