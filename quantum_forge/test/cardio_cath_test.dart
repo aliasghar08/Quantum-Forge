@@ -838,9 +838,9 @@ void main() {
       // Toggle Freeze Calipers
       final freezeBtn = find.text('FREEZE CALIPERS');
       await tester.ensureVisible(freezeBtn);
-      await tester.pumpAndSettle();
+      await tester.pump(const Duration(milliseconds: 100));
       await tester.tap(freezeBtn);
-      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
       expect(find.text('UNFREEZE'), findsOneWidget);
       expect(find.textContaining('Δt:'), findsOneWidget);
 
@@ -887,34 +887,34 @@ void main() {
       final signalModeToggle = find.byKey(const Key('oscilloscope_signal_mode_toggle'));
       expect(signalModeToggle, findsOneWidget);
       await tester.ensureVisible(signalModeToggle);
-      await tester.pumpAndSettle();
+      await tester.pump(const Duration(milliseconds: 100));
       await tester.tap(signalModeToggle);
-      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
       expect(find.text('CLEAN TEXTBOOK'), findsOneWidget);
 
       // Toggle Mains Hum: Notch Filter ON -> 60Hz HUM ON
       final mainsHumToggle = find.byKey(const Key('oscilloscope_mains_hum_toggle'));
       expect(mainsHumToggle, findsOneWidget);
       await tester.ensureVisible(mainsHumToggle);
-      await tester.pumpAndSettle();
+      await tester.pump(const Duration(milliseconds: 100));
       await tester.tap(mainsHumToggle);
-      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
       expect(find.text('60Hz HUM ON'), findsOneWidget);
 
       // Toggle Display Theme: ICU Phosphor CRT -> Thermal Paper
       final displayThemeToggle = find.byKey(const Key('oscilloscope_display_theme_toggle'));
       expect(displayThemeToggle, findsOneWidget);
       await tester.ensureVisible(displayThemeToggle);
-      await tester.pumpAndSettle();
+      await tester.pump(const Duration(milliseconds: 100));
       await tester.tap(displayThemeToggle);
-      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
       expect(find.text('THERMAL PAPER'), findsOneWidget);
 
       // Toggle back to Phosphor CRT
       await tester.ensureVisible(displayThemeToggle);
-      await tester.pumpAndSettle();
+      await tester.pump(const Duration(milliseconds: 100));
       await tester.tap(displayThemeToggle);
-      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
       expect(find.text('ICU PHOSPHOR CRT'), findsOneWidget);
     });
   });

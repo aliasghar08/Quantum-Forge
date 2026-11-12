@@ -313,7 +313,9 @@ class CardiacHemodynamicEcgStrip extends StatefulWidget {
   State<CardiacHemodynamicEcgStrip> createState() => _CardiacHemodynamicEcgStripState();
 }
 
-class _CardiacHemodynamicEcgStripState extends State<CardiacHemodynamicEcgStrip> {
+class _CardiacHemodynamicEcgStripState extends State<CardiacHemodynamicEcgStrip>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _sweepController;
   int _beatParity = 0;
   double _lastPhase = 0.0;
 
@@ -340,6 +342,18 @@ class _CardiacHemodynamicEcgStripState extends State<CardiacHemodynamicEcgStrip>
     _displayTheme = widget.initialDisplayTheme;
     _mainsHum = widget.initialMainsHum;
     _updateAlertBanner();
+
+    final sweepSec = _sweepSpeedMmS == 50 ? 5 : 10;
+    _sweepController = AnimationController(
+      vsync: this,
+      duration: Duration(seconds: sweepSec),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _sweepController.dispose();
+    super.dispose();
   }
 
   @override
@@ -482,7 +496,6 @@ class _CardiacHemodynamicEcgStripState extends State<CardiacHemodynamicEcgStrip>
         (widget.catheterType == GuideCatheterType.al1 && widget.scenario.id.contains('critical_lm'));
 
     final isQrsActive = widget.cardiacPhase >= 0.255 && widget.cardiacPhase <= 0.295;
-    final sweepProgress = (_beatParity * 0.5) + (widget.cardiacPhase * 0.5);
     final isThermal = _displayTheme == OscilloscopeDisplayTheme.thermalPaper;
 
     return Container(
@@ -521,28 +534,35 @@ class _CardiacHemodynamicEcgStripState extends State<CardiacHemodynamicEcgStrip>
                     child: Stack(
                       children: [
                         Positioned.fill(
-                          child: CustomPaint(
-                            painter: _FiveChannelHospitalOscilloscopePainter(
-                              cardiacPhase: _isFrozen ? _lastPhase : widget.cardiacPhase,
-                              sweepProgress: _isFrozen ? 0.85 : sweepProgress,
-                              rhythm: _currentRhythm,
-                              stElevationMm: effectiveSt,
-                              isDamped: isDamped,
-                              systolicBp: sys,
-                              diastolicBp: dia,
-                              spo2Pct: spo2,
-                              etco2MmHg: etco2,
-                              leadLabel: widget.activeTerritory.label,
-                              wireType: widget.wireType,
-                              iabpActive: widget.iabpActive,
-                              ffrValue: widget.ffrValue,
-                              sweepSpeedMmS: _sweepSpeedMmS,
-                              gainMmMv: _ecgGainMmMv,
-                              tcpActive: _tcpActive,
-                              signalMode: _signalMode,
-                              displayTheme: _displayTheme,
-                              mainsHum: _mainsHum,
-                            ),
+                          child: AnimatedBuilder(
+                            animation: _sweepController,
+                            builder: (context, _) {
+                              final sweepProgress = _isFrozen ? _caliper1X : _sweepController.value;
+                              return CustomPaint(
+                                painter: _FiveChannelHospitalOscilloscopePainter(
+                                  cardiacPhase: _isFrozen ? _lastPhase : widget.cardiacPhase,
+                                  sweepProgress: sweepProgress,
+                                  rhythm: _currentRhythm,
+                                  stElevationMm: effectiveSt,
+                                  isDamped: isDamped,
+                                  systolicBp: sys,
+                                  diastolicBp: dia,
+                                  spo2Pct: spo2,
+                                  etco2MmHg: etco2,
+                                  leadLabel: widget.activeTerritory.label,
+                                  wireType: widget.wireType,
+                                  iabpActive: widget.iabpActive,
+                                  ffrValue: widget.ffrValue,
+                                  sweepSpeedMmS: _sweepSpeedMmS,
+                                  gainMmMv: _ecgGainMmMv,
+                                  tcpActive: _tcpActive,
+                                  signalMode: _signalMode,
+                                  displayTheme: _displayTheme,
+                                  mainsHum: _mainsHum,
+                                  bpm: widget.bpm,
+                                ),
+                              );
+                            },
                           ),
                         ),
 
@@ -820,7 +840,16 @@ class _CardiacHemodynamicEcgStripState extends State<CardiacHemodynamicEcgStrip>
 
             // Freeze / Calipers Toggle
             OutlinedButton.icon(
-              onPressed: () => setState(() => _isFrozen = !_isFrozen),
+              onPressed: () {
+                setState(() {
+                  _isFrozen = !_isFrozen;
+                  if (_isFrozen) {
+                    _sweepController.stop();
+                  } else {
+                    _sweepController.repeat();
+                  }
+                });
+              },
               icon: Icon(_isFrozen ? Icons.play_arrow_rounded : Icons.ac_unit_rounded, size: 12, color: _isFrozen ? const Color(0xFF00E5FF) : Colors.white60),
               label: Text(
                 _isFrozen ? 'UNFREEZE' : 'FREEZE CALIPERS',
@@ -842,7 +871,16 @@ class _CardiacHemodynamicEcgStripState extends State<CardiacHemodynamicEcgStrip>
 
             // Sweep Speed Toggle (25 vs 50 mm/s)
             InkWell(
-              onTap: () => setState(() => _sweepSpeedMmS = (_sweepSpeedMmS == 25) ? 50 : 25),
+              onTap: () {
+                setState(() {
+                  _sweepSpeedMmS = (_sweepSpeedMmS == 25) ? 50 : 25;
+                  final sweepSec = _sweepSpeedMmS == 50 ? 5 : 10;
+                  _sweepController.duration = Duration(seconds: sweepSec);
+                  if (!_isFrozen) {
+                    _sweepController.repeat();
+                  }
+                });
+              },
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
                 decoration: BoxDecoration(
@@ -1293,9 +1331,10 @@ class _CardiacHemodynamicEcgStripState extends State<CardiacHemodynamicEcgStrip>
       final c1Px = _caliper1X * w;
       final c2Px = _caliper2X * w;
       final deltaPx = (c2Px - c1Px).abs();
-      // At 25 mm/s, full width (~800px) ~2.0 sec -> deltaT = (deltaPx / w) * 2000 ms
-      final deltaT = (deltaPx / w) * 2000.0;
-      final calcRate = deltaT > 20 ? (60000.0 / deltaT).round() : 0;
+      // True Hospital Sweep: 10.0 seconds (10,000 ms) at 25 mm/s, or 5.0 seconds (5,000 ms) at 50 mm/s
+      final totalSweepMs = _sweepSpeedMmS == 50 ? 5000.0 : 10000.0;
+      final deltaT = (deltaPx / w) * totalSweepMs;
+      final calcRate = deltaT > 50 ? (60000.0 / deltaT).round() : 0;
 
       return Stack(
         children: [
@@ -1460,6 +1499,7 @@ class _FiveChannelHospitalOscilloscopePainter extends CustomPainter {
   final OscilloscopeSignalMode signalMode;
   final OscilloscopeDisplayTheme displayTheme;
   final bool mainsHum;
+  final double bpm;
 
   _FiveChannelHospitalOscilloscopePainter({
     required this.cardiacPhase,
@@ -1481,6 +1521,7 @@ class _FiveChannelHospitalOscilloscopePainter extends CustomPainter {
     required this.signalMode,
     required this.displayTheme,
     required this.mainsHum,
+    required this.bpm,
   });
 
   bool get _isThermal => displayTheme == OscilloscopeDisplayTheme.thermalPaper;
@@ -1592,10 +1633,13 @@ class _FiveChannelHospitalOscilloscopePainter extends CustomPainter {
     final traceColor = _isThermal ? const Color(0xFF111827) : const Color(0xFF00E676);
     _drawChannelLabel(canvas, bounds, 'ECG $leadLabel', labelColor);
 
-    final baselineY = bounds.top + bounds.height * 0.65;
+    final baselineY = bounds.top + bounds.height * 0.76;
     final cursorX = sweepProgress * bounds.width;
-    const numSamples = 200;
-    final gainScale = (gainMmMv / 10.0) * 22.0;
+    final numSamples = math.max(700, (bounds.width * 0.9).round());
+    final gainScale = (gainMmMv / 10.0) * (bounds.height * 0.56);
+    final totalSweepSeconds = sweepSpeedMmS == 50 ? 5.0 : 10.0;
+    final hr = tcpActive ? 70.0 : (rhythm.defaultHr > 0 ? rhythm.defaultHr.toDouble() : bpm);
+    final totalBeats = (hr / 60.0) * totalSweepSeconds;
 
     final paint = Paint()
       ..color = traceColor
@@ -1609,36 +1653,39 @@ class _FiveChannelHospitalOscilloscopePainter extends CustomPainter {
         if (path != null) { canvas.drawPath(path, paint); path = null; }
         continue;
       }
-      final localPhase = ((x / bounds.width) * 2.0) % 1.0;
+      final localPhase = ((x / bounds.width) * totalBeats) % 1.0;
       double v = 0.0;
       if (rhythm == OscilloscopeRhythmType.vfib) {
-        v = 0.35 * math.sin(localPhase * 32.0) + 0.25 * math.sin(localPhase * 50.0);
+        v = 0.40 * math.sin(localPhase * 28.0) + 0.30 * math.sin(localPhase * 44.0 + (x * 0.05));
       } else if (rhythm == OscilloscopeRhythmType.asystole) {
         v = 0.01 * math.sin(localPhase * 3.0);
       } else if (rhythm == OscilloscopeRhythmType.vtach) {
-        if (localPhase >= 0.20 && localPhase <= 0.38) {
-          v = 1.35 * math.sin((localPhase - 0.20) / 0.18 * math.pi);
+        if (localPhase >= 0.15 && localPhase <= 0.42) {
+          final tau = (localPhase - 0.15) / 0.27;
+          v = 1.35 * math.sin(tau * math.pi);
         }
       } else if (rhythm == OscilloscopeRhythmType.torsades) {
-        if (localPhase >= 0.20 && localPhase <= 0.38) {
-          v = 1.25 * math.sin((localPhase - 0.20) / 0.18 * math.pi) * math.cos(x * 0.02);
+        if (localPhase >= 0.15 && localPhase <= 0.42) {
+          final tau = (localPhase - 0.15) / 0.27;
+          final envelope = math.cos((x / bounds.width) * 4.0 * math.pi);
+          v = 1.30 * math.sin(tau * math.pi) * envelope;
         }
       } else {
         v = CardiacHemodynamicEcgStrip.computeSyntheticEcgSample(localPhase, stElevationMm);
       }
 
-      if (tcpActive && localPhase >= 0.23 && localPhase <= 0.245) {
-        v += 1.8; // Pacing spike
+      if (tcpActive && localPhase >= 0.22 && localPhase <= 0.24) {
+        v += 2.2; // Pacing spike
       }
 
       // Authentic physiological signal realism
       if (_isReal) {
-        // Respiratory baseline wander (0.22 Hz)
-        final respWander = 0.045 * math.sin((x / bounds.width) * math.pi * 3.5 + sweepProgress * 2.8);
+        // Respiratory baseline wander (0.22 Hz over 10s)
+        final respWander = 0.060 * math.sin((x / bounds.width) * math.pi * 3.8 + sweepProgress * 2.8);
         // Skeletal muscle EMG & electrode micro-noise
-        final emgNoise = 0.015 * math.sin(x * 1.83) + 0.010 * math.cos(x * 2.91) + 0.007 * math.sin(x * 5.43);
+        final emgNoise = 0.018 * math.sin(x * 1.83) + 0.012 * math.cos(x * 2.91) + 0.008 * math.sin(x * 5.43);
         // R-wave respiratory amplitude modulation (RSA ±6%)
-        final rWaveMod = 1.0 + 0.06 * math.sin(sweepProgress * 3.14);
+        final rWaveMod = 1.0 + 0.06 * math.sin((x / bounds.width) * math.pi * 3.8);
         // 60 Hz AC mains hum fuzz if enabled
         final hum = mainsHum ? (0.040 * math.sin(x * 3.77)) : 0.0;
 
@@ -1660,10 +1707,13 @@ class _FiveChannelHospitalOscilloscopePainter extends CustomPainter {
     final traceColor = _isThermal ? const Color(0xFF1E293B) : const Color(0xFF69F0AE);
     _drawChannelLabel(canvas, bounds, 'ECG V1 PRECORDIAL', labelColor);
 
-    final baselineY = bounds.top + bounds.height * 0.65;
+    final baselineY = bounds.top + bounds.height * 0.36;
     final cursorX = sweepProgress * bounds.width;
-    const numSamples = 200;
-    final gainScale = (gainMmMv / 10.0) * 22.0;
+    final numSamples = math.max(700, (bounds.width * 0.9).round());
+    final gainScale = (gainMmMv / 10.0) * (bounds.height * 0.58);
+    final totalSweepSeconds = sweepSpeedMmS == 50 ? 5.0 : 10.0;
+    final hr = tcpActive ? 70.0 : (rhythm.defaultHr > 0 ? rhythm.defaultHr.toDouble() : bpm);
+    final totalBeats = (hr / 60.0) * totalSweepSeconds;
 
     final paint = Paint()
       ..color = traceColor
@@ -1677,13 +1727,13 @@ class _FiveChannelHospitalOscilloscopePainter extends CustomPainter {
         if (path != null) { canvas.drawPath(path, paint); path = null; }
         continue;
       }
-      final localPhase = ((x / bounds.width) * 2.0) % 1.0;
+      final localPhase = ((x / bounds.width) * totalBeats) % 1.0;
       double v = CardiacHemodynamicEcgStrip.computePrecordialV1Sample(localPhase, rhythm);
 
       // Authentic physiological signal realism
       if (_isReal) {
-        final respWander = 0.035 * math.sin((x / bounds.width) * math.pi * 3.5 + sweepProgress * 2.8);
-        final emgNoise = 0.012 * math.sin(x * 2.15) + 0.008 * math.cos(x * 3.17);
+        final respWander = 0.045 * math.sin((x / bounds.width) * math.pi * 3.8 + sweepProgress * 2.8);
+        final emgNoise = 0.014 * math.sin(x * 2.15) + 0.009 * math.cos(x * 3.17);
         final hum = mainsHum ? (0.035 * math.sin(x * 3.77)) : 0.0;
         v = v + respWander + emgNoise + hum;
       }
@@ -1710,9 +1760,11 @@ class _FiveChannelHospitalOscilloscopePainter extends CustomPainter {
       isDamped ? 'ABP Pa (DAMPED)' : (isPressureWire ? 'ABP Pa (RED) / Pd (YEL)' : 'ABP Pa INVASIVE'),
       labelColor,
     );
-    final bottomY = bounds.bottom - 4.0;
     final cursorX = sweepProgress * bounds.width;
-    const numSamples = 200;
+    final numSamples = math.max(700, (bounds.width * 0.9).round());
+    final totalSweepSeconds = sweepSpeedMmS == 50 ? 5.0 : 10.0;
+    final hr = tcpActive ? 70.0 : (rhythm.defaultHr > 0 ? rhythm.defaultHr.toDouble() : bpm);
+    final totalBeats = (hr / 60.0) * totalSweepSeconds;
 
     final paPaint = Paint()..color = paColor..style = PaintingStyle.stroke..strokeWidth = _isThermal ? 1.6 : 1.5;
     final pdPaint = Paint()..color = pdColor..style = PaintingStyle.stroke..strokeWidth = _isThermal ? 1.6 : 1.5;
@@ -1726,7 +1778,7 @@ class _FiveChannelHospitalOscilloscopePainter extends CustomPainter {
         if (pdPath != null) { canvas.drawPath(pdPath, pdPaint); pdPath = null; }
         continue;
       }
-      final localPhase = ((x / bounds.width) * 2.0) % 1.0;
+      final localPhase = ((x / bounds.width) * totalBeats) % 1.0;
       double pa = 0.0;
       if (rhythm == OscilloscopeRhythmType.asystole) {
         pa = 10.0;
@@ -1738,17 +1790,17 @@ class _FiveChannelHospitalOscilloscopePainter extends CustomPainter {
 
       // Authentic arterial line realism
       if (_isReal) {
-        // Respiratory swing across cycle (-4.5 mmHg)
-        final respSwing = -4.5 * math.sin(sweepProgress * 3.14);
+        // Respiratory swing across cycle (-5.0 mmHg)
+        final respSwing = -5.0 * math.sin((x / bounds.width) * math.pi * 3.8);
         // Catheter fluid resonance ringing post systolic ejection
         double ringing = 0.0;
         if (localPhase >= 0.36 && localPhase <= 0.44) {
-          ringing = 2.8 * math.sin((localPhase - 0.36) / 0.08 * 8.0 * math.pi) * (1.0 - (localPhase - 0.36) / 0.08);
+          ringing = 3.2 * math.sin((localPhase - 0.36) / 0.08 * 8.0 * math.pi) * (1.0 - (localPhase - 0.36) / 0.08);
         }
         pa = pa + respSwing + ringing;
       }
 
-      final yPa = bottomY - ((pa - 10.0) / 160.0) * (bounds.height * 0.85);
+      final yPa = bounds.bottom - 4.0 - (((pa - 35.0) / 105.0).clamp(0.0, 1.0)) * (bounds.height * 0.74);
       if (paPath == null) {
         paPath = Path()..moveTo(x, yPa);
       } else {
@@ -1758,7 +1810,7 @@ class _FiveChannelHospitalOscilloscopePainter extends CustomPainter {
       if (isPressureWire) {
         final drop = (ffrValue != null) ? (1.0 - ffrValue!) * 40.0 : 25.0;
         final pd = math.max(pa - drop, 12.0);
-        final yPd = bottomY - ((pd - 10.0) / 160.0) * (bounds.height * 0.85);
+        final yPd = bounds.bottom - 4.0 - (((pd - 35.0) / 105.0).clamp(0.0, 1.0)) * (bounds.height * 0.74);
         if (pdPath == null) {
           pdPath = Path()..moveTo(x, yPd);
         } else {
@@ -1775,9 +1827,11 @@ class _FiveChannelHospitalOscilloscopePainter extends CustomPainter {
     final traceColor = _isThermal ? const Color(0xFF0E7490) : const Color(0xFF00E5FF);
     _drawChannelLabel(canvas, bounds, 'PLETH SpO₂', labelColor);
 
-    final bottomY = bounds.bottom - 4.0;
     final cursorX = sweepProgress * bounds.width;
-    const numSamples = 200;
+    final numSamples = math.max(700, (bounds.width * 0.9).round());
+    final totalSweepSeconds = sweepSpeedMmS == 50 ? 5.0 : 10.0;
+    final hr = tcpActive ? 70.0 : (rhythm.defaultHr > 0 ? rhythm.defaultHr.toDouble() : bpm);
+    final totalBeats = (hr / 60.0) * totalSweepSeconds;
 
     final paint = Paint()..color = traceColor..style = PaintingStyle.stroke..strokeWidth = _isThermal ? 1.6 : 1.5;
     Path? path;
@@ -1788,16 +1842,16 @@ class _FiveChannelHospitalOscilloscopePainter extends CustomPainter {
         if (path != null) { canvas.drawPath(path, paint); path = null; }
         continue;
       }
-      final localPhase = ((x / bounds.width) * 2.0) % 1.0;
+      final localPhase = ((x / bounds.width) * totalBeats) % 1.0;
       double pleth = CardiacHemodynamicEcgStrip.computePlethSample(localPhase, rhythm, spo2Pct);
 
       if (_isReal) {
-        final plethMod = 0.020 * math.sin(sweepProgress * 3.14);
-        final plethJitter = 0.005 * math.sin(x * 1.5);
+        final plethMod = 0.025 * math.sin((x / bounds.width) * math.pi * 3.8);
+        final plethJitter = 0.006 * math.sin(x * 1.5);
         pleth = math.max(0.0, math.min(1.0, pleth + plethMod + plethJitter));
       }
 
-      final y = bottomY - (pleth * bounds.height * 0.80);
+      final y = bounds.bottom - 4.0 - (pleth.clamp(0.0, 1.0)) * (bounds.height * 0.72);
       if (path == null) {
         path = Path()..moveTo(x, y);
       } else {
@@ -1812,9 +1866,13 @@ class _FiveChannelHospitalOscilloscopePainter extends CustomPainter {
     final traceColor = _isThermal ? const Color(0xFFB45309) : const Color(0xFFFFAB40);
     _drawChannelLabel(canvas, bounds, 'CAPNO EtCO₂', labelColor);
 
-    final bottomY = bounds.bottom - 4.0;
     final cursorX = sweepProgress * bounds.width;
-    const numSamples = 200;
+    final numSamples = math.max(700, (bounds.width * 0.9).round());
+    final totalSweepSeconds = sweepSpeedMmS == 50 ? 5.0 : 10.0;
+    final rrVal = rhythm.isArrest ? 0 : (rhythm == OscilloscopeRhythmType.sinusTachy ? 22 : 14);
+    final totalBreaths = (rrVal / 60.0) * totalSweepSeconds;
+    final hr = tcpActive ? 70.0 : (rhythm.defaultHr > 0 ? rhythm.defaultHr.toDouble() : bpm);
+    final totalBeats = (hr / 60.0) * totalSweepSeconds;
 
     final paint = Paint()..color = traceColor..style = PaintingStyle.stroke..strokeWidth = _isThermal ? 1.6 : 1.5;
     Path? path;
@@ -1825,15 +1883,16 @@ class _FiveChannelHospitalOscilloscopePainter extends CustomPainter {
         if (path != null) { canvas.drawPath(path, paint); path = null; }
         continue;
       }
-      final localPhase = ((x / bounds.width) * 2.0) % 1.0;
-      double etco2 = CardiacHemodynamicEcgStrip.computeEtco2Sample(localPhase, rhythm, etco2MmHg);
+      final localRespPhase = ((x / bounds.width) * totalBreaths) % 1.0;
+      final localCardiacPhase = ((x / bounds.width) * totalBeats) % 1.0;
+      double etco2 = CardiacHemodynamicEcgStrip.computeEtco2Sample(localRespPhase, rhythm, etco2MmHg);
 
       if (_isReal) {
-        final cardiogenicOsc = (localPhase > 0.20 && localPhase < 0.45) ? 0.7 * math.sin(localPhase * 40.0) : 0.0;
+        final cardiogenicOsc = (localCardiacPhase > 0.20 && localCardiacPhase < 0.45) ? 0.7 * math.sin(localCardiacPhase * 40.0) : 0.0;
         etco2 = math.max(0.0, etco2 + cardiogenicOsc);
       }
 
-      final y = bottomY - (etco2 / 50.0) * (bounds.height * 0.80);
+      final y = bounds.bottom - 4.0 - ((etco2 / 45.0).clamp(0.0, 1.0)) * (bounds.height * 0.70);
       if (path == null) {
         path = Path()..moveTo(x, y);
       } else {
@@ -1856,12 +1915,70 @@ class _FiveChannelHospitalOscilloscopePainter extends CustomPainter {
 
   void _drawSweepBeam(Canvas canvas, Size size) {
     final cursorX = sweepProgress * size.width;
+    final chHeight = size.height / 5.0;
+    final totalSweepSeconds = sweepSpeedMmS == 50 ? 5.0 : 10.0;
+    final hr = tcpActive ? 70.0 : (rhythm.defaultHr > 0 ? rhythm.defaultHr.toDouble() : bpm);
+    final totalBeats = (hr / 60.0) * totalSweepSeconds;
+    final rrVal = rhythm.isArrest ? 0 : (rhythm == OscilloscopeRhythmType.sinusTachy ? 22 : 14);
+    final totalBreaths = (rrVal / 60.0) * totalSweepSeconds;
+
+    // Erase beam line
     final beamPaint = Paint()
       ..color = _isThermal
-          ? const Color(0xFFD32F2F).withValues(alpha: 0.55)
-          : Colors.white.withValues(alpha: 0.22)
-      ..strokeWidth = _isThermal ? 1.2 : 1.0;
+          ? const Color(0xFFD32F2F).withValues(alpha: 0.60)
+          : Colors.white.withValues(alpha: 0.35)
+      ..strokeWidth = _isThermal ? 1.5 : 1.2;
     canvas.drawLine(Offset(cursorX, 0), Offset(cursorX, size.height), beamPaint);
+
+    // Glowing phosphor leading dots on each of the 5 channels
+    final localPhase = ((cursorX / size.width) * totalBeats) % 1.0;
+    final localRespPhase = ((cursorX / size.width) * totalBreaths) % 1.0;
+
+    // Channel 1: Lead II
+    final r1 = Rect.fromLTWH(0, chHeight * 0.0, size.width, chHeight);
+    final v1 = (rhythm == OscilloscopeRhythmType.vfib)
+        ? 0.40 * math.sin(localPhase * 28.0)
+        : (rhythm == OscilloscopeRhythmType.asystole ? 0.0 : CardiacHemodynamicEcgStrip.computeSyntheticEcgSample(localPhase, stElevationMm));
+    final y1 = (r1.top + r1.height * 0.76) - (v1 * (gainMmMv / 10.0) * (r1.height * 0.56));
+    _drawPhosphorDot(canvas, Offset(cursorX, y1), _isThermal ? const Color(0xFF991B1B) : const Color(0xFF00E676));
+
+    // Channel 2: V1 Precordial
+    final r2 = Rect.fromLTWH(0, chHeight * 1.0, size.width, chHeight);
+    final v2 = CardiacHemodynamicEcgStrip.computePrecordialV1Sample(localPhase, rhythm);
+    final y2 = (r2.top + r2.height * 0.36) - (v2 * (gainMmMv / 10.0) * (r2.height * 0.58));
+    _drawPhosphorDot(canvas, Offset(cursorX, y2), _isThermal ? const Color(0xFF1E293B) : const Color(0xFF69F0AE));
+
+    // Channel 3: ABP
+    final r3 = Rect.fromLTWH(0, chHeight * 2.0, size.width, chHeight);
+    final pa = (rhythm == OscilloscopeRhythmType.asystole)
+        ? 10.0
+        : (rhythm == OscilloscopeRhythmType.vfib ? 15.0 : CardiacHemodynamicEcgStrip.computeAorticPressure(localPhase, isDamped, iabpActive, systolicBp: systolicBp, diastolicBp: diastolicBp));
+    final y3 = r3.bottom - 4.0 - (((pa - 35.0) / 105.0).clamp(0.0, 1.0)) * (r3.height * 0.74);
+    _drawPhosphorDot(canvas, Offset(cursorX, y3), _isThermal ? const Color(0xFF991B1B) : const Color(0xFFFF5252));
+
+    // Channel 4: SpO2 Pleth
+    final r4 = Rect.fromLTWH(0, chHeight * 3.0, size.width, chHeight);
+    final pleth = CardiacHemodynamicEcgStrip.computePlethSample(localPhase, rhythm, spo2Pct);
+    final y4 = r4.bottom - 4.0 - (pleth.clamp(0.0, 1.0)) * (r4.height * 0.72);
+    _drawPhosphorDot(canvas, Offset(cursorX, y4), _isThermal ? const Color(0xFF0E7490) : const Color(0xFF00E5FF));
+
+    // Channel 5: EtCO2 Capno
+    final r5 = Rect.fromLTWH(0, chHeight * 4.0, size.width, chHeight);
+    final etco2 = CardiacHemodynamicEcgStrip.computeEtco2Sample(localRespPhase, rhythm, etco2MmHg);
+    final y5 = r5.bottom - 4.0 - ((etco2 / 45.0).clamp(0.0, 1.0)) * (r5.height * 0.70);
+    _drawPhosphorDot(canvas, Offset(cursorX, y5), _isThermal ? const Color(0xFFB45309) : const Color(0xFFFFAB40));
+  }
+
+  void _drawPhosphorDot(Canvas canvas, Offset center, Color color) {
+    if (_isThermal) {
+      canvas.drawCircle(center, 3.2, Paint()..color = color);
+      canvas.drawCircle(center, 1.6, Paint()..color = Colors.white);
+    } else {
+      // Luminous phosphor CRT beam halo
+      canvas.drawCircle(center, 5.5, Paint()..color = color.withValues(alpha: 0.35));
+      canvas.drawCircle(center, 3.2, Paint()..color = color.withValues(alpha: 0.85));
+      canvas.drawCircle(center, 1.5, Paint()..color = Colors.white);
+    }
   }
 
   bool _inEraseGap(double x, double cursorX, double totalW) {
