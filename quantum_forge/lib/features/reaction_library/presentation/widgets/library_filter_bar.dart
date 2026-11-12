@@ -70,14 +70,17 @@ class LibraryFilterBar extends StatelessWidget {
     (tag: 'MBBS', label: '🩺 MBBS', color: Color(0xFF4FC3F7)),
     (tag: 'Pharm-D', label: '💊 Pharm-D', color: Color(0xFF81C784)),
     (tag: 'Veterinary', label: '🐾 DVM / Vet Med', color: Color(0xFF00BFA5)),
+    (tag: 'Cardiology', label: '❤️ Cardiology', color: Color(0xFFFF5252)),
+    (tag: 'Neurology', label: '🧠 Neurology', color: Color(0xFFBA68C8)),
+    (tag: 'Nephrology', label: '🫘 Nephrology', color: Color(0xFFFFB74D)),
+    (tag: 'Oncology', label: '🎗️ Oncology', color: Color(0xFFFF4081)),
+    (tag: 'Infectious Disease', label: '🦠 Infectious Disease', color: Color(0xFF26A69A)),
+    (tag: 'Endocrinology', label: '🩸 Endocrinology', color: Color(0xFFAB47BC)),
+    (tag: 'Toxicology', label: '☣️ Toxicology', color: Color(0xFFEF5350)),
     (tag: 'Antiparasitic', label: '🪱 Antiparasitic', color: Color(0xFF26A69A)),
     (tag: 'Antibiotic', label: '💉 Antibiotic', color: Color(0xFF4DB6AC)),
     (tag: 'NSAID', label: '🦴 Vet NSAIDs', color: Color(0xFFFF8A65)),
     (tag: 'Sedative', label: '💤 Sedatives / Alpha-2', color: Color(0xFF9575CD)),
-    (tag: 'Cardiology', label: '❤️ Cardiology', color: Color(0xFFFF5252)),
-    (tag: 'Nephrology', label: '🫘 Nephrology', color: Color(0xFFFFB74D)),
-    (tag: 'Neurology', label: '🧠 Neurology', color: Color(0xFFBA68C8)),
-    (tag: 'Oncology', label: '🎗️ Oncology', color: Color(0xFFFF4081)),
   ];
 
   const LibraryFilterBar({

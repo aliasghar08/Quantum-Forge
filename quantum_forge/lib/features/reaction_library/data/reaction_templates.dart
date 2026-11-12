@@ -4,6 +4,7 @@
 // coordinates optimized at B3LYP/6-31G* level (CCCBDB/NIST sources).
 // ============================================================================
 
+import 'package:flutter/material.dart';
 import 'package:quantum_forge/features/reaction_library/data/medical_reaction_templates.dart';
 import 'package:quantum_forge/features/reaction_library/data/polymer_reaction_templates.dart';
 import 'package:quantum_forge/features/reaction_library/data/veterinary_reaction_templates.dart';
@@ -126,6 +127,257 @@ class ReactionTemplate {
       literatureBarrierKcalMol ?? referenceEa;
 
   String get effectiveLiteratureDoi => literatureDoi ?? doi;
+
+  /// Resolved primary medical, pharmacological, or chemical subfield.
+  String get subfield {
+    // 1. Check if tags explicitly specify a known subfield
+    for (final tag in tags) {
+      final t = tag.trim().toLowerCase();
+      if (t == 'cardiology') return 'Cardiology';
+      if (t == 'neurology') return 'Neurology';
+      if (t == 'nephrology') return 'Nephrology';
+      if (t == 'oncology') return 'Oncology';
+      if (t == 'infectious disease' || t == 'antibiotic' || t == 'microbiology') {
+        return 'Infectious Disease';
+      }
+      if (t == 'endocrinology') return 'Endocrinology';
+      if (t == 'toxicology') return 'Toxicology';
+      if (t == 'pulmonology') return 'Pulmonology';
+      if (t == 'gastroenterology') return 'Gastroenterology';
+      if (t == 'immunology' || t == 'rheumatology') return 'Immunology';
+    }
+
+    // 2. Infer from category, name, tags, and description
+    final combined = '$name $iupacName $description ${tags.join(" ")}'.toLowerCase();
+
+    if (category == ReactionCategory.polymer || combined.contains('polymer')) {
+      return 'Polymer Chemistry';
+    }
+    if (combined.contains('ivermectin') ||
+        combined.contains('antiparasit') ||
+        combined.contains('fenbendazole')) {
+      return 'Antiparasitic / Vet Med';
+    }
+    if (combined.contains('ciprofloxacin') ||
+        combined.contains('antibiotic') ||
+        combined.contains('beta-lactam') ||
+        combined.contains('penicillin') ||
+        combined.contains('cephalosporin') ||
+        combined.contains('ceftriaxone') ||
+        combined.contains('sulfonamide') ||
+        combined.contains('paba') ||
+        combined.contains('bactrim') ||
+        combined.contains('azithromycin') ||
+        combined.contains('isoniazid') ||
+        combined.contains('florfenicol') ||
+        combined.contains('tylosin') ||
+        combined.contains('enrofloxacin')) {
+      return 'Infectious Disease';
+    }
+    if (combined.contains('cardio') ||
+        combined.contains('coronary') ||
+        combined.contains('statin') ||
+        combined.contains('atorvastatin') ||
+        combined.contains('captopril') ||
+        combined.contains('enalapril') ||
+        combined.contains('losartan') ||
+        combined.contains('propranolol') ||
+        combined.contains('amlodipine') ||
+        combined.contains('nitroglycerin') ||
+        combined.contains('pimobendan') ||
+        combined.contains('digoxin') ||
+        combined.contains('ace-inhibitor') ||
+        combined.contains('antiplatelet') ||
+        combined.contains('aspirin') ||
+        combined.contains('hypertension') ||
+        combined.contains('lipidology') ||
+        combined.contains('heart') ||
+        combined.contains('vascular') ||
+        combined.contains('angiotensin')) {
+      return 'Cardiology';
+    }
+    if (combined.contains('furosemide') ||
+        combined.contains('diuretic') ||
+        combined.contains('nkcc2') ||
+        combined.contains('nephro') ||
+        combined.contains('renal') ||
+        combined.contains('kidney')) {
+      return 'Nephrology';
+    }
+    if (combined.contains('methotrexate') ||
+        combined.contains('dhfr') ||
+        combined.contains('5-fluorouracil') ||
+        combined.contains('cisplatin') ||
+        combined.contains('cancer') ||
+        combined.contains('oncology') ||
+        combined.contains('chemotherapy') ||
+        combined.contains('antineoplastic')) {
+      return 'Oncology';
+    }
+    if (combined.contains('neuro') ||
+        combined.contains('parkinson') ||
+        combined.contains('alzheimer') ||
+        combined.contains('dopamine') ||
+        combined.contains('l-dopa') ||
+        combined.contains('norepinephrine') ||
+        combined.contains('serotonin') ||
+        combined.contains('5-ht') ||
+        combined.contains('gaba') ||
+        combined.contains('glutamate') ||
+        combined.contains('acetylcholine') ||
+        combined.contains('ache') ||
+        combined.contains('epilepsy') ||
+        combined.contains('sedative') ||
+        combined.contains('psychiatry') ||
+        combined.contains('ssri') ||
+        combined.contains('antidepressant') ||
+        combined.contains('migraine') ||
+        combined.contains('procaine') ||
+        combined.contains('anesthetic') ||
+        combined.contains('morphine') ||
+        combined.contains('xylazine')) {
+      return 'Neurology';
+    }
+    if (combined.contains('paracetamol') ||
+        combined.contains('acetaminophen') ||
+        combined.contains('toxicology') ||
+        combined.contains('napqi') ||
+        combined.contains('cyp2e1') ||
+        combined.contains('overdose') ||
+        combined.contains('glutathione') ||
+        combined.contains('detoxification') ||
+        combined.contains('poisoning')) {
+      return 'Toxicology';
+    }
+    if (combined.contains('diabetes') ||
+        combined.contains('insulin') ||
+        combined.contains('metformin') ||
+        combined.contains('glimepiride') ||
+        combined.contains('k-atp') ||
+        combined.contains('sulfonylurea') ||
+        combined.contains('thyroid') ||
+        combined.contains('endocrin') ||
+        combined.contains('ldh') ||
+        combined.contains('glycolysis') ||
+        combined.contains('metabolism')) {
+      return 'Endocrinology';
+    }
+    if (combined.contains('salbutamol') ||
+        combined.contains('albuterol') ||
+        combined.contains('asthma') ||
+        combined.contains('copd') ||
+        combined.contains('broncho') ||
+        combined.contains('pulmono')) {
+      return 'Pulmonology';
+    }
+    if (combined.contains('omeprazole') ||
+        combined.contains('proton-pump') ||
+        combined.contains('gerd') ||
+        combined.contains('peptic ulcer') ||
+        combined.contains('histamine') ||
+        combined.contains('gastro')) {
+      return 'Gastroenterology';
+    }
+    if (combined.contains('nsaid') ||
+        combined.contains('cox-1') ||
+        combined.contains('cox-2') ||
+        combined.contains('prostaglandin') ||
+        combined.contains('arachidonic') ||
+        combined.contains('inflammation') ||
+        combined.contains('meloxicam') ||
+        combined.contains('flunixin') ||
+        combined.contains('carprofen') ||
+        combined.contains('immunol')) {
+      return 'Immunology';
+    }
+    if (category == ReactionCategory.veterinary ||
+        combined.contains('veterinary') ||
+        combined.contains('dvm')) {
+      return 'Veterinary Med';
+    }
+    if (category == ReactionCategory.organometallic) {
+      return 'Organometallics';
+    }
+    return 'General Pharmacology';
+  }
+
+  /// Icon or emoji prefix for the resolved subfield.
+  String get subfieldIcon {
+    return switch (subfield) {
+      'Cardiology' => '❤️',
+      'Neurology' => '🧠',
+      'Nephrology' => '🫘',
+      'Oncology' => '🎗️',
+      'Infectious Disease' => '🦠',
+      'Toxicology' => '☣️',
+      'Endocrinology' => '🩸',
+      'Pulmonology' => '🫁',
+      'Gastroenterology' => '🧪',
+      'Immunology' => '🛡️',
+      'Veterinary Med' || 'Antiparasitic / Vet Med' => '🐾',
+      'Polymer Chemistry' => '🧬',
+      'Organometallics' => '⚛️',
+      _ => '🔬',
+    };
+  }
+
+  /// Formatted subfield label with emoji/icon prefix.
+  String get subfieldWithIcon => '$subfieldIcon $subfield';
+
+  /// Color associated with this subfield.
+  Color get subfieldColor {
+    return switch (subfield) {
+      'Cardiology' => const Color(0xFFFF5252),
+      'Neurology' => const Color(0xFFBA68C8),
+      'Nephrology' => const Color(0xFFFFB74D),
+      'Oncology' => const Color(0xFFFF4081),
+      'Infectious Disease' => const Color(0xFF26A69A),
+      'Toxicology' => const Color(0xFFFF7043),
+      'Endocrinology' => const Color(0xFF4FC3F7),
+      'Pulmonology' => const Color(0xFF29B6F6),
+      'Gastroenterology' => const Color(0xFF9CCC65),
+      'Immunology' => const Color(0xFFE040FB),
+      'Veterinary Med' || 'Antiparasitic / Vet Med' => const Color(0xFF00BFA5),
+      'Polymer Chemistry' => const Color(0xFFEC4899),
+      'Organometallics' => const Color(0xFFAB47BC),
+      _ => const Color(0xFF00E676),
+    };
+  }
+
+  /// Academic curriculum tracks ('MBBS', 'Pharm-D', 'DVM').
+  List<({String label, Color color, String icon})> get academicTrackBadges {
+    final list = <({String label, Color color, String icon})>[];
+    final tLow = tags.map((t) => t.toLowerCase()).toSet();
+    final isPharm = tLow.contains('pharm-d') || category == ReactionCategory.pharmaceutical;
+    final isMbbs = tLow.contains('mbbs') || category == ReactionCategory.biochemical;
+    final isDvm = tLow.contains('dvm') || tLow.contains('veterinary') || category == ReactionCategory.veterinary;
+
+    if (isMbbs) {
+      list.add((label: 'MBBS', color: const Color(0xFF38BDF8), icon: '🩺'));
+    }
+    if (isPharm) {
+      list.add((label: 'Pharm-D', color: const Color(0xFF34D399), icon: '💊'));
+    }
+    if (isDvm) {
+      list.add((label: 'DVM', color: const Color(0xFF2DD4BF), icon: '🐾'));
+    }
+    return list;
+  }
+
+  /// Target / mechanism tags cleaned of redundant curriculum and subfield labels.
+  List<String> get cleanTags {
+    final sfLower = subfield.toLowerCase();
+    return tags.where((t) {
+      final l = t.trim().toLowerCase();
+      return l != 'pharm-d' &&
+             l != 'mbbs' &&
+             l != 'dvm' &&
+             l != 'veterinary' &&
+             l != 'cloud' &&
+             l != sfLower &&
+             !sfLower.contains(l);
+    }).toList();
+  }
 
   factory ReactionTemplate.fromJson(Map<String, dynamic> json, String id) {
     return ReactionTemplate(

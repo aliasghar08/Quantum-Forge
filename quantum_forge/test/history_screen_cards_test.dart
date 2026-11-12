@@ -148,5 +148,48 @@ void main() {
       expect(find.byType(AuthScreen), findsOneWidget);
       expect(find.textContaining('Sign in required'), findsOneWidget);
     });
+
+    testWidgets('renders refined subfield tags and academic curriculum badges on cards', (tester) async {
+      const cardioTemplate = ReactionTemplate(
+        id: 'med-atorvastatin-01',
+        name: 'Atorvastatin HMG-CoA Reductase Statin Pharmacokinetics',
+        iupacName: 'Atorvastatin Active Metabolite • 36 frames',
+        description: 'First-line statin therapy for LDL reduction in Cardiology and Pharm-D curricula.',
+        category: ReactionCategory.pharmaceutical,
+        reactantXyz: '',
+        productXyz: '',
+        referenceEa: 12.8,
+        doi: '10.1056/NEJMoa012345',
+        journalRef: 'N Engl J Med 2001',
+        tags: ['Pharm-D', 'MBBS', 'Cardiology', 'Statin', 'HMG-CoA'],
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SizedBox(
+              width: 380,
+              height: 255,
+              child: ReactionCardWidget(
+                template: cardioTemplate,
+                onLoad: () {},
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Subfield tag: Cardiology with heart icon
+      expect(find.text('❤️ Cardiology'), findsOneWidget);
+
+      // Academic curriculum badges
+      expect(find.text('MBBS'), findsOneWidget);
+      expect(find.text('Pharm-D'), findsOneWidget);
+
+      // Clean mechanism tags
+      expect(find.text('#Statin'), findsOneWidget);
+      expect(find.text('#HMG-CoA'), findsOneWidget);
+    });
   });
 }

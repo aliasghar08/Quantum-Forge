@@ -696,6 +696,45 @@ class _HistoryScreenState extends State<HistoryScreen> {
     }
 
     final tags = <String>[
+      if (matched != null)
+        ...matched.tags
+      else ...[
+        if (category == ReactionCategory.pharmaceutical) ...['Pharm-D', 'MBBS'],
+        if (category == ReactionCategory.veterinary) 'DVM',
+        if (name.toLowerCase().contains('cardio') ||
+            name.toLowerCase().contains('heart') ||
+            name.toLowerCase().contains('statin') ||
+            name.toLowerCase().contains('captopril') ||
+            name.toLowerCase().contains('aspirin'))
+          'Cardiology',
+        if (name.toLowerCase().contains('neuro') ||
+            name.toLowerCase().contains('brain') ||
+            name.toLowerCase().contains('parkinson') ||
+            name.toLowerCase().contains('alzheimer'))
+          'Neurology',
+        if (name.toLowerCase().contains('kidney') ||
+            name.toLowerCase().contains('nephro') ||
+            name.toLowerCase().contains('furosemide'))
+          'Nephrology',
+        if (name.toLowerCase().contains('cancer') ||
+            name.toLowerCase().contains('onco') ||
+            name.toLowerCase().contains('methotrexate'))
+          'Oncology',
+        if (name.toLowerCase().contains('antibiotic') ||
+            name.toLowerCase().contains('infect') ||
+            name.toLowerCase().contains('ceftriaxone') ||
+            name.toLowerCase().contains('ciprofloxacin'))
+          'Infectious Disease',
+        if (name.toLowerCase().contains('diabetes') ||
+            name.toLowerCase().contains('insulin') ||
+            name.toLowerCase().contains('glimepiride') ||
+            name.toLowerCase().contains('metformin'))
+          'Endocrinology',
+        if (name.toLowerCase().contains('toxic') ||
+            name.toLowerCase().contains('poison') ||
+            name.toLowerCase().contains('antidote'))
+          'Toxicology',
+      ],
       if (reaction.modelUsed != null && reaction.modelUsed!.isNotEmpty)
         reaction.modelUsed!,
       if (frames > 0) '$frames frames',

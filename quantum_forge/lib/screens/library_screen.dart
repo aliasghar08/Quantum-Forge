@@ -214,6 +214,8 @@ class _LibraryScreenState extends State<LibraryScreen> {
             _filterCategory == null || t.category == _filterCategory;
         final matchesText = t.name.toLowerCase().contains(qLower) ||
             t.description.toLowerCase().contains(qLower) ||
+            t.subfield.toLowerCase().contains(qLower) ||
+            t.academicTrackBadges.any((b) => b.label.toLowerCase().contains(qLower)) ||
             t.tags.any((tag) => tag.toLowerCase().contains(qLower));
         return matchesCat && matchesText;
       }).toList();
@@ -1101,9 +1103,13 @@ class _LibraryScreenState extends State<LibraryScreen> {
 
     if (_filterSpecialty != null) {
       final spec = _filterSpecialty!.toLowerCase();
-      list = list
-          .where((t) => t.tags.any((tag) => tag.toLowerCase() == spec))
-          .toList();
+      list = list.where((t) {
+        if (t.tags.any((tag) => tag.toLowerCase() == spec)) return true;
+        if (t.subfield.toLowerCase() == spec || t.subfield.toLowerCase().contains(spec)) return true;
+        if (t.academicTrackBadges.any((b) => b.label.toLowerCase().contains(spec) || spec.contains(b.label.toLowerCase()))) return true;
+        if (spec == 'veterinary' && (t.category == ReactionCategory.veterinary || t.subfield.toLowerCase().contains('vet'))) return true;
+        return false;
+      }).toList();
     }
 
     if (_catalystFilter == CatalystFilter.catalyzed) {

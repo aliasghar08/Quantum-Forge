@@ -303,25 +303,83 @@ class _ReactionCardWidgetState extends State<ReactionCardWidget> {
                     ),
                     SizedBox(height: isMobile ? 6 : 10),
 
-                    // ── Tags ────────────────────────────────────────────────────────
+                    // ── Refined Tags: Subfields (Cardiology, Neurology) + Academic (MBBS, Pharm-D) + Mechanism ──
                     Wrap(
                       spacing: 5,
                       runSpacing: 4,
-                      children: template.tags.take(3).map((tag) {
-                        return Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                      children: [
+                        // 1. Primary Subfield Tag (Cardiology, Neurology, Nephrology, etc.)
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                           decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.06),
+                            color: template.subfieldColor.withValues(alpha: 0.16),
                             borderRadius: BorderRadius.circular(4),
+                            border: Border.all(
+                              color: template.subfieldColor.withValues(alpha: 0.45),
+                              width: 0.8,
+                            ),
                           ),
                           child: Text(
-                            '#$tag',
+                            template.subfieldWithIcon,
                             style: TextStyle(
-                                color: Colors.white.withValues(alpha: 0.4),
-                                fontSize: 9),
+                              color: template.subfieldColor,
+                              fontSize: 9,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 0.2,
+                            ),
                           ),
-                        );
-                      }).toList(),
+                        ),
+
+                        // 2. Academic Curriculum Badges (MBBS, Pharm-D, DVM)
+                        ...template.academicTrackBadges.map((badge) {
+                          return Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: badge.color.withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(4),
+                              border: Border.all(
+                                color: badge.color.withValues(alpha: 0.35),
+                                width: 0.8,
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(badge.icon, style: const TextStyle(fontSize: 8)),
+                                const SizedBox(width: 3),
+                                Text(
+                                  badge.label,
+                                  style: TextStyle(
+                                    color: badge.color,
+                                    fontSize: 9,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        }),
+
+                        // 3. Clean Target & Mechanism Specific Tags
+                        ...template.cleanTags.take(2).map((tag) {
+                          return Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.06),
+                              borderRadius: BorderRadius.circular(4),
+                              border: Border.all(color: Colors.white12, width: 0.6),
+                            ),
+                            child: Text(
+                              '#$tag',
+                              style: TextStyle(
+                                color: Colors.white.withValues(alpha: 0.70),
+                                fontSize: 9,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          );
+                        }),
+                      ],
                     ),
                     SizedBox(height: isMobile ? 8 : 12),
 
