@@ -31,6 +31,26 @@ import '../../data/cardiac_pathology_models.dart';
 import '../../data/coronary_hemodynamics_engine.dart';
 import 'cardiac_clinical_info_system.dart';
 
+/// Signal generation realism mode: physiological artifacts vs idealized textbook geometry.
+enum OscilloscopeSignalMode {
+  realBedside('Real Bedside Signal', 'Full physiological wander, EMG micro-jitter, HRV & catheter ringing'),
+  cleanTextbook('Clean Textbook', 'Zero-noise idealized mathematical teaching curves');
+
+  final String label;
+  final String description;
+  const OscilloscopeSignalMode(this.label, this.description);
+}
+
+/// Visual display theme: dark phosphor monitor vs authentic hospital thermal paper printout.
+enum OscilloscopeDisplayTheme {
+  icuPhosphor('ICU Phosphor CRT', 'Classic dark cath lab monitor with luminous phosphor traces'),
+  thermalPaper('Hospital Thermal Paper', 'Authentic pink/red 1mm/5mm grid with dark ink needle recording');
+
+  final String label;
+  final String description;
+  const OscilloscopeDisplayTheme(this.label, this.description);
+}
+
 class CardiacHemodynamicEcgStrip extends StatefulWidget {
   final CardiacPathologyScenario scenario;
   final double cardiacPhase; // 0.0 to 1.0 (repeating cycle)
@@ -52,6 +72,11 @@ class CardiacHemodynamicEcgStrip extends StatefulWidget {
   final ValueChanged<OscilloscopeRhythmType>? onRhythmChanged;
   final VoidCallback? onDefibrillated;
 
+  // Realistic Signal & Theme Options
+  final OscilloscopeSignalMode initialSignalMode;
+  final OscilloscopeDisplayTheme initialDisplayTheme;
+  final bool initialMainsHum;
+
   const CardiacHemodynamicEcgStrip({
     super.key,
     required this.scenario,
@@ -71,6 +96,9 @@ class CardiacHemodynamicEcgStrip extends StatefulWidget {
     this.initialRhythm = OscilloscopeRhythmType.nsr,
     this.onRhythmChanged,
     this.onDefibrillated,
+    this.initialSignalMode = OscilloscopeSignalMode.realBedside,
+    this.initialDisplayTheme = OscilloscopeDisplayTheme.icuPhosphor,
+    this.initialMainsHum = false,
   });
 
   // ───────────────────────────────────────────────────────────────────────────
@@ -291,6 +319,9 @@ class _CardiacHemodynamicEcgStripState extends State<CardiacHemodynamicEcgStrip>
 
   // Multi-parameter Monitor State
   late OscilloscopeRhythmType _currentRhythm;
+  late OscilloscopeSignalMode _signalMode;
+  late OscilloscopeDisplayTheme _displayTheme;
+  late bool _mainsHum;
   bool _isFrozen = false;
   double _caliper1X = 0.30; // 0.0 to 1.0
   double _caliper2X = 0.55; // 0.0 to 1.0
@@ -305,6 +336,9 @@ class _CardiacHemodynamicEcgStripState extends State<CardiacHemodynamicEcgStrip>
   void initState() {
     super.initState();
     _currentRhythm = widget.initialRhythm;
+    _signalMode = widget.initialSignalMode;
+    _displayTheme = widget.initialDisplayTheme;
+    _mainsHum = widget.initialMainsHum;
     _updateAlertBanner();
   }
 
@@ -449,12 +483,18 @@ class _CardiacHemodynamicEcgStripState extends State<CardiacHemodynamicEcgStrip>
 
     final isQrsActive = widget.cardiacPhase >= 0.255 && widget.cardiacPhase <= 0.295;
     final sweepProgress = (_beatParity * 0.5) + (widget.cardiacPhase * 0.5);
+    final isThermal = _displayTheme == OscilloscopeDisplayTheme.thermalPaper;
 
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFF05080E),
+        color: isThermal ? const Color(0xFFFFF1F1) : const Color(0xFF05080E),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: _showShockFlash ? Colors.white : palette.border, width: _showShockFlash ? 2.0 : 1.0),
+        border: Border.all(
+          color: _showShockFlash
+              ? Colors.white
+              : (isThermal ? const Color(0xFFE57373) : palette.border),
+          width: _showShockFlash ? 2.0 : 1.0,
+        ),
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(12),
@@ -499,6 +539,9 @@ class _CardiacHemodynamicEcgStripState extends State<CardiacHemodynamicEcgStrip>
                               sweepSpeedMmS: _sweepSpeedMmS,
                               gainMmMv: _ecgGainMmMv,
                               tcpActive: _tcpActive,
+                              signalMode: _signalMode,
+                              displayTheme: _displayTheme,
+                              mainsHum: _mainsHum,
                             ),
                           ),
                         ),
@@ -602,22 +645,31 @@ class _CardiacHemodynamicEcgStripState extends State<CardiacHemodynamicEcgStrip>
     bool isDamped,
     bool isQrsActive,
   ) {
+    final isThermal = _displayTheme == OscilloscopeDisplayTheme.thermalPaper;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      decoration: const BoxDecoration(
-        color: Color(0xFF0C131D),
-        border: Border(bottom: BorderSide(color: Colors.white12)),
+      decoration: BoxDecoration(
+        color: isThermal ? const Color(0xFFFFEBEE) : const Color(0xFF0C131D),
+        border: Border(
+          bottom: BorderSide(
+            color: isThermal ? const Color(0xFFEF9A9A) : Colors.white12,
+          ),
+        ),
       ),
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         child: Row(
           children: [
-            const Icon(Icons.monitor_heart_rounded, color: Color(0xFF00E676), size: 16),
+            Icon(
+              Icons.monitor_heart_rounded,
+              color: isThermal ? const Color(0xFFB71C1C) : const Color(0xFF00E676),
+              size: 16,
+            ),
             const SizedBox(width: 6),
-            const Text(
+            Text(
               'CATH LAB TELEMETRY',
               style: TextStyle(
-                color: Color(0xFF00E676),
+                color: isThermal ? const Color(0xFFB71C1C) : const Color(0xFF00E676),
                 fontSize: 10.5,
                 fontWeight: FontWeight.bold,
                 letterSpacing: 0.8,
@@ -855,6 +907,151 @@ class _CardiacHemodynamicEcgStripState extends State<CardiacHemodynamicEcgStrip>
                   ),
                 ),
               ],
+            ),
+            const SizedBox(width: 10),
+
+            // ── Realism Control 1: Signal Realism Mode Toggle ───────────────
+            InkWell(
+              key: const Key('oscilloscope_signal_mode_toggle'),
+              onTap: () => setState(() {
+                _signalMode = (_signalMode == OscilloscopeSignalMode.realBedside)
+                    ? OscilloscopeSignalMode.cleanTextbook
+                    : OscilloscopeSignalMode.realBedside;
+              }),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                decoration: BoxDecoration(
+                  color: _signalMode == OscilloscopeSignalMode.realBedside
+                      ? const Color(0xFF00E676).withValues(alpha: 0.15)
+                      : Colors.white.withValues(alpha: 0.05),
+                  border: Border.all(
+                    color: _signalMode == OscilloscopeSignalMode.realBedside
+                        ? const Color(0xFF00E676)
+                        : Colors.white24,
+                  ),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      _signalMode == OscilloscopeSignalMode.realBedside
+                          ? Icons.grain_rounded
+                          : Icons.show_chart_rounded,
+                      size: 11,
+                      color: _signalMode == OscilloscopeSignalMode.realBedside
+                          ? const Color(0xFF00E676)
+                          : Colors.white70,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      _signalMode == OscilloscopeSignalMode.realBedside
+                          ? 'REAL BEDSIDE'
+                          : 'CLEAN TEXTBOOK',
+                      style: TextStyle(
+                        color: _signalMode == OscilloscopeSignalMode.realBedside
+                            ? const Color(0xFF00E676)
+                            : Colors.white70,
+                        fontSize: 9,
+                        fontWeight: FontWeight.bold,
+                        fontFamily: 'monospace',
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+
+            // ── Realism Control 2: 60 Hz Mains Hum Filter Toggle ─────────────
+            InkWell(
+              key: const Key('oscilloscope_mains_hum_toggle'),
+              onTap: () => setState(() => _mainsHum = !_mainsHum),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                decoration: BoxDecoration(
+                  color: _mainsHum
+                      ? const Color(0xFFFF9100).withValues(alpha: 0.2)
+                      : const Color(0xFF00E5FF).withValues(alpha: 0.1),
+                  border: Border.all(
+                    color: _mainsHum ? const Color(0xFFFF9100) : const Color(0xFF00E5FF),
+                  ),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      _mainsHum ? Icons.power_rounded : Icons.filter_alt_rounded,
+                      size: 11,
+                      color: _mainsHum ? const Color(0xFFFF9100) : const Color(0xFF00E5FF),
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      _mainsHum ? '60Hz HUM ON' : 'NOTCH FILTER ON',
+                      style: TextStyle(
+                        color: _mainsHum ? const Color(0xFFFF9100) : const Color(0xFF00E5FF),
+                        fontSize: 9,
+                        fontWeight: FontWeight.bold,
+                        fontFamily: 'monospace',
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+
+            // ── Realism Control 3: Display Theme Toggle (CRT vs Thermal Paper) ─
+            InkWell(
+              key: const Key('oscilloscope_display_theme_toggle'),
+              onTap: () => setState(() {
+                _displayTheme = (_displayTheme == OscilloscopeDisplayTheme.icuPhosphor)
+                    ? OscilloscopeDisplayTheme.thermalPaper
+                    : OscilloscopeDisplayTheme.icuPhosphor;
+              }),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                decoration: BoxDecoration(
+                  color: isThermal
+                      ? const Color(0xFFFFCDD2)
+                      : const Color(0xFF1E293B),
+                  border: Border.all(
+                    color: isThermal
+                        ? const Color(0xFFE53935)
+                        : const Color(0xFF64748B),
+                  ),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      isThermal
+                          ? Icons.receipt_long_rounded
+                          : Icons.tv_rounded,
+                      size: 11,
+                      color: isThermal
+                          ? const Color(0xFFB71C1C)
+                          : const Color(0xFF38BDF8),
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      isThermal
+                          ? 'THERMAL PAPER'
+                          : 'ICU PHOSPHOR CRT',
+                      style: TextStyle(
+                        color: isThermal
+                            ? const Color(0xFFB71C1C)
+                            : const Color(0xFF38BDF8),
+                        fontSize: 9,
+                        fontWeight: FontWeight.bold,
+                        fontFamily: 'monospace',
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ],
         ),
@@ -1260,6 +1457,9 @@ class _FiveChannelHospitalOscilloscopePainter extends CustomPainter {
   final int sweepSpeedMmS;
   final int gainMmMv;
   final bool tcpActive;
+  final OscilloscopeSignalMode signalMode;
+  final OscilloscopeDisplayTheme displayTheme;
+  final bool mainsHum;
 
   _FiveChannelHospitalOscilloscopePainter({
     required this.cardiacPhase,
@@ -1278,7 +1478,13 @@ class _FiveChannelHospitalOscilloscopePainter extends CustomPainter {
     required this.sweepSpeedMmS,
     required this.gainMmMv,
     required this.tcpActive,
+    required this.signalMode,
+    required this.displayTheme,
+    required this.mainsHum,
   });
+
+  bool get _isThermal => displayTheme == OscilloscopeDisplayTheme.thermalPaper;
+  bool get _isReal => signalMode == OscilloscopeSignalMode.realBedside;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -1302,52 +1508,99 @@ class _FiveChannelHospitalOscilloscopePainter extends CustomPainter {
   }
 
   void _drawGrid(Canvas canvas, Size size) {
-    final minorPaint = Paint()
-      ..color = const Color(0xFFEF5350).withValues(alpha: 0.04)
-      ..strokeWidth = 0.5;
-    final majorPaint = Paint()
-      ..color = const Color(0xFFEF5350).withValues(alpha: 0.12)
-      ..strokeWidth = 0.8;
+    if (_isThermal) {
+      // Authentic hospital pink thermal paper background & grid
+      canvas.drawRect(
+        Offset.zero & size,
+        Paint()..color = const Color(0xFFFFF1F1),
+      );
+      final minorPaint = Paint()
+        ..color = const Color(0xFFEF9A9A).withValues(alpha: 0.35)
+        ..strokeWidth = 0.5;
+      final majorPaint = Paint()
+        ..color = const Color(0xFFE53935).withValues(alpha: 0.65)
+        ..strokeWidth = 0.8;
 
-    const minorStep = 4.0;
-    const majorStep = 20.0;
+      const minorStep = 4.0;
+      const majorStep = 20.0;
 
-    for (double x = 0; x < size.width; x += minorStep) {
-      if ((x % majorStep).abs() > 0.01) {
-        canvas.drawLine(Offset(x, 0), Offset(x, size.height), minorPaint);
+      for (double x = 0; x < size.width; x += minorStep) {
+        if ((x % majorStep).abs() > 0.01) {
+          canvas.drawLine(Offset(x, 0), Offset(x, size.height), minorPaint);
+        }
       }
-    }
-    for (double x = 0; x < size.width; x += majorStep) {
-      canvas.drawLine(Offset(x, 0), Offset(x, size.height), majorPaint);
-    }
-    for (double y = 0; y < size.height; y += minorStep) {
-      if ((y % majorStep).abs() > 0.01) {
-        canvas.drawLine(Offset(0, y), Offset(size.width, y), minorPaint);
+      for (double x = 0; x < size.width; x += majorStep) {
+        canvas.drawLine(Offset(x, 0), Offset(x, size.height), majorPaint);
       }
-    }
-    for (double y = 0; y < size.height; y += majorStep) {
-      canvas.drawLine(Offset(0, y), Offset(size.width, y), majorPaint);
-    }
+      for (double y = 0; y < size.height; y += minorStep) {
+        if ((y % majorStep).abs() > 0.01) {
+          canvas.drawLine(Offset(0, y), Offset(size.width, y), minorPaint);
+        }
+      }
+      for (double y = 0; y < size.height; y += majorStep) {
+        canvas.drawLine(Offset(0, y), Offset(size.width, y), majorPaint);
+      }
 
-    // Dividers between channels
-    final divPaint = Paint()..color = Colors.white12..strokeWidth = 0.8;
-    final chH = size.height / 5.0;
-    for (int i = 1; i < 5; i++) {
-      canvas.drawLine(Offset(0, chH * i), Offset(size.width, chH * i), divPaint);
+      // Dividers between channels
+      final divPaint = Paint()
+        ..color = const Color(0xFFD32F2F).withValues(alpha: 0.35)
+        ..strokeWidth = 0.8;
+      final chH = size.height / 5.0;
+      for (int i = 1; i < 5; i++) {
+        canvas.drawLine(Offset(0, chH * i), Offset(size.width, chH * i), divPaint);
+      }
+    } else {
+      // Classic dark ICU CRT monitor grid
+      final minorPaint = Paint()
+        ..color = const Color(0xFFEF5350).withValues(alpha: 0.04)
+        ..strokeWidth = 0.5;
+      final majorPaint = Paint()
+        ..color = const Color(0xFFEF5350).withValues(alpha: 0.12)
+        ..strokeWidth = 0.8;
+
+      const minorStep = 4.0;
+      const majorStep = 20.0;
+
+      for (double x = 0; x < size.width; x += minorStep) {
+        if ((x % majorStep).abs() > 0.01) {
+          canvas.drawLine(Offset(x, 0), Offset(x, size.height), minorPaint);
+        }
+      }
+      for (double x = 0; x < size.width; x += majorStep) {
+        canvas.drawLine(Offset(x, 0), Offset(x, size.height), majorPaint);
+      }
+      for (double y = 0; y < size.height; y += minorStep) {
+        if ((y % majorStep).abs() > 0.01) {
+          canvas.drawLine(Offset(0, y), Offset(size.width, y), minorPaint);
+        }
+      }
+      for (double y = 0; y < size.height; y += majorStep) {
+        canvas.drawLine(Offset(0, y), Offset(size.width, y), majorPaint);
+      }
+
+      // Dividers between channels
+      final divPaint = Paint()..color = Colors.white12..strokeWidth = 0.8;
+      final chH = size.height / 5.0;
+      for (int i = 1; i < 5; i++) {
+        canvas.drawLine(Offset(0, chH * i), Offset(size.width, chH * i), divPaint);
+      }
     }
   }
 
   void _drawEcgLeadII(Canvas canvas, Rect bounds) {
-    _drawChannelLabel(canvas, bounds, 'ECG $leadLabel', const Color(0xFF00E676));
+    final labelColor = _isThermal ? const Color(0xFF7F1D1D) : const Color(0xFF00E676);
+    final traceColor = _isThermal ? const Color(0xFF111827) : const Color(0xFF00E676);
+    _drawChannelLabel(canvas, bounds, 'ECG $leadLabel', labelColor);
+
     final baselineY = bounds.top + bounds.height * 0.65;
     final cursorX = sweepProgress * bounds.width;
     const numSamples = 200;
     final gainScale = (gainMmMv / 10.0) * 22.0;
 
     final paint = Paint()
-      ..color = const Color(0xFF00E676)
+      ..color = traceColor
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.5;
+      ..strokeWidth = _isThermal ? 1.6 : 1.5;
 
     Path? path;
     for (int i = 0; i <= numSamples; i++) {
@@ -1378,6 +1631,20 @@ class _FiveChannelHospitalOscilloscopePainter extends CustomPainter {
         v += 1.8; // Pacing spike
       }
 
+      // Authentic physiological signal realism
+      if (_isReal) {
+        // Respiratory baseline wander (0.22 Hz)
+        final respWander = 0.045 * math.sin((x / bounds.width) * math.pi * 3.5 + sweepProgress * 2.8);
+        // Skeletal muscle EMG & electrode micro-noise
+        final emgNoise = 0.015 * math.sin(x * 1.83) + 0.010 * math.cos(x * 2.91) + 0.007 * math.sin(x * 5.43);
+        // R-wave respiratory amplitude modulation (RSA ±6%)
+        final rWaveMod = 1.0 + 0.06 * math.sin(sweepProgress * 3.14);
+        // 60 Hz AC mains hum fuzz if enabled
+        final hum = mainsHum ? (0.040 * math.sin(x * 3.77)) : 0.0;
+
+        v = (v * rWaveMod) + respWander + emgNoise + hum;
+      }
+
       final y = baselineY - (v * gainScale);
       if (path == null) {
         path = Path()..moveTo(x, y);
@@ -1389,16 +1656,19 @@ class _FiveChannelHospitalOscilloscopePainter extends CustomPainter {
   }
 
   void _drawEcgPrecordialV1(Canvas canvas, Rect bounds) {
-    _drawChannelLabel(canvas, bounds, 'ECG V1 PRECORDIAL', const Color(0xFF69F0AE));
+    final labelColor = _isThermal ? const Color(0xFF1E293B) : const Color(0xFF69F0AE);
+    final traceColor = _isThermal ? const Color(0xFF1E293B) : const Color(0xFF69F0AE);
+    _drawChannelLabel(canvas, bounds, 'ECG V1 PRECORDIAL', labelColor);
+
     final baselineY = bounds.top + bounds.height * 0.65;
     final cursorX = sweepProgress * bounds.width;
     const numSamples = 200;
     final gainScale = (gainMmMv / 10.0) * 22.0;
 
     final paint = Paint()
-      ..color = const Color(0xFF69F0AE)
+      ..color = traceColor
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.5;
+      ..strokeWidth = _isThermal ? 1.6 : 1.5;
 
     Path? path;
     for (int i = 0; i <= numSamples; i++) {
@@ -1408,7 +1678,16 @@ class _FiveChannelHospitalOscilloscopePainter extends CustomPainter {
         continue;
       }
       final localPhase = ((x / bounds.width) * 2.0) % 1.0;
-      final v = CardiacHemodynamicEcgStrip.computePrecordialV1Sample(localPhase, rhythm);
+      double v = CardiacHemodynamicEcgStrip.computePrecordialV1Sample(localPhase, rhythm);
+
+      // Authentic physiological signal realism
+      if (_isReal) {
+        final respWander = 0.035 * math.sin((x / bounds.width) * math.pi * 3.5 + sweepProgress * 2.8);
+        final emgNoise = 0.012 * math.sin(x * 2.15) + 0.008 * math.cos(x * 3.17);
+        final hum = mainsHum ? (0.035 * math.sin(x * 3.77)) : 0.0;
+        v = v + respWander + emgNoise + hum;
+      }
+
       final y = baselineY - (v * gainScale);
       if (path == null) {
         path = Path()..moveTo(x, y);
@@ -1421,18 +1700,22 @@ class _FiveChannelHospitalOscilloscopePainter extends CustomPainter {
 
   void _drawArterialPressure(Canvas canvas, Rect bounds) {
     final isPressureWire = wireType == InterventionalWireType.pressureWireX;
+    final labelColor = _isThermal ? const Color(0xFF991B1B) : const Color(0xFFFF5252);
+    final paColor = _isThermal ? const Color(0xFF991B1B) : const Color(0xFFFF5252);
+    final pdColor = _isThermal ? const Color(0xFFB45309) : const Color(0xFFFFD740);
+
     _drawChannelLabel(
       canvas,
       bounds,
       isDamped ? 'ABP Pa (DAMPED)' : (isPressureWire ? 'ABP Pa (RED) / Pd (YEL)' : 'ABP Pa INVASIVE'),
-      const Color(0xFFFF5252),
+      labelColor,
     );
     final bottomY = bounds.bottom - 4.0;
     final cursorX = sweepProgress * bounds.width;
     const numSamples = 200;
 
-    final paPaint = Paint()..color = const Color(0xFFFF5252)..style = PaintingStyle.stroke..strokeWidth = 1.5;
-    final pdPaint = Paint()..color = const Color(0xFFFFD740)..style = PaintingStyle.stroke..strokeWidth = 1.5;
+    final paPaint = Paint()..color = paColor..style = PaintingStyle.stroke..strokeWidth = _isThermal ? 1.6 : 1.5;
+    final pdPaint = Paint()..color = pdColor..style = PaintingStyle.stroke..strokeWidth = _isThermal ? 1.6 : 1.5;
 
     Path? paPath;
     Path? pdPath;
@@ -1451,6 +1734,18 @@ class _FiveChannelHospitalOscilloscopePainter extends CustomPainter {
         pa = 15.0 + 1.5 * math.sin(localPhase * 30.0);
       } else {
         pa = CardiacHemodynamicEcgStrip.computeAorticPressure(localPhase, isDamped, iabpActive, systolicBp: systolicBp, diastolicBp: diastolicBp);
+      }
+
+      // Authentic arterial line realism
+      if (_isReal) {
+        // Respiratory swing across cycle (-4.5 mmHg)
+        final respSwing = -4.5 * math.sin(sweepProgress * 3.14);
+        // Catheter fluid resonance ringing post systolic ejection
+        double ringing = 0.0;
+        if (localPhase >= 0.36 && localPhase <= 0.44) {
+          ringing = 2.8 * math.sin((localPhase - 0.36) / 0.08 * 8.0 * math.pi) * (1.0 - (localPhase - 0.36) / 0.08);
+        }
+        pa = pa + respSwing + ringing;
       }
 
       final yPa = bottomY - ((pa - 10.0) / 160.0) * (bounds.height * 0.85);
@@ -1476,12 +1771,15 @@ class _FiveChannelHospitalOscilloscopePainter extends CustomPainter {
   }
 
   void _drawSpo2Pleth(Canvas canvas, Rect bounds) {
-    _drawChannelLabel(canvas, bounds, 'PLETH SpO₂', const Color(0xFF00E5FF));
+    final labelColor = _isThermal ? const Color(0xFF0E7490) : const Color(0xFF00E5FF);
+    final traceColor = _isThermal ? const Color(0xFF0E7490) : const Color(0xFF00E5FF);
+    _drawChannelLabel(canvas, bounds, 'PLETH SpO₂', labelColor);
+
     final bottomY = bounds.bottom - 4.0;
     final cursorX = sweepProgress * bounds.width;
     const numSamples = 200;
 
-    final paint = Paint()..color = const Color(0xFF00E5FF)..style = PaintingStyle.stroke..strokeWidth = 1.5;
+    final paint = Paint()..color = traceColor..style = PaintingStyle.stroke..strokeWidth = _isThermal ? 1.6 : 1.5;
     Path? path;
 
     for (int i = 0; i <= numSamples; i++) {
@@ -1491,7 +1789,14 @@ class _FiveChannelHospitalOscilloscopePainter extends CustomPainter {
         continue;
       }
       final localPhase = ((x / bounds.width) * 2.0) % 1.0;
-      final pleth = CardiacHemodynamicEcgStrip.computePlethSample(localPhase, rhythm, spo2Pct);
+      double pleth = CardiacHemodynamicEcgStrip.computePlethSample(localPhase, rhythm, spo2Pct);
+
+      if (_isReal) {
+        final plethMod = 0.020 * math.sin(sweepProgress * 3.14);
+        final plethJitter = 0.005 * math.sin(x * 1.5);
+        pleth = math.max(0.0, math.min(1.0, pleth + plethMod + plethJitter));
+      }
+
       final y = bottomY - (pleth * bounds.height * 0.80);
       if (path == null) {
         path = Path()..moveTo(x, y);
@@ -1503,12 +1808,15 @@ class _FiveChannelHospitalOscilloscopePainter extends CustomPainter {
   }
 
   void _drawEtco2Capno(Canvas canvas, Rect bounds) {
-    _drawChannelLabel(canvas, bounds, 'CAPNO EtCO₂', const Color(0xFFFFAB40));
+    final labelColor = _isThermal ? const Color(0xFFB45309) : const Color(0xFFFFAB40);
+    final traceColor = _isThermal ? const Color(0xFFB45309) : const Color(0xFFFFAB40);
+    _drawChannelLabel(canvas, bounds, 'CAPNO EtCO₂', labelColor);
+
     final bottomY = bounds.bottom - 4.0;
     final cursorX = sweepProgress * bounds.width;
     const numSamples = 200;
 
-    final paint = Paint()..color = const Color(0xFFFFAB40)..style = PaintingStyle.stroke..strokeWidth = 1.5;
+    final paint = Paint()..color = traceColor..style = PaintingStyle.stroke..strokeWidth = _isThermal ? 1.6 : 1.5;
     Path? path;
 
     for (int i = 0; i <= numSamples; i++) {
@@ -1518,7 +1826,13 @@ class _FiveChannelHospitalOscilloscopePainter extends CustomPainter {
         continue;
       }
       final localPhase = ((x / bounds.width) * 2.0) % 1.0;
-      final etco2 = CardiacHemodynamicEcgStrip.computeEtco2Sample(localPhase, rhythm, etco2MmHg);
+      double etco2 = CardiacHemodynamicEcgStrip.computeEtco2Sample(localPhase, rhythm, etco2MmHg);
+
+      if (_isReal) {
+        final cardiogenicOsc = (localPhase > 0.20 && localPhase < 0.45) ? 0.7 * math.sin(localPhase * 40.0) : 0.0;
+        etco2 = math.max(0.0, etco2 + cardiogenicOsc);
+      }
+
       final y = bottomY - (etco2 / 50.0) * (bounds.height * 0.80);
       if (path == null) {
         path = Path()..moveTo(x, y);
@@ -1542,7 +1856,11 @@ class _FiveChannelHospitalOscilloscopePainter extends CustomPainter {
 
   void _drawSweepBeam(Canvas canvas, Size size) {
     final cursorX = sweepProgress * size.width;
-    final beamPaint = Paint()..color = Colors.white.withValues(alpha: 0.22)..strokeWidth = 1.0;
+    final beamPaint = Paint()
+      ..color = _isThermal
+          ? const Color(0xFFD32F2F).withValues(alpha: 0.55)
+          : Colors.white.withValues(alpha: 0.22)
+      ..strokeWidth = _isThermal ? 1.2 : 1.0;
     canvas.drawLine(Offset(cursorX, 0), Offset(cursorX, size.height), beamPaint);
   }
 

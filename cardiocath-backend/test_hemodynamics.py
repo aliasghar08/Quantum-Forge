@@ -557,6 +557,24 @@ def test_oscilloscope_5_channel_telemetry_and_14_rhythms():
     assert tcp["metrics"]["heart_rate_bpm"] == 70
     assert "PACING ACTIVE" in tcp["metrics"]["alarm_message"]
 
+    # Physiological realism vs Clean textbook mode
+    real_mode = client.post(
+        "/api/cardiac/oscilloscope-rhythm",
+        json={"rhythm": "nsr", "signal_mode": "real"},
+    ).json()
+    clean_mode = client.post(
+        "/api/cardiac/oscilloscope-rhythm",
+        json={"rhythm": "nsr", "signal_mode": "clean"},
+    ).json()
+    assert real_mode["ecg_primary"] != clean_mode["ecg_primary"]
+
+    # 60 Hz Mains Hum Interference injection
+    hum_on = client.post(
+        "/api/cardiac/oscilloscope-rhythm",
+        json={"rhythm": "nsr", "signal_mode": "clean", "mains_hum": True},
+    ).json()
+    assert hum_on["ecg_primary"] != clean_mode["ecg_primary"]
+
 
 
 

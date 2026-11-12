@@ -776,6 +776,8 @@ class OscilloscopeRhythmRequest(BaseModel):
     iabp: bool = Field(default=False)
     defib_shock_at_sec: Optional[float] = Field(default=None)
     tcp_pacing: bool = Field(default=False)
+    signal_mode: str = Field(default="real", description="'real' for physiological bedside artifacts or 'clean' for textbook mode")
+    mains_hum: bool = Field(default=False, description="Enable 60 Hz electrical mains interference")
 
 
 @app.post("/api/cardiac/strain-bullseye")
@@ -841,6 +843,8 @@ async def api_oscilloscope_rhythm(req: OscilloscopeRhythmRequest):
         iabp=req.iabp,
         defib_shock_at_sec=req.defib_shock_at_sec,
         tcp_pacing=req.tcp_pacing,
+        signal_mode=req.signal_mode,
+        mains_hum=req.mains_hum,
     )
 
 

@@ -846,5 +846,68 @@ void main() {
       final v1Sample = CardiacHemodynamicEcgStrip.computePrecordialV1Sample(0.29, OscilloscopeRhythmType.nsr);
       expect(v1Sample, lessThan(0.0)); // Deep S wave in V1
     });
+
+    testWidgets('oscilloscope realism toggles: signal mode, mains hum, and hospital thermal paper',
+        (tester) async {
+      await tester.binding.setSurfaceSize(const Size(1400, 1000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: ThemeData.dark(),
+          home: Scaffold(
+            body: CardiacHemodynamicEcgStrip(
+              scenario: kCardiacScenarios.first,
+              cardiacPhase: 0.3,
+              bpm: 75.0,
+              onBpmChanged: (_) {},
+              initialSignalMode: OscilloscopeSignalMode.realBedside,
+              initialDisplayTheme: OscilloscopeDisplayTheme.icuPhosphor,
+              initialMainsHum: false,
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+
+      // Verify default realism state
+      expect(find.text('REAL BEDSIDE'), findsOneWidget);
+      expect(find.text('NOTCH FILTER ON'), findsOneWidget);
+      expect(find.text('ICU PHOSPHOR CRT'), findsOneWidget);
+
+      // Toggle Signal Realism: Real Bedside -> Clean Textbook
+      final signalModeToggle = find.byKey(const Key('oscilloscope_signal_mode_toggle'));
+      expect(signalModeToggle, findsOneWidget);
+      await tester.ensureVisible(signalModeToggle);
+      await tester.pumpAndSettle();
+      await tester.tap(signalModeToggle);
+      await tester.pump();
+      expect(find.text('CLEAN TEXTBOOK'), findsOneWidget);
+
+      // Toggle Mains Hum: Notch Filter ON -> 60Hz HUM ON
+      final mainsHumToggle = find.byKey(const Key('oscilloscope_mains_hum_toggle'));
+      expect(mainsHumToggle, findsOneWidget);
+      await tester.ensureVisible(mainsHumToggle);
+      await tester.pumpAndSettle();
+      await tester.tap(mainsHumToggle);
+      await tester.pump();
+      expect(find.text('60Hz HUM ON'), findsOneWidget);
+
+      // Toggle Display Theme: ICU Phosphor CRT -> Thermal Paper
+      final displayThemeToggle = find.byKey(const Key('oscilloscope_display_theme_toggle'));
+      expect(displayThemeToggle, findsOneWidget);
+      await tester.ensureVisible(displayThemeToggle);
+      await tester.pumpAndSettle();
+      await tester.tap(displayThemeToggle);
+      await tester.pump();
+      expect(find.text('THERMAL PAPER'), findsOneWidget);
+
+      // Toggle back to Phosphor CRT
+      await tester.ensureVisible(displayThemeToggle);
+      await tester.pumpAndSettle();
+      await tester.tap(displayThemeToggle);
+      await tester.pump();
+      expect(find.text('ICU PHOSPHOR CRT'), findsOneWidget);
+    });
   });
 }

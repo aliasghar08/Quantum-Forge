@@ -1581,6 +1581,8 @@ class CoronaryHemodynamicsSolver:
         iabp: bool = False,
         defib_shock_at_sec: Optional[float] = None,
         tcp_pacing: bool = False,
+        signal_mode: str = "real",
+        mains_hum: bool = False,
     ) -> Dict[str, Any]:
         """5-Channel Multi-Parameter Bedside Hospital Oscilloscope Telemetry Solver."""
         return generate_oscilloscope_rhythm(
@@ -1592,6 +1594,8 @@ class CoronaryHemodynamicsSolver:
             iabp=iabp,
             defib_shock_at_sec=defib_shock_at_sec,
             tcp_pacing=tcp_pacing,
+            signal_mode=signal_mode,
+            mains_hum=mains_hum,
         )
 
 
@@ -1611,6 +1615,8 @@ def generate_oscilloscope_rhythm(
     iabp: bool = False,
     defib_shock_at_sec: Optional[float] = None,
     tcp_pacing: bool = False,
+    signal_mode: str = "real",
+    mains_hum: bool = False,
 ) -> Dict[str, Any]:
     """Generates 5-channel multi-parameter hospital oscilloscope telemetry at 500 Hz:
     Ch 1: ecg_primary (Lead II or selected limb lead in mV)
@@ -1848,7 +1854,10 @@ def generate_oscilloscope_rhythm(
         cur = 0.20
         while cur < duration_sec:
             r_times.append(cur)
-            cur += period
+            if signal_mode == "real" and r in ["nsr", "sinus_brady"]:
+                cur += period * (1.0 + 0.04 * math.cos(2 * math.pi * 0.22 * cur))
+            else:
+                cur += period
 
     # If ROSC shock is applied, modify R-times after shock
     if shock_applied and defib_shock_at_sec is not None:
@@ -2046,6 +2055,42 @@ def generate_oscilloscope_rhythm(
                 etco2_capno[i] = target_et * (1.0 - frac)
             else:
                 etco2_capno[i] = 0.0
+
+    # PHYSIOLOGICAL SIGNAL REALISM (Baseline Wander, EMG Jitter, Catheter Ringing, Mains Hum)
+    if signal_mode == "real":
+        # 1. Respiratory Baseline Wander (0.22 Hz)
+        wander1 = 0.055 * np.sin(2 * np.pi * 0.22 * t + 0.3) + 0.018 * np.sin(2 * np.pi * 0.44 * t + 1.1)
+        wander2 = 0.045 * np.sin(2 * np.pi * 0.22 * t + 0.6) + 0.015 * np.sin(2 * np.pi * 0.44 * t + 1.4)
+        ecg1 += wander1
+        ecg2 += wander2
+
+        # 2. Skeletal Muscle (EMG) & Electrode Thermal Micro-Jitter
+        emg1 = 0.020 * np.sin(2 * np.pi * 23.3 * t) + 0.013 * np.cos(2 * np.pi * 37.1 * t) + 0.008 * np.sin(2 * np.pi * 67.7 * t)
+        emg2 = 0.018 * np.sin(2 * np.pi * 21.7 * t + 0.4) + 0.012 * np.cos(2 * np.pi * 35.5 * t) + 0.007 * np.sin(2 * np.pi * 71.3 * t)
+        ecg1 += emg1
+        ecg2 += emg2
+
+        # 3. Arterial Line Respiratory Pressure Swing & Transducer Micro-Noise
+        if r not in ["vfib", "asystole"]:
+            resp_abp_swing = -5.0 * np.sin(2 * np.pi * 0.22 * t)
+            abp_noise = 0.75 * np.sin(2 * np.pi * 17.5 * t) * np.cos(2 * np.pi * 0.22 * t)
+            abp_pa += resp_abp_swing + abp_noise
+            if is_revascularized:
+                abp_pd[:] = abp_pa * 0.96
+            else:
+                abp_pd[:] = abp_pa * 0.72
+
+        # 4. SpO2 plethysmogram micro-jitter
+        if r not in ["vfib", "asystole"]:
+            spo2_noise = 0.004 * np.sin(2 * np.pi * 14.2 * t) + 0.002 * np.cos(2 * np.pi * 28.5 * t)
+            spo2_pleth += spo2_noise
+            spo2_pleth = np.clip(spo2_pleth, 0.0, 1.0)
+
+    # 5. 60 Hz AC Mains Hum Interference (If Notch Filter is toggled off)
+    if mains_hum:
+        mains_fuzz = 0.065 * np.sin(2 * np.pi * 60.0 * t) + 0.020 * np.sin(2 * np.pi * 120.0 * t)
+        ecg1 += mains_fuzz
+        ecg2 += mains_fuzz
 
     map_p = dia_p + (sys_p - dia_p) / 3.0
 

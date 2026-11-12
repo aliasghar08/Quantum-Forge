@@ -421,6 +421,12 @@ def _reorder_product_to_match_reactant(
                         p_atoms.append(r_atoms[idx])
                         p_pos.append(list(r_pos[idx]))
                         p_norm.append(sym)
+            else:
+                for sym, count in missing.items():
+                    for _ in range(count):
+                        p_atoms.append(sym)
+                        p_pos.append([0.0, 0.0, 0.0])
+                        p_norm.append(sym)
 
             # 2. Handle extra in product by removing surplus byproduct/leaving atoms
             for sym, count in extra.items():
