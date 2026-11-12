@@ -136,6 +136,28 @@ Quantum Forge includes curated, literature-validated synthesis pathways and tran
   * **Electronic Measurement Calipers**: Freeze-frame measurement overlay with interactive drag calipers reporting exact $\Delta t$ (ms) and instantaneous heart rates (bpm).
   * **Authentic Physiological Signal Realism**: Deterministic $0.22\text{ Hz}$ respiratory baseline wander, skeletal muscle EMG & electrode micro-noise, beat-to-beat Respiratory Sinus Arrhythmia (HRV) amplitude modulation ($\pm 6\%$), arterial line pulse-pressure swing ($-4.5\text{ mmHg}$), fluid catheter resonance ringing, and $60\text{ Hz}$ AC mains hum interference.
   * **Hospital Pink Thermal Paper Mode**: Interactive toggle transforming the display into authentic hospital $1\text{ mm} / 5\text{ mm}$ pink grid paper with deep charcoal/slate medical ink needles.
+* **🎓 MBBS, Pharm-D, USMLE & NEET-PG Clinical Ward Preparation Suite**:
+  * **💉 Live "Administer IV Drug" Ward Simulator**:
+    * Interactive multi-medication infusion pump drawer integrated directly into the 5-Channel Hospital Monitor.
+    * Real-time pharmacological hemodynamic & electrophysiological responses:
+      * **Adenosine (6 mg rapid IV push)**: Induces transient 2.5-second AV nodal block / ventricular pause, breaking SVT back to Normal Sinus Rhythm (76 bpm).
+      * **Atropine (1 mg IV push)**: M2 muscarinic antagonist blocking vagal parasympathetic tone, accelerating Sinus Bradycardia (45 $\rightarrow$ 85 bpm).
+      * **Norepinephrine (Levophed 4 mcg/min)**: Potent $\alpha_1$-vasoconstriction and $\beta_1$-inotropy, elevating invasive blood pressure from shock to 125/82 mmHg (MAP 96 mmHg).
+      * **Nitroglycerin (10 mcg/min / SL)**: Potent venodilator reducing preload, blunting ischemic ST elevation; triggers critical alert and severe hypotension (72/42 mmHg, MAP 52 mmHg) if given in RV Infarct / Inferior STEMI.
+      * **Amiodarone ($hERG$ Challenge)**: Class III $I_{Kr}$ potassium channel blockade prolonging $QT_c > 540\text{ ms}$, triggering Polymorphic VT / Torsades de Pointes.
+      * **Magnesium Sulfate (2 g IV push)**: Suppresses Early Afterdepolarizations (EADs) and inward $Ca^{2+}$ flux, terminating Torsades de Pointes back to Normal Sinus Rhythm (80 bpm).
+  * **🎯 "Blind Diagnosis" ECG & Auscultation Board Trainers**:
+    * **Blind ECG Rhythm Exam**: Masks rhythm name, presenting a 4-choice interactive quiz with caliper measurement hints, instant board-style rationales, and live score tracking.
+    * **Blind Murmur Auscultation Trainer**: Masks murmur labels in the Phonocardiography (PCG) & Echo Doppler workstation, challenging students to deduce valvular pathologies (Aortic Stenosis, Mitral Regurgitation, HOCM, Mitral Stenosis) using bedside dynamic maneuvers (Valsalva, Squatting, Sustained Handgrip).
+  * **📚 21-Case Embedded Medical Board QBank & SuperMemo SM-2 Spaced Repetition**:
+    * 21 high-yield two-step clinical vignettes across **Cardiology**, **Pharmacology & Toxicology**, **Resuscitation & ACLS**, and **Valvular & Structural Heart Disease**.
+    * SuperMemo SM-2 spaced repetition algorithm with interval, ease factor, repetition count, and next-review scheduling persisted in `AppStorage`.
+    * **"🚀 Launch 3D Simulation"**: 1-click sync loading patient anatomy, fluoroscopy projections, hemodynamics, and arrhythmia parameters directly into the CardioCath 3D digital twin.
+  * **📋 1-Click "Ward Rounds & Anki" Visual Study Sheet Exporter**:
+    * High-yield 1-page visual dossier generator with 1-tap **"📋 Copy Anki Flashcard"** (Anki Cloze & Q/A formats) and **"📄 Download Ward Study Sheet"** (Markdown).
+    * Integrated seamlessly into both CardioCath 3D Lab and Clinical Reaction Dossiers.
+  * **🏷️ Curriculum & Medical Subfield Classification Tags**:
+    * Systematic dual tagging across all template cards in both Reaction Library and History systems, explicitly labeling educational tracks (**MBBS**, **Pharm-D**, **USMLE**) and clinical subfields (**Cardiology**, **Neurology**, **Oncology**, **Endocrinology**, **Infectious Disease**).
 * **4 Next-Generation PyTorch Computational Cardiology Engines (`cardiocath-backend/`)**:
   * **`CardioFNO-3D`**: Fourier Neural Operator trained on Apple Silicon MPS computing 3D myocardial strain tensors (Global Longitudinal Strain `GLS %`, radial thickening, circumferential shortening) and live 17-Segment AHA Polar Bullseye Maps (apical sparing, septal flash, transmural infarcts).
   * **`CardioRotor-3D`**: 3D Reaction-Diffusion Monodomain tissue solver mapping electrical wavefront curvature, re-entrant circuits, spiral-wave phase singularities (rotors), and endocardial scar homogenization ablation.
