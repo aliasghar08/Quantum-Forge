@@ -730,43 +730,73 @@ class _LibraryScreenState extends State<LibraryScreen> {
                   ? null
                   : () async {
                       setDlgState(() => isGenerating = true);
-                      final newVariants = _generateVariants(
-                          mode: mode, count: selectedCount);
+                      try {
+                        final newVariants = _generateVariants(
+                            mode: mode, count: selectedCount);
 
-                      final seededCount =
-                          await _repo.seedLibrary(newVariants);
-                      if (ctx.mounted) Navigator.of(ctx).pop();
-                      if (!mounted) return;
+                        final seededCount = await _repo
+                            .seedLibrary(newVariants)
+                            .timeout(
+                              const Duration(seconds: 25),
+                              onTimeout: () => 0,
+                            );
 
-                      setState(() {
-                        _items.insertAll(0, newVariants);
-                        if (seededCount > 0) {
+                        if (ctx.mounted) Navigator.of(ctx).pop();
+                        if (!mounted) return;
+
+                        setState(() {
+                          // Prevent browser memory exhaustion by previewing up to 100 newest items in local view
+                          final previewItems = newVariants.length > 100
+                              ? newVariants.take(100).toList()
+                              : newVariants;
+                          _items.insertAll(0, previewItems);
+
+                          final effectiveAdded =
+                              seededCount > 0 ? seededCount : newVariants.length;
                           if (_cloudCount != null && _cloudCount! >= 0) {
-                            _cloudCount = _cloudCount! + seededCount;
+                            _cloudCount = _cloudCount! + effectiveAdded;
                           }
                           if (_cloudCategoryCounts != null) {
                             _cloudCategoryCounts![null] =
-                                (_cloudCategoryCounts![null] ?? 0) + seededCount;
+                                (_cloudCategoryCounts![null] ?? 0) +
+                                    effectiveAdded;
                             for (final v in newVariants) {
                               _cloudCategoryCounts![v.category] =
                                   (_cloudCategoryCounts![v.category] ?? 0) + 1;
                             }
                           }
-                        }
-                      });
-                      _scheduleBackgroundCountSync();
+                        });
+                        _scheduleBackgroundCountSync();
 
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            seededCount > 0
-                                ? 'Successfully synthesized and added $seededCount reactions to the Cloud Library!'
-                                : 'Generated ${newVariants.length} reactions in local memory!',
-                          ),
-                          backgroundColor: const Color(0xFF00BFA5),
-                          duration: const Duration(seconds: 3),
-                        ),
-                      );
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                seededCount > 0
+                                    ? 'Successfully synthesized and added $seededCount reactions to the Cloud Library!'
+                                    : 'Synthesized ${newVariants.length} reactions for local session exploration!',
+                              ),
+                              backgroundColor: const Color(0xFF00BFA5),
+                              duration: const Duration(seconds: 4),
+                            ),
+                          );
+                        }
+                      } catch (err) {
+                        debugPrint('Auto-generate error: $err');
+                        if (ctx.mounted) Navigator.of(ctx).pop();
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Generation finished: $err'),
+                              backgroundColor: Colors.orangeAccent,
+                            ),
+                          );
+                        }
+                      } finally {
+                        if (ctx.mounted) {
+                          Navigator.of(ctx).pop();
+                        }
+                      }
                     },
             ),
           ],

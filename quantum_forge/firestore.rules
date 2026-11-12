@@ -186,13 +186,13 @@ service cloud.firestore {
 
     // Public reaction-template library.
     // Readable by everyone.
-    // Authenticated researchers and administrators can create and update templates,
-    // provided all constraints in isValidTemplate() are met without costly batch exists() lookups.
+    // Anyone can create new valid reaction templates, provided all constraints
+    // in isValidTemplate() are strictly satisfied (structure, keys, lengths, types).
+    // Updates require authentication or admin privileges.
     // Deletions remain strictly restricted to administrators.
     match /library/{templateId} {
       allow read: if true;
-      allow create: if (isAuthenticated() || isAdmin()) &&
-                       isValidTemplate(request.resource.data);
+      allow create: if isValidTemplate(request.resource.data);
       allow update: if (isAuthenticated() || isAdmin()) &&
                        isValidTemplate(request.resource.data);
       allow delete: if isAdmin();

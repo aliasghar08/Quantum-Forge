@@ -18,6 +18,17 @@ import subprocess
 import sys
 import time
 
+# Ensure Quantum Forge repository root and scripts directory are in sys.path
+REPO_ROOT = Path(__file__).resolve().parent.parent.parent
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+SCRIPTS_DIR = REPO_ROOT / "scripts"
+if str(SCRIPTS_DIR) not in sys.path:
+    sys.path.insert(0, str(SCRIPTS_DIR))
+AUTONOMOUS_DIR = REPO_ROOT / "scripts" / "autonomous_trainer"
+if str(AUTONOMOUS_DIR) not in sys.path:
+    sys.path.insert(0, str(AUTONOMOUS_DIR))
+
 from literature_harvester import LiteratureHarvester, DEFAULT_DB_PATH, get_db
 from data_ingester import DataIngester
 from mps_trainer import ContinualTrainer, get_device
@@ -56,8 +67,8 @@ def rotate_logs_if_needed(max_size_mb: float = 50.0) -> None:
 class AutonomousDaemon:
     """End-to-end autonomous research discovery and training supervisor."""
 
-    def __init__(self, poll_interval_hours: float = 0.05):
-        self.poll_interval_seconds = max(60, int(poll_interval_hours * 3600))
+    def __init__(self, poll_interval_hours: float = 0.008):
+        self.poll_interval_seconds = max(20, int(poll_interval_hours * 3600))
         self.harvester = LiteratureHarvester()
         self.ingester = DataIngester()
         self.device = get_device()
@@ -121,14 +132,9 @@ class AutonomousDaemon:
         if not pending_papers:
             logger.info("All registered papers up to date. Expanding continuous clinical & pharmaceutical library...")
             try:
-                import sys
-                from pathlib import Path
-                root_dir = Path(__file__).resolve().parent.parent.parent
-                if str(root_dir) not in sys.path:
-                    sys.path.insert(0, str(root_dir))
-                from scripts.seed_massive_firebase import run_upload_pipeline
-                run_upload_pipeline(target_count=200, batch_size=100, workers=2, category_mode="medical")
-                logger.info("Continuous clinical expansion completed: 200 new medical reactions seeded.")
+                from seed_massive_firebase import run_upload_pipeline
+                run_upload_pipeline(target_count=500, batch_size=250, workers=4, category_mode="medical")
+                logger.info("Continuous clinical expansion completed: 500 new medical reactions seeded.")
             except Exception as e:
                 logger.warning("Continuous clinical expansion error: %s", e)
             return False
@@ -257,7 +263,7 @@ def print_status() -> None:
     print("=======================================================\n")
 
 
-def install_launchd_service(interval: float = 0.05) -> None:
+def install_launchd_service(interval: float = 0.008) -> None:
     """Installs a macOS launchd agent to ensure this runs 24/7 in the background across reboots."""
     script_path = Path(__file__).resolve()
     repo_dir = script_path.parent.parent.parent.resolve()
@@ -315,7 +321,7 @@ def main():
     parser = argparse.ArgumentParser(description="Quantum Forge 24/7 Autonomous Trainer Daemon")
     parser.add_argument("--run-once", action="store_true", help="Execute an immediate research discovery and training cycle")
     parser.add_argument("--daemon", action="store_true", help="Run continuously in the background")
-    parser.add_argument("--interval", type=float, default=0.05, help="Polling interval in hours (default: 0.05 = 3 minutes)")
+    parser.add_argument("--interval", type=float, default=0.008, help="Polling interval in hours (default: 0.008 = 30 seconds)")
     parser.add_argument("--ingest-doi", type=str, help="Ingest a specific paper DOI and train immediately")
     parser.add_argument("--status", action="store_true", help="Print ledger status and training history")
     parser.add_argument("--install-service", action="store_true", help="Install macOS launchd 24/7 background service")

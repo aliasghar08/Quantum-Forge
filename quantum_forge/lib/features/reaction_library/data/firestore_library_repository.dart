@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:quantum_forge/features/reaction_library/data/reaction_templates.dart';
@@ -248,9 +249,21 @@ class FirestoreLibraryRepository {
 
   // ── Seeding (admin / first-run only) ──────────────────────────────────────
 
-  /// Writes [templates] to Firestore in snappy 100-document batches.
+  /// Writes [templates] to Firestore in snappy 100-document batches with timeouts
+  /// and automatic anonymous authorization fallback so web sessions never hang.
   Future<int> seedLibrary(List<ReactionTemplate> templates) async {
+    if (templates.isEmpty) return 0;
     try {
+      if (FirebaseAuth.instance.currentUser == null) {
+        try {
+          await FirebaseAuth.instance
+              .signInAnonymously()
+              .timeout(const Duration(seconds: 5));
+        } catch (authErr) {
+          debugPrint('FirestoreLibraryRepository.seedLibrary: anonymous auth fallback skipped ($authErr)');
+        }
+      }
+
       int totalSeeded = 0;
       const int batchChunk = 100;
       for (var i = 0; i < templates.length; i += batchChunk) {
@@ -260,13 +273,19 @@ class FirestoreLibraryRepository {
         for (final t in chunk) {
           batch.set(_col.doc(t.id), t.toJson(), SetOptions(merge: true));
         }
-        await batch.commit();
-        totalSeeded += chunk.length;
+        try {
+          await batch.commit().timeout(const Duration(seconds: 12));
+          totalSeeded += chunk.length;
+        } catch (batchErr) {
+          debugPrint('FirestoreLibraryRepository.seedLibrary batch error at offset $i: $batchErr');
+          // If a batch fails, continue trying or return what we have achieved so far
+          break;
+        }
       }
-      debugPrint('Successfully seeded $totalSeeded templates to Firestore /library.');
+      debugPrint('Successfully seeded $totalSeeded / ${templates.length} templates to Firestore /library.');
       return totalSeeded;
     } catch (e) {
-      debugPrint('FirestoreLibraryRepository.seedLibrary error: $e');
+      debugPrint('FirestoreLibraryRepository.seedLibrary top-level error: $e');
       return 0;
     }
   }
@@ -277,7 +296,20 @@ class FirestoreLibraryRepository {
   /// Used to auto-save run reactions or add custom medical/pharmacological reactions.
   Future<bool> saveReaction(ReactionTemplate template) async {
     try {
-      await _col.doc(template.id).set(template.toJson(), SetOptions(merge: true));
+      if (FirebaseAuth.instance.currentUser == null) {
+        try {
+          await FirebaseAuth.instance
+              .signInAnonymously()
+              .timeout(const Duration(seconds: 5));
+        } catch (authErr) {
+          debugPrint('FirestoreLibraryRepository.saveReaction: anonymous auth fallback skipped ($authErr)');
+        }
+      }
+
+      await _col
+          .doc(template.id)
+          .set(template.toJson(), SetOptions(merge: true))
+          .timeout(const Duration(seconds: 10));
       debugPrint('FirestoreLibraryRepository: Saved ${template.id} to library.');
       return true;
     } catch (e) {
