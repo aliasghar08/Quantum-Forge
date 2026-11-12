@@ -767,6 +767,17 @@ class RhcCpetRequest(BaseModel):
     shock_phenotype: str = Field(default="none")
 
 
+class OscilloscopeRhythmRequest(BaseModel):
+    rhythm: str = Field(default="nsr", description="One of 14 clinical arrhythmias or conduction patterns")
+    duration_sec: float = Field(default=4.0, ge=1.0, le=10.0)
+    fs: int = Field(default=500, ge=100, le=1000)
+    lead: str = Field(default="II")
+    is_revascularized: bool = Field(default=False)
+    iabp: bool = Field(default=False)
+    defib_shock_at_sec: Optional[float] = Field(default=None)
+    tcp_pacing: bool = Field(default=False)
+
+
 @app.post("/api/cardiac/strain-bullseye")
 async def api_strain_bullseye(req: StrainBullseyeRequest):
     """Next-Gen Engine 1: CardioFNO-3D Myocardial Strain & 17-Segment AHA Bullseye."""
@@ -814,6 +825,22 @@ async def api_rhc_cpet(req: RhcCpetRequest):
         catheter_chamber=req.catheter_chamber,
         exercise_state=req.exercise_state,
         shock_phenotype=req.shock_phenotype,
+    )
+
+
+@app.post("/api/cardiac/oscilloscope-rhythm")
+async def api_oscilloscope_rhythm(req: OscilloscopeRhythmRequest):
+    """5-Channel Synchronized Multi-Parameter Hospital ICU/Cath Lab Bedside Oscilloscope."""
+    solver = CoronaryHemodynamicsSolver()
+    return solver.solve_oscilloscope_rhythm(
+        rhythm=req.rhythm,
+        duration_sec=req.duration_sec,
+        fs=req.fs,
+        lead=req.lead,
+        is_revascularized=req.is_revascularized,
+        iabp=req.iabp,
+        defib_shock_at_sec=req.defib_shock_at_sec,
+        tcp_pacing=req.tcp_pacing,
     )
 
 

@@ -50,6 +50,49 @@ enum AcuteComplicationState {
   const AcuteComplicationState(this.label, this.description);
 }
 
+enum OscilloscopeRhythmType {
+  nsr('nsr', 'Normal Sinus Rhythm', 'NSR', 75, 120, 80, 99, 40, 'Normal 1:1 AV conduction, upright P in Lead II, narrow QRS (<120 ms).'),
+  sinusBrady('sinus_brady', 'Sinus Bradycardia', 'S.BRADY', 45, 108, 68, 98, 42, 'HR < 50 bpm; athletic tone, vagal stimulation, or sinus node disease.'),
+  sinusTachy('sinus_tachy', 'Sinus Tachycardia', 'S.TACHY', 135, 136, 86, 97, 36, 'HR > 100 bpm; response to pain, fever, hypovolemia, or sympathetic drive.'),
+  afib('afib', 'Atrial Fibrillation with RVR', 'A-FIB', 130, 115, 74, 96, 35, 'Irregularly irregular R-R intervals with fibrillatory f-waves (350-600/min).'),
+  aflutter('aflutter', 'Atrial Flutter 2:1', 'A-FLUTTER', 150, 118, 76, 96, 36, 'Negative sawtooth F-waves at 300 bpm in Lead II with 2:1 AV conduction.'),
+  svt('svt', 'Supraventricular Tachycardia (AVNRT)', 'SVT', 190, 102, 70, 95, 33, 'Regular narrow-complex tachycardia (150-250 bpm); treat with Adenosine.'),
+  avb1('avb_1', 'First-Degree AV Block', '1° AVB', 68, 122, 78, 99, 39, 'Fixed prolonged PR interval > 200 ms with 1:1 AV conduction.'),
+  avb2Mobitz1('avb_2_mobitz1', 'Second-Degree AV Block Mobitz I', '2° MOBITZ I', 54, 114, 70, 97, 38, 'Wenckebach: progressive PR lengthening until dropped non-conducted QRS.'),
+  avb2Mobitz2('avb_2_mobitz2', 'Second-Degree AV Block Mobitz II', '2° MOBITZ II', 50, 110, 68, 96, 37, 'Fixed PR with sudden non-conducted P wave; high risk of complete block.'),
+  avb3Complete('avb_3_complete', 'Third-Degree Complete Heart Block', '3° CHB', 35, 84, 50, 92, 30, 'Total AV dissociation: independent P waves (75 bpm) & slow escape (35 bpm).'),
+  vtach('vtach', 'Ventricular Tachycardia (VT)', 'V-TACH', 165, 72, 46, 86, 22, 'Monomorphic wide-complex VT (>120 ms); emergency cardioversion/defib.'),
+  torsades('torsades', 'Torsades de Pointes (TdP)', 'TORSADES', 210, 52, 32, 76, 16, 'Polymorphic VT with twisting axis and prolonged QTc; IV Magnesium 2g.'),
+  vfib('vfib', 'Ventricular Fibrillation (VF)', 'V-FIB', 0, 15, 14, 0, 7, 'Chaotic fibrillatory waves with no cardiac output; deliver 200J Biphasic Defibrillation!'),
+  asystole('asystole', 'Ventricular Standstill (Asystole)', 'ASYSTOLE', 0, 10, 10, 0, 4, 'Cardiac arrest flatline; high-quality CPR, IV Epinephrine 1mg q3-5min.');
+
+  final String id;
+  final String label;
+  final String badge;
+  final int defaultHr;
+  final int defaultSys;
+  final int defaultDia;
+  final double defaultSpo2;
+  final double defaultEtco2;
+  final String description;
+
+  const OscilloscopeRhythmType(
+    this.id,
+    this.label,
+    this.badge,
+    this.defaultHr,
+    this.defaultSys,
+    this.defaultDia,
+    this.defaultSpo2,
+    this.defaultEtco2,
+    this.description,
+  );
+
+  bool get isShockable => this == OscilloscopeRhythmType.vfib || this == OscilloscopeRhythmType.vtach || this == OscilloscopeRhythmType.torsades;
+  bool get isArrest => this == OscilloscopeRhythmType.vfib || this == OscilloscopeRhythmType.asystole;
+  bool get isPacingCandidate => this == OscilloscopeRhythmType.sinusBrady || this == OscilloscopeRhythmType.avb2Mobitz2 || this == OscilloscopeRhythmType.avb3Complete || this == OscilloscopeRhythmType.asystole;
+}
+
 class CoronaryPhysiologyFrame {
   final double timeSeconds;
   final double cardiacPhase;

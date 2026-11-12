@@ -504,6 +504,60 @@ def test_frontier_engine_4_rhc_cpet_swan_ganz_and_exercise():
     assert hfpef["pcwp_mean_mmhg"] > 25.0
 
 
+def test_oscilloscope_5_channel_telemetry_and_14_rhythms():
+    """Verify 5-channel hospital oscilloscope signals and 14 clinical arrhythmia states."""
+    rhythms = [
+        "nsr", "sinus_brady", "sinus_tachy", "afib", "aflutter", "svt",
+        "avb_1", "avb_2_mobitz1", "avb_2_mobitz2", "avb_3_complete",
+        "vtach", "torsades", "vfib", "asystole"
+    ]
+    for r in rhythms:
+        res = client.post(
+            "/api/cardiac/oscilloscope-rhythm",
+            json={"rhythm": r, "duration_sec": 4.0, "fs": 500},
+        ).json()
+        assert res["status"] == "success"
+        assert len(res["time"]) == 2000
+        assert len(res["ecg_primary"]) == 2000
+        assert len(res["ecg_precordial"]) == 2000
+        assert len(res["abp_pa"]) == 2000
+        assert len(res["spo2_pleth"]) == 2000
+        assert len(res["etco2_capno"]) == 2000
+        m = res["metrics"]
+        assert "heart_rate_bpm" in m
+        assert "systolic_bp_mmhg" in m
+        assert "etco2_mmhg" in m
+
+    # Specific clinical arrhythmia validation
+    vf = client.post("/api/cardiac/oscilloscope-rhythm", json={"rhythm": "vfib"}).json()
+    assert vf["metrics"]["alarm_level"] == "CODE_BLUE"
+    assert vf["metrics"]["etco2_mmhg"] < 10.0
+    assert vf["metrics"]["systolic_bp_mmhg"] < 25
+
+    tps = client.post("/api/cardiac/oscilloscope-rhythm", json={"rhythm": "torsades"}).json()
+    assert tps["metrics"]["qtc_bazett_ms"] > 500
+    assert tps["metrics"]["alarm_level"] == "CODE_BLUE"
+
+    chb = client.post("/api/cardiac/oscilloscope-rhythm", json={"rhythm": "avb_3_complete"}).json()
+    assert chb["metrics"]["heart_rate_bpm"] <= 40
+    assert chb["metrics"]["qrs_duration_ms"] > 120
+
+    # Defibrillator 200J Biphasic Shock Rescue
+    defib = client.post(
+        "/api/cardiac/oscilloscope-rhythm",
+        json={"rhythm": "vfib", "duration_sec": 4.0, "defib_shock_at_sec": 2.0},
+    ).json()
+    assert "ROSC ACHIEVED" in defib["metrics"]["alarm_message"]
+
+    # Transcutaneous Pacing (TCP) 70 bpm capture
+    tcp = client.post(
+        "/api/cardiac/oscilloscope-rhythm",
+        json={"rhythm": "asystole", "tcp_pacing": True},
+    ).json()
+    assert tcp["metrics"]["heart_rate_bpm"] == 70
+    assert "PACING ACTIVE" in tcp["metrics"]["alarm_message"]
+
+
 
 
 

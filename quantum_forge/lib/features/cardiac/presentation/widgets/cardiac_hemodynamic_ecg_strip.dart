@@ -1,12 +1,27 @@
 // ============================================================================
-// Live Hemodynamic & ECG Telemetry Strip — CardioCath 3D
+// Multi-Parameter Bedside Hospital Oscilloscope & Telemetry Workstation
 // ----------------------------------------------------------------------------
-// Real-time continuous Lead II ECG, Dual Aortic Pa (Red) & Distal Pd (Yellow)
-// pressure waveforms rendered via mathematical CustomPainter.
-// Synchronized to cardiac contraction cycle, BPM, STEMI ST-elevation,
-// live FFR / iFR / WSS metrics, IABP counterpulsation, and catheter damping.
-// Calibrated to 25 mm/s | 10 mm/mV standard Cath Lab telemetry grid with
-// sweeping phosphor erase-bar, leading glowing dots, and QRS sync LED.
+// Modeled after Philips IntelliVue MX800 / GE CARESCAPE B850 ICU & Cath Lab Monitors.
+// Features:
+// 1. 5-Channel Synchronized Hospital Oscilloscope:
+//    - Ch 1: ECG Lead II (or selected active territory lead) — Phosphor Green (#00E676)
+//    - Ch 2: ECG V1 Precordial Lead — Lime Green (#69F0AE)
+//    - Ch 3: Invasive ABP Pa (Crimson #FF5252) + Distal Pd (Yellow #FFD740)
+//    - Ch 4: Plethysmograph SpO₂ — Cyan (#00E5FF) with ~150 ms systolic delay
+//    - Ch 5: Capnography EtCO₂ — Amber (#FFAB40) alveolar plateau (0-50 mmHg)
+// 2. 14 Real-Time Arrhythmias & Conduction States:
+//    - Sinus: NSR, Sinus Bradycardia, Sinus Tachycardia
+//    - Atrial: Atrial Fibrillation (RVR), Atrial Flutter (2:1), SVT (AVNRT)
+//    - AV Blocks: 1° AV Block, 2° Mobitz I (Wenckebach), 2° Mobitz II, 3° Complete AV Block
+//    - Ventricular / Arrest: Monomorphic VT, Torsades de Pointes, VFib, Asystole
+// 3. Electronic Oscilloscope Calipers & Freeze-Frame Mode:
+//    - Draggable vertical calipers (C1, C2) computing delta t (ms) and rate (bpm)
+// 4. Bedside Resuscitation Console:
+//    - Defibrillator (200J Biphasic Shock) delivering shock artifact and ROSC surge
+//    - Transcutaneous Pacing (TCP) with pacing spikes and 70 bpm capture
+// 5. Right-Hand Hospital Numeric Parameter Readout Tiles:
+//    - Stacked color-coded tiles: HR, ABP SYS/DIA (MAP), SpO₂ %, EtCO₂ / RR, PR/QRS/QTc
+// 6. SaMD 7-Pillar Legal Shield Banner: Educational Simulation Only
 // ============================================================================
 
 import 'dart:math' as math;
@@ -32,6 +47,11 @@ class CardiacHemodynamicEcgStrip extends StatefulWidget {
   final double? ifrValue;
   final double? wssDynes;
 
+  // Next-Gen Multi-Parameter Oscilloscope props
+  final OscilloscopeRhythmType initialRhythm;
+  final ValueChanged<OscilloscopeRhythmType>? onRhythmChanged;
+  final VoidCallback? onDefibrillated;
+
   const CardiacHemodynamicEcgStrip({
     super.key,
     required this.scenario,
@@ -48,6 +68,9 @@ class CardiacHemodynamicEcgStrip extends StatefulWidget {
     this.ffrValue,
     this.ifrValue,
     this.wssDynes,
+    this.initialRhythm = OscilloscopeRhythmType.nsr,
+    this.onRhythmChanged,
+    this.onDefibrillated,
   });
 
   // ───────────────────────────────────────────────────────────────────────────
@@ -111,16 +134,6 @@ class CardiacHemodynamicEcgStrip extends StatefulWidget {
   }
 
   /// Computes physiological Aortic Pressure Pa (mmHg) at cardiac cycle phase [phase].
-  ///
-  /// Strict Electro-Mechanical Phase Lock (Wiggers Diagram):
-  /// - phi = 0.270: Ventricular depolarization (R-wave peak).
-  /// - phi in [0.270, 0.330]: Isovolumetric contraction -> Left ventricle generates
-  ///   pressure against closed aortic valve. Pa remains at diastolic nadir (80 mmHg).
-  /// - phi = 0.330: Aortic valve opens -> Steep systolic upstroke begins.
-  /// - phi = 0.440: Peak systolic pressure (120 mmHg) during ventricular ejection.
-  /// - phi = 0.560: Ventricular ejection ceases -> Pa drops to ~91 mmHg.
-  /// - phi = 0.570: Dicrotic notch incisura (aortic valve closure) with rebound to 94 mmHg at 0.590.
-  /// - phi > 0.600: Diastolic runoff exponential Windkessel decay returning to 80 mmHg.
   static double computeAorticPressure(
     double phase,
     bool damped,
@@ -177,6 +190,97 @@ class CardiacHemodynamicEcgStrip extends StatefulWidget {
     return p;
   }
 
+  /// Synthesizes Precordial Lead V1 sample (mV)
+  static double computePrecordialV1Sample(double phase, OscilloscopeRhythmType rhythm) {
+    final phi = phase % 1.0;
+    if (rhythm == OscilloscopeRhythmType.vfib) {
+      return 0.30 * math.sin(phi * 28.0) + 0.22 * math.sin(phi * 44.0 + 1.2);
+    }
+    if (rhythm == OscilloscopeRhythmType.asystole) {
+      return 0.01 * math.sin(phi * 4.0);
+    }
+    if (rhythm == OscilloscopeRhythmType.vtach) {
+      // Negative concordance wide QRS in V1
+      if (phi >= 0.20 && phi <= 0.38) {
+        final tau = (phi - 0.20) / 0.18;
+        return -1.3 * math.sin(tau * math.pi);
+      }
+      return 0.15 * math.sin(phi * 6.0);
+    }
+    if (rhythm == OscilloscopeRhythmType.torsades) {
+      final tau = (phi - 0.20) / 0.18;
+      if (phi >= 0.20 && phi <= 0.38) {
+        return 1.1 * math.sin(tau * math.pi) * math.cos(phase * 4.0);
+      }
+      return 0.0;
+    }
+    // Normal V1 morphology: small r +0.2 mV, deep S -0.9 mV
+    if (phi >= 0.250 && phi <= 0.270) {
+      final tau = (phi - 0.250) / 0.020;
+      return 0.22 * math.sin(tau * math.pi);
+    } else if (phi > 0.270 && phi <= 0.315) {
+      final tau = (phi - 0.270) / 0.045;
+      return -0.95 * math.sin(tau * math.pi);
+    } else if (phi > 0.340 && phi <= 0.540) {
+      final tau = (phi - 0.340) / 0.200;
+      return 0.16 * math.sin(tau * math.pi);
+    }
+    return 0.0;
+  }
+
+  /// Synthesizes Photoplethysmogram SpO2 Pleth sample (0.0 to 1.0)
+  static double computePlethSample(double phase, OscilloscopeRhythmType rhythm, double spo2Pct) {
+    if (rhythm == OscilloscopeRhythmType.vfib || rhythm == OscilloscopeRhythmType.asystole) {
+      return 0.04 + 0.01 * math.sin(phase * 12.0); // Flatline/no pulse
+    }
+    final phi = phase % 1.0;
+    final amp = (rhythm == OscilloscopeRhythmType.vtach || rhythm == OscilloscopeRhythmType.torsades)
+        ? 0.30
+        : (spo2Pct / 100.0);
+
+    // Delayed pulse arriving ~140 ms post-QRS (phi ~0.40 to 0.85)
+    if (phi >= 0.38 && phi <= 0.54) {
+      final tau = (phi - 0.38) / 0.16;
+      return 0.05 + amp * 0.95 * math.sin(tau * math.pi * 0.5);
+    } else if (phi > 0.54 && phi <= 0.68) {
+      final tau = (phi - 0.54) / 0.14;
+      return 0.05 + amp * (0.95 - 0.32 * tau);
+    } else if (phi > 0.68 && phi <= 0.76) {
+      // Dicrotic reflection
+      final tau = (phi - 0.68) / 0.08;
+      return 0.05 + amp * (0.63 + 0.10 * math.sin(tau * math.pi));
+    } else if (phi > 0.76 && phi <= 0.98) {
+      final tau = (phi - 0.76) / 0.22;
+      return 0.05 + amp * 0.63 * math.exp(-3.0 * tau);
+    }
+    return 0.05;
+  }
+
+  /// Synthesizes Alveolar Capnogram EtCO2 sample (0 to 50 mmHg)
+  static double computeEtco2Sample(double phase, OscilloscopeRhythmType rhythm, double etco2MmHg) {
+    if (rhythm == OscilloscopeRhythmType.vfib || rhythm == OscilloscopeRhythmType.asystole) {
+      return math.min(etco2MmHg, 8.0); // Severe low-flow arrest capnography (< 10 mmHg)
+    }
+    final phi = phase % 1.0;
+    // Expiration: 0.10 to 0.50 | Inspiration: 0.50 to 1.0
+    if (phi < 0.10) {
+      return 0.0; // Phase I
+    } else if (phi >= 0.10 && phi <= 0.18) {
+      // Phase II upstroke
+      final tau = (phi - 0.10) / 0.08;
+      return (etco2MmHg * 0.85) * (1.0 / (1.0 + math.exp(-10.0 * (tau - 0.5))));
+    } else if (phi > 0.18 && phi <= 0.48) {
+      // Phase III alveolar plateau
+      final tau = (phi - 0.18) / 0.30;
+      return etco2MmHg * 0.85 + (etco2MmHg * 0.15) * tau;
+    } else if (phi > 0.48 && phi <= 0.53) {
+      // Phase IV inspiratory downstroke
+      final tau = (phi - 0.48) / 0.05;
+      return etco2MmHg * (1.0 - tau);
+    }
+    return 0.0;
+  }
+
   @override
   State<CardiacHemodynamicEcgStrip> createState() => _CardiacHemodynamicEcgStripState();
 }
@@ -185,14 +289,100 @@ class _CardiacHemodynamicEcgStripState extends State<CardiacHemodynamicEcgStrip>
   int _beatParity = 0;
   double _lastPhase = 0.0;
 
+  // Multi-parameter Monitor State
+  late OscilloscopeRhythmType _currentRhythm;
+  bool _isFrozen = false;
+  double _caliper1X = 0.30; // 0.0 to 1.0
+  double _caliper2X = 0.55; // 0.0 to 1.0
+  int _sweepSpeedMmS = 25;  // 25 mm/s vs 50 mm/s
+  int _ecgGainMmMv = 10;    // 5, 10, 20 mm/mV
+  bool _tcpActive = false;  // Transcutaneous pacing
+  bool _showShockFlash = false;
+  String? _alertBannerText;
+  Color _alertBannerColor = const Color(0xFFFF1744);
+
+  @override
+  void initState() {
+    super.initState();
+    _currentRhythm = widget.initialRhythm;
+    _updateAlertBanner();
+  }
+
   @override
   void didUpdateWidget(covariant CardiacHemodynamicEcgStrip oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // Detect phase wrap-around (1.0 -> 0.0) to advance phosphor sweep beat parity
-    if (widget.cardiacPhase < _lastPhase - 0.5) {
-      _beatParity = (_beatParity + 1) % 2;
+    if (!_isFrozen) {
+      if (widget.cardiacPhase < _lastPhase && (_lastPhase - widget.cardiacPhase) > 0.5) {
+        _beatParity = (_beatParity + 1) % 2;
+      }
+      _lastPhase = widget.cardiacPhase;
     }
-    _lastPhase = widget.cardiacPhase;
+  }
+
+  void _updateAlertBanner() {
+    if (_currentRhythm.isArrest) {
+      _alertBannerText = '⚠️ CODE BLUE: PULSELESS ARREST (${_currentRhythm.badge}) — RESUSCITATION PROTOCOL ACTIVE';
+      _alertBannerColor = const Color(0xFFFF1744);
+    } else if (_currentRhythm == OscilloscopeRhythmType.vtach || _currentRhythm == OscilloscopeRhythmType.torsades) {
+      _alertBannerText = '⚠️ TACHYARRHYTHMIA ALERT: ${_currentRhythm.label} — UNSTABLE HEMODYNAMICS';
+      _alertBannerColor = const Color(0xFFFF9100);
+    } else if (_currentRhythm == OscilloscopeRhythmType.avb3Complete) {
+      _alertBannerText = '⚠️ CRITICAL CONDUCTION BLOCK: 3° COMPLETE HEART BLOCK — PACEMAKER INDICATED';
+      _alertBannerColor = const Color(0xFFFF5252);
+    } else {
+      _alertBannerText = null;
+    }
+  }
+
+  void _switchRhythm(OscilloscopeRhythmType rhythm) {
+    setState(() {
+      _currentRhythm = rhythm;
+      _updateAlertBanner();
+      // Adjust heart rate to match rhythm
+      if (rhythm.defaultHr > 0) {
+        widget.onBpmChanged(rhythm.defaultHr.toDouble());
+      }
+    });
+    widget.onRhythmChanged?.call(rhythm);
+  }
+
+  void _deliver200JDefib() {
+    setState(() {
+      _showShockFlash = true;
+    });
+
+    Future.delayed(const Duration(milliseconds: 300), () {
+      if (mounted) {
+        setState(() {
+          _showShockFlash = false;
+          if (_currentRhythm.isShockable || _currentRhythm.isArrest) {
+            // Achieve ROSC back to NSR
+            _currentRhythm = OscilloscopeRhythmType.nsr;
+            widget.onBpmChanged(85.0);
+            _alertBannerText = '⚡ 200J BIPHASIC DELIVERED — ROSC ACHIEVED (NSR 85 BPM, EtCO₂ SURGED > 40 mmHg)';
+            _alertBannerColor = const Color(0xFF00E676);
+          } else {
+            _alertBannerText = '⚡ 200J BIPHASIC SYNCHRONIZED CARDIOVERSION DELIVERED';
+            _alertBannerColor = const Color(0xFF00E5FF);
+          }
+        });
+        widget.onDefibrillated?.call();
+        widget.onRhythmChanged?.call(_currentRhythm);
+      }
+    });
+  }
+
+  void _toggleTcpPacing() {
+    setState(() {
+      _tcpActive = !_tcpActive;
+      if (_tcpActive) {
+        widget.onBpmChanged(70.0);
+        _alertBannerText = '⚡ TRANSCUTANEOUS PACING ACTIVE — VENTRICULAR CAPTURE AT 70 BPM';
+        _alertBannerColor = const Color(0xFF69F0AE);
+      } else {
+        _updateAlertBanner();
+      }
+    });
   }
 
   double _computeEffectiveStElevation() {
@@ -203,7 +393,7 @@ class _CardiacHemodynamicEcgStripState extends State<CardiacHemodynamicEcgStrip>
           baseSt = 4.5;
           break;
         case EcgTerritoryLead.inferiorLeads:
-          baseSt = -2.0; // Reciprocal depression in inferior leads
+          baseSt = -2.0;
           break;
         case EcgTerritoryLead.lateralLeads:
           baseSt = 1.2;
@@ -218,10 +408,10 @@ class _CardiacHemodynamicEcgStripState extends State<CardiacHemodynamicEcgStrip>
           baseSt = 3.8;
           break;
         case EcgTerritoryLead.v1V4Anterior:
-          baseSt = -2.2; // Reciprocal depression in anterior leads
+          baseSt = -2.2;
           break;
         case EcgTerritoryLead.lateralLeads:
-          baseSt = -1.5; // Reciprocal depression in high lateral aVL
+          baseSt = -1.5;
           break;
         case EcgTerritoryLead.leadII:
           baseSt = widget.scenario.stElevationMm;
@@ -232,7 +422,7 @@ class _CardiacHemodynamicEcgStripState extends State<CardiacHemodynamicEcgStrip>
     }
 
     if (widget.isRevascularized) {
-      return baseSt * 0.25; // 75% resolution post-revascularization
+      return baseSt * 0.25;
     }
     return baseSt;
   }
@@ -241,335 +431,97 @@ class _CardiacHemodynamicEcgStripState extends State<CardiacHemodynamicEcgStrip>
   Widget build(BuildContext context) {
     final palette = ThemeNotifier.paletteOf(context);
 
-    // Calculate dynamic hemodynamics
+    // Compute active hemodynamics
     final isShock = widget.complication == AcuteComplicationState.cardiogenicShock;
-    final sys = isShock ? 75.0 : widget.scenario.systolicBp;
-    final dia = isShock ? 48.0 : widget.scenario.diastolicBp;
+    final baseSys = isShock ? 75.0 : _currentRhythm.defaultSys.toDouble();
+    final baseDia = isShock ? 48.0 : _currentRhythm.defaultDia.toDouble();
+    final sys = _tcpActive ? 112.0 : baseSys;
+    final dia = _tcpActive ? 70.0 : baseDia;
     final map = dia + (sys - dia) / 3.0;
+    final spo2 = _tcpActive ? 97.0 : _currentRhythm.defaultSpo2;
+    final etco2 = _tcpActive ? 38.0 : _currentRhythm.defaultEtco2;
     final effectiveSt = _computeEffectiveStElevation();
 
     final isPressureWire = widget.wireType == InterventionalWireType.pressureWireX;
     final isDamped = widget.scenario.isCatheterDamped ||
         widget.complication == AcuteComplicationState.lmVentricularization ||
-        (widget.catheterType == GuideCatheterType.al1 &&
-            widget.scenario.id.contains('critical_lm'));
+        (widget.catheterType == GuideCatheterType.al1 && widget.scenario.id.contains('critical_lm'));
 
-    // R-Wave QRS Electrical Depolarization Sync (phi in [0.255, 0.295])
     final isQrsActive = widget.cardiacPhase >= 0.255 && widget.cardiacPhase <= 0.295;
-
-    // Continuous 2-beat phosphor sweep progress across the canvas width [0.0, 1.0]
     final sweepProgress = (_beatParity * 0.5) + (widget.cardiacPhase * 0.5);
 
     return Container(
-      height: 200,
       decoration: BoxDecoration(
-        color: const Color(0xFF070B10),
+        color: const Color(0xFF05080E),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: palette.border),
+        border: Border.all(color: _showShockFlash ? Colors.white : palette.border, width: _showShockFlash ? 2.0 : 1.0),
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(12),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // ── Top Telemetry Readout Strip ─────────────────────────────────
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: const BoxDecoration(
-                color: Color(0xFF0F1722),
-                border: Border(bottom: BorderSide(color: Colors.white12)),
-              ),
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: [
-                    const Icon(Icons.monitor_heart_rounded,
-                        color: Color(0xFF00E676), size: 16),
-                    const SizedBox(width: 6),
-                    const Text(
-                      'CATH LAB TELEMETRY',
-                      style: TextStyle(
-                        color: Color(0xFF00E676),
-                        fontSize: 10.5,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 0.8,
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    const CardiacInfoButton(
-                      topicId: 'viewport_telemetry',
-                      customLabel: 'Wiggers & ECG Info',
-                      size: 12,
-                    ),
-                    const SizedBox(width: 12),
+            // ── Top Oscilloscope Header & Resuscitation Bar ─────────────────
+            _buildMonitorHeader(sys, dia, map, effectiveSt, isPressureWire, isDamped, isQrsActive),
 
-                    // Heart Rate with live R-Wave QRS Sync LED
-                    _vitalsBadge(
-                      label: 'HR',
-                      value: '${widget.bpm.round()} bpm',
-                      color: widget.bpm < 60
-                          ? const Color(0xFFFFB300)
-                          : (widget.bpm > 100
-                              ? const Color(0xFFFF5252)
-                              : const Color(0xFF00E676)),
-                    ),
-                    const SizedBox(width: 6),
-                    _qrsSyncIndicator(isQrsActive),
-                    const SizedBox(width: 12),
+            // ── Flashing Code Blue / Tachyarrhythmia Alert Banner ───────────
+            if (_alertBannerText != null) _buildAlertBanner(),
 
-                    _vitalsBadge(
-                      label: 'Ao BP',
-                      value: '${sys.round()}/${dia.round()} mmHg',
-                      color: isDamped
-                          ? const Color(0xFFFF5252)
-                          : const Color(0xFF00E5FF),
-                    ),
-                    const SizedBox(width: 10),
-                    _vitalsBadge(
-                      label: 'MAP',
-                      value: '${map.round()} mmHg',
-                      color: map < 65
-                          ? const Color(0xFFFF5252)
-                          : const Color(0xFF00E5FF),
-                    ),
-                    const SizedBox(width: 10),
+            // ── 14-Rhythm Hospital Selector Bar ────────────────────────────
+            _buildRhythmSelectorBar(),
 
-                    // ST-Segment elevation / depression readout
-                    _vitalsBadge(
-                      label: 'ST (${widget.activeTerritory.shortLabel})',
-                      value: '${effectiveSt >= 0 ? "+" : ""}${effectiveSt.toStringAsFixed(1)} mm',
-                      color: effectiveSt.abs() > 1.0
-                          ? (effectiveSt > 0 ? const Color(0xFFFF1744) : const Color(0xFF38BDF8))
-                          : const Color(0xFF00E676),
-                    ),
-
-                    // Pressure Wire Metrics (FFR & iFR)
-                    if (isPressureWire && widget.ffrValue != null) ...[
-                      const SizedBox(width: 10),
-                      _vitalsBadge(
-                        label: 'FFR (Pd/Pa)',
-                        value: widget.ffrValue!.toStringAsFixed(2),
-                        color: widget.ffrValue! <= 0.80
-                            ? const Color(0xFFFF1744)
-                            : const Color(0xFF00E676),
-                      ),
-                    ],
-
-                    if (isPressureWire && widget.ifrValue != null) ...[
-                      const SizedBox(width: 10),
-                      _vitalsBadge(
-                        label: 'iFR (WFP)',
-                        value: widget.ifrValue!.toStringAsFixed(2),
-                        color: widget.ifrValue! <= 0.89
-                            ? const Color(0xFFFF9800)
-                            : const Color(0xFF00E676),
-                      ),
-                    ],
-
-                    if (widget.wssDynes != null) ...[
-                      const SizedBox(width: 10),
-                      _vitalsBadge(
-                        label: 'WSS',
-                        value: '${widget.wssDynes!.toStringAsFixed(0)} dyn/cm²',
-                        color: widget.wssDynes! > 70.0
-                            ? const Color(0xFFFFB300)
-                            : const Color(0xFF38BDF8),
-                      ),
-                      const SizedBox(width: 4),
-                      const CardiacInfoButton(
-                        topicId: 'metric_wss',
-                        size: 11,
-                      ),
-                    ],
-
-                    if (widget.iabpActive) ...[
-                      const SizedBox(width: 10),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF8B5CF6).withValues(alpha: 0.25),
-                          borderRadius: BorderRadius.circular(4),
-                          border: Border.all(color: const Color(0xFF8B5CF6)),
-                        ),
-                        child: const Text(
-                          'IABP 1:1 AUGMENTATION',
-                          style: TextStyle(
-                            color: Color(0xFFA78BFA),
-                            fontSize: 9,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ],
-
-                    const SizedBox(width: 14),
-
-                    // Heart Rate slider control
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
+            // ── 5-Channel Canvas + Right ICU Parameter Tiles ────────────────
+            SizedBox(
+              height: 230,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // Oscilloscope Waveforms Canvas with Draggable Calipers
+                  Expanded(
+                    child: Stack(
                       children: [
-                        const Text('Pace:',
-                            style: TextStyle(color: Colors.white54, fontSize: 9.5)),
-                        SizedBox(
-                          width: 80,
-                          child: SliderTheme(
-                            data: SliderThemeData(
-                              trackHeight: 2,
-                              thumbShape: const RoundSliderThumbShape(
-                                  enabledThumbRadius: 5),
-                              overlayShape: const RoundSliderOverlayShape(
-                                  overlayRadius: 8),
-                              activeTrackColor: const Color(0xFF00E676),
-                              inactiveTrackColor: Colors.white24,
-                              thumbColor: const Color(0xFF00E676),
-                            ),
-                            child: Slider(
-                              value: widget.bpm,
-                              min: 45.0,
-                              max: 130.0,
-                              onChanged: widget.onBpmChanged,
+                        Positioned.fill(
+                          child: CustomPaint(
+                            painter: _FiveChannelHospitalOscilloscopePainter(
+                              cardiacPhase: _isFrozen ? _lastPhase : widget.cardiacPhase,
+                              sweepProgress: _isFrozen ? 0.85 : sweepProgress,
+                              rhythm: _currentRhythm,
+                              stElevationMm: effectiveSt,
+                              isDamped: isDamped,
+                              systolicBp: sys,
+                              diastolicBp: dia,
+                              spo2Pct: spo2,
+                              etco2MmHg: etco2,
+                              leadLabel: widget.activeTerritory.label,
+                              wireType: widget.wireType,
+                              iabpActive: widget.iabpActive,
+                              ffrValue: widget.ffrValue,
+                              sweepSpeedMmS: _sweepSpeedMmS,
+                              gainMmMv: _ecgGainMmMv,
+                              tcpActive: _tcpActive,
                             ),
                           ),
                         ),
+
+                        // Electronic Calipers Overlay in Freeze Mode
+                        if (_isFrozen)
+                          Positioned.fill(
+                            child: _buildCaliperOverlay(),
+                          ),
                       ],
                     ),
-                  ],
-                ),
-              ),
-            ),
+                  ),
 
-            // ── 12-Lead Territory Selection Bar ─────────────────────────────
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-              color: const Color(0xFF0A0F16),
-              child: Row(
-                children: [
-                  const Text(
-                    '12-Lead Territory:',
-                    style: TextStyle(
-                      color: Colors.white70,
-                      fontSize: 9.5,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                        children: EcgTerritoryLead.values.map((territory) {
-                          final isSelected = territory == widget.activeTerritory;
-                          return Padding(
-                            padding: const EdgeInsets.only(right: 6),
-                            child: GestureDetector(
-                              behavior: HitTestBehavior.opaque,
-                              onTap: () => widget.onTerritoryChanged?.call(territory),
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 6, vertical: 2.5),
-                                decoration: BoxDecoration(
-                                  color: isSelected
-                                      ? const Color(0xFF00E676).withValues(alpha: 0.2)
-                                      : Colors.white.withValues(alpha: 0.05),
-                                  borderRadius: BorderRadius.circular(4),
-                                  border: Border.all(
-                                    color: isSelected
-                                        ? const Color(0xFF00E676)
-                                        : Colors.white12,
-                                    width: isSelected ? 1.0 : 0.6,
-                                  ),
-                                ),
-                                child: Text(
-                                  territory.label,
-                                  style: TextStyle(
-                                    color: isSelected
-                                        ? const Color(0xFF00E676)
-                                        : Colors.white70,
-                                    fontSize: 9,
-                                    fontWeight: isSelected
-                                        ? FontWeight.bold
-                                        : FontWeight.normal,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          );
-                        }).toList(),
-                      ),
-                    ),
-                  ),
+                  // Right-Hand ICU Numeric Parameter Tiles
+                  _buildRightIcuNumericTiles(sys, dia, map, spo2, etco2, isQrsActive),
                 ],
               ),
             ),
 
-            // ── Dual Waveforms Canvas (ECG + Dual Pressure Pa/Pd) ───────────
-            Expanded(
-              child: CustomPaint(
-                painter: _DualWaveformsPainter(
-                  cardiacPhase: widget.cardiacPhase,
-                  sweepProgress: sweepProgress,
-                  stElevationMm: effectiveSt,
-                  isDamped: isDamped,
-                  systolicBp: sys,
-                  diastolicBp: dia,
-                  leadLabel: widget.activeTerritory.label,
-                  wireType: widget.wireType,
-                  iabpActive: widget.iabpActive,
-                  ffrValue: widget.ffrValue,
-                ),
-                child: Container(),
-              ),
-            ),
+            // ── Bottom Telemetry Secondary Controls Bar ─────────────────────
+            _buildBottomControlsBar(),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _qrsSyncIndicator(bool active) {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 60),
-      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-      decoration: BoxDecoration(
-        color: active
-            ? const Color(0xFF00E676).withValues(alpha: 0.25)
-            : Colors.transparent,
-        borderRadius: BorderRadius.circular(4),
-        border: Border.all(
-          color: active ? const Color(0xFF00E676) : Colors.white12,
-          width: 0.8,
-        ),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 7,
-            height: 7,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: active ? const Color(0xFF00E676) : const Color(0xFF0B331A),
-              boxShadow: active
-                  ? [
-                      const BoxShadow(
-                        color: Color(0xFF00E676),
-                        blurRadius: 6,
-                        spreadRadius: 1.5,
-                      )
-                    ]
-                  : null,
-            ),
-          ),
-          const SizedBox(width: 4),
-          Text(
-            'QRS',
-            style: TextStyle(
-              color: active ? const Color(0xFF00E676) : Colors.white30,
-              fontSize: 8.5,
-              fontWeight: active ? FontWeight.bold : FontWeight.normal,
-              fontFamily: 'monospace',
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -602,429 +554,1009 @@ class _CardiacHemodynamicEcgStripState extends State<CardiacHemodynamicEcgStrip>
       ],
     );
   }
-}
 
-// ─────────────────────────────────────────────────────────────────────────────
-// CustomPainter: Dual Oscilloscope (Lead II ECG + Pa/Pd Pressure Strip)
-// ─────────────────────────────────────────────────────────────────────────────
-
-class _DualWaveformsPainter extends CustomPainter {
-  final double cardiacPhase;
-  final double sweepProgress;
-  final double stElevationMm;
-  final bool isDamped;
-  final double systolicBp;
-  final double diastolicBp;
-  final String leadLabel;
-  final InterventionalWireType wireType;
-  final bool iabpActive;
-  final double? ffrValue;
-
-  _DualWaveformsPainter({
-    required this.cardiacPhase,
-    required this.sweepProgress,
-    required this.stElevationMm,
-    required this.isDamped,
-    required this.systolicBp,
-    required this.diastolicBp,
-    required this.leadLabel,
-    required this.wireType,
-    required this.iabpActive,
-    this.ffrValue,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final ecgBounds = Rect.fromLTWH(0, 0, size.width, size.height * 0.48);
-    final bpBounds =
-        Rect.fromLTWH(0, size.height * 0.52, size.width, size.height * 0.48);
-
-    _drawTelemetryGrid(canvas, size);
-    _drawEcgWaveform(canvas, ecgBounds);
-    _drawArterialPressureWaveforms(canvas, bpBounds);
-    _drawPhosphorSweepBeam(canvas, size);
-  }
-
-  /// Standard Cath Lab Telemetry Calibration Grid (25 mm/s | 10 mm/mV)
-  /// - Minor grid: 1 mm spacing (~4 px), subtle salmon/red line
-  /// - Major grid: 5 mm spacing (20 px = 5 minor boxes), bold accent
-  void _drawTelemetryGrid(Canvas canvas, Size size) {
-    final minorPaint = Paint()
-      ..color = const Color(0xFFEF5350).withValues(alpha: 0.05)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 0.5;
-
-    final majorPaint = Paint()
-      ..color = const Color(0xFFEF5350).withValues(alpha: 0.14)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 0.8;
-
-    const double minorStep = 4.0;
-    const double majorStep = 20.0;
-
-    // Minor vertical lines
-    for (double x = 0; x < size.width; x += minorStep) {
-      if ((x % majorStep).abs() > 0.01) {
-        canvas.drawLine(Offset(x, 0), Offset(x, size.height), minorPaint);
-      }
-    }
-    // Major vertical lines
-    for (double x = 0; x < size.width; x += majorStep) {
-      canvas.drawLine(Offset(x, 0), Offset(x, size.height), majorPaint);
-    }
-
-    // Minor horizontal lines
-    for (double y = 0; y < size.height; y += minorStep) {
-      if ((y % majorStep).abs() > 0.01) {
-        canvas.drawLine(Offset(0, y), Offset(size.width, y), minorPaint);
-      }
-    }
-    // Major horizontal lines
-    for (double y = 0; y < size.height; y += majorStep) {
-      canvas.drawLine(Offset(0, y), Offset(size.width, y), majorPaint);
-    }
-
-    // Middle separator bar between ECG and Pressure
-    final dividerPaint = Paint()
-      ..color = Colors.white24
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.0;
-    canvas.drawLine(Offset(0, size.height * 0.50),
-        Offset(size.width, size.height * 0.50), dividerPaint);
-  }
-
-  void _drawEcgWaveform(Canvas canvas, Rect bounds) {
-    final baselineY = bounds.top + bounds.height * 0.70;
-    final sweepWidth = bounds.width;
-
-    // Standard 1 mV Calibration Pulse on Far-Left Margin (10 mm vertical step = 36 px)
-    _drawCalibrationPulse(canvas, bounds, baselineY);
-
-    // Header Lead Label + Telemetry Calibration Badge
-    final textPainter = TextPainter(
-      text: TextSpan(
+  Widget _qrsSyncIndicator(bool active) {
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 60),
+      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+      decoration: BoxDecoration(
+        color: active ? const Color(0xFF00E676).withValues(alpha: 0.25) : Colors.transparent,
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(
+          color: active ? const Color(0xFF00E676) : Colors.white12,
+          width: 0.8,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          TextSpan(
-            text: 'ECG $leadLabel  ',
-            style: const TextStyle(
-              color: Color(0xFF00E676),
-              fontSize: 9.5,
-              fontFamily: 'monospace',
-              fontWeight: FontWeight.bold,
+          Container(
+            width: 7,
+            height: 7,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: active ? const Color(0xFF00E676) : const Color(0xFF0B331A),
             ),
           ),
-          const TextSpan(
-            text: '[25 mm/s | 10 mm/mV]',
+          const SizedBox(width: 4),
+          Text(
+            'QRS',
             style: TextStyle(
-              color: Colors.white38,
+              color: active ? const Color(0xFF00E676) : Colors.white30,
               fontSize: 8.5,
+              fontWeight: active ? FontWeight.bold : FontWeight.normal,
               fontFamily: 'monospace',
             ),
           ),
         ],
       ),
-      textDirection: TextDirection.ltr,
-    )..layout();
-    textPainter.paint(canvas, Offset(8, bounds.top + 4));
-
-    // Continuous 2-beat waveform across width
-    const int numSamples = 240;
-    const double numBeats = 2.0;
-    final cursorX = sweepProgress * sweepWidth;
-    const double eraseGap = 24.0;
-
-    final ecgPaint = Paint()
-      ..color = const Color(0xFF00E676)
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round
-      ..strokeWidth = 1.7;
-
-    Path? currentPath;
-    double? activeCursorY;
-
-    for (int i = 0; i <= numSamples; i++) {
-      final x = (i / numSamples) * sweepWidth;
-
-      // Check if x is inside the CRT sweeping erase-head gap
-      final inEraseGap = (cursorX + eraseGap <= sweepWidth)
-          ? (x >= cursorX && x <= cursorX + eraseGap)
-          : (x >= cursorX || x <= (cursorX + eraseGap) - sweepWidth);
-
-      if (inEraseGap) {
-        if (currentPath != null) {
-          canvas.drawPath(currentPath, ecgPaint);
-          currentPath = null;
-        }
-        continue;
-      }
-
-      final localPhase = ((x / sweepWidth) * numBeats) % 1.0;
-      final ecgVal = CardiacHemodynamicEcgStrip.computeSyntheticEcgSample(
-          localPhase, stElevationMm);
-
-      // 10 mm/mV scaling: 1.0 mV = 36 px deflection
-      final y = baselineY - (ecgVal * 36.0);
-
-      // Capture exact position of leading beam dot
-      if ((x - cursorX).abs() < (sweepWidth / numSamples) * 1.2) {
-        activeCursorY = y;
-      }
-
-      if (currentPath == null) {
-        currentPath = Path()..moveTo(x, y);
-      } else {
-        currentPath.lineTo(x, y);
-      }
-    }
-
-    if (currentPath != null) {
-      canvas.drawPath(currentPath, ecgPaint);
-    }
-
-    // Glowing phosphor leading dot at sweep cursor
-    final dotY = activeCursorY ??
-        (baselineY -
-            (CardiacHemodynamicEcgStrip.computeSyntheticEcgSample(
-                    (cardiacPhase % 1.0), stElevationMm) *
-                36.0));
-    _drawGlowingDot(canvas, Offset(cursorX, dotY), const Color(0xFF00E676));
+    );
   }
 
-  void _drawCalibrationPulse(Canvas canvas, Rect bounds, double baselineY) {
-    const double pulseStartX = 10.0;
-    const double pulseWidth = 12.0;
-    const double pulseHeight = 36.0; // 1.0 mV = 36 px at 10 mm/mV
+  Widget _buildMonitorHeader(
+    double sys,
+    double dia,
+    double map,
+    double effectiveSt,
+    bool isPressureWire,
+    bool isDamped,
+    bool isQrsActive,
+  ) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: const BoxDecoration(
+        color: Color(0xFF0C131D),
+        border: Border(bottom: BorderSide(color: Colors.white12)),
+      ),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: [
+            const Icon(Icons.monitor_heart_rounded, color: Color(0xFF00E676), size: 16),
+            const SizedBox(width: 6),
+            const Text(
+              'CATH LAB TELEMETRY',
+              style: TextStyle(
+                color: Color(0xFF00E676),
+                fontSize: 10.5,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 0.8,
+              ),
+            ),
+            const SizedBox(width: 6),
+            const CardiacInfoButton(
+              topicId: 'viewport_telemetry',
+              customLabel: 'Wiggers & ECG Info',
+              size: 11,
+            ),
+            const SizedBox(width: 10),
 
-    final calPath = Path()
-      ..moveTo(pulseStartX - 4.0, baselineY)
-      ..lineTo(pulseStartX, baselineY)
-      ..lineTo(pulseStartX, baselineY - pulseHeight)
-      ..lineTo(pulseStartX + pulseWidth, baselineY - pulseHeight)
-      ..lineTo(pulseStartX + pulseWidth, baselineY)
-      ..lineTo(pulseStartX + pulseWidth + 4.0, baselineY);
+            // Heart Rate with live R-Wave QRS Sync LED
+            _vitalsBadge(
+              label: 'HR',
+              value: '${widget.bpm.round()} bpm',
+              color: widget.bpm < 60
+                  ? const Color(0xFFFFB300)
+                  : (widget.bpm > 100
+                      ? const Color(0xFFFF5252)
+                      : const Color(0xFF00E676)),
+            ),
+            const SizedBox(width: 6),
+            _qrsSyncIndicator(isQrsActive),
+            const SizedBox(width: 10),
 
-    final calPaint = Paint()
-      ..color = const Color(0xFF00E676).withValues(alpha: 0.7)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.2;
+            _vitalsBadge(
+              label: 'Ao BP',
+              value: '${sys.round()}/${dia.round()} mmHg',
+              color: isDamped
+                  ? const Color(0xFFFF5252)
+                  : const Color(0xFF00E5FF),
+            ),
+            const SizedBox(width: 10),
+            _vitalsBadge(
+              label: 'MAP',
+              value: '${map.round()} mmHg',
+              color: map < 65
+                  ? const Color(0xFFFF5252)
+                  : const Color(0xFF00E5FF),
+            ),
+            const SizedBox(width: 10),
 
-    canvas.drawPath(calPath, calPaint);
+            // ST-Segment elevation / depression readout
+            _vitalsBadge(
+              label: 'ST (${widget.activeTerritory.shortLabel})',
+              value: '${effectiveSt >= 0 ? "+" : ""}${effectiveSt.toStringAsFixed(1)} mm',
+              color: effectiveSt.abs() > 1.0
+                  ? (effectiveSt > 0 ? const Color(0xFFFF1744) : const Color(0xFF38BDF8))
+                  : const Color(0xFF00E676),
+            ),
 
-    final calLabel = TextPainter(
-      text: const TextSpan(
-        text: '1mV',
-        style: TextStyle(
-          color: Color(0xFF00E676),
-          fontSize: 7.5,
-          fontFamily: 'monospace',
+            // Pressure Wire Metrics (FFR & iFR)
+            if (isPressureWire && widget.ffrValue != null) ...[
+              const SizedBox(width: 10),
+              _vitalsBadge(
+                label: 'FFR (Pd/Pa)',
+                value: widget.ffrValue!.toStringAsFixed(2),
+                color: widget.ffrValue! <= 0.80
+                    ? const Color(0xFFFF1744)
+                    : const Color(0xFF00E676),
+              ),
+            ],
+
+            if (isPressureWire && widget.ifrValue != null) ...[
+              const SizedBox(width: 10),
+              _vitalsBadge(
+                label: 'iFR (WFP)',
+                value: widget.ifrValue!.toStringAsFixed(2),
+                color: widget.ifrValue! <= 0.89
+                    ? const Color(0xFFFF9800)
+                    : const Color(0xFF00E676),
+              ),
+            ],
+
+            if (widget.wssDynes != null) ...[
+              const SizedBox(width: 10),
+              _vitalsBadge(
+                label: 'WSS',
+                value: '${widget.wssDynes!.toStringAsFixed(0)} dyn/cm²',
+                color: widget.wssDynes! > 70.0
+                    ? const Color(0xFFFFB300)
+                    : const Color(0xFF38BDF8),
+              ),
+            ],
+
+            if (widget.iabpActive) ...[
+              const SizedBox(width: 10),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2.5),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF8B5CF6).withValues(alpha: 0.25),
+                  borderRadius: BorderRadius.circular(4),
+                  border: Border.all(color: const Color(0xFF8B5CF6)),
+                ),
+                child: const Text(
+                  'IABP 1:1 AUGMENTATION',
+                  style: TextStyle(
+                    color: Color(0xFFA78BFA),
+                    fontSize: 8.5,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+
+            const SizedBox(width: 12),
+
+            // Defibrillator 200J Biphasic Button
+            ElevatedButton.icon(
+              onPressed: _deliver200JDefib,
+              icon: const Icon(Icons.bolt_rounded, size: 13, color: Colors.white),
+              label: Text(
+                _currentRhythm.isShockable ? '200J DEFIB (SHOCKABLE)' : '200J BIPHASIC SHOCK',
+                style: const TextStyle(fontSize: 9.5, fontWeight: FontWeight.bold, letterSpacing: 0.5),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _currentRhythm.isShockable ? const Color(0xFFFF1744) : const Color(0xFFD32F2F),
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                minimumSize: Size.zero,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+            ),
+            const SizedBox(width: 8),
+
+            // Transcutaneous Pacing (TCP) Toggle
+            OutlinedButton.icon(
+              onPressed: _toggleTcpPacing,
+              icon: Icon(Icons.flash_on_rounded, size: 12, color: _tcpActive ? const Color(0xFF00E676) : Colors.white60),
+              label: Text(
+                _tcpActive ? 'TCP: 70 BPM (CAPTURED)' : 'TCP PACER (70 BPM)',
+                style: TextStyle(
+                  fontSize: 9.5,
+                  fontWeight: FontWeight.bold,
+                  color: _tcpActive ? const Color(0xFF00E676) : Colors.white70,
+                ),
+              ),
+              style: OutlinedButton.styleFrom(
+                side: BorderSide(color: _tcpActive ? const Color(0xFF00E676) : Colors.white24),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                minimumSize: Size.zero,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+            ),
+            const SizedBox(width: 8),
+
+            // Freeze / Calipers Toggle
+            OutlinedButton.icon(
+              onPressed: () => setState(() => _isFrozen = !_isFrozen),
+              icon: Icon(_isFrozen ? Icons.play_arrow_rounded : Icons.ac_unit_rounded, size: 12, color: _isFrozen ? const Color(0xFF00E5FF) : Colors.white60),
+              label: Text(
+                _isFrozen ? 'UNFREEZE' : 'FREEZE CALIPERS',
+                style: TextStyle(
+                  fontSize: 9.5,
+                  fontWeight: FontWeight.bold,
+                  color: _isFrozen ? const Color(0xFF00E5FF) : Colors.white70,
+                ),
+              ),
+              style: OutlinedButton.styleFrom(
+                side: BorderSide(color: _isFrozen ? const Color(0xFF00E5FF) : Colors.white24),
+                backgroundColor: _isFrozen ? const Color(0xFF00E5FF).withValues(alpha: 0.15) : Colors.transparent,
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                minimumSize: Size.zero,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+            ),
+            const SizedBox(width: 8),
+
+            // Sweep Speed Toggle (25 vs 50 mm/s)
+            InkWell(
+              onTap: () => setState(() => _sweepSpeedMmS = (_sweepSpeedMmS == 25) ? 50 : 25),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.white24),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  'SWEEP: $_sweepSpeedMmS mm/s',
+                  style: const TextStyle(color: Colors.white70, fontSize: 9, fontFamily: 'monospace'),
+                ),
+              ),
+            ),
+            const SizedBox(width: 6),
+
+            // ECG Gain Toggle (5, 10, 20 mm/mV)
+            InkWell(
+              onTap: () => setState(() {
+                if (_ecgGainMmMv == 5) {
+                  _ecgGainMmMv = 10;
+                } else if (_ecgGainMmMv == 10) {
+                  _ecgGainMmMv = 20;
+                } else {
+                  _ecgGainMmMv = 5;
+                }
+              }),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.white24),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  'GAIN: $_ecgGainMmMv mm/mV',
+                  style: const TextStyle(color: Colors.white70, fontSize: 9, fontFamily: 'monospace'),
+                ),
+              ),
+            ),
+            const SizedBox(width: 10),
+
+            // Heart Rate slider control
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text('Pace:', style: TextStyle(color: Colors.white54, fontSize: 9.5)),
+                SizedBox(
+                  width: 75,
+                  child: SliderTheme(
+                    data: SliderThemeData(
+                      trackHeight: 2,
+                      thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 4),
+                      overlayShape: const RoundSliderOverlayShape(overlayRadius: 7),
+                      activeTrackColor: const Color(0xFF00E676),
+                      inactiveTrackColor: Colors.white24,
+                      thumbColor: const Color(0xFF00E676),
+                    ),
+                    child: Slider(
+                      value: widget.bpm,
+                      min: 45.0,
+                      max: 130.0,
+                      onChanged: widget.onBpmChanged,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
-      textDirection: TextDirection.ltr,
-    )..layout();
-    calLabel.paint(canvas, Offset(pulseStartX + 1, baselineY - pulseHeight - 9));
+    );
   }
 
-  void _drawArterialPressureWaveforms(Canvas canvas, Rect bounds) {
-    final bottomY = bounds.bottom - 6.0;
-    final sweepWidth = bounds.width;
-    final isPressureWire = wireType == InterventionalWireType.pressureWireX;
-
-    // Header label
-    final labelSpan = TextSpan(
-      children: [
-        TextSpan(
-          text: isDamped ? 'Ao (DAMPED / VENTRICULARIZED)' : 'Pa (AORTIC)',
-          style: TextStyle(
-            color: isDamped ? const Color(0xFFFF5252) : const Color(0xFFFF1744),
-            fontSize: 9.5,
-            fontFamily: 'monospace',
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        if (isPressureWire)
-          const TextSpan(
-            text: '  |  Pd (DISTAL WIRE)',
-            style: TextStyle(
-              color: Color(0xFFFFEB3B),
-              fontSize: 9.5,
-              fontFamily: 'monospace',
-              fontWeight: FontWeight.bold,
+  Widget _buildAlertBanner() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      color: _alertBannerColor.withValues(alpha: 0.25),
+      child: Row(
+        children: [
+          Icon(Icons.warning_amber_rounded, size: 14, color: _alertBannerColor),
+          const SizedBox(width: 6),
+          Expanded(
+            child: Text(
+              _alertBannerText!,
+              style: TextStyle(
+                color: _alertBannerColor,
+                fontSize: 9.5,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 0.5,
+              ),
             ),
           ),
-        if (iabpActive)
-          const TextSpan(
-            text: '  [IABP 1:1 AUGMENTED]',
-            style: TextStyle(
-              color: Color(0xFFA78BFA),
-              fontSize: 9.5,
-              fontFamily: 'monospace',
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-      ],
+        ],
+      ),
     );
+  }
 
-    final textPainter = TextPainter(
-      text: labelSpan,
-      textDirection: TextDirection.ltr,
-    )..layout();
-    textPainter.paint(canvas, Offset(8, bounds.top + 4));
+  Widget _buildRhythmSelectorBar() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      color: const Color(0xFF080D14),
+      child: Row(
+        children: [
+          const Text(
+            'RHYTHM:',
+            style: TextStyle(color: Colors.white54, fontSize: 9, fontWeight: FontWeight.bold, letterSpacing: 0.5),
+          ),
+          const SizedBox(width: 6),
+          Expanded(
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: OscilloscopeRhythmType.values.map((rhythm) {
+                  final isSelected = rhythm == _currentRhythm;
+                  Color chipColor = const Color(0xFF00E676);
+                  if (rhythm.isArrest) {
+                    chipColor = const Color(0xFFFF1744);
+                  } else if (rhythm == OscilloscopeRhythmType.vtach || rhythm == OscilloscopeRhythmType.torsades) {
+                    chipColor = const Color(0xFFFF9100);
+                  } else if (rhythm == OscilloscopeRhythmType.avb3Complete || rhythm == OscilloscopeRhythmType.avb2Mobitz2) {
+                    chipColor = const Color(0xFFFF5252);
+                  } else if (rhythm == OscilloscopeRhythmType.afib || rhythm == OscilloscopeRhythmType.aflutter || rhythm == OscilloscopeRhythmType.svt) {
+                    chipColor = const Color(0xFFFFD740);
+                  }
 
-    const int numSamples = 240;
-    const double numBeats = 2.0;
-    final cursorX = sweepProgress * sweepWidth;
-    const double eraseGap = 24.0;
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 5),
+                    child: InkWell(
+                      onTap: () => _switchRhythm(rhythm),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2.5),
+                        decoration: BoxDecoration(
+                          color: isSelected ? chipColor.withValues(alpha: 0.25) : Colors.white.withValues(alpha: 0.04),
+                          borderRadius: BorderRadius.circular(4),
+                          border: Border.all(
+                            color: isSelected ? chipColor : Colors.white12,
+                            width: isSelected ? 1.2 : 0.6,
+                          ),
+                        ),
+                        child: Text(
+                          rhythm.badge,
+                          style: TextStyle(
+                            color: isSelected ? chipColor : Colors.white70,
+                            fontSize: 8.5,
+                            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
-    final paPaint = Paint()
-      ..color = isDamped ? const Color(0xFFFF5252) : const Color(0xFFFF1744)
+  Widget _buildRightIcuNumericTiles(
+    double sys,
+    double dia,
+    double map,
+    double spo2,
+    double etco2,
+    bool isQrsActive,
+  ) {
+    final hrVal = _tcpActive ? 70 : (_currentRhythm.defaultHr > 0 ? _currentRhythm.defaultHr : (widget.bpm.round()));
+    final rrVal = _currentRhythm.isArrest ? 0 : (_currentRhythm == OscilloscopeRhythmType.sinusTachy ? 22 : 14);
+
+    return Container(
+      width: 140,
+      decoration: const BoxDecoration(
+        color: Color(0xFF090E17),
+        border: Border(left: BorderSide(color: Colors.white12)),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Tile 1: Heart Rate (HR)
+            _icuParamTile(
+              label: 'HR bpm',
+              value: _currentRhythm.isArrest ? '---' : '$hrVal',
+              unit: '60-100',
+              color: const Color(0xFF00E676),
+              trailing: AnimatedContainer(
+                duration: const Duration(milliseconds: 60),
+                width: 8,
+                height: 8,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: isQrsActive ? const Color(0xFF00E676) : const Color(0xFF052A15),
+                ),
+              ),
+            ),
+            const SizedBox(height: 5),
+
+            // Tile 2: Invasive Blood Pressure (ABP)
+            _icuParamTile(
+              label: 'ABP Pa mmHg',
+              value: _currentRhythm.isArrest ? '15/14' : '${sys.round()}/${dia.round()}',
+              unit: 'MAP (${map.round()})',
+              color: const Color(0xFFFF5252),
+            ),
+            const SizedBox(height: 5),
+
+            // Tile 3: SpO2 Pleth
+            _icuParamTile(
+              label: 'SpO₂ %',
+              value: _currentRhythm.isArrest ? '---' : '${spo2.round()}%',
+              unit: 'Pleth Normal',
+              color: const Color(0xFF00E5FF),
+            ),
+            const SizedBox(height: 5),
+
+            // Tile 4: EtCO2 Capnography
+            _icuParamTile(
+              label: 'EtCO₂ mmHg',
+              value: '${etco2.round()}',
+              unit: 'RR $rrVal',
+              color: const Color(0xFFFFAB40),
+            ),
+            const SizedBox(height: 5),
+
+            // Tile 5: ECG Intervals
+            Container(
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.04),
+                borderRadius: BorderRadius.circular(4),
+                border: Border.all(color: Colors.white12),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('INTERVALS (II)', style: TextStyle(color: Colors.white38, fontSize: 7.5, fontFamily: 'monospace')),
+                  const SizedBox(height: 2),
+                  Text('PR: ${_currentRhythm.id.contains("avb_1") ? "260" : "160"} ms', style: const TextStyle(color: Color(0xFF90CAF9), fontSize: 8.5, fontFamily: 'monospace')),
+                  Text('QRS: ${_currentRhythm == OscilloscopeRhythmType.vtach ? "160" : (_currentRhythm == OscilloscopeRhythmType.avb3Complete ? "145" : "80")} ms', style: const TextStyle(color: Color(0xFF90CAF9), fontSize: 8.5, fontFamily: 'monospace')),
+                  Text('QTc: ${_currentRhythm == OscilloscopeRhythmType.torsades ? ">540" : "425"} ms', style: const TextStyle(color: Color(0xFF90CAF9), fontSize: 8.5, fontFamily: 'monospace')),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _icuParamTile({
+    required String label,
+    required String value,
+    required String unit,
+    required Color color,
+    Widget? trailing,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(color: color.withValues(alpha: 0.3), width: 0.8),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Flexible(
+                child: Text(
+                  label,
+                  style: TextStyle(color: color.withValues(alpha: 0.8), fontSize: 8, fontWeight: FontWeight.bold),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              ?trailing,
+            ],
+          ),
+          const SizedBox(height: 1),
+          Wrap(
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 4,
+            children: [
+              Text(
+                value,
+                style: TextStyle(color: color, fontSize: 13, fontWeight: FontWeight.bold, fontFamily: 'monospace'),
+              ),
+              Text(
+                unit,
+                style: const TextStyle(color: Colors.white38, fontSize: 7.5, fontFamily: 'monospace'),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCaliperOverlay() {
+    return LayoutBuilder(builder: (context, constraints) {
+      final w = constraints.maxWidth;
+      final c1Px = _caliper1X * w;
+      final c2Px = _caliper2X * w;
+      final deltaPx = (c2Px - c1Px).abs();
+      // At 25 mm/s, full width (~800px) ~2.0 sec -> deltaT = (deltaPx / w) * 2000 ms
+      final deltaT = (deltaPx / w) * 2000.0;
+      final calcRate = deltaT > 20 ? (60000.0 / deltaT).round() : 0;
+
+      return Stack(
+        children: [
+          // Caliper 1 Line
+          Positioned(
+            left: c1Px,
+            top: 0,
+            bottom: 0,
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onHorizontalDragUpdate: (details) {
+                setState(() {
+                  _caliper1X = math.max(0.02, math.min(0.98, _caliper1X + details.delta.dx / w));
+                });
+              },
+              child: Container(
+                width: 14,
+                color: Colors.transparent,
+                child: Center(
+                  child: Container(
+                    width: 2,
+                    color: const Color(0xFF00E5FF),
+                  ),
+                ),
+              ),
+            ),
+          ),
+
+          // Caliper 2 Line
+          Positioned(
+            left: c2Px,
+            top: 0,
+            bottom: 0,
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onHorizontalDragUpdate: (details) {
+                setState(() {
+                  _caliper2X = math.max(0.02, math.min(0.98, _caliper2X + details.delta.dx / w));
+                });
+              },
+              child: Container(
+                width: 14,
+                color: Colors.transparent,
+                child: Center(
+                  child: Container(
+                    width: 2,
+                    color: const Color(0xFFFF4081),
+                  ),
+                ),
+              ),
+            ),
+          ),
+
+          // Measurement Floating Badge
+          Positioned(
+            left: math.min(c1Px, c2Px) + 8,
+            top: 8,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+              decoration: BoxDecoration(
+                color: Colors.black87,
+                borderRadius: BorderRadius.circular(4),
+                border: Border.all(color: const Color(0xFF00E5FF)),
+              ),
+              child: Text(
+                'Δt: ${deltaT.round()} ms | Rate: $calcRate bpm',
+                style: const TextStyle(
+                  color: Color(0xFF00E5FF),
+                  fontSize: 9,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: 'monospace',
+                ),
+              ),
+            ),
+          ),
+        ],
+      );
+    });
+  }
+
+  Widget _buildBottomControlsBar() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: const BoxDecoration(
+        color: Color(0xFF080D14),
+        border: Border(top: BorderSide(color: Colors.white12)),
+      ),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: [
+            const Text('Territory:', style: TextStyle(color: Colors.white54, fontSize: 9)),
+            const SizedBox(width: 6),
+            ...EcgTerritoryLead.values.map((t) {
+              final isSel = t == widget.activeTerritory;
+              return Padding(
+                padding: const EdgeInsets.only(right: 4),
+                child: InkWell(
+                  onTap: () => widget.onTerritoryChanged?.call(t),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: isSel ? const Color(0xFF00E676).withValues(alpha: 0.2) : Colors.transparent,
+                      borderRadius: BorderRadius.circular(3),
+                      border: Border.all(color: isSel ? const Color(0xFF00E676) : Colors.white12),
+                    ),
+                    child: Text(
+                      t.label,
+                      style: TextStyle(
+                        color: isSel ? const Color(0xFF00E676) : Colors.white60,
+                        fontSize: 8.5,
+                        fontWeight: isSel ? FontWeight.bold : FontWeight.normal,
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            }),
+            const SizedBox(width: 12),
+
+            // Legal Shield Pill
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.04),
+                borderRadius: BorderRadius.circular(3),
+                border: Border.all(color: Colors.white12),
+              ),
+              child: const Text(
+                'SaMD 7-Pillar Shield: Educational Simulation Only',
+                style: TextStyle(color: Colors.white38, fontSize: 8),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CustomPainter: 5-Channel Hospital Oscilloscope (Lead II, V1, ABP, SpO2, EtCO2)
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _FiveChannelHospitalOscilloscopePainter extends CustomPainter {
+  final double cardiacPhase;
+  final double sweepProgress;
+  final OscilloscopeRhythmType rhythm;
+  final double stElevationMm;
+  final bool isDamped;
+  final double systolicBp;
+  final double diastolicBp;
+  final double spo2Pct;
+  final double etco2MmHg;
+  final String leadLabel;
+  final InterventionalWireType wireType;
+  final bool iabpActive;
+  final double? ffrValue;
+  final int sweepSpeedMmS;
+  final int gainMmMv;
+  final bool tcpActive;
+
+  _FiveChannelHospitalOscilloscopePainter({
+    required this.cardiacPhase,
+    required this.sweepProgress,
+    required this.rhythm,
+    required this.stElevationMm,
+    required this.isDamped,
+    required this.systolicBp,
+    required this.diastolicBp,
+    required this.spo2Pct,
+    required this.etco2MmHg,
+    required this.leadLabel,
+    required this.wireType,
+    required this.iabpActive,
+    this.ffrValue,
+    required this.sweepSpeedMmS,
+    required this.gainMmMv,
+    required this.tcpActive,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    _drawGrid(canvas, size);
+
+    // 5 Channel vertical layout slices
+    final chHeight = size.height / 5.0;
+    final r1 = Rect.fromLTWH(0, chHeight * 0.0, size.width, chHeight);
+    final r2 = Rect.fromLTWH(0, chHeight * 1.0, size.width, chHeight);
+    final r3 = Rect.fromLTWH(0, chHeight * 2.0, size.width, chHeight);
+    final r4 = Rect.fromLTWH(0, chHeight * 3.0, size.width, chHeight);
+    final r5 = Rect.fromLTWH(0, chHeight * 4.0, size.width, chHeight);
+
+    _drawEcgLeadII(canvas, r1);
+    _drawEcgPrecordialV1(canvas, r2);
+    _drawArterialPressure(canvas, r3);
+    _drawSpo2Pleth(canvas, r4);
+    _drawEtco2Capno(canvas, r5);
+
+    _drawSweepBeam(canvas, size);
+  }
+
+  void _drawGrid(Canvas canvas, Size size) {
+    final minorPaint = Paint()
+      ..color = const Color(0xFFEF5350).withValues(alpha: 0.04)
+      ..strokeWidth = 0.5;
+    final majorPaint = Paint()
+      ..color = const Color(0xFFEF5350).withValues(alpha: 0.12)
+      ..strokeWidth = 0.8;
+
+    const minorStep = 4.0;
+    const majorStep = 20.0;
+
+    for (double x = 0; x < size.width; x += minorStep) {
+      if ((x % majorStep).abs() > 0.01) {
+        canvas.drawLine(Offset(x, 0), Offset(x, size.height), minorPaint);
+      }
+    }
+    for (double x = 0; x < size.width; x += majorStep) {
+      canvas.drawLine(Offset(x, 0), Offset(x, size.height), majorPaint);
+    }
+    for (double y = 0; y < size.height; y += minorStep) {
+      if ((y % majorStep).abs() > 0.01) {
+        canvas.drawLine(Offset(0, y), Offset(size.width, y), minorPaint);
+      }
+    }
+    for (double y = 0; y < size.height; y += majorStep) {
+      canvas.drawLine(Offset(0, y), Offset(size.width, y), majorPaint);
+    }
+
+    // Dividers between channels
+    final divPaint = Paint()..color = Colors.white12..strokeWidth = 0.8;
+    final chH = size.height / 5.0;
+    for (int i = 1; i < 5; i++) {
+      canvas.drawLine(Offset(0, chH * i), Offset(size.width, chH * i), divPaint);
+    }
+  }
+
+  void _drawEcgLeadII(Canvas canvas, Rect bounds) {
+    _drawChannelLabel(canvas, bounds, 'ECG $leadLabel', const Color(0xFF00E676));
+    final baselineY = bounds.top + bounds.height * 0.65;
+    final cursorX = sweepProgress * bounds.width;
+    const numSamples = 200;
+    final gainScale = (gainMmMv / 10.0) * 22.0;
+
+    final paint = Paint()
+      ..color = const Color(0xFF00E676)
       ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round
-      ..strokeWidth = 1.7;
+      ..strokeWidth = 1.5;
 
-    final pdPaint = Paint()
-      ..color = const Color(0xFFFFEB3B)
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round
-      ..strokeWidth = 1.7;
-
-    Path? currentPaPath;
-    Path? currentPdPath;
-    double? activePaCursorY;
-    double? activePdCursorY;
-
+    Path? path;
     for (int i = 0; i <= numSamples; i++) {
-      final x = (i / numSamples) * sweepWidth;
-
-      // Check CRT erase-head gap
-      final inEraseGap = (cursorX + eraseGap <= sweepWidth)
-          ? (x >= cursorX && x <= cursorX + eraseGap)
-          : (x >= cursorX || x <= (cursorX + eraseGap) - sweepWidth);
-
-      if (inEraseGap) {
-        if (currentPaPath != null) {
-          canvas.drawPath(currentPaPath, paPaint);
-          currentPaPath = null;
-        }
-        if (currentPdPath != null) {
-          canvas.drawPath(currentPdPath, pdPaint);
-          currentPdPath = null;
-        }
+      final x = (i / numSamples) * bounds.width;
+      if (_inEraseGap(x, cursorX, bounds.width)) {
+        if (path != null) { canvas.drawPath(path, paint); path = null; }
         continue;
       }
-
-      final localPhase = ((x / sweepWidth) * numBeats) % 1.0;
-      final pa = CardiacHemodynamicEcgStrip.computeAorticPressure(
-        localPhase,
-        isDamped,
-        iabpActive,
-        systolicBp: systolicBp,
-        diastolicBp: diastolicBp,
-      );
-
-      // Scale: 30 mmHg nadir to 160 mmHg ceiling mapped to height * 0.82
-      final yPa = bottomY - ((pa - 30.0) / 130.0) * (bounds.height * 0.82);
-
-      if ((x - cursorX).abs() < (sweepWidth / numSamples) * 1.2) {
-        activePaCursorY = yPa;
+      final localPhase = ((x / bounds.width) * 2.0) % 1.0;
+      double v = 0.0;
+      if (rhythm == OscilloscopeRhythmType.vfib) {
+        v = 0.35 * math.sin(localPhase * 32.0) + 0.25 * math.sin(localPhase * 50.0);
+      } else if (rhythm == OscilloscopeRhythmType.asystole) {
+        v = 0.01 * math.sin(localPhase * 3.0);
+      } else if (rhythm == OscilloscopeRhythmType.vtach) {
+        if (localPhase >= 0.20 && localPhase <= 0.38) {
+          v = 1.35 * math.sin((localPhase - 0.20) / 0.18 * math.pi);
+        }
+      } else if (rhythm == OscilloscopeRhythmType.torsades) {
+        if (localPhase >= 0.20 && localPhase <= 0.38) {
+          v = 1.25 * math.sin((localPhase - 0.20) / 0.18 * math.pi) * math.cos(x * 0.02);
+        }
+      } else {
+        v = CardiacHemodynamicEcgStrip.computeSyntheticEcgSample(localPhase, stElevationMm);
       }
 
-      if (currentPaPath == null) {
-        currentPaPath = Path()..moveTo(x, yPa);
+      if (tcpActive && localPhase >= 0.23 && localPhase <= 0.245) {
+        v += 1.8; // Pacing spike
+      }
+
+      final y = baselineY - (v * gainScale);
+      if (path == null) {
+        path = Path()..moveTo(x, y);
       } else {
-        currentPaPath.lineTo(x, yPa);
+        path.lineTo(x, y);
+      }
+    }
+    if (path != null) canvas.drawPath(path, paint);
+  }
+
+  void _drawEcgPrecordialV1(Canvas canvas, Rect bounds) {
+    _drawChannelLabel(canvas, bounds, 'ECG V1 PRECORDIAL', const Color(0xFF69F0AE));
+    final baselineY = bounds.top + bounds.height * 0.65;
+    final cursorX = sweepProgress * bounds.width;
+    const numSamples = 200;
+    final gainScale = (gainMmMv / 10.0) * 22.0;
+
+    final paint = Paint()
+      ..color = const Color(0xFF69F0AE)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.5;
+
+    Path? path;
+    for (int i = 0; i <= numSamples; i++) {
+      final x = (i / numSamples) * bounds.width;
+      if (_inEraseGap(x, cursorX, bounds.width)) {
+        if (path != null) { canvas.drawPath(path, paint); path = null; }
+        continue;
+      }
+      final localPhase = ((x / bounds.width) * 2.0) % 1.0;
+      final v = CardiacHemodynamicEcgStrip.computePrecordialV1Sample(localPhase, rhythm);
+      final y = baselineY - (v * gainScale);
+      if (path == null) {
+        path = Path()..moveTo(x, y);
+      } else {
+        path.lineTo(x, y);
+      }
+    }
+    if (path != null) canvas.drawPath(path, paint);
+  }
+
+  void _drawArterialPressure(Canvas canvas, Rect bounds) {
+    final isPressureWire = wireType == InterventionalWireType.pressureWireX;
+    _drawChannelLabel(
+      canvas,
+      bounds,
+      isDamped ? 'ABP Pa (DAMPED)' : (isPressureWire ? 'ABP Pa (RED) / Pd (YEL)' : 'ABP Pa INVASIVE'),
+      const Color(0xFFFF5252),
+    );
+    final bottomY = bounds.bottom - 4.0;
+    final cursorX = sweepProgress * bounds.width;
+    const numSamples = 200;
+
+    final paPaint = Paint()..color = const Color(0xFFFF5252)..style = PaintingStyle.stroke..strokeWidth = 1.5;
+    final pdPaint = Paint()..color = const Color(0xFFFFD740)..style = PaintingStyle.stroke..strokeWidth = 1.5;
+
+    Path? paPath;
+    Path? pdPath;
+    for (int i = 0; i <= numSamples; i++) {
+      final x = (i / numSamples) * bounds.width;
+      if (_inEraseGap(x, cursorX, bounds.width)) {
+        if (paPath != null) { canvas.drawPath(paPath, paPaint); paPath = null; }
+        if (pdPath != null) { canvas.drawPath(pdPath, pdPaint); pdPath = null; }
+        continue;
+      }
+      final localPhase = ((x / bounds.width) * 2.0) % 1.0;
+      double pa = 0.0;
+      if (rhythm == OscilloscopeRhythmType.asystole) {
+        pa = 10.0;
+      } else if (rhythm == OscilloscopeRhythmType.vfib) {
+        pa = 15.0 + 1.5 * math.sin(localPhase * 30.0);
+      } else {
+        pa = CardiacHemodynamicEcgStrip.computeAorticPressure(localPhase, isDamped, iabpActive, systolicBp: systolicBp, diastolicBp: diastolicBp);
+      }
+
+      final yPa = bottomY - ((pa - 10.0) / 160.0) * (bounds.height * 0.85);
+      if (paPath == null) {
+        paPath = Path()..moveTo(x, yPa);
+      } else {
+        paPath.lineTo(x, yPa);
       }
 
       if (isPressureWire) {
-        // Distal Pd trans-stenotic pressure drop
         final drop = (ffrValue != null) ? (1.0 - ffrValue!) * 40.0 : 25.0;
-        final pd = math.max(pa - drop, 15.0);
-        final yPd = bottomY - ((pd - 30.0) / 130.0) * (bounds.height * 0.82);
-
-        if ((x - cursorX).abs() < (sweepWidth / numSamples) * 1.2) {
-          activePdCursorY = yPd;
-        }
-
-        if (currentPdPath == null) {
-          currentPdPath = Path()..moveTo(x, yPd);
+        final pd = math.max(pa - drop, 12.0);
+        final yPd = bottomY - ((pd - 10.0) / 160.0) * (bounds.height * 0.85);
+        if (pdPath == null) {
+          pdPath = Path()..moveTo(x, yPd);
         } else {
-          currentPdPath.lineTo(x, yPd);
+          pdPath.lineTo(x, yPd);
         }
       }
     }
-
-    if (currentPaPath != null) {
-      canvas.drawPath(currentPaPath, paPaint);
-    }
-    if (currentPdPath != null) {
-      canvas.drawPath(currentPdPath, pdPaint);
-    }
-
-    // Glowing phosphor leading dots
-    final dotPaY = activePaCursorY ??
-        (bottomY -
-            ((CardiacHemodynamicEcgStrip.computeAorticPressure(
-                            (cardiacPhase % 1.0), isDamped, iabpActive,
-                            systolicBp: systolicBp, diastolicBp: diastolicBp) -
-                        30.0) /
-                    130.0) *
-                (bounds.height * 0.82));
-    _drawGlowingDot(canvas, Offset(cursorX, dotPaY),
-        isDamped ? const Color(0xFFFF5252) : const Color(0xFFFF1744));
-
-    if (isPressureWire) {
-      final drop = (ffrValue != null) ? (1.0 - ffrValue!) * 40.0 : 25.0;
-      final curPa = CardiacHemodynamicEcgStrip.computeAorticPressure(
-          (cardiacPhase % 1.0), isDamped, iabpActive,
-          systolicBp: systolicBp, diastolicBp: diastolicBp);
-      final curPd = math.max(curPa - drop, 15.0);
-      final dotPdY = activePdCursorY ??
-          (bottomY - ((curPd - 30.0) / 130.0) * (bounds.height * 0.82));
-      _drawGlowingDot(canvas, Offset(cursorX, dotPdY), const Color(0xFFFFEB3B));
-    }
+    if (paPath != null) canvas.drawPath(paPath, paPaint);
+    if (pdPath != null) canvas.drawPath(pdPath, pdPaint);
   }
 
-  /// Sweeping vertical phosphor bar across the monitor strip
-  void _drawPhosphorSweepBeam(Canvas canvas, Size size) {
-    final cursorX = sweepProgress * size.width;
-    final beamPaint = Paint()
-      ..color = Colors.white.withValues(alpha: 0.18)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.0;
+  void _drawSpo2Pleth(Canvas canvas, Rect bounds) {
+    _drawChannelLabel(canvas, bounds, 'PLETH SpO₂', const Color(0xFF00E5FF));
+    final bottomY = bounds.bottom - 4.0;
+    final cursorX = sweepProgress * bounds.width;
+    const numSamples = 200;
 
+    final paint = Paint()..color = const Color(0xFF00E5FF)..style = PaintingStyle.stroke..strokeWidth = 1.5;
+    Path? path;
+
+    for (int i = 0; i <= numSamples; i++) {
+      final x = (i / numSamples) * bounds.width;
+      if (_inEraseGap(x, cursorX, bounds.width)) {
+        if (path != null) { canvas.drawPath(path, paint); path = null; }
+        continue;
+      }
+      final localPhase = ((x / bounds.width) * 2.0) % 1.0;
+      final pleth = CardiacHemodynamicEcgStrip.computePlethSample(localPhase, rhythm, spo2Pct);
+      final y = bottomY - (pleth * bounds.height * 0.80);
+      if (path == null) {
+        path = Path()..moveTo(x, y);
+      } else {
+        path.lineTo(x, y);
+      }
+    }
+    if (path != null) canvas.drawPath(path, paint);
+  }
+
+  void _drawEtco2Capno(Canvas canvas, Rect bounds) {
+    _drawChannelLabel(canvas, bounds, 'CAPNO EtCO₂', const Color(0xFFFFAB40));
+    final bottomY = bounds.bottom - 4.0;
+    final cursorX = sweepProgress * bounds.width;
+    const numSamples = 200;
+
+    final paint = Paint()..color = const Color(0xFFFFAB40)..style = PaintingStyle.stroke..strokeWidth = 1.5;
+    Path? path;
+
+    for (int i = 0; i <= numSamples; i++) {
+      final x = (i / numSamples) * bounds.width;
+      if (_inEraseGap(x, cursorX, bounds.width)) {
+        if (path != null) { canvas.drawPath(path, paint); path = null; }
+        continue;
+      }
+      final localPhase = ((x / bounds.width) * 2.0) % 1.0;
+      final etco2 = CardiacHemodynamicEcgStrip.computeEtco2Sample(localPhase, rhythm, etco2MmHg);
+      final y = bottomY - (etco2 / 50.0) * (bounds.height * 0.80);
+      if (path == null) {
+        path = Path()..moveTo(x, y);
+      } else {
+        path.lineTo(x, y);
+      }
+    }
+    if (path != null) canvas.drawPath(path, paint);
+  }
+
+  void _drawChannelLabel(Canvas canvas, Rect bounds, String label, Color color) {
+    final tp = TextPainter(
+      text: TextSpan(
+        text: label,
+        style: TextStyle(color: color, fontSize: 8, fontWeight: FontWeight.bold, fontFamily: 'monospace'),
+      ),
+      textDirection: TextDirection.ltr,
+    )..layout();
+    tp.paint(canvas, Offset(8, bounds.top + 3));
+  }
+
+  void _drawSweepBeam(Canvas canvas, Size size) {
+    final cursorX = sweepProgress * size.width;
+    final beamPaint = Paint()..color = Colors.white.withValues(alpha: 0.22)..strokeWidth = 1.0;
     canvas.drawLine(Offset(cursorX, 0), Offset(cursorX, size.height), beamPaint);
   }
 
-  void _drawGlowingDot(Canvas canvas, Offset center, Color color) {
-    // Outer halo glow
-    final haloPaint = Paint()
-      ..color = color.withValues(alpha: 0.35)
-      ..style = PaintingStyle.fill;
-    canvas.drawCircle(center, 5.5, haloPaint);
-
-    // Inner bright core
-    final corePaint = Paint()
-      ..color = Colors.white
-      ..style = PaintingStyle.fill;
-    canvas.drawCircle(center, 2.0, corePaint);
-
-    // Color fringe
-    final fringePaint = Paint()
-      ..color = color
-      ..style = PaintingStyle.fill;
-    canvas.drawCircle(center, 3.2, fringePaint);
+  bool _inEraseGap(double x, double cursorX, double totalW) {
+    const gap = 20.0;
+    if (cursorX + gap <= totalW) {
+      return x >= cursorX && x <= cursorX + gap;
+    } else {
+      return x >= cursorX || x <= (cursorX + gap - totalW);
+    }
   }
 
   @override
-  bool shouldRepaint(covariant _DualWaveformsPainter old) {
-    return old.cardiacPhase != cardiacPhase ||
-        old.sweepProgress != sweepProgress ||
-        old.stElevationMm != stElevationMm ||
-        old.isDamped != isDamped ||
-        old.systolicBp != systolicBp ||
-        old.diastolicBp != diastolicBp ||
-        old.leadLabel != leadLabel ||
-        old.wireType != wireType ||
-        old.iabpActive != iabpActive ||
-        old.ffrValue != ffrValue;
+  bool shouldRepaint(covariant _FiveChannelHospitalOscilloscopePainter old) {
+    return true;
   }
 }

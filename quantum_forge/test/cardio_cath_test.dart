@@ -11,6 +11,8 @@ import 'package:quantum_forge/features/cardiac/presentation/widgets/cardiac_clin
 import 'package:quantum_forge/features/cardiac/presentation/widgets/cardiac_diagnostic_workstation_panel.dart';
 import 'package:quantum_forge/features/cardiac/presentation/widgets/cardiac_research_workstation_panel.dart';
 import 'package:quantum_forge/features/cardiac/presentation/widgets/cardiac_fellowship_suite_panel.dart';
+import 'package:quantum_forge/features/cardiac/data/cardiac_pathology_models.dart';
+import 'package:quantum_forge/features/cardiac/data/coronary_hemodynamics_engine.dart';
 
 void main() {
   group('CardioCath 3D: Coronary Angiography & Hemodynamic Lab Tests', () {
@@ -779,6 +781,70 @@ void main() {
       await tester.tap(rescueBtn);
       await tester.pump();
       expect(find.text('100 / 100 (RESCUED / STABLE)'), findsOneWidget);
+    });
+
+    testWidgets('5-Channel Hospital Oscilloscope: 14 Arrhythmias, 200J Defibrillation, and Freeze Calipers', (WidgetTester tester) async {
+      await tester.binding.setSurfaceSize(const Size(1400, 1000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: ThemeData.dark(),
+          home: Scaffold(
+            body: CardiacHemodynamicEcgStrip(
+              scenario: kCardiacScenarios.first,
+              cardiacPhase: 0.270,
+              bpm: 75.0,
+              onBpmChanged: (_) {},
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+
+      // Check title and resuscitation tools
+      expect(find.text('CATH LAB TELEMETRY'), findsOneWidget);
+      expect(find.text('200J BIPHASIC SHOCK'), findsOneWidget);
+      expect(find.text('TCP PACER (70 BPM)'), findsOneWidget);
+      expect(find.text('FREEZE CALIPERS'), findsOneWidget);
+
+      // Check rhythm badges
+      expect(find.text('NSR'), findsOneWidget);
+      expect(find.text('V-FIB'), findsOneWidget);
+      expect(find.text('V-TACH'), findsOneWidget);
+      expect(find.text('TORSADES'), findsOneWidget);
+      expect(find.text('3° CHB'), findsOneWidget);
+
+      // Switch to V-FIB
+      final vfibChip = find.text('V-FIB');
+      await tester.tap(vfibChip);
+      await tester.pump();
+      expect(find.textContaining('CODE BLUE: PULSELESS ARREST'), findsOneWidget);
+
+      // Deliver 200J Biphasic Shock to rescue
+      final shockBtn = find.text('200J DEFIB (SHOCKABLE)');
+      await tester.tap(shockBtn);
+      await tester.pump(const Duration(milliseconds: 350));
+      expect(find.textContaining('ROSC ACHIEVED'), findsOneWidget);
+
+      // Toggle Freeze Calipers
+      final freezeBtn = find.text('FREEZE CALIPERS');
+      await tester.ensureVisible(freezeBtn);
+      await tester.pumpAndSettle();
+      await tester.tap(freezeBtn);
+      await tester.pump();
+      expect(find.text('UNFREEZE'), findsOneWidget);
+      expect(find.textContaining('Δt:'), findsOneWidget);
+
+      // Mathematical verification of synthetic lead channels
+      final plethSample = CardiacHemodynamicEcgStrip.computePlethSample(0.50, OscilloscopeRhythmType.nsr, 99.0);
+      expect(plethSample, greaterThan(0.5));
+
+      final etco2Sample = CardiacHemodynamicEcgStrip.computeEtco2Sample(0.35, OscilloscopeRhythmType.nsr, 40.0);
+      expect(etco2Sample, greaterThan(30.0));
+
+      final v1Sample = CardiacHemodynamicEcgStrip.computePrecordialV1Sample(0.29, OscilloscopeRhythmType.nsr);
+      expect(v1Sample, lessThan(0.0)); // Deep S wave in V1
     });
   });
 }

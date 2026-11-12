@@ -1571,5 +1571,513 @@ class CoronaryHemodynamicsSolver:
             "cpet_anaerobic_threshold_pct_vo2": 58.0 if "hfpef" not in sh else 42.0,
         }
 
+    def solve_oscilloscope_rhythm(
+        self,
+        rhythm: str = "nsr",
+        duration_sec: float = 4.0,
+        fs: int = 500,
+        lead: str = "II",
+        is_revascularized: bool = False,
+        iabp: bool = False,
+        defib_shock_at_sec: Optional[float] = None,
+        tcp_pacing: bool = False,
+    ) -> Dict[str, Any]:
+        """5-Channel Multi-Parameter Bedside Hospital Oscilloscope Telemetry Solver."""
+        return generate_oscilloscope_rhythm(
+            rhythm=rhythm,
+            duration_sec=duration_sec,
+            fs=fs,
+            lead=lead,
+            is_revascularized=is_revascularized,
+            iabp=iabp,
+            defib_shock_at_sec=defib_shock_at_sec,
+            tcp_pacing=tcp_pacing,
+        )
 
 
+
+
+
+import numpy as np
+import math
+from typing import Dict, Any, Optional
+
+def generate_oscilloscope_rhythm(
+    rhythm: str = "nsr",
+    duration_sec: float = 4.0,
+    fs: int = 500,
+    lead: str = "II",
+    is_revascularized: bool = False,
+    iabp: bool = False,
+    defib_shock_at_sec: Optional[float] = None,
+    tcp_pacing: bool = False,
+) -> Dict[str, Any]:
+    """Generates 5-channel multi-parameter hospital oscilloscope telemetry at 500 Hz:
+    Ch 1: ecg_primary (Lead II or selected limb lead in mV)
+    Ch 2: ecg_precordial (V1 precordial lead in mV)
+    Ch 3: abp_pa (Invasive arterial blood pressure in mmHg) + abp_pd (distal coronary pressure)
+    Ch 4: spo2_pleth (Photoplethysmogram 0.0 to 1.0)
+    Ch 5: etco2_capno (Alveolar capnogram 0 to 50 mmHg)
+    Along with real-time numeric parameter readouts and clinical diagnostic pearls.
+    """
+    N = int(duration_sec * fs)
+    t = np.linspace(0.0, duration_sec, N, endpoint=False)
+    
+    ecg1 = np.zeros(N)
+    ecg2 = np.zeros(N)
+    abp_pa = np.zeros(N)
+    abp_pd = np.zeros(N)
+    spo2_pleth = np.zeros(N)
+    etco2_capno = np.zeros(N)
+
+    r = rhythm.strip().lower()
+    
+    # Baseline respiratory signal for Capnography (14 breaths/min default)
+    resp_rate = 14
+    if r in ["sinus_tachy", "svt"]:
+        resp_rate = 22
+    elif r == "sinus_brady":
+        resp_rate = 12
+    elif r in ["vtach", "torsades"]:
+        resp_rate = 24
+    elif r in ["vfib", "asystole"]:
+        resp_rate = 0
+
+    t_resp = 60.0 / max(1, resp_rate) if resp_rate > 0 else 4.0
+
+    # RHYTHM PARAMETERS TABLE
+    cfg = {
+        "nsr": {
+            "hr": 75, "pr": 160, "qrs": 80, "qt": 380, "qtc": 425,
+            "sys": 120, "dia": 80, "spo2": 99.0, "etco2": 40.0,
+            "alarm": "NORMAL", "msg": None,
+            "pearl": "Normal Sinus Rhythm: Constant PR interval (120-200 ms), narrow QRS (<120 ms), upright P in Lead II, normal hemodynamics."
+        },
+        "sinus_brady": {
+            "hr": 45, "pr": 170, "qrs": 82, "qt": 460, "qtc": 398,
+            "sys": 108, "dia": 68, "spo2": 98.0, "etco2": 42.0,
+            "alarm": "WARNING", "msg": "SINUS BRADYCARDIA < 50 BPM",
+            "pearl": "Sinus Bradycardia: Common in athletes, high vagal tone, beta-blocker overdose, or sinus node disease. Atropine indicated if symptomatic."
+        },
+        "sinus_tachy": {
+            "hr": 135, "pr": 140, "qrs": 80, "qt": 290, "qtc": 435,
+            "sys": 136, "dia": 86, "spo2": 97.0, "etco2": 36.0,
+            "alarm": "WARNING", "msg": "SINUS TACHYCARDIA > 100 BPM",
+            "pearl": "Sinus Tachycardia: Physiologic response to pain, fever, hypovolemia, pulmonary embolism, or sympathetic drive. Treat underlying cause."
+        },
+        "afib": {
+            "hr": 130, "pr": None, "qrs": 85, "qt": 320, "qtc": 470,
+            "sys": 115, "dia": 74, "spo2": 96.0, "etco2": 35.0,
+            "alarm": "WARNING", "msg": "ATRIAL FIBRILLATION WITH RVR",
+            "pearl": "Atrial Fibrillation: Irregularly irregular R-R intervals with absent P-waves and fibrillatory f-waves (350-600/min). Loss of atrial kick decreases CO by 20-30%."
+        },
+        "aflutter": {
+            "hr": 150, "pr": None, "qrs": 85, "qt": 310, "qtc": 460,
+            "sys": 118, "dia": 76, "spo2": 96.0, "etco2": 36.0,
+            "alarm": "WARNING", "msg": "ATRIAL FLUTTER 2:1 CONDUCTION",
+            "pearl": "Atrial Flutter: Macro-reentrant cavotricuspid isthmus (CTI) circuit. Characteristic negative sawtooth flutter waves (F-waves) at 300 bpm with 2:1 conduction."
+        },
+        "svt": {
+            "hr": 190, "pr": None, "qrs": 75, "qt": 240, "qtc": 427,
+            "sys": 102, "dia": 70, "spo2": 95.0, "etco2": 33.0,
+            "alarm": "CRITICAL", "msg": "SUPRAVENTRICULAR TACHYCARDIA (AVNRT/AVRT)",
+            "pearl": "SVT (AVNRT): Rapid regular narrow-complex tachycardia (150-250 bpm). P-waves buried or pseudo-r' in V1. Treat with vagal maneuvers and IV Adenosine."
+        },
+        "avb_1": {
+            "hr": 68, "pr": 260, "qrs": 80, "qt": 390, "qtc": 415,
+            "sys": 122, "dia": 78, "spo2": 99.0, "etco2": 39.0,
+            "alarm": "NORMAL", "msg": "FIRST-DEGREE AV BLOCK (PR > 200 MS)",
+            "pearl": "First-Degree AV Block: Fixed PR prolongation (>200 ms) with 1:1 AV conduction. Localized to AV node delay; generally benign."
+        },
+        "avb_2_mobitz1": {
+            "hr": 54, "pr": 240, "qrs": 82, "qt": 410, "qtc": 410,
+            "sys": 114, "dia": 70, "spo2": 97.0, "etco2": 38.0,
+            "alarm": "WARNING", "msg": "SECOND-DEGREE AV BLOCK MOBITZ I (WENCKEBACH)",
+            "pearl": "Mobitz Type I (Wenckebach): Progressive PR prolongation culminating in a non-conducted P wave (dropped QRS). AV nodal origin, typically benign."
+        },
+        "avb_2_mobitz2": {
+            "hr": 50, "pr": 170, "qrs": 88, "qt": 420, "qtc": 415,
+            "sys": 110, "dia": 68, "spo2": 96.0, "etco2": 37.0,
+            "alarm": "CRITICAL", "msg": "SECOND-DEGREE AV BLOCK MOBITZ II - HIGH RISK BLOCK",
+            "pearl": "Mobitz Type II: Intermittent non-conducted P waves with constant PR. Infranodal (His-Purkinje) disease with high risk of complete heart block; requires pacemaker."
+        },
+        "avb_3_complete": {
+            "hr": 35, "pr": None, "qrs": 145, "qt": 520, "qtc": 435,
+            "sys": 84, "dia": 50, "spo2": 92.0, "etco2": 30.0,
+            "alarm": "CRITICAL", "msg": "THIRD-DEGREE COMPLETE HEART BLOCK - AV DISSOCIATION",
+            "pearl": "Third-Degree AV Block: Complete AV dissociation. Independent atrial P waves (75 bpm) and slow ventricular escape rhythm (35 bpm). Emergent pacing required."
+        },
+        "vtach": {
+            "hr": 165, "pr": None, "qrs": 160, "qt": 340, "qtc": 560,
+            "sys": 72, "dia": 46, "spo2": 86.0, "etco2": 22.0,
+            "alarm": "CODE_BLUE", "msg": "VENTRICULAR TACHYCARDIA - PULSELESS / UNSTABLE",
+            "pearl": "Ventricular Tachycardia (VT): Wide-complex tachycardia (>120 ms). AV dissociation, fusion/capture beats, concordance. Emergency cardioversion/defibrillation."
+        },
+        "torsades": {
+            "hr": 210, "pr": None, "qrs": 170, "qt": 380, "qtc": 620,
+            "sys": 52, "dia": 32, "spo2": 76.0, "etco2": 16.0,
+            "alarm": "CODE_BLUE", "msg": "TORSADES DE POINTES - POLYMORPHIC VT / PROLONGED QTc",
+            "pearl": "Torsades de Pointes: Polymorphic VT twisting around the isoelectric axis associated with prolonged QT/QTc (>500 ms). Emergency: IV Magnesium 2g, pacing, defib."
+        },
+        "vfib": {
+            "hr": 0, "pr": None, "qrs": 0, "qt": 0, "qtc": 0,
+            "sys": 15, "dia": 14, "spo2": 0.0, "etco2": 7.0,
+            "alarm": "CODE_BLUE", "msg": "VENTRICULAR FIBRILLATION - PULSELESS ARREST - DELIVER 200J",
+            "pearl": "Ventricular Fibrillation: Chaotic irregular fibrillatory baseline without cardiac output. Immediate 200J biphasic unsynchronized defibrillation is life-saving."
+        },
+        "asystole": {
+            "hr": 0, "pr": None, "qrs": 0, "qt": 0, "qtc": 0,
+            "sys": 10, "dia": 10, "spo2": 0.0, "etco2": 4.0,
+            "alarm": "CODE_BLUE", "msg": "ASYSTOLE - CARDIAC ARREST - START CPR & EPINEPHRINE",
+            "pearl": "Asystole: Complete absence of electrical and mechanical activity. Non-shockable. High-quality CPR, IV Epinephrine 1mg q3-5min, evaluate Hs & Ts."
+        }
+    }
+
+    p = cfg.get(r, cfg["nsr"])
+    hr = p["hr"]
+    pr_ms = p["pr"]
+    qrs_ms = p["qrs"]
+    qt_ms = p["qt"]
+    qtc_ms = p["qtc"]
+    sys_p = float(p["sys"])
+    dia_p = float(p["dia"])
+    spo2_pct = float(p["spo2"])
+    etco2_val = float(p["etco2"])
+    alarm_level = p["alarm"]
+    alarm_msg = p["msg"]
+    pearl = p["pearl"]
+
+    # Handle Transcutaneous Pacing
+    if tcp_pacing and r in ["sinus_brady", "avb_2_mobitz2", "avb_3_complete", "asystole"]:
+        hr = 70
+        qrs_ms = 140
+        sys_p = 112.0
+        dia_p = 70.0
+        spo2_pct = 97.0
+        etco2_val = 38.0
+        alarm_level = "WARNING"
+        alarm_msg = "TRANSCUTANEOUS PACING ACTIVE - CAPTURE CONFIRMED AT 70 BPM"
+
+    # Handle Defibrillator Shock & ROSC
+    shock_applied = False
+    if defib_shock_at_sec is not None and 0.2 <= defib_shock_at_sec <= duration_sec - 0.5:
+        if r in ["vfib", "vtach", "torsades", "asystole"]:
+            shock_applied = True
+            alarm_level = "WARNING"
+            alarm_msg = "200J BIPHASIC DELIVERED — ROSC ACHIEVED (NSR 85 BPM)"
+            pearl = "Successful Defibrillation: 200J biphasic current terminated ventricular fibrillation, allowing intrinsic pacemaker recovery. EtCO2 surged >40 mmHg indicating ROSC."
+
+    # Generate R-wave trigger times
+    r_times = []
+    dropped_r_times = [] # for Wenckebach or Mobitz II non-conducted P waves
+    p_times = []
+
+    if tcp_pacing and r in ["sinus_brady", "avb_2_mobitz2", "avb_3_complete", "asystole"]:
+        period = 60.0 / 70.0
+        cur = 0.2
+        while cur < duration_sec:
+            r_times.append(cur)
+            cur += period
+    elif r == "vfib" or r == "asystole":
+        r_times = []
+    elif r == "afib":
+        # Irregularly irregular R-R intervals
+        intervals = [0.42, 0.52, 0.38, 0.48, 0.40, 0.58, 0.36, 0.44, 0.50, 0.41, 0.55]
+        idx = 0
+        cur = 0.15
+        while cur < duration_sec:
+            r_times.append(cur)
+            cur += intervals[idx % len(intervals)]
+            idx += 1
+    elif r == "aflutter":
+        period = 60.0 / 150.0
+        cur = 0.18
+        while cur < duration_sec:
+            r_times.append(cur)
+            cur += period
+    elif r == "avb_2_mobitz1":
+        # Wenckebach 4:3 periodicity
+        p_period = 60.0 / 75.0
+        cur_p = 0.10
+        beat_idx = 0
+        while cur_p < duration_sec:
+            p_times.append(cur_p)
+            cycle_pos = beat_idx % 4
+            if cycle_pos == 0:
+                pr = 0.17
+                r_times.append(cur_p + pr)
+            elif cycle_pos == 1:
+                pr = 0.24
+                r_times.append(cur_p + pr)
+            elif cycle_pos == 2:
+                pr = 0.32
+                r_times.append(cur_p + pr)
+            elif cycle_pos == 3:
+                # Dropped beat!
+                dropped_r_times.append(cur_p + 0.20)
+            cur_p += p_period
+            beat_idx += 1
+    elif r == "avb_2_mobitz2":
+        # Fixed PR with periodic dropped beat (3:2 conduction)
+        p_period = 60.0 / 75.0
+        cur_p = 0.10
+        beat_idx = 0
+        while cur_p < duration_sec:
+            p_times.append(cur_p)
+            if beat_idx % 3 != 2:
+                r_times.append(cur_p + 0.17)
+            else:
+                dropped_r_times.append(cur_p + 0.17)
+            cur_p += p_period
+            beat_idx += 1
+    elif r == "avb_3_complete":
+        # Complete AV dissociation: P waves at 75 bpm, ventricular escape at 35 bpm
+        p_period = 60.0 / 75.0
+        cur_p = 0.10
+        while cur_p < duration_sec:
+            p_times.append(cur_p)
+            cur_p += p_period
+        v_period = 60.0 / 35.0
+        cur_v = 0.25
+        while cur_v < duration_sec:
+            r_times.append(cur_v)
+            cur_v += v_period
+    else:
+        # Standard regular sinus rhythms (nsr, brady, tachy, svt, avb_1, vtach, torsades)
+        period = 60.0 / max(1, hr)
+        cur = 0.20
+        while cur < duration_sec:
+            r_times.append(cur)
+            cur += period
+
+    # If ROSC shock is applied, modify R-times after shock
+    if shock_applied and defib_shock_at_sec is not None:
+        r_times = [rt for rt in r_times if rt < defib_shock_at_sec]
+        # Resume NSR at 85 bpm after 0.5s pause
+        cur_rosc = defib_shock_at_sec + 0.55
+        rosc_period = 60.0 / 85.0
+        while cur_rosc < duration_sec:
+            r_times.append(cur_rosc)
+            cur_rosc += rosc_period
+
+    # SYNTHESIZE ECG CHANNELS
+    # 1. P-waves
+    if r in ["nsr", "sinus_brady", "sinus_tachy", "avb_1"]:
+        pr_sec = (pr_ms or 160) / 1000.0
+        for rt in r_times:
+            pt = rt - pr_sec
+            ecg1 += 0.15 * np.exp(-((t - pt) ** 2) / (2 * (0.022 ** 2)))
+            ecg2 += 0.08 * np.exp(-((t - pt) ** 2) / (2 * (0.022 ** 2)))
+    elif r in ["avb_2_mobitz1", "avb_2_mobitz2", "avb_3_complete"]:
+        for pt in p_times:
+            ecg1 += 0.16 * np.exp(-((t - pt) ** 2) / (2 * (0.022 ** 2)))
+            ecg2 += 0.09 * np.exp(-((t - pt) ** 2) / (2 * (0.022 ** 2)))
+    elif r == "aflutter":
+        # Continuous 300 bpm negative sawtooth flutter waves in Lead II (5 Hz)
+        flutter_phase = (t * 5.0) % 1.0
+        # Asymmetrical sawtooth
+        ecg1 += -0.22 * (1.0 - 2.0 * flutter_phase)
+        ecg2 += 0.06 * np.sin(2 * np.pi * 5.0 * t)
+    elif r == "afib":
+        # Fibrillatory f-waves (sum of sinusoidal harmonics ~400 cpm / 6.7 Hz)
+        ecg1 += 0.08 * np.sin(2 * np.pi * 6.5 * t) + 0.05 * np.sin(2 * np.pi * 8.2 * t + 1.2) + 0.03 * np.sin(2 * np.pi * 11.0 * t)
+        ecg2 += 0.09 * np.sin(2 * np.pi * 7.1 * t + 0.5) + 0.04 * np.sin(2 * np.pi * 9.5 * t)
+    elif r == "vfib":
+        # Chaotic undulations
+        ecg1 += 0.35 * np.sin(2 * np.pi * 4.8 * t) + 0.25 * np.sin(2 * np.pi * 6.7 * t + 1.0) + 0.15 * np.sin(2 * np.pi * 8.3 * t + 2.5)
+        ecg2 += 0.30 * np.sin(2 * np.pi * 5.2 * t + 0.8) + 0.22 * np.sin(2 * np.pi * 7.4 * t + 1.9)
+
+    # 2. QRS Complexes and T-waves
+    for rt in r_times:
+        is_post_shock = shock_applied and defib_shock_at_sec is not None and rt > defib_shock_at_sec
+        active_r = "nsr" if is_post_shock else r
+        qrs_dur = (80 if is_post_shock else (qrs_ms or 80)) / 1000.0
+
+        if tcp_pacing and not is_post_shock:
+            # Pacing spike at rt - 0.02
+            ecg1 += 2.2 * np.exp(-((t - (rt - 0.02)) ** 2) / (2 * (0.002 ** 2)))
+            ecg2 += 2.2 * np.exp(-((t - (rt - 0.02)) ** 2) / (2 * (0.002 ** 2)))
+
+        if active_r == "vtach":
+            # Wide monomorphic notched VT complex
+            dt = t - rt
+            ecg1 += 1.4 * np.exp(-(dt ** 2) / (2 * (0.055 ** 2)))
+            ecg2 += -1.2 * np.exp(-(dt ** 2) / (2 * (0.055 ** 2)))
+            # Secondary T wave inverted
+            ecg1 += -0.4 * np.exp(-((dt - 0.16) ** 2) / (2 * (0.050 ** 2)))
+            ecg2 += 0.35 * np.exp(-((dt - 0.16) ** 2) / (2 * (0.050 ** 2)))
+        elif active_r == "torsades":
+            # Twisting axis modulated by slow cosine envelope (0.55 Hz)
+            dt = t - rt
+            twist_amp = 1.3 * math.cos(2 * math.pi * 0.55 * rt)
+            ecg1 += twist_amp * np.exp(-(dt ** 2) / (2 * (0.060 ** 2)))
+            ecg2 += (-twist_amp * 0.9) * np.exp(-(dt ** 2) / (2 * (0.060 ** 2)))
+        elif active_r == "avb_3_complete":
+            # Broad ventricular escape QRS (145 ms)
+            dt = t - rt
+            ecg1 += 0.95 * np.exp(-(dt ** 2) / (2 * (0.045 ** 2))) - 0.35 * np.exp(-((dt - 0.05) ** 2) / (2 * (0.025 ** 2)))
+            ecg2 += -1.1 * np.exp(-(dt ** 2) / (2 * (0.045 ** 2)))
+            ecg1 += 0.28 * np.exp(-((dt - 0.28) ** 2) / (2 * (0.065 ** 2)))
+            ecg2 += 0.20 * np.exp(-((dt - 0.28) ** 2) / (2 * (0.065 ** 2)))
+        elif active_r != "vfib" and active_r != "asystole":
+            # Normal narrow QRS with Q, R, S and T wave
+            dt = t - rt
+            # Q wave
+            ecg1 += -0.12 * np.exp(-((dt + 0.02) ** 2) / (2 * (0.008 ** 2)))
+            # R wave
+            ecg1 += 1.25 * np.exp(-(dt ** 2) / (2 * (0.012 ** 2)))
+            # S wave
+            ecg1 += -0.28 * np.exp(-((dt - 0.025) ** 2) / (2 * (0.010 ** 2)))
+            # T wave
+            t_offset = 0.25 if hr > 110 else 0.30
+            ecg1 += 0.35 * np.exp(-((dt - t_offset) ** 2) / (2 * (0.045 ** 2)))
+
+            # V1 Precordial Lead morphology (small r, deep S, upright T)
+            ecg2 += 0.22 * np.exp(-((dt + 0.01) ** 2) / (2 * (0.009 ** 2)))
+            ecg2 += -0.95 * np.exp(-((dt - 0.022) ** 2) / (2 * (0.014 ** 2)))
+            ecg2 += 0.18 * np.exp(-((dt - t_offset) ** 2) / (2 * (0.045 ** 2)))
+
+    # Inject Defibrillator Shock Artifact
+    if shock_applied and defib_shock_at_sec is not None:
+        t_sh = defib_shock_at_sec
+        # Biphasic sharp spike
+        shock_mask1 = (t >= t_sh) & (t < t_sh + 0.025)
+        shock_mask2 = (t >= t_sh + 0.025) & (t < t_sh + 0.050)
+        ecg1[shock_mask1] = 3.8
+        ecg1[shock_mask2] = -3.8
+        ecg2[shock_mask1] = 3.5
+        ecg2[shock_mask2] = -3.5
+        # Post-shock isoelectric refractory pause
+        pause_mask = (t >= t_sh + 0.050) & (t < t_sh + 0.450)
+        ecg1[pause_mask] = 0.0
+        ecg2[pause_mask] = 0.0
+
+    # SYNTHESIZE ARTERIAL BLOOD PRESSURE (ABP Pa)
+    if r == "asystole":
+        abp_pa[:] = 10.0 + 0.5 * np.sin(2 * np.pi * 0.2 * t)
+    elif r == "vfib" and not shock_applied:
+        abp_pa[:] = 15.0 + 1.2 * np.sin(2 * np.pi * 4.8 * t)
+    else:
+        # Fill baseline with diastolic pressure
+        abp_pa[:] = dia_p
+        for rt in r_times:
+            is_post_shock = shock_applied and defib_shock_at_sec is not None and rt > defib_shock_at_sec
+            p_sys = 126.0 if is_post_shock else sys_p
+            p_dia = 80.0 if is_post_shock else dia_p
+            pulse_p = p_sys - p_dia
+
+            # Cardiac ejection curve over 0.8s
+            for i in range(N):
+                dt = t[i] - rt
+                if 0.04 <= dt < 0.16:
+                    frac = (dt - 0.04) / 0.12
+                    abp_pa[i] = max(abp_pa[i], p_dia + pulse_p * math.sin(frac * math.pi / 2))
+                elif 0.16 <= dt < 0.32:
+                    frac = (dt - 0.16) / 0.16
+                    abp_pa[i] = max(abp_pa[i], p_sys - pulse_p * 0.45 * (frac ** 1.2))
+                elif 0.32 <= dt < 0.38:
+                    abp_pa[i] = max(abp_pa[i], p_dia + pulse_p * 0.55 - pulse_p * 0.08 * math.sin((dt - 0.32) / 0.06 * math.pi))
+                elif 0.38 <= dt < 0.85:
+                    tau = 0.35
+                    p_ref = p_dia + pulse_p * 0.50
+                    decay = p_dia + (p_ref - p_dia) * math.exp(-(dt - 0.38) / tau)
+                    abp_pa[i] = max(abp_pa[i], decay)
+
+    # IABP Counterpulsation Overlay if enabled
+    if iabp and r not in ["vfib", "asystole"]:
+        for rt in r_times:
+            # Diastolic balloon inflation right after dicrotic notch (dt ~0.35 to 0.70)
+            for i in range(N):
+                dt = t[i] - rt
+                if 0.34 <= dt < 0.65:
+                    frac = (dt - 0.34) / 0.31
+                    iabp_surge = 25.0 * math.sin(frac * math.pi)
+                    abp_pa[i] += iabp_surge
+
+    # Distal Coronary Pressure (Pd)
+    if is_revascularized:
+        abp_pd[:] = abp_pa * 0.96 # Post-stent normal FFR 0.96
+    else:
+        abp_pd[:] = abp_pa * 0.72 # Ischemic FFR 0.72
+
+    # SYNTHESIZE SpO2 PLETHYSMOGRAM
+    if r in ["vfib", "asystole"] and not shock_applied:
+        spo2_pleth[:] = 0.02 + 0.01 * np.random.normal(0, 0.005, N)
+    else:
+        spo2_pleth[:] = 0.05
+        for rt in r_times:
+            is_post_shock = shock_applied and defib_shock_at_sec is not None and rt > defib_shock_at_sec
+            amp = 1.0 if (is_post_shock or r == "nsr") else (0.35 if r in ["vtach", "torsades"] else 0.85)
+
+            for i in range(N):
+                dt = t[i] - rt
+                # Pleth arrives ~140 ms post R-wave
+                if 0.14 <= dt < 0.32:
+                    frac = (dt - 0.14) / 0.18
+                    spo2_pleth[i] = max(spo2_pleth[i], 0.05 + amp * 0.95 * math.sin(frac * math.pi / 2))
+                elif 0.32 <= dt < 0.46:
+                    frac = (dt - 0.32) / 0.14
+                    spo2_pleth[i] = max(spo2_pleth[i], 0.05 + amp * (0.95 - 0.35 * frac))
+                elif 0.46 <= dt < 0.54:
+                    spo2_pleth[i] = max(spo2_pleth[i], 0.05 + amp * (0.60 + 0.12 * math.sin((dt - 0.46) / 0.08 * math.pi)))
+                elif 0.54 <= dt < 0.90:
+                    decay = 0.05 + amp * 0.60 * math.exp(-(dt - 0.54) / 0.22)
+                    spo2_pleth[i] = max(spo2_pleth[i], decay)
+
+    # SYNTHESIZE EtCO2 CAPNOGRAM
+    if r in ["vfib", "asystole"] and not shock_applied:
+        etco2_capno[:] = etco2_val
+    else:
+        for i in range(N):
+            ti = t[i]
+            # If shock applied, ROSC EtCO2 surges after shock
+            target_et = 44.0 if (shock_applied and defib_shock_at_sec is not None and ti > defib_shock_at_sec + 0.5) else etco2_val
+            cycle_pos = (ti % t_resp) / t_resp
+            if cycle_pos < 0.08:
+                etco2_capno[i] = 0.0
+            elif 0.08 <= cycle_pos < 0.16:
+                frac = (cycle_pos - 0.08) / 0.08
+                etco2_capno[i] = (target_et * 0.85) * (1.0 / (1.0 + math.exp(-10.0 * (frac - 0.5))))
+            elif 0.16 <= cycle_pos < 0.45:
+                frac = (cycle_pos - 0.16) / 0.29
+                etco2_capno[i] = target_et * 0.85 + (target_et * 0.15) * frac
+            elif 0.45 <= cycle_pos < 0.50:
+                frac = (cycle_pos - 0.45) / 0.05
+                etco2_capno[i] = target_et * (1.0 - frac)
+            else:
+                etco2_capno[i] = 0.0
+
+    map_p = dia_p + (sys_p - dia_p) / 3.0
+
+    metrics = {
+        "heart_rate_bpm": int(hr),
+        "systolic_bp_mmhg": int(sys_p),
+        "diastolic_bp_mmhg": int(dia_p),
+        "map_bp_mmhg": int(round(map_p)),
+        "spo2_percent": float(round(spo2_pct, 1)),
+        "etco2_mmhg": float(round(etco2_val, 1)),
+        "resp_rate_bpm": int(resp_rate),
+        "pr_interval_ms": pr_ms,
+        "qrs_duration_ms": int(qrs_ms),
+        "qt_interval_ms": int(qt_ms),
+        "qtc_bazett_ms": int(qtc_ms),
+        "conduction_type": r.upper(),
+        "alarm_level": alarm_level,
+        "alarm_message": alarm_msg,
+        "clinical_pearl": pearl,
+    }
+
+    return {
+        "status": "success",
+        "rhythm": r,
+        "sampling_rate_hz": fs,
+        "duration_sec": duration_sec,
+        "time": [round(float(x), 4) for x in t],
+        "ecg_primary": [round(float(x), 4) for x in ecg1],
+        "ecg_precordial": [round(float(x), 4) for x in ecg2],
+        "abp_pa": [round(float(x), 2) for x in abp_pa],
+        "abp_pd": [round(float(x), 2) for x in abp_pd],
+        "spo2_pleth": [round(float(x), 4) for x in spo2_pleth],
+        "etco2_capno": [round(float(x), 2) for x in etco2_capno],
+        "metrics": metrics,
+    }
