@@ -6,10 +6,11 @@
   <img src="https://img.shields.io/badge/Web-4285F4?style=for-the-badge&logo=googlechrome&logoColor=white" alt="Web" />
   <img src="https://img.shields.io/badge/Firebase-FFCA28?style=for-the-badge&logo=firebase&logoColor=black" alt="Firebase" />
   <img src="https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI" />
-  <img src="https://img.shields.io/badge/Tests-387%20Passing-brightgreen?style=for-the-badge" alt="Tests" />
+  <img src="https://img.shields.io/badge/PyTorch-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white" alt="PyTorch" />
+  <img src="https://img.shields.io/badge/Tests-All%20Passing-brightgreen?style=for-the-badge" alt="Tests" />
 </p>
 
-**Quantum Forge** is an AI-assisted quantum chemistry optimisation and visualisation workstation built **for the web** with Flutter. It gives researchers, pharmacologists, and students a single high-performance browser dashboard for building molecules, modelling transition states, inspecting thermodynamic and kinetic results, and evaluating real-world clinical and veterinary pharmacopeia — with a two-way bridge to desktop **Avogadro 2**.
+**Quantum Forge** is an AI-assisted quantum chemistry, computational pharmacology, and interventional cardiology simulation workstation built **for the web** with Flutter. It gives researchers, pharmacologists, cardiologists, and students a single high-performance browser dashboard for building molecules, modelling transition states, predicting cardiorenal toxicology, and simulating full interventional cath-lab hemodynamics — with a two-way bridge to desktop **Avogadro 2**.
 
 🌐 **Live Deployment**: [https://quantom-forge.web.app](https://quantom-forge.web.app)
 
@@ -114,7 +115,42 @@ Quantum Forge includes curated, literature-validated synthesis pathways and tran
 * **Dynamic MLIP Masking**: Custom PyTorch TorchScript masking restricts the MLIP evaluation solely to the peptide atoms, letting AMBER19 handle the massive solvent box.
 * **UI Integration**: Control simulation length dynamically from the 3D builder and launch GPU-accelerated jobs directly from the browser.
 
-### 10. Scientific theming
+### 10. ❤️ CardioCath 3D: Interventional Cardiology, Myocardial Biomechanics & Hospital ICU Telemetry
+
+`CardioCath 3D Lab` is a cutting-edge computational cardiology, structural heart, and bedside ICU/CCU electrophysiology workstation integrated directly into Quantum Forge:
+
+* **3D Anatomical Heart Viewport**:
+  * Real-time beating WebGL 3D myocardial geometry synchronized with Wiggers diagrams and electro-mechanical phase locking.
+  * Interactive layer toggles: **Gross Anatomy**, **Coronary Perfusion**, **Cardiac Conduction System**, and **Blood Flow Hemodynamics**.
+* **Coronary Angiography & Fluoroscopy C-Arm Gantry Digital Twin**:
+  * Realistic X-ray fluoroscopy shader with pulsed exposure, inverse-square scatter, and radiopaque catheter tracking.
+  * Synchronized dual-axis C-Arm gantry supporting standard clinical projections (**LAO/RAO Cranial/Caudal**, Spider view).
+  * Real-time contrast dye opacification, washout kinetics, and myocardial blush grading (MBG 0–3).
+* **5-Channel Hospital Bedside Oscilloscope (Philips IntelliVue / GE CARESCAPE Parity)**:
+  * **Channel 1 & 2 (Dual Simultaneous ECG Leads — Lead II + Precordial V1)**: Phosphor-green CRT traces with persistence decay, sweep erase bar, 1 mV calibration pulse, and adjustable sweep speeds (25 vs 50 mm/s) & gains (5, 10, 20 mm/mV).
+  * **Channel 3 (Invasive Arterial Blood Pressure — $ABP$ $P_a$ & $P_d$)**: Arterial pressure waveform with dicrotic notch, catheter damping, and dual distal $P_d$ trace when PressureWire X is engaged.
+  * **Channel 4 (Photoplethysmogram $SpO_2$ Pleth)**: Real photoplethysmogram with pulse transit delay, dicrotic reflection, and low-perfusion collapse during code blue rhythms.
+  * **Channel 5 (Alveolar Capnography $EtCO_2$)**: Real-time Phase I–IV capnogram ($35\text{–}45\text{ mmHg}$) dropping to $< 10\text{ mmHg}$ during cardiac arrest and surging at ROSC.
+  * **14 Arrhythmia & Conduction Rhythms**: NSR, Sinus Brady/Tachy, Atrial Fibrillation with fibrillatory $f$-waves, Atrial Flutter (sawtooth $F$-waves), SVT (AVNRT), 1st-Degree AV Block ($PR > 200\text{ ms}$), 2nd-Degree Mobitz I (Wenckebach) & Mobitz II, 3rd-Degree Complete Heart Block, Monomorphic VT, Torsades de Pointes, Ventricular Fibrillation (VF), and Asystole.
+  * **Resuscitation Suite**: 200J Biphasic Defibrillator (ROSC recovery) and Transcutaneous Pacing (TCP, 70 bpm ventricular capture).
+  * **Electronic Measurement Calipers**: Freeze-frame measurement overlay with interactive drag calipers reporting exact $\Delta t$ (ms) and instantaneous heart rates (bpm).
+  * **Authentic Physiological Signal Realism**: Deterministic $0.22\text{ Hz}$ respiratory baseline wander, skeletal muscle EMG & electrode micro-noise, beat-to-beat Respiratory Sinus Arrhythmia (HRV) amplitude modulation ($\pm 6\%$), arterial line pulse-pressure swing ($-4.5\text{ mmHg}$), fluid catheter resonance ringing, and $60\text{ Hz}$ AC mains hum interference.
+  * **Hospital Pink Thermal Paper Mode**: Interactive toggle transforming the display into authentic hospital $1\text{ mm} / 5\text{ mm}$ pink grid paper with deep charcoal/slate medical ink needles.
+* **4 Next-Generation PyTorch Computational Cardiology Engines (`cardiocath-backend/`)**:
+  * **`CardioFNO-3D`**: Fourier Neural Operator trained on Apple Silicon MPS computing 3D myocardial strain tensors (Global Longitudinal Strain `GLS %`, radial thickening, circumferential shortening) and live 17-Segment AHA Polar Bullseye Maps (apical sparing, septal flash, transmural infarcts).
+  * **`CardioRotor-3D`**: 3D Reaction-Diffusion Monodomain tissue solver mapping electrical wavefront curvature, re-entrant circuits, spiral-wave phase singularities (rotors), and endocardial scar homogenization ablation.
+  * **3D Structural Heart Morphometry & Valve-to-Coronary (VTC) Distance**: Interactive aortic root/annulus analyzer for TAVR / Valve-in-Valve coronary obstruction risk assessment ($< 4\text{ mm}$ high-risk alert), BASILICA leaflet laceration simulation, and Left Atrial Appendage Occluder (LAAO) sizing.
+  * **Invasive Right-Heart Catheterization (Swan-Ganz) & CPET**: Catheter pullback pressure waveforms ($RA \rightarrow RV \rightarrow PA \rightarrow PCWP$ wedge pressure), Fick cardiac output, and cardiopulmonary exercise testing ($\dot{V}O_2$, $\dot{V}CO_2$, $\dot{V}_E/\dot{V}CO_2$ slope).
+  * **CardioNephroGNN Screener**: 5-member deep learning ensemble predicting dual cardiotoxicity ($hERG$ $IC_{50}$) and nephrotoxicity with epistemic uncertainty and ChEMBL cross-references.
+  * **CardioElectrophys-Net & CardioPINN**: CiPA action potential solver (IKr, INa, ICaL) and physics-informed neural network for non-invasive parameter inversion.
+* **SaMD 7-Pillar Legal & Liability Shield**:
+  * Prominent statutory disclaimer banner ("Educational Simulation Only — Not for Clinical Diagnosis or Patient Care") and comprehensive compliance documentation dialog.
+
+### 11. ⚖️ Stoichiometric LST Balancing & Reaction Robustness
+* **Dynamic Coordinate Matrix Balancing**: The FastAPI reaction pathway engine in `tx1-fastapi-backend/` dynamically balances leaving groups and spectator species (`auto_balance=True`), borrowing coordinate positions for missing atoms and pruning surplus byproducts.
+* **Literature Template Harmonization**: All 35+ foundational pharmaceutical templates (including Paracetamol, Aspirin, Glimepiride, Captopril, and Atorvastatin) feature verified 1:1 atom-for-atom stoichiometry, preventing unphysical reaction path aborts.
+
+### 12. Scientific theming
 Seven presets, each grounded in a real convention rather than a colour preference:
 
 | Preset | Family | Idea |
@@ -129,7 +165,7 @@ Seven presets, each grounded in a real convention rather than a colour preferenc
 
 Themes persist across sessions; <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>T</kbd> cycles them.
 
-### 11. Settings that actually apply
+### 13. Settings that actually apply
 *Settings* is a real screen (drawer gear icon, or the app-bar gear) with five tabs —
 Appearance, Editor, Export, Avogadro, Compute. Every control writes through to
 storage immediately and takes effect without a restart:
@@ -144,7 +180,7 @@ storage immediately and takes effect without a restart:
 * **Compute** — temperature, step count, NEB images, convergence, and the analysis
   switches, mirroring the Quantum Controls panel.
 
-### 12. Avogadro 2 bridge
+### 14. Avogadro 2 bridge
 Two directions, because Avogadro 2 has no URL-open hook:
 
 * **Avogadro → web.** The bundled plugin (`avogadro_plugin/`) sends the open molecule
@@ -156,7 +192,7 @@ Two directions, because Avogadro 2 has no URL-open hook:
   structure (XYZ + CJSON) and an energy manifest. See
   [`avogadro_plugin/README.md`](quantum_forge/avogadro_plugin/README.md).
 
-### 13. Accounts
+### 15. Accounts
 Firebase Authentication with profile and email shown in the drawer.
 
 ## 🛠️ Stack
@@ -202,6 +238,7 @@ Quantum Forge integrates multiple Machine Learning Interatomic Potentials (MLIP)
 | `ani2x-backend` | **8003** | **ANI-2x** (*Devereux et al., JCTC 2020*) | `mps` / `cuda` | Shared `.venv` |
 | `gfn2-xtb-backend` | **8004** | **GFN2-xTB** (*Bannwarth et al., JCTC 2019*) | CPU | Conda `xtb-env` |
 | `tx1-fastapi-backend` | **8005** | **Transition1x GNN** (*Schreiner et al., Sci. Data 2022*) | CPU | Shared `.venv` |
+| `cardiocath-backend` | **8006** | **CardioFNO-3D & CardioNephroGNN** (*PyTorch Biomechanics & Windkessel*) | `mps` / `cpu` | Shared `.venv` |
 
 ---
 
@@ -329,6 +366,7 @@ Quantum-Forge/
 ├── ani2x-backend/        # ANI-2x Deep Learning Potential service (Port 8003)
 ├── gfn2-xtb-backend/     # GFN2-xTB Semi-Empirical QM service (Port 8004)
 ├── tx1-fastapi-backend/  # Transition1x GNN compute service (Port 8005)
+├── cardiocath-backend/   # Computational Cardiology, FNO-3D & Swan-Ganz service (Port 8006)
 └── .github/              # CI/CD Workflows for automated analysis and deployment
 ```
 
