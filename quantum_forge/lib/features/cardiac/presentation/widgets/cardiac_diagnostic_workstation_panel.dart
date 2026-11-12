@@ -14,6 +14,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../data/cardiac_pathology_models.dart';
+import '../../data/cardiac_master_vitals_state.dart';
 import 'cardiac_clinical_info_system.dart';
 import 'cardiac_three_engine.dart';
 
@@ -662,6 +663,7 @@ class CardiacDiagnosticWorkstationPanel extends StatefulWidget {
   final double cardiacPhase;
   final double bpm;
   final ValueChanged<double>? onBpmChanged;
+  final CardiacMasterVitalsState? masterVitals;
 
   const CardiacDiagnosticWorkstationPanel({
     super.key,
@@ -669,6 +671,7 @@ class CardiacDiagnosticWorkstationPanel extends StatefulWidget {
     required this.cardiacPhase,
     required this.bpm,
     this.onBpmChanged,
+    this.masterVitals,
   });
 
   @override
@@ -941,7 +944,7 @@ class _CardiacDiagnosticWorkstationPanelState
   // ==========================================================================
   Widget _buildEchoDopplerModule() {
     final p = _echoPhenotype;
-    final lvef = p.lvefPercent;
+    final lvef = widget.masterVitals != null ? widget.masterVitals!.lvefPct : p.lvefPercent;
     final deltaP = p.bernoulliDeltaPMmHg;
 
     return Column(
@@ -1645,10 +1648,16 @@ class _CardiacDiagnosticWorkstationPanelState
     // Sagawa Elastance Equations:
     // ESV = V0 + ESP / Emax, where ESP ≈ Ea * SV => SV = (EDV - V0) * Emax / (Emax + Ea)
     const v0 = 10.0;
-    final sv = ((_preloadEdv - v0) * _contractilityEmax / (_contractilityEmax + _afterloadEa))
+    final effAfterload = widget.masterVitals != null
+        ? (widget.masterVitals!.systolicBp / 70.0).clamp(1.0, 3.2)
+        : _afterloadEa;
+    final effContractility = widget.masterVitals != null
+        ? (0.8 + (widget.masterVitals!.lvefPct - 15.0) * 0.046).clamp(0.8, 3.6)
+        : _contractilityEmax;
+    final sv = ((_preloadEdv - v0) * effContractility / (effContractility + effAfterload))
         .clamp(20.0, 125.0);
     final esv = (_preloadEdv - sv).clamp(15.0, 180.0);
-    final esp = (sv * _afterloadEa).clamp(60.0, 220.0);
+    final esp = (sv * effAfterload).clamp(60.0, 220.0);
     final edp = 3.0 + 0.8 * math.exp(0.022 * _preloadEdv);
     final lvef = (sv / _preloadEdv) * 100.0;
     final strokeWorkMmHgMl = sv * (esp * 0.82 - edp);
@@ -1794,10 +1803,12 @@ class _CardiacDiagnosticWorkstationPanelState
           'Knee-Chest Squatting kinked femoral arteries (↑ SVR) → reduced R→L VSD shunting, raising Aortic SaO2 from 81% to 92%!';
     }
 
-    final aoSatDisplay = (_chdDefect == CongenitalShuntDefect.tetralogyOfFallot &&
-            _chdIntervention == ChdIntervention.kneeChestSquat)
-        ? 92.0
-        : effectiveDefect.aoSat;
+    final aoSatDisplay = widget.masterVitals != null
+        ? widget.masterVitals!.spo2Pct
+        : ((_chdDefect == CongenitalShuntDefect.tetralogyOfFallot &&
+                _chdIntervention == ChdIntervention.kneeChestSquat)
+            ? 92.0
+            : effectiveDefect.aoSat);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,

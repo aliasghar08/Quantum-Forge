@@ -16,6 +16,8 @@ import 'package:quantum_forge/features/cardiac/data/coronary_hemodynamics_engine
 import 'package:quantum_forge/features/education/data/medical_board_qbank.dart';
 import 'package:quantum_forge/features/education/presentation/widgets/clinical_vignette_quiz_drawer.dart';
 import 'package:quantum_forge/features/education/presentation/widgets/study_card_export_dialog.dart';
+import 'package:quantum_forge/features/cardiac/data/cardiac_master_vitals_state.dart';
+import 'package:quantum_forge/features/cardiac/presentation/widgets/cardiac_master_vitals_bar.dart';
 
 void main() {
   group('CardioCath 3D: Coronary Angiography & Hemodynamic Lab Tests', () {
@@ -1116,6 +1118,108 @@ void main() {
       expect(find.text('Medical Board QBank & SM-2 Spaced Repetition'), findsOneWidget);
       expect(find.textContaining('CASE #1 OF'), findsOneWidget);
       expect(find.text('🚀 Launch 3D Simulation'), findsOneWidget);
+    });
+
+    test('CardiacMasterVitalsState calculates derived metrics and clamps values correctly', () {
+      final vitals = CardiacMasterVitalsState();
+      expect(vitals.heartRateBpm, 72.0);
+      expect(vitals.systolicBp, 120.0);
+      expect(vitals.diastolicBp, 80.0);
+      expect(vitals.mapBp, closeTo(93.33, 0.1));
+      expect(vitals.cycleLengthMs, closeTo(833.33, 0.1));
+      expect(vitals.strokeVolumeMl, closeTo(72.0, 0.1));
+      expect(vitals.cardiacOutputLMin, closeTo(5.18, 0.05));
+      expect(vitals.estimatedSvrDynes, greaterThan(1000.0));
+
+      // Test setters with out-of-bound values clamping
+      vitals.setHeartRate(300.0);
+      expect(vitals.heartRateBpm, 220.0);
+      vitals.setHeartRate(10.0);
+      expect(vitals.heartRateBpm, 30.0);
+
+      vitals.setBloodPressure(250.0, 150.0);
+      expect(vitals.systolicBp, 220.0);
+      expect(vitals.diastolicBp, 130.0);
+
+      vitals.setSpo2(105.0);
+      expect(vitals.spo2Pct, 100.0);
+      vitals.setSpo2(40.0);
+      expect(vitals.spo2Pct, 60.0);
+
+      vitals.setLvef(90.0);
+      expect(vitals.lvefPct, 75.0);
+      vitals.setLvef(5.0);
+      expect(vitals.lvefPct, 15.0);
+
+      // Test scenario presets
+      final stemi = kCardiacScenarios.firstWhere((s) => s.id.contains('anterior_stemi'));
+      vitals.applyScenarioPreset(stemi);
+      expect(vitals.heartRateBpm, 95.0);
+      expect(vitals.lvefPct, 40.0);
+
+      // Test drug effects
+      vitals.applyIvDrugEffect(IvEmergencyMedication.adenosine);
+      expect(vitals.heartRateBpm, 76.0);
+
+      vitals.applyIvDrugEffect(IvEmergencyMedication.norepinephrine);
+      expect(vitals.systolicBp, 125.0);
+      expect(vitals.diastolicBp, 82.0);
+
+      vitals.applyIvDrugEffect(IvEmergencyMedication.amiodaroneHerg);
+      expect(vitals.heartRateBpm, 180.0);
+      expect(vitals.lvefPct, 25.0);
+
+      vitals.applyIvDrugEffect(IvEmergencyMedication.magnesiumSulfate);
+      expect(vitals.heartRateBpm, 80.0);
+      expect(vitals.systolicBp, 120.0);
+
+      // Reset
+      vitals.resetToNormalVitals();
+      expect(vitals.heartRateBpm, 72.0);
+      expect(vitals.systolicBp, 120.0);
+      expect(vitals.diastolicBp, 80.0);
+    });
+
+    testWidgets('CardiacMasterVitalsBar renders badges, interactive sliders, and Coupling Guide', (tester) async {
+      tester.view.physicalSize = const Size(1400, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      final vitals = CardiacMasterVitalsState();
+      bool resetCalled = false;
+
+      await tester.pumpWidget(MaterialApp(
+        home: Scaffold(
+          body: CardiacMasterVitalsBar(
+            vitals: vitals,
+            onReset: () => resetCalled = true,
+          ),
+        ),
+      ));
+      await tester.pump(const Duration(milliseconds: 100));
+
+      expect(find.text('MASTER PATIENT VITALS & HEMODYNAMICS CONTROLLER'), findsOneWidget);
+      expect(find.textContaining('MAP: 93 mmHg'), findsOneWidget);
+      expect(find.textContaining('CO: 5.2 L/min'), findsOneWidget);
+      expect(find.textContaining('BCL: 833 ms'), findsOneWidget);
+      expect(find.text('Reset Vitals'), findsOneWidget);
+      expect(find.text('Coupling Guide'), findsOneWidget);
+
+      // Open coupling guide
+      await tester.tap(find.text('Coupling Guide'));
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(find.text('Physiological Coupling Architecture'), findsOneWidget);
+      expect(find.text('Understood'), findsOneWidget);
+
+      // Close guide
+      await tester.tap(find.text('Understood'));
+      await tester.pump(const Duration(milliseconds: 100));
+
+      // Tap Reset Vitals
+      await tester.tap(find.text('Reset Vitals'));
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(resetCalled, isTrue);
     });
   });
 }

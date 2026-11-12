@@ -66,3 +66,4 @@ capture_page('https://quantom-forge.web.app/#/history', 'History_Subfields_And_C
 
 ws.close()
 print('Verification and screenshots complete!')
+

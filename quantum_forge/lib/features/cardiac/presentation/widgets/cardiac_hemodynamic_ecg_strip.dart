@@ -29,6 +29,7 @@ import 'package:flutter/material.dart';
 import 'package:quantum_forge/core/theme/theme_provider.dart';
 import '../../data/cardiac_pathology_models.dart';
 import '../../data/coronary_hemodynamics_engine.dart';
+import '../../data/cardiac_master_vitals_state.dart';
 import 'cardiac_clinical_info_system.dart';
 import 'package:quantum_forge/features/education/presentation/widgets/study_card_export_dialog.dart';
 
@@ -50,45 +51,6 @@ enum OscilloscopeDisplayTheme {
   final String label;
   final String description;
   const OscilloscopeDisplayTheme(this.label, this.description);
-}
-
-/// Emergency intravenous medications for live ward simulation.
-enum IvEmergencyMedication {
-  adenosine(
-    'Adenosine 6mg IV',
-    'A1 receptor agonist → Transient AV nodal block / 2.5s pause, converts SVT → NSR (76 bpm)',
-    Color(0xFFFFD600),
-  ),
-  atropine(
-    'Atropine 1mg IV',
-    'Muscarinic M2 antagonist → Blocks vagal tone, accelerates Sinus Bradycardia (45 → 85 bpm)',
-    Color(0xFF00E676),
-  ),
-  norepinephrine(
-    'Norepinephrine 4mcg/min',
-    'Alpha-1 vasoconstrictor & Beta-1 inotrope → Elevates ABP to 125/82 (MAP 96 mmHg)',
-    Color(0xFFFF5252),
-  ),
-  nitroglycerin(
-    'Nitroglycerin 10mcg/min',
-    'Venodilator / Preload reduction → Blunts ST elevation; in RV Infarct drops ABP to 72/42 mmHg (Contraindicated!)',
-    Color(0xFF00E5FF),
-  ),
-  amiodaroneHerg(
-    'Amiodarone (hERG Challenge)',
-    'Class III IKr block → Extends QTc > 540 ms, triggers Polymorphic VT / Torsades de Pointes',
-    Color(0xFFA78BFA),
-  ),
-  magnesiumSulfate(
-    'Magnesium Sulfate 2g IV',
-    'Suppresses EADs / Ca2+ influx → Terminates Torsades de Pointes, restores NSR (80 bpm)',
-    Color(0xFF69F0AE),
-  );
-
-  final String label;
-  final String description;
-  final Color color;
-  const IvEmergencyMedication(this.label, this.description, this.color);
 }
 
 class CardiacHemodynamicEcgStrip extends StatefulWidget {
@@ -117,6 +79,9 @@ class CardiacHemodynamicEcgStrip extends StatefulWidget {
   final OscilloscopeDisplayTheme initialDisplayTheme;
   final bool initialMainsHum;
 
+  // Master Patient Vitals State (Cross-Workstation Sync)
+  final CardiacMasterVitalsState? masterVitals;
+
   const CardiacHemodynamicEcgStrip({
     super.key,
     required this.scenario,
@@ -139,6 +104,7 @@ class CardiacHemodynamicEcgStrip extends StatefulWidget {
     this.initialSignalMode = OscilloscopeSignalMode.realBedside,
     this.initialDisplayTheme = OscilloscopeDisplayTheme.icuPhosphor,
     this.initialMainsHum = false,
+    this.masterVitals,
   });
 
   // ───────────────────────────────────────────────────────────────────────────
@@ -434,6 +400,24 @@ class _CardiacHemodynamicEcgStripState extends State<CardiacHemodynamicEcgStrip>
       }
       _lastPhase = widget.cardiacPhase;
     }
+
+    // Auto rhythm adaptation in Sinus mode when HR crosses 60 or 100 bpm
+    final currentHr = widget.masterVitals?.heartRateBpm ?? widget.bpm;
+    final isSinusFamily = _currentRhythm == OscilloscopeRhythmType.nsr ||
+        _currentRhythm == OscilloscopeRhythmType.sinusBrady ||
+        _currentRhythm == OscilloscopeRhythmType.sinusTachy;
+    if (isSinusFamily) {
+      if (currentHr < 60.0 && _currentRhythm != OscilloscopeRhythmType.sinusBrady) {
+        _currentRhythm = OscilloscopeRhythmType.sinusBrady;
+        _updateAlertBanner();
+      } else if (currentHr > 100.0 && _currentRhythm != OscilloscopeRhythmType.sinusTachy) {
+        _currentRhythm = OscilloscopeRhythmType.sinusTachy;
+        _updateAlertBanner();
+      } else if (currentHr >= 60.0 && currentHr <= 100.0 && _currentRhythm != OscilloscopeRhythmType.nsr) {
+        _currentRhythm = OscilloscopeRhythmType.nsr;
+        _updateAlertBanner();
+      }
+    }
   }
 
   void _updateAlertBanner() {
@@ -460,6 +444,7 @@ class _CardiacHemodynamicEcgStripState extends State<CardiacHemodynamicEcgStrip>
         widget.onBpmChanged(rhythm.defaultHr.toDouble());
       }
     });
+    widget.masterVitals?.applyRhythmOverride(rhythm);
     widget.onRhythmChanged?.call(rhythm);
   }
 
@@ -476,6 +461,10 @@ class _CardiacHemodynamicEcgStripState extends State<CardiacHemodynamicEcgStrip>
             // Achieve ROSC back to NSR
             _currentRhythm = OscilloscopeRhythmType.nsr;
             widget.onBpmChanged(85.0);
+            widget.masterVitals?.setHeartRate(85.0);
+            widget.masterVitals?.setBloodPressure(120.0, 78.0);
+            widget.masterVitals?.setSpo2(98.0);
+            widget.masterVitals?.setRespiration(16.0, 42.0);
             _alertBannerText = '⚡ 200J BIPHASIC DELIVERED — ROSC ACHIEVED (NSR 85 BPM, EtCO₂ SURGED > 40 mmHg)';
             _alertBannerColor = const Color(0xFF00E676);
           } else {
@@ -560,6 +549,8 @@ class _CardiacHemodynamicEcgStripState extends State<CardiacHemodynamicEcgStrip>
     setState(() {
       _activeIvDrug = drug;
     });
+
+    widget.masterVitals?.applyIvDrugEffect(drug);
 
     switch (drug) {
       case IvEmergencyMedication.adenosine:
@@ -716,17 +707,19 @@ class _CardiacHemodynamicEcgStripState extends State<CardiacHemodynamicEcgStrip>
   Widget build(BuildContext context) {
     final palette = ThemeNotifier.paletteOf(context);
 
-    // Compute active hemodynamics
+    // Compute active hemodynamics from master vitals or fallback rhythm defaults
+    final mv = widget.masterVitals;
     final isShock = widget.complication == AcuteComplicationState.cardiogenicShock;
-    final baseSys = isShock ? 75.0 : _currentRhythm.defaultSys.toDouble();
-    final baseDia = isShock ? 48.0 : _currentRhythm.defaultDia.toDouble();
+    final baseSys = isShock ? 75.0 : (mv?.systolicBp ?? _currentRhythm.defaultSys.toDouble());
+    final baseDia = isShock ? 48.0 : (mv?.diastolicBp ?? _currentRhythm.defaultDia.toDouble());
     final rawSys = _tcpActive ? 112.0 : baseSys;
     final rawDia = _tcpActive ? 70.0 : baseDia;
     final sys = _drugOverrideSys ?? rawSys;
     final dia = _drugOverrideDia ?? rawDia;
     final map = dia + (sys - dia) / 3.0;
-    final spo2 = _tcpActive ? 97.0 : _currentRhythm.defaultSpo2;
-    final etco2 = _tcpActive ? 38.0 : _currentRhythm.defaultEtco2;
+    final spo2 = _tcpActive ? 97.0 : (mv?.spo2Pct ?? _currentRhythm.defaultSpo2);
+    final etco2 = _tcpActive ? 38.0 : (mv?.etco2MmHg ?? _currentRhythm.defaultEtco2);
+    final respRate = _tcpActive ? 14.0 : (mv?.respRate ?? 14.0);
     final effectiveSt = _drugOverrideSt ?? _computeEffectiveStElevation();
 
     final isPressureWire = widget.wireType == InterventionalWireType.pressureWireX;
@@ -801,7 +794,8 @@ class _CardiacHemodynamicEcgStripState extends State<CardiacHemodynamicEcgStrip>
                                   signalMode: _signalMode,
                                   displayTheme: _displayTheme,
                                   mainsHum: _mainsHum,
-                                  bpm: widget.bpm,
+                                  bpm: widget.masterVitals?.heartRateBpm ?? widget.bpm,
+                                  respRate: respRate,
                                 ),
                               );
                             },
@@ -1433,8 +1427,16 @@ class _CardiacHemodynamicEcgStripState extends State<CardiacHemodynamicEcgStrip>
     double etco2,
     bool isQrsActive,
   ) {
-    final hrVal = _tcpActive ? 70 : (_currentRhythm.defaultHr > 0 ? _currentRhythm.defaultHr : (widget.bpm.round()));
-    final rrVal = _currentRhythm.isArrest ? 0 : (_currentRhythm == OscilloscopeRhythmType.sinusTachy ? 22 : 14);
+    final hrVal = _tcpActive
+        ? 70
+        : (widget.masterVitals?.heartRateBpm.round() ??
+            (_currentRhythm.defaultHr > 0
+                ? _currentRhythm.defaultHr
+                : widget.bpm.round()));
+    final rrVal = _currentRhythm.isArrest
+        ? 0
+        : (widget.masterVitals?.respRate.round() ??
+            (_currentRhythm == OscilloscopeRhythmType.sinusTachy ? 22 : 14));
 
     return Container(
       width: 140,
@@ -2138,6 +2140,7 @@ class _FiveChannelHospitalOscilloscopePainter extends CustomPainter {
   final OscilloscopeDisplayTheme displayTheme;
   final bool mainsHum;
   final double bpm;
+  final double respRate;
 
   _FiveChannelHospitalOscilloscopePainter({
     required this.cardiacPhase,
@@ -2160,6 +2163,7 @@ class _FiveChannelHospitalOscilloscopePainter extends CustomPainter {
     required this.displayTheme,
     required this.mainsHum,
     required this.bpm,
+    this.respRate = 14.0,
   });
 
   bool get _isThermal => displayTheme == OscilloscopeDisplayTheme.thermalPaper;
@@ -2318,12 +2322,12 @@ class _FiveChannelHospitalOscilloscopePainter extends CustomPainter {
 
       // Authentic physiological signal realism
       if (_isReal) {
-        // Respiratory baseline wander (0.22 Hz over 10s)
-        final respWander = 0.060 * math.sin((x / bounds.width) * math.pi * 3.8 + sweepProgress * 2.8);
+        // Respiratory baseline wander (0.22 Hz over 10s, scaled by RR)
+        final respWander = 0.060 * math.sin((x / bounds.width) * (respRate / 14.0) * math.pi * 3.8 + sweepProgress * 2.8);
         // Skeletal muscle EMG & electrode micro-noise
         final emgNoise = 0.018 * math.sin(x * 1.83) + 0.012 * math.cos(x * 2.91) + 0.008 * math.sin(x * 5.43);
         // R-wave respiratory amplitude modulation (RSA ±6%)
-        final rWaveMod = 1.0 + 0.06 * math.sin((x / bounds.width) * math.pi * 3.8);
+        final rWaveMod = 1.0 + 0.06 * math.sin((x / bounds.width) * (respRate / 14.0) * math.pi * 3.8);
         // 60 Hz AC mains hum fuzz if enabled
         final hum = mainsHum ? (0.040 * math.sin(x * 3.77)) : 0.0;
 
@@ -2370,7 +2374,7 @@ class _FiveChannelHospitalOscilloscopePainter extends CustomPainter {
 
       // Authentic physiological signal realism
       if (_isReal) {
-        final respWander = 0.045 * math.sin((x / bounds.width) * math.pi * 3.8 + sweepProgress * 2.8);
+        final respWander = 0.045 * math.sin((x / bounds.width) * (respRate / 14.0) * math.pi * 3.8 + sweepProgress * 2.8);
         final emgNoise = 0.014 * math.sin(x * 2.15) + 0.009 * math.cos(x * 3.17);
         final hum = mainsHum ? (0.035 * math.sin(x * 3.77)) : 0.0;
         v = v + respWander + emgNoise + hum;
@@ -2507,7 +2511,7 @@ class _FiveChannelHospitalOscilloscopePainter extends CustomPainter {
     final cursorX = sweepProgress * bounds.width;
     final numSamples = math.max(700, (bounds.width * 0.9).round());
     final totalSweepSeconds = sweepSpeedMmS == 50 ? 5.0 : 10.0;
-    final rrVal = rhythm.isArrest ? 0 : (rhythm == OscilloscopeRhythmType.sinusTachy ? 22 : 14);
+    final rrVal = rhythm.isArrest ? 0.0 : respRate;
     final totalBreaths = (rrVal / 60.0) * totalSweepSeconds;
     final hr = tcpActive ? 70.0 : (rhythm.defaultHr > 0 ? rhythm.defaultHr.toDouble() : bpm);
     final totalBeats = (hr / 60.0) * totalSweepSeconds;
@@ -2557,7 +2561,7 @@ class _FiveChannelHospitalOscilloscopePainter extends CustomPainter {
     final totalSweepSeconds = sweepSpeedMmS == 50 ? 5.0 : 10.0;
     final hr = tcpActive ? 70.0 : (rhythm.defaultHr > 0 ? rhythm.defaultHr.toDouble() : bpm);
     final totalBeats = (hr / 60.0) * totalSweepSeconds;
-    final rrVal = rhythm.isArrest ? 0 : (rhythm == OscilloscopeRhythmType.sinusTachy ? 22 : 14);
+    final rrVal = rhythm.isArrest ? 0.0 : respRate;
     final totalBreaths = (rrVal / 60.0) * totalSweepSeconds;
 
     // Erase beam line

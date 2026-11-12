@@ -15,6 +15,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 
+import '../../data/cardiac_master_vitals_state.dart';
 import 'cardiac_clinical_info_system.dart';
 import 'cardiac_three_engine.dart';
 
@@ -23,6 +24,7 @@ class CardiacResearchWorkstationPanel extends StatefulWidget {
   final double initialStenosisPercent;
   final double initialHeartRate;
   final ValueChanged<bool>? onToggle3dWssHeatmap;
+  final CardiacMasterVitalsState? masterVitals;
 
   const CardiacResearchWorkstationPanel({
     super.key,
@@ -30,6 +32,7 @@ class CardiacResearchWorkstationPanel extends StatefulWidget {
     this.initialStenosisPercent = 72.0,
     this.initialHeartRate = 72.0,
     this.onToggle3dWssHeatmap,
+    this.masterVitals,
   });
 
   @override
@@ -190,7 +193,17 @@ class _CardiacResearchWorkstationPanelState
   void initState() {
     super.initState();
     _stenosisPct = widget.initialStenosisPercent.clamp(15.0, 92.0);
-    _pacingHrBpm = widget.initialHeartRate.clamp(48.0, 135.0);
+    _pacingHrBpm = (widget.masterVitals?.heartRateBpm ?? widget.initialHeartRate).clamp(30.0, 220.0);
+  }
+
+  @override
+  void didUpdateWidget(covariant CardiacResearchWorkstationPanel oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.masterVitals != null && widget.masterVitals!.heartRateBpm != _pacingHrBpm) {
+      setState(() {
+        _pacingHrBpm = widget.masterVitals!.heartRateBpm.clamp(30.0, 220.0);
+      });
+    }
   }
 
   Map<String, dynamic> get _currentDrugMeta {
@@ -329,7 +342,7 @@ class _CardiacResearchWorkstationPanelState
     const double mu = 0.035;
     const double rho = 1.06;
     const double mmhgToDyn = 1333.22;
-    const double mapMmhg = 93.3;
+    final double mapMmhg = widget.masterVitals?.mapBp ?? 93.3;
 
     final r0Cm = (_referenceDiamMm * 0.1) / 2.0;
     final sFrac = (_stenosisPct / 100.0).clamp(0.0, 0.94);

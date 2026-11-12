@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../../data/cardiac_master_vitals_state.dart';
 import 'cardiac_clinical_info_system.dart';
 
 /// Phase 3 Cardiology Upgrade Suite:
@@ -14,6 +15,7 @@ class CardiacFellowshipSuitePanel extends StatefulWidget {
   final double heartRateBpm;
   final String? initialRoomCode;
   final ValueChanged<double>? onSyncHeartRate;
+  final CardiacMasterVitalsState? masterVitals;
 
   const CardiacFellowshipSuitePanel({
     super.key,
@@ -21,6 +23,7 @@ class CardiacFellowshipSuitePanel extends StatefulWidget {
     this.heartRateBpm = 72.0,
     this.initialRoomCode,
     this.onSyncHeartRate,
+    this.masterVitals,
   });
 
   @override

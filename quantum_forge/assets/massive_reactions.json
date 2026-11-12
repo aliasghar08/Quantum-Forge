@@ -1,5 +1,23 @@
 [
   {
+    "id": "lit_10_1039_d6cb00304d",
+    "name": "Efficient assays for measuring inhibition of penicillin binding protein 3 (PBP3) tran",
+    "iupacName": "Scholarly reaction (Thiol Disulfide Exchange)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1039/d6cb00304d. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "15\nEfficient assays for measuring inhibition of penicillin binding protein 3 (PBP3) transpeptidases - Reactant\nS      0.0000     0.0000     0.0000\nS      2.4000     0.0000     0.0000\nS      4.4500     0.0000     0.0000\nC     -1.4000     0.8000     0.0000\nC      2.8000     1.4000     0.0000\nC      5.8000     0.8000     0.0000\nH     -1.4000     1.8500     0.0000\nH     -1.9000     0.4500     0.8800\nH     -1.9000     0.4500    -0.8800\nH      2.8000     2.4500     0.0000\nH      3.3000     1.0500     0.8800\nH      3.3000     1.0500    -0.8800\nH      5.8000     1.8500     0.0000\nH      6.3000     0.4500     0.8800\nH      6.3000     0.4500    -0.8800\n",
+    "productXyz": "15\nEfficient assays for measuring inhibition of penicillin binding protein 3 (PBP3) transpeptidases - Product\nS      0.3500     0.0000    -0.0000\nS      2.4500     0.0000    -0.0000\nS      5.1000     0.0000    -0.0000\nC     -1.4000     0.8000    -0.0000\nC      2.8000     1.4000    -0.0000\nC      5.8000     0.8000     0.0000\nH     -1.4000     1.8500     0.0000\nH     -1.9000     0.4500     0.8800\nH     -1.9000     0.4500    -0.8800\nH      2.8000     2.4500    -0.0000\nH      3.3000     1.0500     0.8800\nH      3.3000     1.0500    -0.8800\nH      5.8000     1.8500     0.0000\nH      6.3000     0.4500     0.8800\nH      6.3000     0.4500    -0.8800\n",
+    "referenceEa": 16.59,
+    "doi": "10.1039/d6cb00304d",
+    "journalRef": "RSC Chemical Biology",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Thiol Disulfide Exchange"
+    ]
+  },
+  {
     "id": "lit_10_1007_s13340-026-00946-x",
     "name": "GLP-1 based therapy of obesity and type 2 diabetes",
     "iupacName": "Scholarly reaction (Peptide Hydrolysis)",

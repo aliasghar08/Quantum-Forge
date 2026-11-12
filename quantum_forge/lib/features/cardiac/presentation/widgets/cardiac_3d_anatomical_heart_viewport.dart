@@ -47,6 +47,7 @@ class Cardiac3DAnatomicalHeartViewport extends StatefulWidget {
   final double bpm;
   final CoronaryDominance dominance;
   final bool isRevascularized;
+  final double lvefPct;
 
   const Cardiac3DAnatomicalHeartViewport({
     super.key,
@@ -57,6 +58,7 @@ class Cardiac3DAnatomicalHeartViewport extends StatefulWidget {
     this.bpm = 72.0,
     this.dominance = CoronaryDominance.rightDominant,
     this.isRevascularized = false,
+    this.lvefPct = 60.0,
   });
 
   @override
@@ -209,6 +211,7 @@ class _Cardiac3DAnatomicalHeartViewportState
                           isRevascularized: widget.isRevascularized,
                           viewMode: _viewMode,
                           showLabels: _showLabels,
+                          lvefPct: widget.lvefPct,
                         ),
                       ),
                     ),
@@ -639,6 +642,7 @@ class _AnatomicalHeart3DPainter extends CustomPainter {
   final bool isRevascularized;
   final HeartViewMode viewMode;
   final bool showLabels;
+  final double lvefPct;
 
   _AnatomicalHeart3DPainter({
     required this.scenario,
@@ -653,6 +657,7 @@ class _AnatomicalHeart3DPainter extends CustomPainter {
     required this.isRevascularized,
     required this.viewMode,
     required this.showLabels,
+    this.lvefPct = 60.0,
   });
 
   _Vec3 _rotate(_Vec3 p, double cosY, double sinY, double cosX, double sinX) {
@@ -700,11 +705,12 @@ class _AnatomicalHeart3DPainter extends CustomPainter {
     final cosX = math.cos(rotationX);
     final sinX = math.sin(rotationX);
 
-    // Physiological contraction: systole wrings and squeezes ventricles by ~12%
+    // Physiological contraction: systole wrings and squeezes ventricles by ~12% (scaled by LVEF)
     // Atrial kick occurs at phase 0.15; ventricular peak systole at phase 0.35
     final isSystole = cardiacPhase >= 0.22 && cardiacPhase <= 0.48;
+    final efExcursionScale = (lvefPct / 60.0).clamp(0.25, 1.45);
     final systolicContraction = isSystole
-        ? 0.12 * math.sin((cardiacPhase - 0.22) / 0.26 * math.pi)
+        ? 0.12 * efExcursionScale * math.sin((cardiacPhase - 0.22) / 0.26 * math.pi)
         : 0.0;
     final currentScale = baseScale * (1.0 - systolicContraction);
 
@@ -2672,6 +2678,7 @@ class _AnatomicalHeart3DPainter extends CustomPainter {
         old.dominance != dominance ||
         old.isRevascularized != isRevascularized ||
         old.viewMode != viewMode ||
-        old.showLabels != showLabels;
+        old.showLabels != showLabels ||
+        old.lvefPct != lvefPct;
   }
 }

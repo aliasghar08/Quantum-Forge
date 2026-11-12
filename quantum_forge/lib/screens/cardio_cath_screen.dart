@@ -19,6 +19,8 @@ import 'package:flutter/material.dart';
 import 'package:quantum_forge/core/theme/theme_provider.dart';
 import '../features/cardiac/data/cardiac_pathology_models.dart';
 import '../features/cardiac/data/coronary_hemodynamics_engine.dart';
+import '../features/cardiac/data/cardiac_master_vitals_state.dart';
+import '../features/cardiac/presentation/widgets/cardiac_master_vitals_bar.dart';
 import '../features/cardiac/presentation/widgets/cardiac_3d_anatomical_heart_viewport.dart';
 import '../features/cardiac/presentation/widgets/cardiac_fluoroscopy_viewport.dart';
 import '../features/cardiac/presentation/widgets/cardiac_c_arm_gantry_twin.dart';
@@ -59,6 +61,7 @@ class _CardioCathScreenState extends State<CardioCathScreen>
 
   // Hemodynamic & Contrast State
   double _bpm = 72.0;
+  late final CardiacMasterVitalsState _masterVitals;
   double _contrastIntensity = 0.0;
   bool _isInjecting = false;
   Timer? _dyeWashoutTimer;
@@ -143,6 +146,11 @@ class _CardioCathScreenState extends State<CardioCathScreen>
     }
 
     _bpm = _activeScenario.baselineBpm;
+    _masterVitals = CardiacMasterVitalsState(
+      heartRateBpm: _bpm,
+    );
+    _masterVitals.applyScenarioPreset(_activeScenario);
+    _masterVitals.addListener(_onMasterVitalsChanged);
 
     final cycleDurationMs = (60.0 / _bpm * 1000).round();
     _cardiacAnimController = AnimationController(
@@ -158,14 +166,27 @@ class _CardioCathScreenState extends State<CardioCathScreen>
     });
   }
 
+  void _onMasterVitalsChanged() {
+    if ((_bpm - _masterVitals.heartRateBpm).abs() > 0.05) {
+      _updateBpm(_masterVitals.heartRateBpm);
+    } else {
+      setState(() {});
+    }
+  }
+
   @override
   void dispose() {
+    _masterVitals.removeListener(_onMasterVitalsChanged);
+    _masterVitals.dispose();
     _dyeWashoutTimer?.cancel();
     _cardiacAnimController.dispose();
     super.dispose();
   }
 
   void _updateBpm(double newBpm) {
+    if ((_masterVitals.heartRateBpm - newBpm).abs() > 0.05) {
+      _masterVitals.setHeartRate(newBpm);
+    }
     setState(() {
       _bpm = newBpm;
       final cycleDurationMs = ((60.0 / _bpm * 1000) / _playbackSpeed).round().clamp(150, 4000);
@@ -212,6 +233,7 @@ class _CardioCathScreenState extends State<CardioCathScreen>
       _isRevascularized = false;
       _isRotablated = false;
       _complication = AcuteComplicationState.none;
+      _masterVitals.applyScenarioPreset(_activeScenario);
       _updateBpm(_activeScenario.baselineBpm);
     });
   }
@@ -684,6 +706,7 @@ class _CardioCathScreenState extends State<CardioCathScreen>
                         bpm: _bpm,
                         dominance: _dominance,
                         isRevascularized: _isRevascularized,
+                        lvefPct: _masterVitals.lvefPct,
                       ),
                     ),
                     const SizedBox(width: 10),
@@ -733,12 +756,21 @@ class _CardioCathScreenState extends State<CardioCathScreen>
 
             const SizedBox(height: 10),
 
+            // ── Master Patient Vitals & Hemodynamics Controller ───────────
+            CardiacMasterVitalsBar(
+              vitals: _masterVitals,
+              onReset: () => _updateBpm(72.0),
+            ),
+
+            const SizedBox(height: 10),
+
             // ── Primary Default View: 5-Channel Hospital Bedside Monitor & Telemetry Strip (Centerpiece) ─────
             CardiacHemodynamicEcgStrip(
               scenario: _activeScenario,
               cardiacPhase: _cardiacAnimController.value,
               bpm: _bpm,
               onBpmChanged: _updateBpm,
+              masterVitals: _masterVitals,
               activeTerritory: _activeTerritory,
               onTerritoryChanged: (t) => setState(() => _activeTerritory = t),
               isRevascularized: _isRevascularized,
@@ -778,6 +810,7 @@ class _CardioCathScreenState extends State<CardioCathScreen>
               cardiacPhase: _cardiacAnimController.value,
               bpm: _bpm,
               onBpmChanged: _updateBpm,
+              masterVitals: _masterVitals,
             ),
 
             const SizedBox(height: 12),
@@ -788,6 +821,7 @@ class _CardioCathScreenState extends State<CardioCathScreen>
                   ? _activeScenario.ladStenosisFraction * 100.0
                   : 72.0,
               initialHeartRate: _bpm,
+              masterVitals: _masterVitals,
             ),
 
             const SizedBox(height: 12),
@@ -798,6 +832,7 @@ class _CardioCathScreenState extends State<CardioCathScreen>
               heartRateBpm: _bpm,
               initialRoomCode: Uri.base.queryParameters['room'],
               onSyncHeartRate: _updateBpm,
+              masterVitals: _masterVitals,
             ),
 
             const SizedBox(height: 12),
@@ -1906,6 +1941,7 @@ class _CardioCathScreenState extends State<CardioCathScreen>
             bpm: _bpm,
             dominance: _dominance,
             isRevascularized: _isRevascularized,
+            lvefPct: _masterVitals.lvefPct,
           ),
         ),
         const SizedBox(height: 12),
