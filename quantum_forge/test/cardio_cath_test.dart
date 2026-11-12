@@ -169,15 +169,19 @@ void main() {
 
       // Switch to Left-Dominant (8%)
       final leftDomChip = find.text('Left-Dominant (8%)');
+      await tester.ensureVisible(leftDomChip);
+      await tester.pump(const Duration(milliseconds: 100));
       await tester.tap(leftDomChip);
-      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
 
       expect(find.text('PDA from LCx (8% population)'), findsOneWidget);
 
       // Switch to Co-Dominant (7%)
       final coDomChip = find.text('Co-Dominant (7%)');
+      await tester.ensureVisible(coDomChip);
+      await tester.pump(const Duration(milliseconds: 100));
       await tester.tap(coDomChip);
-      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
 
       expect(find.text('Dual PDA from RCA + LCx (7%)'), findsOneWidget);
     });
@@ -379,8 +383,10 @@ void main() {
       // Tap PressureWire X (FFR) chip
       final pressureWireChip = find.text('PressureWire X (FFR)');
       expect(pressureWireChip, findsOneWidget);
+      await tester.ensureVisible(pressureWireChip);
+      await tester.pump(const Duration(milliseconds: 100));
       await tester.tap(pressureWireChip);
-      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
 
       // Verify live FFR / iFR readout is active
       expect(find.textContaining('FFR (Pd/Pa)'), findsOneWidget);
@@ -388,8 +394,10 @@ void main() {
       // Tap Rotablator Burr
       final rotablatorBtn = find.text('Rotablator Burr');
       expect(rotablatorBtn, findsOneWidget);
+      await tester.ensureVisible(rotablatorBtn);
+      await tester.pump(const Duration(milliseconds: 100));
       await tester.tap(rotablatorBtn);
-      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
 
       expect(find.text('Rotablated (160k RPM)'), findsOneWidget);
 

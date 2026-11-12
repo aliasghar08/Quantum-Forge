@@ -51,7 +51,7 @@ enum AcuteComplicationState {
 }
 
 enum OscilloscopeRhythmType {
-  nsr('nsr', 'Normal Sinus Rhythm', 'NSR', 75, 120, 80, 99, 40, 'Normal 1:1 AV conduction, upright P in Lead II, narrow QRS (<120 ms).'),
+  nsr('nsr', 'Normal Sinus Rhythm', 'NSR', 72, 120, 80, 99, 38, 'Normal 1:1 AV conduction, upright P in Lead II, narrow QRS (<120 ms).'),
   sinusBrady('sinus_brady', 'Sinus Bradycardia', 'S.BRADY', 45, 108, 68, 98, 42, 'HR < 50 bpm; athletic tone, vagal stimulation, or sinus node disease.'),
   sinusTachy('sinus_tachy', 'Sinus Tachycardia', 'S.TACHY', 135, 136, 86, 97, 36, 'HR > 100 bpm; response to pain, fever, hypovolemia, or sympathetic drive.'),
   afib('afib', 'Atrial Fibrillation with RVR', 'A-FIB', 130, 115, 74, 96, 35, 'Irregularly irregular R-R intervals with fibrillatory f-waves (350-600/min).'),

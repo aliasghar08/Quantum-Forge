@@ -658,29 +658,15 @@ class _CardioCathScreenState extends State<CardioCathScreen>
             // ── Scenario Presets Bar ────────────────────────────────────────
             if (!_isOsceMode) ...[
               _buildScenarioSelector(palette),
-              const SizedBox(height: 12),
+              const SizedBox(height: 10),
             ],
 
-            // ── Coronary Dominance Switcher Bar ─────────────────────────────
-            _buildDominanceSelector(palette),
-            const SizedBox(height: 12),
-
-            // ── Interventional Suite & Tool Selection Bar ───────────────────
-            _buildInterventionalSuiteBar(palette, hemo),
-            const SizedBox(height: 12),
-
-            // ── ALARA Radiation & Contrast Safety Tracker Strip ─────────────
-            _buildAlaraSafetyBar(palette),
-            const SizedBox(height: 12),
-
-            // ── 120-Frame FSI Biomechanical Physics Playback Bar ───────────
-            _buildPhysicsTrajectoryBar(palette),
-            const SizedBox(height: 12),
-
             // ── Synchronized Viewports (3D Heart, Fluo, C-Arm, IVUS/OCT) ───
+            // Sized at 280px on desktop so the 5-channel hospital bedside monitor
+            // renders immediately beneath it above the fold on standard 1440x900 screens.
             if (isDesktop)
               SizedBox(
-                height: 420,
+                height: 280,
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
@@ -697,7 +683,7 @@ class _CardioCathScreenState extends State<CardioCathScreen>
                         isRevascularized: _isRevascularized,
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: 10),
 
                     // View 2: Real-Time X-Ray Fluoroscopy (Center)
                     Expanded(
@@ -715,7 +701,7 @@ class _CardioCathScreenState extends State<CardioCathScreen>
                         onSimulatePci: _simulatePciDeployment,
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: 10),
 
                     // View 3: Either C-Arm Gantry Twin OR Virtual IVUS/OCT Viewport
                     Expanded(
@@ -742,9 +728,9 @@ class _CardioCathScreenState extends State<CardioCathScreen>
             else
               _buildMobileViewportsColumn(),
 
-            const SizedBox(height: 12),
+            const SizedBox(height: 10),
 
-            // ── View 4: Live Hemodynamic & Multi-Lead ECG Strip (Bottom) ─────
+            // ── Primary Default View: 5-Channel Hospital Bedside Monitor & Telemetry Strip (Centerpiece) ─────
             CardiacHemodynamicEcgStrip(
               scenario: _activeScenario,
               cardiacPhase: _cardiacAnimController.value,
@@ -761,6 +747,23 @@ class _CardioCathScreenState extends State<CardioCathScreen>
               ifrValue: hemo.ifr,
               wssDynes: hemo.peakWssDynes,
             ),
+
+            const SizedBox(height: 12),
+
+            // ── Coronary Dominance Switcher Bar ─────────────────────────────
+            _buildDominanceSelector(palette),
+            const SizedBox(height: 12),
+
+            // ── Interventional Suite & Tool Selection Bar ───────────────────
+            _buildInterventionalSuiteBar(palette, hemo),
+            const SizedBox(height: 12),
+
+            // ── ALARA Radiation & Contrast Safety Tracker Strip ─────────────
+            _buildAlaraSafetyBar(palette),
+            const SizedBox(height: 12),
+
+            // ── 120-Frame FSI Biomechanical Physics Playback Bar ───────────
+            _buildPhysicsTrajectoryBar(palette),
 
             const SizedBox(height: 12),
 
