@@ -18,6 +18,7 @@ import 'package:quantum_forge/screens/osce_sandbox_screen.dart';
 import 'package:quantum_forge/features/ddi/presentation/widgets/split_molecular_viewer.dart';
 import 'package:quantum_forge/screens/ddi_split_screen.dart';
 import 'package:quantum_forge/core/widgets/ngl/ngl_engine.dart';
+import 'package:quantum_forge/features/education/presentation/widgets/study_card_export_dialog.dart';
 import 'medical_dossier_diagrams.dart';
 import 'research_ui.dart';
 
@@ -393,6 +394,46 @@ class _ReactionMedicalDossierCardState extends State<ReactionMedicalDossierCard>
                     style: const TextStyle(color: accentColor, fontSize: 10.5, fontWeight: FontWeight.w700),
                   ),
                 ),
+              OutlinedButton.icon(
+                icon: const Icon(Icons.school_rounded, color: Color(0xFF00E676), size: 14),
+                label: const Text(
+                  'Export Ward Study Card & Anki',
+                  style: TextStyle(color: Color(0xFF00E676), fontSize: 10.5, fontWeight: FontWeight.bold),
+                ),
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: Color(0xFF00E676), width: 0.9),
+                  backgroundColor: const Color(0xFF00E676).withValues(alpha: 0.1),
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  minimumSize: Size.zero,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+                onPressed: () {
+                  showDialog<void>(
+                    context: context,
+                    builder: (_) => StudyCardExportDialog(
+                      title: '${p.genericName} Pharmacology Dossier',
+                      subtitle: '${p.chemicalClass} • IUPAC: ${p.iupacName}',
+                      presentation: p.therapeuticIndications,
+                      ecgWaveformFindings:
+                          'Molecular Target: ${p.molecularTarget} • PDB: ${p.pdbAccession.isNotEmpty ? p.pdbAccession : "N/A"}',
+                      hemodynamics: p.absorptionAndDistribution,
+                      mechanism: p.modeOfAction,
+                      boardPearls: p.clinicalStaging,
+                      contraindications: p.blackBoxWarning.isNotEmpty
+                          ? '${p.blackBoxWarning}\n${p.contraindications}'
+                          : p.contraindications,
+                      firstLineManagement: p.downstreamSignaling,
+                      citations: [
+                        if (p.primaryDoi.isNotEmpty) 'DOI: ${p.primaryDoi}',
+                        if (p.pubmedId.isNotEmpty) 'PubMed ID: ${p.pubmedId}',
+                        'Goodman & Gilman\'s The Pharmacological Basis of Therapeutics (14th Ed)',
+                        'FDA Approved Drug Labeling Database',
+                      ],
+                      disciplineBadge: 'PHARMACOLOGY & PHARM-D HIGH-YIELD',
+                    ),
+                  );
+                },
+              ),
             ],
           ),
 

@@ -30,6 +30,8 @@ import '../features/cardiac/presentation/widgets/cardiac_clinical_info_system.da
 import '../features/cardiac/presentation/widgets/cardiac_diagnostic_workstation_panel.dart';
 import '../features/cardiac/presentation/widgets/cardiac_research_workstation_panel.dart';
 import '../features/cardiac/presentation/widgets/cardiac_fellowship_suite_panel.dart';
+import '../features/education/presentation/widgets/clinical_vignette_quiz_drawer.dart';
+import '../features/education/presentation/widgets/study_card_export_dialog.dart';
 
 class CardioCathScreen extends StatefulWidget {
   final String? initialScenarioId;
@@ -67,6 +69,7 @@ class _CardioCathScreenState extends State<CardioCathScreen>
   bool _isRotablated = false;
   bool _iabpActive = false;
   EcgTerritoryLead _activeTerritory = EcgTerritoryLead.leadII;
+  OscilloscopeRhythmType _oscilloscopeRhythm = OscilloscopeRhythmType.nsr;
 
   // Interventional Catheter & Wire State
   GuideCatheterType _catheterType = GuideCatheterType.jl4;
@@ -570,7 +573,7 @@ class _CardioCathScreenState extends State<CardioCathScreen>
 
           // OSCE Exam Mode Toggle
           Padding(
-            padding: const EdgeInsets.only(right: 8),
+            padding: const EdgeInsets.only(right: 6),
             child: ActionChip(
               avatar: Icon(
                 _isOsceMode ? Icons.school_rounded : Icons.quiz_rounded,
@@ -746,6 +749,8 @@ class _CardioCathScreenState extends State<CardioCathScreen>
               ffrValue: hemo.ffr,
               ifrValue: hemo.ifr,
               wssDynes: hemo.peakWssDynes,
+              initialRhythm: _oscilloscopeRhythm,
+              onRhythmChanged: (r) => setState(() => _oscilloscopeRhythm = r),
             ),
 
             const SizedBox(height: 12),
@@ -911,48 +916,110 @@ class _CardioCathScreenState extends State<CardioCathScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    'CLINICAL SCENARIO & PATHOLOGY PRESETS:',
-                    style: TextStyle(
-                      color: palette.textMuted,
-                      fontSize: 10.5,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 0.8,
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'CLINICAL SCENARIO & PATHOLOGY PRESETS:',
+                      style: TextStyle(
+                        color: palette.textMuted,
+                        fontSize: 10.5,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 0.8,
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  const CardiacInfoButton(
-                    topicId: 'section_scenarios',
-                    customLabel: 'Scenario Info',
-                    size: 12,
-                  ),
-                ],
-              ),
-              Flexible(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF00E5FF).withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Text(
-                    _activeScenario.title,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 10.5,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF00E5FF),
+                    const SizedBox(width: 8),
+                    const CardiacInfoButton(
+                      topicId: 'section_scenarios',
+                      customLabel: 'Scenario Info',
+                      size: 12,
                     ),
-                  ),
+                  ],
                 ),
-              ),
-            ],
+                const SizedBox(width: 16),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    OutlinedButton.icon(
+                      icon: const Icon(Icons.school_rounded, color: Color(0xFF10B981), size: 13),
+                      label: const Text(
+                        'USMLE QBank (SM-2)',
+                        style: TextStyle(color: Color(0xFF10B981), fontSize: 10, fontWeight: FontWeight.bold),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: Color(0xFF10B981), width: 0.8),
+                        backgroundColor: const Color(0xFF10B981).withValues(alpha: 0.1),
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                      onPressed: () => ClinicalVignetteQuizDrawer.show(
+                        context,
+                        onLaunchSimulation: (vignette) {
+                          if (vignette.linkedScenarioId != null) {
+                            final idx = kCardiacScenarios.indexWhere((s) => s.id == vignette.linkedScenarioId);
+                            if (idx != -1) {
+                              _onSelectScenario(idx);
+                            }
+                          }
+                          if (vignette.linkedRhythm != null) {
+                            setState(() {
+                              _oscilloscopeRhythm = vignette.linkedRhythm!;
+                            });
+                          }
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    OutlinedButton.icon(
+                      icon: const Icon(Icons.menu_book_rounded, color: Color(0xFF00E5FF), size: 13),
+                      label: const Text(
+                        'Ward Study Card',
+                        style: TextStyle(color: Color(0xFF00E5FF), fontSize: 10, fontWeight: FontWeight.bold),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: Color(0xFF00E5FF), width: 0.8),
+                        backgroundColor: const Color(0xFF00E5FF).withValues(alpha: 0.1),
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                      onPressed: () => showDialog<void>(
+                        context: context,
+                        builder: (_) => StudyCardExportDialog.fromOscilloscopeRhythm(
+                          rhythm: _oscilloscopeRhythm,
+                          sys: _oscilloscopeRhythm.defaultSys.toDouble(),
+                          dia: _oscilloscopeRhythm.defaultDia.toDouble(),
+                          bpm: _bpm,
+                          scenarioTitle: _activeScenario.title,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF00E5FF).withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        _activeScenario.title,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 10.5,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF00E5FF),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
           const SizedBox(height: 10),
           SingleChildScrollView(

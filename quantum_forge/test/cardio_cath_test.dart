@@ -13,6 +13,9 @@ import 'package:quantum_forge/features/cardiac/presentation/widgets/cardiac_rese
 import 'package:quantum_forge/features/cardiac/presentation/widgets/cardiac_fellowship_suite_panel.dart';
 import 'package:quantum_forge/features/cardiac/data/cardiac_pathology_models.dart';
 import 'package:quantum_forge/features/cardiac/data/coronary_hemodynamics_engine.dart';
+import 'package:quantum_forge/features/education/data/medical_board_qbank.dart';
+import 'package:quantum_forge/features/education/presentation/widgets/clinical_vignette_quiz_drawer.dart';
+import 'package:quantum_forge/features/education/presentation/widgets/study_card_export_dialog.dart';
 
 void main() {
   group('CardioCath 3D: Coronary Angiography & Hemodynamic Lab Tests', () {
@@ -916,6 +919,203 @@ void main() {
       await tester.tap(displayThemeToggle);
       await tester.pump(const Duration(milliseconds: 100));
       expect(find.text('ICU PHOSPHOR CRT'), findsOneWidget);
+    });
+
+    testWidgets('Live "Administer IV Drug" Ward Simulator: Adenosine, Atropine, Norepinephrine, Nitroglycerin, and hERG challenge', (tester) async {
+      tester.view.physicalSize = const Size(1280, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      double currentBpm = 160.0;
+      await tester.pumpWidget(MaterialApp(
+        home: Scaffold(
+          body: CardiacHemodynamicEcgStrip(
+            scenario: kCardiacScenarios.first,
+            cardiacPhase: 0.2,
+            bpm: currentBpm,
+            onBpmChanged: (val) => currentBpm = val,
+            initialRhythm: OscilloscopeRhythmType.svt,
+          ),
+        ),
+      ));
+      await tester.pump(const Duration(milliseconds: 100));
+
+      // Open IV Drug Pump Drawer
+      final ivPumpBtn = find.byKey(const Key('oscilloscope_iv_pump_toggle'));
+      expect(ivPumpBtn, findsOneWidget);
+      await tester.tap(ivPumpBtn);
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(find.text('IV EMERGENCY MEDICATION PUMP (WARD SIMULATOR)'), findsOneWidget);
+
+      // Verify all emergency drugs are present
+      expect(find.text('Adenosine 6mg IV'), findsOneWidget);
+      expect(find.text('Atropine 1mg IV'), findsOneWidget);
+      expect(find.text('Norepinephrine 4mcg/min'), findsOneWidget);
+      expect(find.text('Nitroglycerin 10mcg/min'), findsOneWidget);
+      expect(find.text('Amiodarone (hERG Challenge)'), findsOneWidget);
+      expect(find.text('Magnesium Sulfate 2g IV'), findsOneWidget);
+
+      // Administer Atropine
+      await tester.tap(find.text('Atropine 1mg IV'));
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(currentBpm, 85.0);
+      expect(find.textContaining('ATROPINE 1 mg IV PUSH'), findsOneWidget);
+
+      // Administer Norepinephrine
+      await tester.tap(find.text('Norepinephrine 4mcg/min'));
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(find.textContaining('NOREPINEPHRINE 4 mcg/min INFUSION'), findsOneWidget);
+      expect(find.text('125/82'), findsOneWidget);
+
+      // Administer Amiodarone / hERG challenge
+      final amioBtn = find.text('Amiodarone (hERG Challenge)');
+      await tester.ensureVisible(amioBtn);
+      await tester.pump(const Duration(milliseconds: 100));
+      await tester.tap(amioBtn);
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(find.textContaining('hERG / IKr CHANNEL BLOCKADE'), findsOneWidget);
+
+      // Terminate with IV Magnesium Sulfate
+      final mgBtn = find.text('Magnesium Sulfate 2g IV');
+      await tester.ensureVisible(mgBtn);
+      await tester.pump(const Duration(milliseconds: 100));
+      await tester.tap(mgBtn);
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(find.textContaining('IV MAGNESIUM SULFATE 2 g'), findsOneWidget);
+      expect(currentBpm, 80.0);
+    });
+
+    testWidgets('"Blind Diagnosis" ECG Board Trainer: masks labels, evaluates multiple-choice options, and advances rhythms', (tester) async {
+      tester.view.physicalSize = const Size(1280, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(MaterialApp(
+        home: Scaffold(
+          body: CardiacHemodynamicEcgStrip(
+            scenario: kCardiacScenarios.first,
+            cardiacPhase: 0.2,
+            bpm: 75.0,
+            onBpmChanged: (_) {},
+            initialRhythm: OscilloscopeRhythmType.avb2Mobitz2,
+          ),
+        ),
+      ));
+      await tester.pump(const Duration(milliseconds: 100));
+
+      // Toggle Blind Exam Mode ON
+      final blindToggleBtn = find.byKey(const Key('oscilloscope_blind_mode_toggle'));
+      expect(blindToggleBtn, findsOneWidget);
+      await tester.tap(blindToggleBtn);
+      await tester.pump(const Duration(milliseconds: 100));
+
+      expect(find.textContaining('BLIND ECG EXAM: CASE #1'), findsOneWidget);
+      expect(find.text('Score: 0 / 0'), findsOneWidget);
+
+      // Tap the correct answer (Second-Degree AV Block Mobitz II)
+      final correctChoice = find.text('Second-Degree AV Block Mobitz II');
+      expect(correctChoice, findsOneWidget);
+      await tester.tap(correctChoice);
+      await tester.pump(const Duration(milliseconds: 100));
+
+      expect(find.text('Score: 1 / 1'), findsOneWidget);
+      expect(find.textContaining('CORRECT! Pathognomonic waveform signature:'), findsOneWidget);
+
+      // Advance to next unknown rhythm
+      final nextRhythmBtn = find.text('Next Unknown Rhythm');
+      expect(nextRhythmBtn, findsOneWidget);
+      await tester.tap(nextRhythmBtn);
+      await tester.pump(const Duration(milliseconds: 100));
+
+      expect(find.textContaining('BLIND ECG EXAM: CASE #2'), findsOneWidget);
+    });
+
+    test('MedicalBoardQBank SM-2 spaced repetition engine calculates intervals and persists reviews', () {
+      MedicalBoardQBank.resetAllProgress();
+
+      expect(MedicalBoardQBank.vignettes.length, greaterThanOrEqualTo(20));
+
+      final first = MedicalBoardQBank.vignettes.first;
+      final initial = MedicalBoardQBank.getCardState(first.id);
+      expect(initial.repetitions, 0);
+      expect(initial.isDue, isTrue);
+
+      // Review card with 'Good' (grade 3)
+      final review1 = MedicalBoardQBank.reviewCard(first.id, Sm2Rating.good);
+      expect(review1.repetitions, 1);
+      expect(review1.intervalDays, 1.0);
+
+      // Review card again with 'Good' (grade 3)
+      final review2 = MedicalBoardQBank.reviewCard(first.id, Sm2Rating.good);
+      expect(review2.repetitions, 2);
+      expect(review2.intervalDays, 6.0);
+
+      // Verify persistent round-trip from AppStorage
+      final loaded = MedicalBoardQBank.getCardState(first.id);
+      expect(loaded.repetitions, 2);
+      expect(loaded.intervalDays, 6.0);
+    });
+
+    testWidgets('ClinicalVignetteQuizDrawer and StudyCardExportDialog render and copy Anki flashcard', (tester) async {
+      tester.view.physicalSize = const Size(1280, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(MaterialApp(
+        home: Scaffold(
+          body: Builder(
+            builder: (ctx) => Column(
+              children: [
+                ElevatedButton(
+                  onPressed: () => ClinicalVignetteQuizDrawer.show(ctx),
+                  child: const Text('Open QBank'),
+                ),
+                ElevatedButton(
+                  onPressed: () => showDialog<void>(
+                    context: ctx,
+                    builder: (_) => StudyCardExportDialog.fromOscilloscopeRhythm(
+                      rhythm: OscilloscopeRhythmType.avb2Mobitz2,
+                      sys: 118,
+                      dia: 76,
+                      bpm: 72,
+                    ),
+                  ),
+                  child: const Text('Open Study Card'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ));
+      await tester.pump(const Duration(milliseconds: 100));
+
+      // Open Study Card Dialog
+      await tester.tap(find.text('Open Study Card'));
+      await tester.pump(const Duration(milliseconds: 100));
+
+      expect(find.text('Second-Degree AV Block: Mobitz Type II'), findsOneWidget);
+      expect(find.text('Copy Anki Flashcard'), findsOneWidget);
+      expect(find.text('Download Ward Study Sheet (Markdown)'), findsOneWidget);
+
+      // Tap Copy Anki Flashcard
+      await tester.tap(find.text('Copy Anki Flashcard'));
+      await tester.pump(const Duration(milliseconds: 100));
+
+      // Close Dialog
+      final closeBtn = find.byIcon(Icons.close_rounded);
+      await tester.tap(closeBtn);
+      await tester.pump(const Duration(milliseconds: 100));
+
+      // Open QBank Drawer
+      await tester.tap(find.text('Open QBank'));
+      await tester.pump(const Duration(milliseconds: 100));
+
+      expect(find.text('Medical Board QBank & SM-2 Spaced Repetition'), findsOneWidget);
+      expect(find.textContaining('CASE #1 OF'), findsOneWidget);
+      expect(find.text('🚀 Launch 3D Simulation'), findsOneWidget);
     });
   });
 }

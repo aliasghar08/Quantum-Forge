@@ -30,6 +30,7 @@ import 'package:quantum_forge/core/theme/theme_provider.dart';
 import '../../data/cardiac_pathology_models.dart';
 import '../../data/coronary_hemodynamics_engine.dart';
 import 'cardiac_clinical_info_system.dart';
+import 'package:quantum_forge/features/education/presentation/widgets/study_card_export_dialog.dart';
 
 /// Signal generation realism mode: physiological artifacts vs idealized textbook geometry.
 enum OscilloscopeSignalMode {
@@ -49,6 +50,45 @@ enum OscilloscopeDisplayTheme {
   final String label;
   final String description;
   const OscilloscopeDisplayTheme(this.label, this.description);
+}
+
+/// Emergency intravenous medications for live ward simulation.
+enum IvEmergencyMedication {
+  adenosine(
+    'Adenosine 6mg IV',
+    'A1 receptor agonist → Transient AV nodal block / 2.5s pause, converts SVT → NSR (76 bpm)',
+    Color(0xFFFFD600),
+  ),
+  atropine(
+    'Atropine 1mg IV',
+    'Muscarinic M2 antagonist → Blocks vagal tone, accelerates Sinus Bradycardia (45 → 85 bpm)',
+    Color(0xFF00E676),
+  ),
+  norepinephrine(
+    'Norepinephrine 4mcg/min',
+    'Alpha-1 vasoconstrictor & Beta-1 inotrope → Elevates ABP to 125/82 (MAP 96 mmHg)',
+    Color(0xFFFF5252),
+  ),
+  nitroglycerin(
+    'Nitroglycerin 10mcg/min',
+    'Venodilator / Preload reduction → Blunts ST elevation; in RV Infarct drops ABP to 72/42 mmHg (Contraindicated!)',
+    Color(0xFF00E5FF),
+  ),
+  amiodaroneHerg(
+    'Amiodarone (hERG Challenge)',
+    'Class III IKr block → Extends QTc > 540 ms, triggers Polymorphic VT / Torsades de Pointes',
+    Color(0xFFA78BFA),
+  ),
+  magnesiumSulfate(
+    'Magnesium Sulfate 2g IV',
+    'Suppresses EADs / Ca2+ influx → Terminates Torsades de Pointes, restores NSR (80 bpm)',
+    Color(0xFF69F0AE),
+  );
+
+  final String label;
+  final String description;
+  final Color color;
+  const IvEmergencyMedication(this.label, this.description, this.color);
 }
 
 class CardiacHemodynamicEcgStrip extends StatefulWidget {
@@ -334,6 +374,34 @@ class _CardiacHemodynamicEcgStripState extends State<CardiacHemodynamicEcgStrip>
   String? _alertBannerText;
   Color _alertBannerColor = const Color(0xFFFF1744);
 
+  // Live IV Emergency Medication Pump State
+  bool _isIvDrawerOpen = false;
+  IvEmergencyMedication? _activeIvDrug;
+  double? _drugOverrideSys;
+  double? _drugOverrideDia;
+  double? _drugOverrideSt;
+
+  // Blind Diagnosis ECG Board Trainer State
+  bool _isBlindMode = false;
+  int _blindCaseIndex = 0;
+  int? _blindSelectedOption;
+  bool _blindSubmitted = false;
+  int _blindScoreCorrect = 0;
+  int _blindScoreTotal = 0;
+  List<OscilloscopeRhythmType> _blindOptions = [];
+
+  static const List<OscilloscopeRhythmType> _blindRotationRhythms = [
+    OscilloscopeRhythmType.avb2Mobitz2,
+    OscilloscopeRhythmType.torsades,
+    OscilloscopeRhythmType.svt,
+    OscilloscopeRhythmType.afib,
+    OscilloscopeRhythmType.vtach,
+    OscilloscopeRhythmType.avb3Complete,
+    OscilloscopeRhythmType.sinusBrady,
+    OscilloscopeRhythmType.vfib,
+    OscilloscopeRhythmType.nsr,
+  ];
+
   @override
   void initState() {
     super.initState();
@@ -341,6 +409,7 @@ class _CardiacHemodynamicEcgStripState extends State<CardiacHemodynamicEcgStrip>
     _signalMode = widget.initialSignalMode;
     _displayTheme = widget.initialDisplayTheme;
     _mainsHum = widget.initialMainsHum;
+    _generateBlindOptions();
     _updateAlertBanner();
 
     final sweepSec = _sweepSpeedMmS == 50 ? 5 : 10;
@@ -433,6 +502,174 @@ class _CardiacHemodynamicEcgStripState extends State<CardiacHemodynamicEcgStrip>
     });
   }
 
+  void _generateBlindOptions() {
+    final correct = _currentRhythm;
+    final others = OscilloscopeRhythmType.values
+        .where((r) => r != correct)
+        .toList();
+    others.shuffle(math.Random(_blindCaseIndex + 42));
+    final choices = [correct, ...others.take(3)];
+    final shift = (_blindCaseIndex * 2) % 4;
+    _blindOptions = [
+      ...choices.sublist(shift),
+      ...choices.sublist(0, shift),
+    ];
+  }
+
+  void _toggleBlindMode() {
+    setState(() {
+      _isBlindMode = !_isBlindMode;
+      _blindSelectedOption = null;
+      _blindSubmitted = false;
+      if (_isBlindMode) {
+        _generateBlindOptions();
+      }
+    });
+  }
+
+  void _selectBlindOption(int index) {
+    if (_blindSubmitted) return;
+    setState(() {
+      _blindSelectedOption = index;
+      _blindSubmitted = true;
+      _blindScoreTotal++;
+      if (_blindOptions[index] == _currentRhythm) {
+        _blindScoreCorrect++;
+      }
+    });
+  }
+
+  void _nextBlindRhythm() {
+    setState(() {
+      _blindCaseIndex++;
+      final nextRhythm =
+          _blindRotationRhythms[_blindCaseIndex % _blindRotationRhythms.length];
+      _currentRhythm = nextRhythm;
+      if (nextRhythm.defaultHr > 0) {
+        widget.onBpmChanged(nextRhythm.defaultHr.toDouble());
+      }
+      _blindSelectedOption = null;
+      _blindSubmitted = false;
+      _generateBlindOptions();
+      _updateAlertBanner();
+    });
+    widget.onRhythmChanged?.call(_currentRhythm);
+  }
+
+  void _administerIvMedication(IvEmergencyMedication drug) {
+    setState(() {
+      _activeIvDrug = drug;
+    });
+
+    switch (drug) {
+      case IvEmergencyMedication.adenosine:
+        setState(() {
+          _alertBannerText =
+              '⚡ ADENOSINE 6 mg RAPID IV PUSH GIVEN — TRANSIENT AV NODAL BLOCK (2.5s ASYSTOLIC PAUSE)';
+          _alertBannerColor = const Color(0xFFFFD600);
+        });
+        Future.delayed(const Duration(milliseconds: 1800), () {
+          if (mounted) {
+            setState(() {
+              _currentRhythm = OscilloscopeRhythmType.nsr;
+              widget.onBpmChanged(76.0);
+              _alertBannerText =
+                  '✅ ADENOSINE: AV NODAL RE-ENTRY BROKEN → NORMAL SINUS RHYTHM RESTORED (76 BPM)';
+              _alertBannerColor = const Color(0xFF00E676);
+              _drugOverrideSys = null;
+              _drugOverrideDia = null;
+              _drugOverrideSt = null;
+            });
+            widget.onRhythmChanged?.call(_currentRhythm);
+          }
+        });
+        break;
+
+      case IvEmergencyMedication.atropine:
+        setState(() {
+          widget.onBpmChanged(85.0);
+          _alertBannerText =
+              '✅ ATROPINE 1 mg IV PUSH — M2 MUSCARINIC ANTAGONIST: RATE ACCELERATED TO 85 BPM';
+          _alertBannerColor = const Color(0xFF00E676);
+          if (_currentRhythm == OscilloscopeRhythmType.sinusBrady) {
+            _currentRhythm = OscilloscopeRhythmType.nsr;
+            widget.onRhythmChanged?.call(_currentRhythm);
+          }
+        });
+        break;
+
+      case IvEmergencyMedication.norepinephrine:
+        setState(() {
+          _drugOverrideSys = 125.0;
+          _drugOverrideDia = 82.0;
+          _alertBannerText =
+              '✅ NOREPINEPHRINE 4 mcg/min INFUSION — α1 VASOCONSTRICTION & β1 INOTROPY: ABP RESTORED TO 125/82 (MAP 96 mmHg)';
+          _alertBannerColor = const Color(0xFF00E5FF);
+        });
+        break;
+
+      case IvEmergencyMedication.nitroglycerin:
+        final isRvInfarct = widget.scenario.id.contains('inferior_mi') ||
+            widget.activeTerritory == EcgTerritoryLead.inferiorLeads;
+        if (isRvInfarct) {
+          setState(() {
+            _drugOverrideSys = 72.0;
+            _drugOverrideDia = 42.0;
+            _alertBannerText =
+                '⚠️ PRELOAD COLLAPSE: NITRATES CONTRAINDICATED IN RV INFARCTION! (ABP DROPPED TO 72/42 mmHg, MAP 52 mmHg)';
+            _alertBannerColor = const Color(0xFFFF1744);
+          });
+        } else {
+          setState(() {
+            _drugOverrideSt = 0.4;
+            _alertBannerText =
+                '✅ NITROGLYCERIN 10 mcg/min — VENODILATION & PRELOAD REDUCTION (ST ELEVATION BLUNTED)';
+            _alertBannerColor = const Color(0xFF00E5FF);
+          });
+        }
+        break;
+
+      case IvEmergencyMedication.amiodaroneHerg:
+        setState(() {
+          _currentRhythm = OscilloscopeRhythmType.torsades;
+          widget.onBpmChanged(210.0);
+          _drugOverrideSys = 68.0;
+          _drugOverrideDia = 38.0;
+          _alertBannerText =
+              '⚠️ hERG / IKr CHANNEL BLOCKADE: QTc PROLONGED > 540 ms → TORSADES DE POINTES TRIGGERED';
+          _alertBannerColor = const Color(0xFFFF9100);
+        });
+        widget.onRhythmChanged?.call(_currentRhythm);
+        break;
+
+      case IvEmergencyMedication.magnesiumSulfate:
+        setState(() {
+          _currentRhythm = OscilloscopeRhythmType.nsr;
+          widget.onBpmChanged(80.0);
+          _drugOverrideSys = 120.0;
+          _drugOverrideDia = 78.0;
+          _alertBannerText =
+              '✅ IV MAGNESIUM SULFATE 2 g — MEMBRANE STABILIZATION: TORSADES TERMINATED → NSR (80 BPM)';
+          _alertBannerColor = const Color(0xFF00E676);
+        });
+        widget.onRhythmChanged?.call(_currentRhythm);
+        break;
+    }
+  }
+
+  void _openStudyDossierDialog(BuildContext context, double sys, double dia) {
+    showDialog(
+      context: context,
+      builder: (context) => StudyCardExportDialog.fromOscilloscopeRhythm(
+        rhythm: _currentRhythm,
+        sys: sys,
+        dia: dia,
+        bpm: widget.bpm,
+        scenarioTitle: widget.scenario.title,
+      ),
+    );
+  }
+
   double _computeEffectiveStElevation() {
     double baseSt;
     if (widget.scenario.id.contains('anterior_stemi')) {
@@ -483,12 +720,14 @@ class _CardiacHemodynamicEcgStripState extends State<CardiacHemodynamicEcgStrip>
     final isShock = widget.complication == AcuteComplicationState.cardiogenicShock;
     final baseSys = isShock ? 75.0 : _currentRhythm.defaultSys.toDouble();
     final baseDia = isShock ? 48.0 : _currentRhythm.defaultDia.toDouble();
-    final sys = _tcpActive ? 112.0 : baseSys;
-    final dia = _tcpActive ? 70.0 : baseDia;
+    final rawSys = _tcpActive ? 112.0 : baseSys;
+    final rawDia = _tcpActive ? 70.0 : baseDia;
+    final sys = _drugOverrideSys ?? rawSys;
+    final dia = _drugOverrideDia ?? rawDia;
     final map = dia + (sys - dia) / 3.0;
     final spo2 = _tcpActive ? 97.0 : _currentRhythm.defaultSpo2;
     final etco2 = _tcpActive ? 38.0 : _currentRhythm.defaultEtco2;
-    final effectiveSt = _computeEffectiveStElevation();
+    final effectiveSt = _drugOverrideSt ?? _computeEffectiveStElevation();
 
     final isPressureWire = widget.wireType == InterventionalWireType.pressureWireX;
     final isDamped = widget.scenario.isCatheterDamped ||
@@ -520,8 +759,11 @@ class _CardiacHemodynamicEcgStripState extends State<CardiacHemodynamicEcgStrip>
             // ── Flashing Code Blue / Tachyarrhythmia Alert Banner ───────────
             if (_alertBannerText != null) _buildAlertBanner(),
 
-            // ── 14-Rhythm Hospital Selector Bar ────────────────────────────
-            _buildRhythmSelectorBar(),
+            // ── IV Emergency Infusion Pump (Ward Simulator) ──────────────────
+            if (_isIvDrawerOpen) _buildIvInfusionDrawer(),
+
+            // ── 14-Rhythm Hospital Selector Bar or Blind Exam Quiz ───────────
+            _isBlindMode ? _buildBlindExamBar() : _buildRhythmSelectorBar(),
 
             // ── 5-Channel Canvas + Right ICU Parameter Tiles ────────────────
             SizedBox(
@@ -582,7 +824,7 @@ class _CardiacHemodynamicEcgStripState extends State<CardiacHemodynamicEcgStrip>
             ),
 
             // ── Bottom Telemetry Secondary Controls Bar ─────────────────────
-            _buildBottomControlsBar(),
+            _buildBottomControlsBar(sys, dia),
           ],
         ),
       ),
@@ -937,7 +1179,7 @@ class _CardiacHemodynamicEcgStripState extends State<CardiacHemodynamicEcgStrip>
                       thumbColor: const Color(0xFF00E676),
                     ),
                     child: Slider(
-                      value: widget.bpm,
+                      value: widget.bpm.clamp(45.0, 130.0),
                       min: 45.0,
                       max: 130.0,
                       onChanged: widget.onBpmChanged,
@@ -1415,7 +1657,294 @@ class _CardiacHemodynamicEcgStripState extends State<CardiacHemodynamicEcgStrip>
     });
   }
 
-  Widget _buildBottomControlsBar() {
+  Widget _buildIvInfusionDrawer() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: const BoxDecoration(
+        color: Color(0xFF0F1724),
+        border: Border(bottom: BorderSide(color: Color(0xFF00E5FF), width: 1)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.medication_liquid_rounded, color: Color(0xFF00E5FF), size: 14),
+              const SizedBox(width: 6),
+              const Text(
+                'IV EMERGENCY MEDICATION PUMP (WARD SIMULATOR)',
+                style: TextStyle(
+                  color: Color(0xFF00E5FF),
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 0.6,
+                ),
+              ),
+              const SizedBox(width: 8),
+              if (_activeIvDrug != null)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: _activeIvDrug!.color.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(4),
+                    border: Border.all(color: _activeIvDrug!.color),
+                  ),
+                  child: Text(
+                    'ACTIVE: ${_activeIvDrug!.label}',
+                    style: TextStyle(color: _activeIvDrug!.color, fontSize: 8.5, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              const Spacer(),
+              IconButton(
+                icon: const Icon(Icons.close_rounded, color: Colors.white54, size: 16),
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+                onPressed: () => setState(() => _isIvDrawerOpen = false),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: IvEmergencyMedication.values.map((drug) {
+                final isSelected = _activeIvDrug == drug;
+                return Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: InkWell(
+                    onTap: () => _administerIvMedication(drug),
+                    borderRadius: BorderRadius.circular(6),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: isSelected ? drug.color.withValues(alpha: 0.2) : const Color(0xFF162030),
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(
+                          color: isSelected ? drug.color : drug.color.withValues(alpha: 0.4),
+                          width: isSelected ? 1.4 : 0.8,
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.vaccines_rounded, color: drug.color, size: 13),
+                              const SizedBox(width: 5),
+                              Text(
+                                drug.label,
+                                style: TextStyle(
+                                  color: drug.color,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 2),
+                          ConstrainedBox(
+                            constraints: const BoxConstraints(maxWidth: 180),
+                            child: Text(
+                              drug.description,
+                              style: const TextStyle(color: Colors.white60, fontSize: 8),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBlindExamBar() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      color: const Color(0xFF0C131E),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFD600).withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(4),
+                  border: Border.all(color: const Color(0xFFFFD600)),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.quiz_rounded, color: Color(0xFFFFD600), size: 12),
+                    const SizedBox(width: 4),
+                    Text(
+                      'BLIND ECG EXAM: CASE #${_blindCaseIndex + 1}',
+                      style: const TextStyle(
+                        color: Color(0xFFFFD600),
+                        fontSize: 9.5,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF00E676).withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  'Score: $_blindScoreCorrect / $_blindScoreTotal',
+                  style: const TextStyle(
+                    color: Color(0xFF00E676),
+                    fontSize: 9,
+                    fontWeight: FontWeight.bold,
+                    fontFamily: 'monospace',
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              const Expanded(
+                child: Text(
+                  'Identify the rhythm from the live CRT strip using calipers. Labels are masked.',
+                  style: TextStyle(color: Colors.white54, fontSize: 9.5, fontStyle: FontStyle.italic),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              ElevatedButton.icon(
+                icon: const Icon(Icons.skip_next_rounded, size: 14),
+                label: const Text('Next Unknown Rhythm'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF00E5FF),
+                  foregroundColor: Colors.black,
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  minimumSize: Size.zero,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+                onPressed: _nextBlindRhythm,
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          // 4 Multiple Choice Chips
+          Wrap(
+            spacing: 8,
+            runSpacing: 6,
+            children: List.generate(_blindOptions.length, (idx) {
+              final r = _blindOptions[idx];
+              final isSel = _blindSelectedOption == idx;
+              final isCorrect = r == _currentRhythm;
+              Color bg = const Color(0xFF162030);
+              Color border = Colors.white24;
+              Color textCol = Colors.white70;
+
+              if (_blindSubmitted) {
+                if (isCorrect) {
+                  bg = const Color(0xFF00E676).withValues(alpha: 0.25);
+                  border = const Color(0xFF00E676);
+                  textCol = const Color(0xFF00E676);
+                } else if (isSel) {
+                  bg = const Color(0xFFFF1744).withValues(alpha: 0.25);
+                  border = const Color(0xFFFF1744);
+                  textCol = const Color(0xFFFF5252);
+                }
+              } else if (isSel) {
+                bg = const Color(0xFF00E5FF).withValues(alpha: 0.25);
+                border = const Color(0xFF00E5FF);
+                textCol = Colors.white;
+              }
+
+              final letters = ['A', 'B', 'C', 'D'];
+
+              return InkWell(
+                onTap: () => _selectBlindOption(idx),
+                borderRadius: BorderRadius.circular(4),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: bg,
+                    borderRadius: BorderRadius.circular(4),
+                    border: Border.all(color: border, width: isSel || (_blindSubmitted && isCorrect) ? 1.4 : 0.8),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        '${letters[idx]}. ',
+                        style: TextStyle(
+                          color: isSel || (_blindSubmitted && isCorrect) ? textCol : Colors.white38,
+                          fontSize: 9.5,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        r.label,
+                        style: TextStyle(
+                          color: textCol,
+                          fontSize: 9.5,
+                          fontWeight: isSel ? FontWeight.bold : FontWeight.normal,
+                        ),
+                      ),
+                      if (_blindSubmitted && isCorrect) ...[
+                        const SizedBox(width: 4),
+                        const Icon(Icons.check_circle_rounded, color: Color(0xFF00E676), size: 13),
+                      ],
+                      if (_blindSubmitted && isSel && !isCorrect) ...[
+                        const SizedBox(width: 4),
+                        const Icon(Icons.cancel_rounded, color: Color(0xFFFF1744), size: 13),
+                      ],
+                    ],
+                  ),
+                ),
+              );
+            }),
+          ),
+          if (_blindSubmitted) ...[
+            const SizedBox(height: 6),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: _blindOptions[_blindSelectedOption!] == _currentRhythm
+                    ? const Color(0xFF00E676).withValues(alpha: 0.15)
+                    : const Color(0xFFFF9100).withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(4),
+                border: Border.all(
+                  color: _blindOptions[_blindSelectedOption!] == _currentRhythm
+                      ? const Color(0xFF00E676)
+                      : const Color(0xFFFF9100),
+                ),
+              ),
+              child: Text(
+                _blindOptions[_blindSelectedOption!] == _currentRhythm
+                    ? '🎯 CORRECT! Pathognomonic waveform signature: ${_currentRhythm.label} (${_currentRhythm.badge}). Note rhythm regularity, QRS duration, and hemodynamics.'
+                    : '❌ INCORRECT. Correct Diagnosis: ${_currentRhythm.label}. Review the R-R interval, P-wave morphology, and QRS duration on Leads II & V1.',
+                style: TextStyle(
+                  color: _blindOptions[_blindSelectedOption!] == _currentRhythm
+                      ? const Color(0xFF00E676)
+                      : const Color(0xFFFFD600),
+                  fontSize: 9.5,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBottomControlsBar(double sys, double dia) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: const BoxDecoration(
@@ -1426,6 +1955,115 @@ class _CardiacHemodynamicEcgStripState extends State<CardiacHemodynamicEcgStrip>
         scrollDirection: Axis.horizontal,
         child: Row(
           children: [
+            // Blind Diagnosis Mode Button
+            InkWell(
+              key: const Key('oscilloscope_blind_mode_toggle'),
+              onTap: _toggleBlindMode,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
+                decoration: BoxDecoration(
+                  color: _isBlindMode
+                      ? const Color(0xFFFFD600).withValues(alpha: 0.25)
+                      : const Color(0xFF131D2E),
+                  borderRadius: BorderRadius.circular(4),
+                  border: Border.all(
+                    color: _isBlindMode ? const Color(0xFFFFD600) : Colors.white24,
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      _isBlindMode ? Icons.school_rounded : Icons.quiz_rounded,
+                      size: 12,
+                      color: _isBlindMode ? const Color(0xFFFFD600) : Colors.white70,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      _isBlindMode ? 'EXIT BLIND EXAM' : '🎯 BLIND EXAM MODE',
+                      style: TextStyle(
+                        color: _isBlindMode ? const Color(0xFFFFD600) : Colors.white70,
+                        fontSize: 9,
+                        fontWeight: FontWeight.bold,
+                        fontFamily: 'monospace',
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+
+            // IV Emergency Drug Pump Button
+            InkWell(
+              key: const Key('oscilloscope_iv_pump_toggle'),
+              onTap: () => setState(() => _isIvDrawerOpen = !_isIvDrawerOpen),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
+                decoration: BoxDecoration(
+                  color: _isIvDrawerOpen
+                      ? const Color(0xFF00E5FF).withValues(alpha: 0.25)
+                      : const Color(0xFF131D2E),
+                  borderRadius: BorderRadius.circular(4),
+                  border: Border.all(
+                    color: _isIvDrawerOpen ? const Color(0xFF00E5FF) : Colors.white24,
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.medication_liquid_rounded,
+                      size: 12,
+                      color: _isIvDrawerOpen ? const Color(0xFF00E5FF) : Colors.white70,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      _isIvDrawerOpen ? 'CLOSE IV PUMP' : '💉 IV DRUG PUMP',
+                      style: TextStyle(
+                        color: _isIvDrawerOpen ? const Color(0xFF00E5FF) : Colors.white70,
+                        fontSize: 9,
+                        fontWeight: FontWeight.bold,
+                        fontFamily: 'monospace',
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+
+            // Study Dossier & Anki Export Button
+            InkWell(
+              key: const Key('oscilloscope_study_dossier_btn'),
+              onTap: () => _openStudyDossierDialog(context, sys, dia),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF10B981).withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(4),
+                  border: Border.all(color: const Color(0xFF10B981)),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: const [
+                    Icon(Icons.menu_book_rounded, size: 12, color: Color(0xFF10B981)),
+                    SizedBox(width: 4),
+                    Text(
+                      '📋 STUDY DOSSIER & ANKI',
+                      style: TextStyle(
+                        color: Color(0xFF10B981),
+                        fontSize: 9,
+                        fontWeight: FontWeight.bold,
+                        fontFamily: 'monospace',
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+
             const Text('Territory:', style: TextStyle(color: Colors.white54, fontSize: 9)),
             const SizedBox(width: 6),
             ...EcgTerritoryLead.values.map((t) {

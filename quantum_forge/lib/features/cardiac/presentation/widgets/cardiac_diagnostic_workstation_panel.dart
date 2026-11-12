@@ -691,6 +691,52 @@ class _CardiacDiagnosticWorkstationPanelState
   AuscultationSoundProfile _soundProfile = AuscultationSoundProfile.normalS1S2;
   BedsideManeuver _maneuver = BedsideManeuver.baseline;
   bool _audioPulseActive = false;
+  bool _isBlindMurmurMode = false;
+  int _blindMurmurIndex = 0;
+  int? _blindMurmurSelectedChoice;
+  bool _blindMurmurSubmitted = false;
+  int _blindMurmurScoreCorrect = 0;
+  int _blindMurmurScoreTotal = 0;
+
+  static const List<AuscultationSoundProfile> _blindMurmurRotation = [
+    AuscultationSoundProfile.aorticStenosis,
+    AuscultationSoundProfile.hocmDynamic,
+    AuscultationSoundProfile.mitralRegurg,
+    AuscultationSoundProfile.mitralStenosis,
+    AuscultationSoundProfile.asdFixedSplit,
+  ];
+
+  void _toggleBlindMurmurMode() {
+    setState(() {
+      _isBlindMurmurMode = !_isBlindMurmurMode;
+      _blindMurmurSelectedChoice = null;
+      _blindMurmurSubmitted = false;
+      if (_isBlindMurmurMode) {
+        _soundProfile = _blindMurmurRotation[_blindMurmurIndex % _blindMurmurRotation.length];
+      }
+    });
+  }
+
+  void _selectBlindMurmurOption(int index, AuscultationSoundProfile choice) {
+    if (_blindMurmurSubmitted) return;
+    setState(() {
+      _blindMurmurSelectedChoice = index;
+      _blindMurmurSubmitted = true;
+      _blindMurmurScoreTotal++;
+      if (choice == _soundProfile) {
+        _blindMurmurScoreCorrect++;
+      }
+    });
+  }
+
+  void _nextBlindMurmur() {
+    setState(() {
+      _blindMurmurIndex++;
+      _soundProfile = _blindMurmurRotation[_blindMurmurIndex % _blindMurmurRotation.length];
+      _blindMurmurSelectedChoice = null;
+      _blindMurmurSubmitted = false;
+    });
+  }
 
   // Module 3 State: EP Study, Arrhythmia & Pacemaker
   EpArrhythmiaState _epState = EpArrhythmiaState.normalSinus;
@@ -1121,40 +1167,63 @@ class _CardiacDiagnosticWorkstationPanelState
               side: const BorderSide(color: Color(0xFFFFD600)),
               onPressed: _triggerStethoscopeAudioPulse,
             ),
+            ActionChip(
+              avatar: Icon(
+                _isBlindMurmurMode ? Icons.school_rounded : Icons.quiz_rounded,
+                size: 14,
+                color: _isBlindMurmurMode ? Colors.black : const Color(0xFF10B981),
+              ),
+              label: Text(
+                _isBlindMurmurMode ? 'Exit Blind Exam' : '🎯 Blind Murmur Exam',
+                style: TextStyle(
+                  color: _isBlindMurmurMode ? Colors.black : const Color(0xFF10B981),
+                  fontSize: 10.5,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              backgroundColor: _isBlindMurmurMode
+                  ? const Color(0xFF10B981)
+                  : const Color(0xFF10B981).withValues(alpha: 0.15),
+              side: const BorderSide(color: Color(0xFF10B981)),
+              onPressed: _toggleBlindMurmurMode,
+            ),
           ],
         ),
         const SizedBox(height: 8),
 
-        // Heart Sound / Murmur Pathology Selector
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            children: [
-              const Text(
-                'Heart Sound / Murmur: ',
-                style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold),
-              ),
-              ...AuscultationSoundProfile.values.map((prof) {
-                final isSel = prof == _soundProfile;
-                return Padding(
-                  padding: const EdgeInsets.only(right: 6),
-                  child: ChoiceChip(
-                    label: Text(prof.label),
-                    selected: isSel,
-                    selectedColor: const Color(0xFF10B981).withValues(alpha: 0.25),
-                    backgroundColor: const Color(0xFF131C2B),
-                    labelStyle: TextStyle(
-                      color: isSel ? const Color(0xFF10B981) : Colors.white70,
-                      fontSize: 10.5,
-                      fontWeight: isSel ? FontWeight.bold : FontWeight.normal,
+        // Heart Sound / Murmur Pathology Selector or Blind Murmur Quiz
+        if (_isBlindMurmurMode)
+          _buildBlindMurmurQuizCard()
+        else
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                const Text(
+                  'Heart Sound / Murmur: ',
+                  style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold),
+                ),
+                ...AuscultationSoundProfile.values.map((prof) {
+                  final isSel = prof == _soundProfile;
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 6),
+                    child: ChoiceChip(
+                      label: Text(prof.label),
+                      selected: isSel,
+                      selectedColor: const Color(0xFF10B981).withValues(alpha: 0.25),
+                      backgroundColor: const Color(0xFF131C2B),
+                      labelStyle: TextStyle(
+                        color: isSel ? const Color(0xFF10B981) : Colors.white70,
+                        fontSize: 10.5,
+                        fontWeight: isSel ? FontWeight.bold : FontWeight.normal,
+                      ),
+                      onSelected: (_) => setState(() => _soundProfile = prof),
                     ),
-                    onSelected: (_) => setState(() => _soundProfile = prof),
-                  ),
-                );
-              }),
-            ],
+                  );
+                }),
+              ],
+            ),
           ),
-        ),
         const SizedBox(height: 8),
 
         // Dynamic Bedside Maneuvers
@@ -1241,6 +1310,169 @@ class _CardiacDiagnosticWorkstationPanelState
           const Color(0xFF10B981),
         ),
       ],
+    );
+  }
+
+  Widget _buildBlindMurmurQuizCard() {
+    final options = [
+      AuscultationSoundProfile.aorticStenosis,
+      AuscultationSoundProfile.hocmDynamic,
+      AuscultationSoundProfile.mitralRegurg,
+      AuscultationSoundProfile.mitralStenosis,
+    ];
+
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: const Color(0xFF111C2E),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: const Color(0xFF10B981)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF10B981).withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  'BLIND AUSCULTATION: CASE #${_blindMurmurIndex + 1}',
+                  style: const TextStyle(color: Color(0xFF10B981), fontSize: 9.5, fontWeight: FontWeight.bold),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'Score: $_blindMurmurScoreCorrect / $_blindMurmurScoreTotal',
+                style: const TextStyle(color: Color(0xFF00E676), fontSize: 9.5, fontWeight: FontWeight.bold, fontFamily: 'monospace'),
+              ),
+              const Spacer(),
+              ElevatedButton.icon(
+                icon: const Icon(Icons.skip_next_rounded, size: 13),
+                label: const Text('Next Unknown Murmur'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF00E5FF),
+                  foregroundColor: Colors.black,
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  minimumSize: Size.zero,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+                onPressed: _nextBlindMurmur,
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          const Text(
+            'Test the murmur with Bedside Maneuvers below (Valsalva, Squatting, Handgrip) and examine PCG changes to deduce the pathology:',
+            style: TextStyle(color: Colors.white70, fontSize: 10, fontStyle: FontStyle.italic),
+          ),
+          const SizedBox(height: 6),
+          Wrap(
+            spacing: 8,
+            runSpacing: 6,
+            children: List.generate(options.length, (idx) {
+              final opt = options[idx];
+              final isSel = _blindMurmurSelectedChoice == idx;
+              final isCorrect = opt == _soundProfile;
+              Color bg = const Color(0xFF162030);
+              Color border = Colors.white24;
+              Color textCol = Colors.white70;
+
+              if (_blindMurmurSubmitted) {
+                if (isCorrect) {
+                  bg = const Color(0xFF00E676).withValues(alpha: 0.25);
+                  border = const Color(0xFF00E676);
+                  textCol = const Color(0xFF00E676);
+                } else if (isSel) {
+                  bg = const Color(0xFFFF1744).withValues(alpha: 0.25);
+                  border = const Color(0xFFFF1744);
+                  textCol = const Color(0xFFFF5252);
+                }
+              } else if (isSel) {
+                bg = const Color(0xFF00E5FF).withValues(alpha: 0.25);
+                border = const Color(0xFF00E5FF);
+                textCol = Colors.white;
+              }
+
+              final letters = ['A', 'B', 'C', 'D'];
+
+              return InkWell(
+                onTap: () => _selectBlindMurmurOption(idx, opt),
+                borderRadius: BorderRadius.circular(4),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: bg,
+                    borderRadius: BorderRadius.circular(4),
+                    border: Border.all(color: border, width: isSel || (_blindMurmurSubmitted && isCorrect) ? 1.4 : 0.8),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        '${letters[idx]}. ',
+                        style: TextStyle(
+                          color: isSel || (_blindMurmurSubmitted && isCorrect) ? textCol : Colors.white38,
+                          fontSize: 9.5,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        opt.label,
+                        style: TextStyle(
+                          color: textCol,
+                          fontSize: 9.5,
+                          fontWeight: isSel ? FontWeight.bold : FontWeight.normal,
+                        ),
+                      ),
+                      if (_blindMurmurSubmitted && isCorrect) ...[
+                        const SizedBox(width: 4),
+                        const Icon(Icons.check_circle_rounded, color: Color(0xFF00E676), size: 13),
+                      ],
+                      if (_blindMurmurSubmitted && isSel && !isCorrect) ...[
+                        const SizedBox(width: 4),
+                        const Icon(Icons.cancel_rounded, color: Color(0xFFFF1744), size: 13),
+                      ],
+                    ],
+                  ),
+                ),
+              );
+            }),
+          ),
+          if (_blindMurmurSubmitted) ...[
+            const SizedBox(height: 6),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: options[_blindMurmurSelectedChoice!] == _soundProfile
+                    ? const Color(0xFF00E676).withValues(alpha: 0.15)
+                    : const Color(0xFFFF9100).withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(4),
+                border: Border.all(
+                  color: options[_blindMurmurSelectedChoice!] == _soundProfile
+                      ? const Color(0xFF00E676)
+                      : const Color(0xFFFF9100),
+                ),
+              ),
+              child: Text(
+                options[_blindMurmurSelectedChoice!] == _soundProfile
+                    ? '🎯 CORRECT! ${_soundProfile.label}: ${_soundProfile.description}'
+                    : '❌ INCORRECT. Correct Diagnosis: ${_soundProfile.label}. Note how ${_maneuver.label} impacts waveform amplitude: ${_maneuver.physiologyEffect}',
+                style: TextStyle(
+                  color: options[_blindMurmurSelectedChoice!] == _soundProfile
+                      ? const Color(0xFF00E676)
+                      : const Color(0xFFFFD600),
+                  fontSize: 9.5,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
     );
   }
 
