@@ -201,33 +201,56 @@ class ReactionLibraryMobileView extends StatelessWidget {
 
           // Reaction Cards List
           Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.fromLTRB(14, 6, 14, 24),
-              itemCount: reactions.length + 1,
-              itemBuilder: (context, index) {
-                if (index == reactions.length) {
-                  return Padding(
-                    padding: const EdgeInsets.only(top: 8, bottom: 12),
-                    child: AdSenseBannerWeb(
-                      isSignedIn: isSignedIn,
-                      isProUser: isProUser,
-                      placement: 'library_mobile',
+            child: reactions.isEmpty
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.science_outlined,
+                          size: 48,
+                          color: Colors.white.withValues(alpha: 0.2),
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          searchController.text.isNotEmpty
+                              ? 'No reactions match "${searchController.text}"'
+                              : 'No reactions available',
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.45),
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
                     ),
-                  );
-                }
-                final item = reactions[index];
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: SizedBox(
-                    height: 245,
-                    child: ReactionCardWidget(
-                      template: item,
-                      onLoad: () => onTemplateSelected?.call(item),
-                    ),
+                  )
+                : ListView.builder(
+                    padding: const EdgeInsets.fromLTRB(14, 6, 14, 24),
+                    itemCount: reactions.length + 1,
+                    itemBuilder: (context, index) {
+                      if (index == reactions.length) {
+                        return Padding(
+                          padding: const EdgeInsets.only(top: 8, bottom: 12),
+                          child: AdSenseBannerWeb(
+                            isSignedIn: isSignedIn,
+                            isProUser: isProUser,
+                            placement: 'library_mobile',
+                          ),
+                        );
+                      }
+                      final item = reactions[index];
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: SizedBox(
+                          height: 245,
+                          child: ReactionCardWidget(
+                            template: item,
+                            onLoad: () => onTemplateSelected?.call(item),
+                          ),
+                        ),
+                      );
+                    },
                   ),
-                );
-              },
-            ),
           ),
         ],
       ),

@@ -1242,11 +1242,13 @@ class _LibraryScreenState extends State<LibraryScreen> {
           ),
           const SizedBox(height: 8),
           Expanded(child: _buildBody()),
-          AdSenseBannerWeb(
-            isSignedIn: _isSignedIn,
-            isProUser: false,
-            placement: 'library',
-          ),
+          // Policy guard: Only display ads on content-populated screens (never during initial load, error, or empty states)
+          if (!_isFirstLoad && _error.isEmpty && _filteredAndSortedItems.isNotEmpty)
+            AdSenseBannerWeb(
+              isSignedIn: _isSignedIn,
+              isProUser: false,
+              placement: 'library',
+            ),
         ],
       ),
     );

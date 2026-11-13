@@ -1,5 +1,59 @@
 [
   {
+    "id": "lit_10_1002_emp2_13090",
+    "name": "Pediatric antiarrhythmics and toxicity: A clinical review",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1002/emp2.13090. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nPediatric antiarrhythmics and toxicity: A clinical review - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nPediatric antiarrhythmics and toxicity: A clinical review - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000    -0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 23.67,
+    "doi": "10.1002/emp2.13090",
+    "journalRef": "JACEP Open",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_1038_s41598-026-78171-4",
+    "name": "Multifunctional phenyl piperidinyl triazoles targeting cholinesterase: toward next-ge",
+    "iupacName": "Scholarly reaction (Click Azide Alkyne)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1038/s41598-026-78171-4. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "biochemical",
+    "reactantXyz": "11\nMultifunctional phenyl piperidinyl triazoles targeting cholinesterase: toward next-generation Alzheimer\u2019s therapeutics - Reactant\nN     -0.8000     1.1000     0.0000\nN      0.0000     1.8000     0.0000\nN      0.8000     1.1000     0.0000\nC     -0.6500    -0.7500     0.0000\nC      0.6500    -0.7500     0.0000\nC     -1.8500    -1.5500     0.0000\nH     -2.7500    -1.0500     0.0000\nH     -1.8500    -2.2000     0.8800\nH     -1.8500    -2.2000    -0.8800\nH      1.5000    -1.3500     0.0000\nH     -1.6500     1.5500     0.0000\n",
+    "productXyz": "11\nMultifunctional phenyl piperidinyl triazoles targeting cholinesterase: toward next-generation Alzheimer\u2019s therapeutics - Product\nN     -0.6500     0.4500    -0.0000\nN      0.0000     1.8000    -0.0000\nN      0.6500     0.4500    -0.0000\nC     -0.6500    -0.7500    -0.0000\nC      0.6500    -0.7500     0.0000\nC     -1.8500    -1.5500     0.0000\nH     -2.7500    -1.0500     0.0000\nH     -1.8500    -2.2000     0.8800\nH     -1.8500    -2.2000    -0.8800\nH      1.5000    -1.3500    -0.0000\nH     -1.6500     1.5500    -0.0000\n",
+    "referenceEa": 13.36,
+    "doi": "10.1038/s41598-026-78171-4",
+    "journalRef": "Scientific Reports",
+    "tags": [
+      "MBBS",
+      "Clinical-Pathways",
+      "Verified-DOI",
+      "Click Azide Alkyne"
+    ]
+  },
+  {
+    "id": "lit_10_1002_pro_70866",
+    "name": "Molecular basis of\n                    <scp>ACE2</scp>\n                    inhibition",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1002/pro.70866. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nMolecular basis of\n                    <scp>ACE2</scp>\n                    inhibition by the peptide\n                    <scp>DX600</scp>\n                    revealed by computational and biophysical analysis - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nMolecular basis of\n                    <scp>ACE2</scp>\n                    inhibition by the peptide\n                    <scp>DX600</scp>\n                    revealed by computational and biophysical analysis - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500    -0.0000\nH     -1.6200     1.1000    -0.0000\nH     -0.5500    -0.9200    -0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 19.4,
+    "doi": "10.1002/pro.70866",
+    "journalRef": "Protein Science",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
     "id": "lit_10_1039_d6cb00304d",
     "name": "Efficient assays for measuring inhibition of penicillin binding protein 3 (PBP3) tran",
     "iupacName": "Scholarly reaction (Thiol Disulfide Exchange)",

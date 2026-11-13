@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Contact & Inquiries — Quantum Forge</title>
-  <meta name="description" content="Get in touch with the creator of Quantum Forge for research collaborations, support, and inquiries.">
+  <title>Contact & Editorial Support — Quantum Forge</title>
+  <meta name="description" content="Contact the editorial, academic, and technical team of Quantum Forge. Direct inquiries to Ali Asghar (aliasgharcoolboy28@gmail.com) for research, errors, or feedback.">
   <meta name="author" content="Ali Asghar">
   <meta name="copyright" content="Copyright © 2026 Ali Asghar. All Rights Reserved.">
   <link rel="icon" type="image/png" href="favicon.png">
@@ -34,7 +34,7 @@
       background-color: var(--bg);
       color: var(--text);
       font-family: var(--font-family);
-      line-height: 1.7;
+      line-height: 1.75;
     }
     header {
       background: rgba(17, 24, 39, 0.85);
@@ -47,6 +47,8 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
     }
     .logo-container {
       display: flex;
@@ -70,8 +72,9 @@
     }
     nav {
       display: flex;
-      gap: 1.5rem;
+      gap: 1.25rem;
       align-items: center;
+      flex-wrap: wrap;
     }
     nav a {
       color: var(--text-muted);
@@ -84,7 +87,7 @@
       color: var(--primary);
     }
     .container {
-      max-width: 800px;
+      max-width: 860px;
       margin: 2.5rem auto;
       padding: 0 1.5rem;
     }
@@ -98,105 +101,174 @@
     }
     h1 {
       font-size: 2.25rem;
-      color: var(--primary);
-      margin-bottom: 0.5rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #FFFFFF 0%, #00E5FF 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 0.75rem;
     }
     h2 {
-      font-size: 1.35rem;
-      color: var(--accent);
-      margin-top: 1.5rem;
-      margin-bottom: 0.5rem;
+      color: #FFFFFF;
+      font-size: 1.4rem;
+      margin: 2rem 0 1rem;
+      border-bottom: 1px solid var(--card-border);
+      padding-bottom: 0.5rem;
     }
-    p {
-      color: #D1D5DB;
-      margin-bottom: 1rem;
+    p { margin-bottom: 1rem; color: #D1D5DB; }
+    ul { margin: 0 0 1.5rem 1.5rem; color: #D1D5DB; }
+    li { margin-bottom: 0.5rem; }
+    strong { color: #FFFFFF; }
+    .contact-box {
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px solid rgba(0, 229, 255, 0.25);
+      border-radius: 10px;
+      padding: 1.75rem;
+      margin: 1.5rem 0;
     }
-    .contact-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.75rem;
-      background: rgba(0, 191, 165, 0.1);
-      border: 1px solid rgba(0, 191, 165, 0.3);
-      padding: 0.75rem 1.25rem;
+    .contact-channel {
+      display: flex;
+      align-items: flex-start;
+      gap: 1rem;
+      margin-bottom: 1.25rem;
+    }
+    .contact-channel:last-child { margin-bottom: 0; }
+    .channel-icon {
+      background: rgba(0, 229, 255, 0.15);
+      color: var(--primary);
+      width: 42px;
+      height: 42px;
       border-radius: 8px;
-      margin-top: 1rem;
-      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+      flex-shrink: 0;
     }
-    .contact-badge a {
+    .channel-info h4 {
+      color: #FFFFFF;
+      font-size: 1.05rem;
+      margin-bottom: 0.25rem;
+    }
+    .channel-info a {
       color: var(--primary);
       text-decoration: none;
-      font-weight: 600;
-      font-size: 1.05rem;
+      word-break: break-all;
     }
-    .contact-badge a:hover {
-      text-decoration: underline;
+    .channel-info a:hover { text-decoration: underline; }
+    .channel-info p {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      margin: 0;
     }
     footer {
       border-top: 1px solid var(--card-border);
-      padding: 2.5rem 1.5rem;
-      text-align: center;
+      padding: 3rem 1.5rem;
+      background: #060910;
       color: var(--text-muted);
       font-size: 0.9rem;
-      margin-top: 4rem;
-      background: #060910;
+      text-align: center;
     }
-    footer a {
-      color: var(--accent);
+    .footer-links {
+      display: flex;
+      justify-content: center;
+      gap: 1.5rem;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+    }
+    .footer-links a {
+      color: var(--text-muted);
       text-decoration: none;
-      margin: 0 0.5rem;
+      transition: color 0.2s;
     }
-    @media (max-width: 768px) {
-      header { flex-direction: column; gap: 1rem; }
-      .card { padding: 1.5rem; }
-    }
+    .footer-links a:hover { color: var(--primary); }
   </style>
 </head>
 <body>
+
   <header>
     <a href="/" class="logo-container">
       <span class="logo-badge">QF</span>
       <span class="logo-title">Quantum Forge</span>
     </a>
     <nav>
-      <a href="/">App</a>
-      <a href="about.html">About</a>
-      <a href="privacy.html">Privacy</a>
-      <a href="terms.html">Terms</a>
-      <a href="contact.html" class="active">Contact</a>
+      <a href="/">Launch 3D Lab</a>
+      <a href="/guides/">Scientific Guides</a>
+      <a href="/about.html">About</a>
+      <a href="/contact.html" class="active">Contact</a>
+      <a href="/privacy.html">Privacy Policy</a>
+      <a href="/terms.html">Terms</a>
     </nav>
   </header>
 
-  <main class="container">
+  <div class="container">
     <div class="card">
-      <h1>Contact & Support</h1>
-      <p>Have inquiries regarding Quantum Forge, academic citations, dataset licensing, or bug reports? Connect directly with the developer and lead researcher.</p>
+      <h1>Contact & Editorial Support</h1>
+      <p>
+        Quantum Forge is committed to rigorous scientific transparency, rapid bug remediation, and supportive academic partnership. Whether you are a student, professor, or clinical researcher, our editorial and technical team is here to assist you.
+      </p>
 
-      <h2>Lead Developer & Author</h2>
-      <p><strong>Ali Asghar</strong><br>
-      Computational Chemistry & Software Engineering</p>
+      <h2>1. Direct Communication Channels</h2>
+      <div class="contact-box">
+        <div class="contact-channel">
+          <div class="channel-icon">&#x2709;</div>
+          <div class="channel-info">
+            <h4>Primary Editorial & Technical Email</h4>
+            <a href="mailto:aliasgharcoolboy28@gmail.com">aliasgharcoolboy28@gmail.com</a>
+            <p>Monitored daily. Typical response time within 24–48 business hours.</p>
+          </div>
+        </div>
 
-      <div class="contact-badge">
-        <span>✉️ Email:</span>
-        <a href="mailto:aliasgharinnocent@yahoo.com">aliasgharinnocent@yahoo.com</a>
+        <div class="contact-channel">
+          <div class="channel-icon">&#x1F4DA;</div>
+          <div class="channel-info">
+            <h4>Academic Curricula & Institutional Review</h4>
+            <a href="mailto:aliasgharcoolboy28@gmail.com?subject=Quantum%20Forge%20Curriculum%20Inquiry">aliasgharcoolboy28@gmail.com (Subject: Curriculum Inquiry)</a>
+            <p>For MBBS, Pharm-D, or chemistry department adoption and custom case synthesis.</p>
+          </div>
+        </div>
+
+        <div class="contact-channel">
+          <div class="channel-icon">&#x26A0;</div>
+          <div class="channel-info">
+            <h4>Data Corrections & Chemical Benchmark Discrepancies</h4>
+            <a href="mailto:aliasgharcoolboy28@gmail.com?subject=Quantum%20Forge%20Scientific%20Correction">aliasgharcoolboy28@gmail.com (Subject: Scientific Correction)</a>
+            <p>Please include PDB ID, reaction DOI, or kinetic dataset citation for rapid peer review.</p>
+          </div>
+        </div>
       </div>
 
-      <h2>Academic & Research Collaborations</h2>
-      <p>If you are an academic institution or research lab interested in extending our MLIP transition-state models (MACE, CHGNet, ANI-2x, GFN2-xTB) or contributing to the MBBS, Pharm-D, or DVM curricula benchmarks, please email with details of your institution and proposed research scope.</p>
+      <h2>2. Operational Support Hours & SLA</h2>
+      <p>
+        Technical and academic support is provided Monday through Saturday from <strong>09:00 to 18:00 UTC</strong>. Urgent platform availability and security notices are addressed 24/7.
+      </p>
 
-      <h2>Technical Support & Issue Tracking</h2>
-      <p>For immediate technical assistance or issue reporting regarding the web workstation, please reach out via email with your operating system, browser version, and console logs if applicable.</p>
+      <h2>3. Academic Peer-Review Submissions</h2>
+      <p>
+        Researchers interested in submitting validated transition-state trajectories (computed at DFT B3LYP/6-311+G** or higher, or verified via CI-NEB / GFN2-xTB) for inclusion in the Quantum Forge open library are invited to contact the lead author with the relevant coordinate trajectories (XYZ/PDB format) and associated publication DOIs.
+      </p>
+
+      <h2>4. Physical & Postal Office Inquiries</h2>
+      <p>
+        Quantum Forge Software Systems<br>
+        Attn: Ali Asghar, Principal Lead<br>
+        Inquiries: <a href="mailto:aliasgharcoolboy28@gmail.com" style="color: var(--primary);">aliasgharcoolboy28@gmail.com</a><br>
+        Web: <a href="https://quantumforgeapp.com" style="color: var(--primary);">https://quantumforgeapp.com</a>
+      </p>
     </div>
-  </main>
+  </div>
 
   <footer>
-    <p>&copy; 2026 Ali Asghar. All Rights Reserved. DMCA Protected.</p>
-    <p style="margin-top: 0.5rem;">
-      <a href="/">Launch Workstation</a> |
-      <a href="about.html">About</a> |
-      <a href="privacy.html">Privacy Policy</a> |
-      <a href="terms.html">Terms of Service</a> |
-      <a href="contact.html">Contact Us</a>
-    </p>
+    <div class="footer-links">
+      <a href="/">Launch 3D Lab</a>
+      <a href="/guides/">Scientific Guides</a>
+      <a href="/about.html">About</a>
+      <a href="/contact.html">Contact</a>
+      <a href="/privacy.html">Privacy Policy</a>
+      <a href="/terms.html">Terms of Service</a>
+      <a href="/sitemap.xml">Sitemap (XML)</a>
+    </div>
+    <p>Copyright &copy; 2026 Ali Asghar. All Rights Reserved. Educational Simulation Only.</p>
   </footer>
+
 </body>
 </html>

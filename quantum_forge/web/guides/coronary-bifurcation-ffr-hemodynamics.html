@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Coronary Bifurcation Hemodynamics, FFR & PCI Stent Mechanics — Quantum Forge Guides</title>
+  <meta name="description" content="Cardiovascular engineering monograph on Navier-Stokes coronary flow, Fractional Flow Reserve (FFR), Instantaneous Wave-Free Period (iFR), bifurcation branching laws, and DK-Crush stenting mechanics.">
+  <meta name="author" content="Ali Asghar">
+  <meta name="copyright" content="Copyright © 2026 Ali Asghar. All Rights Reserved.">
+  <link rel="icon" type="image/png" href="../favicon.png">
+  <meta name="google-adsense-account" content="ca-pub-9402443776639153">
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9402443776639153" crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=AW-16732994716"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'AW-16732994716');
+  </script>
+  <style>
+    :root {
+      --bg: #090D16;
+      --card-bg: #111827;
+      --card-border: #1F2937;
+      --primary: #00E5FF;
+      --accent: #00BFA5;
+      --text: #F3F4F6;
+      --text-muted: #9CA3AF;
+      --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background-color: var(--bg); color: var(--text); font-family: var(--font-family); line-height: 1.8; }
+    header { background: rgba(17, 24, 39, 0.85); backdrop-filter: blur(12px); border-bottom: 1px solid var(--card-border); position: sticky; top: 0; z-index: 50; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
+    .logo-container { display: flex; align-items: center; gap: 0.75rem; text-decoration: none; color: var(--text); }
+    .logo-badge { background: linear-gradient(135deg, #00BFA5, #00E5FF); color: #090D16; font-weight: 800; font-size: 1.1rem; padding: 0.25rem 0.6rem; border-radius: 6px; }
+    .logo-title { font-weight: 700; font-size: 1.25rem; letter-spacing: -0.025em; }
+    nav { display: flex; gap: 1.25rem; align-items: center; flex-wrap: wrap; }
+    nav a { color: var(--text-muted); text-decoration: none; font-size: 0.95rem; font-weight: 500; transition: color 0.2s; }
+    nav a:hover, nav a.active { color: var(--primary); }
+    .container { max-width: 900px; margin: 2rem auto; padding: 0 1.5rem; }
+    .breadcrumbs { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.5rem; }
+    .breadcrumbs a { color: var(--text-muted); text-decoration: none; }
+    .breadcrumbs a:hover { color: var(--primary); }
+    article { background-color: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; padding: 2.5rem; margin-bottom: 2rem; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4); }
+    h1 { font-size: 2.2rem; font-weight: 800; background: linear-gradient(135deg, #FFFFFF 0%, #00E5FF 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 1rem; line-height: 1.3; }
+    .meta-bar { display: flex; gap: 1.5rem; font-size: 0.85rem; color: var(--text-muted); border-bottom: 1px solid var(--card-border); padding-bottom: 1rem; margin-bottom: 2rem; flex-wrap: wrap; }
+    h2 { color: #FFFFFF; font-size: 1.4rem; margin: 2rem 0 1rem; border-bottom: 1px solid var(--card-border); padding-bottom: 0.4rem; }
+    h3 { color: var(--primary); font-size: 1.15rem; margin: 1.5rem 0 0.5rem; }
+    p { margin-bottom: 1.2rem; color: #D1D5DB; }
+    ul, ol { margin: 0 0 1.5rem 1.75rem; color: #D1D5DB; }
+    li { margin-bottom: 0.5rem; }
+    strong { color: #FFFFFF; }
+    table { width: 100%; border-collapse: collapse; margin: 1.5rem 0; font-size: 0.9rem; }
+    th, td { border: 1px solid var(--card-border); padding: 0.75rem 1rem; text-align: left; }
+    th { background: rgba(15, 23, 42, 0.8); color: var(--primary); font-weight: 600; }
+    td { background: rgba(17, 24, 39, 0.4); }
+    .math-block { background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(0, 229, 255, 0.2); border-radius: 8px; padding: 1rem 1.25rem; font-family: "Courier New", Courier, monospace; color: #67E8F9; margin: 1.5rem 0; overflow-x: auto; }
+    .callout { background: rgba(0, 191, 165, 0.08); border-left: 4px solid var(--accent); padding: 1.25rem; border-radius: 0 8px 8px 0; margin: 1.75rem 0; }
+    .callout h4 { color: var(--accent); margin-bottom: 0.5rem; font-size: 1rem; }
+    .interactive-card { background: linear-gradient(135deg, rgba(0, 229, 255, 0.1) 0%, rgba(0, 191, 165, 0.1) 100%); border: 1px solid rgba(0, 229, 255, 0.4); border-radius: 10px; padding: 1.5rem; margin: 2rem 0; text-align: center; }
+    .interactive-card h4 { color: #FFFFFF; font-size: 1.15rem; margin-bottom: 0.5rem; }
+    .interactive-card a { display: inline-block; background: linear-gradient(135deg, #00BFA5 0%, #00E5FF 100%); color: #090D16; font-weight: 700; padding: 0.7rem 1.5rem; border-radius: 6px; text-decoration: none; margin-top: 0.75rem; transition: transform 0.2s; }
+    .interactive-card a:hover { transform: translateY(-2px); }
+    .references { border-top: 1px solid var(--card-border); padding-top: 1.5rem; margin-top: 2.5rem; font-size: 0.85rem; color: var(--text-muted); }
+    .references ol { margin-left: 1.25rem; }
+    .references li { margin-bottom: 0.6rem; }
+    .references a { color: var(--primary); text-decoration: none; word-break: break-all; }
+    .references a:hover { text-decoration: underline; }
+    footer { border-top: 1px solid var(--card-border); padding: 3rem 1.5rem; background: #060910; color: var(--text-muted); font-size: 0.9rem; text-align: center; }
+    .footer-links { display: flex; justify-content: center; gap: 1.5rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+    .footer-links a { color: var(--text-muted); text-decoration: none; transition: color 0.2s; }
+    .footer-links a:hover { color: var(--primary); }
+    @media (max-width: 768px) { h1 { font-size: 1.75rem; } article { padding: 1.5rem; } }
+  </style>
+</head>
+<body>
+
+  <header>
+    <a href="/" class="logo-container">
+      <span class="logo-badge">QF</span>
+      <span class="logo-title">Quantum Forge</span>
+    </a>
+    <nav>
+      <a href="/">Launch 3D Lab</a>
+      <a href="/guides/" class="active">Scientific Guides</a>
+      <a href="/about.html">About</a>
+      <a href="/contact.html">Contact</a>
+      <a href="/privacy.html">Privacy Policy</a>
+      <a href="/terms.html">Terms</a>
+    </nav>
+  </header>
+
+  <div class="container">
+    <div class="breadcrumbs">
+      <a href="/">Home</a> &rsaquo; <a href="/guides/">Scientific Guides</a> &rsaquo; Coronary FFR & Hemodynamics
+    </div>
+
+    <article>
+      <h1>Coronary Bifurcation Hemodynamics, Fractional Flow Reserve & PCI Stent Mechanics</h1>
+      
+      <div class="meta-bar">
+        <span><strong>Author:</strong> Ali Asghar</span>
+        <span><strong>Published:</strong> November 13, 2026</span>
+        <span><strong>Field:</strong> Interventional Cardiology & Hemodynamics</span>
+        <span><strong>Curriculum:</strong> Cardiology Fellowship / Cath Lab Staff</span>
+      </div>
+
+      <h2>1. The Fluid Dynamics of Coronary Perfusion</h2>
+      <p>
+        The coronary arterial circulation presents a unique fluid mechanical environment unmatched anywhere else in the human vasculature. While systemic peripheral beds receive peak perfusion during cardiac systole, coronary arterial blood flow occurs <strong>predominantly during diastole (70–80% of total volume)</strong>.
+      </p>
+      <p>
+        During ventricular systole, powerful myocardial wall contraction generates intramyocardial tissue pressures exceeding intraventricular systolic pressures, physically compressing the microcirculatory capillary bed and driving retrograde or stalled flow in epicardial arteries. In diastole, as the myocardium relaxes and the aortic valve closes, aortic root pressure ($P_a$) drives forward laminar flow across the left main coronary artery (LMCA), left anterior descending (LAD), and circumflex (LCx) branches.
+      </p>
+
+      <h2>2. Physics of Fractional Flow Reserve (FFR) & iFR</h2>
+      <p>
+        Angiographic visual assessment of coronary stenoses (percent diameter stenosis via 2D fluoroscopy) has notoriously poor correlation with true physiological ischemia. Interventional cardiology relies on invasive pressure-wire physiology:
+      </p>
+
+      <h3>Fractional Flow Reserve (FFR)</h3>
+      <p>
+        Fractional Flow Reserve represents the fraction of maximum achievable myocardial blood flow in the presence of a stenosis relative to the hypothetical normal vessel. Assuming coronary venous pressure is negligible and microvascular resistance ($R_{\text{myo}}$) is held at a constant, minimal value via pharmacological vasodilation (hyperemia induced by intravenous Adenosine at 140 &mu;g/kg/min):
+      </p>
+      <div class="math-block">
+        \text{FFR} = \frac{Q_{\text{stenosis}}^{\max}}{Q_{\text{normal}}^{\max}} = \frac{(P_d - P_v) / R_{\text{myo}}^{\min}}{(P_a - P_v) / R_{\text{myo}}^{\min}} \approx \frac{P_d}{P_a}
+      </div>
+      <p>
+        Where $P_d$ is mean distal coronary pressure recorded 2&ndash;3 cm distal to the lesion by a 0.014-inch optical pressure wire, and $P_a$ is mean proximal aortic pressure recorded at the guide catheter tip during steady-state maximal hyperemia.
+      </p>
+      <ul>
+        <li><strong>FFR &le; 0.80:</strong> Hemodynamically significant ischemia; strong clinical trial evidence (FAME I/II, DEFER) supporting revascularization via Percutaneous Coronary Intervention (PCI) or Coronary Artery Bypass Grafting (CABG).</li>
+        <li><strong>FFR &gt; 0.80:</strong> Non-ischemic lesion; revascularization confers no prognostic benefit over optimal medical therapy (OMT), and may provoke iatrogenic stent-related complications.</li>
+      </ul>
+
+      <h3>Instantaneous Wave-Free Period (iFR)</h3>
+      <p>
+        To avoid the bronchospasm, flushing, and transient heart block associated with adenosine infusions, the <strong>Instantaneous Wave-Free Period (iFR)</strong> samples the pressure ratio $P_d / P_a$ exclusively during a specific 75% temporal window within diastole (from 25% past dicrotic notch to 5 ms before next systole). During this wave-free period, origin waves from the aortic root and reflected microcirculatory waves cease, microvascular resistance naturally drops to its basal nadir, and baseline $P_d/P_a$ matches hyperemic FFR with an ischemic cutoff of <strong>iFR &le; 0.89</strong> (DEFINE-FLAIR, iFR-SWEDEHEART).
+      </p>
+
+      <h2>3. Bifurcation Anatomy: Branching Scaling Laws</h2>
+      <p>
+        Coronary bifurcation lesions—involving a main vessel (MV) and a side branch (SB)—account for 15–20% of all interventional procedures and carry heightened risk of peri-procedural myocardial infarction and restenosis. The geometry of healthy bifurcations adheres to fundamental biological scaling laws:
+      </p>
+      <ul>
+        <li><strong>Murray's Law (Minimum Work Model):</strong> Minimizes viscous dissipation and metabolic vascular maintenance:
+          <div class="math-block">r_0^3 = r_1^3 + r_2^3</div>
+          Where $r_0$ is proximal main vessel radius, and $r_1, r_2$ are distal main vessel and side branch radii.
+        </li>
+        <li><strong>Finet's Law (Human Coronary Formulation):</strong> A validated linear diameter formulation derived from human intravascular ultrasound (IVUS):
+          <div class="math-block">D_0 = 0.678 \cdot (D_1 + D_2)</div>
+        </li>
+      </ul>
+
+      <div class="callout">
+        <h4>Endothelial Wall Shear Stress (WSS) & Atherogenesis</h4>
+        <p>
+          Wall Shear Stress ($\tau_w = \mu \frac{\partial u}{\partial y}\big|_{y=0}$) is the tangential frictional force exerted by flowing blood on endothelial cells. In bifurcation geometries, high WSS (&gt;70 dyn/cm&sup2;) at the flow divider (carina) promotes anti-inflammatory, nitric oxide-mediated endothelial protection.<br>
+          Conversely, the lateral lateral walls opposite the carina experience flow separation, recirculation vortices, and <strong>low/oscillatory shear stress (&lt;10 dyn/cm&sup2;)</strong>, downregulating Kruppel-like factor 2 (KLF2) and triggering atheroma formation and plaque rupture.
+        </p>
+      </div>
+
+      <h2>4. Comparative Medina Classification & Stenting Strategies</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Technique</th>
+            <th>Number of Stents</th>
+            <th>Primary Indication</th>
+            <th>Key Technical Steps & Pitfalls</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Provisional Stenting</strong></td>
+            <td>1 (Stent main vessel; bail-out SB only)</td>
+            <td>True non-complex bifurcations (Medina 1,1,0 or 1,0,1 with SB &lt; 2.5 mm)</td>
+            <td>Gold standard default; requires Proximal Optimization Technique (POT) to appose stent struts at the carina.</td>
+          </tr>
+          <tr>
+            <td><strong>Culotte Technique</strong></td>
+            <td>2 (Full double-layer coverage)</td>
+            <td>Complex bifurcations with similar diameters (MV &asymp; SB)</td>
+            <td>Excellent ostial scaffolding, but creates a double metal layer in the proximal main vessel.</td>
+          </tr>
+          <tr>
+            <td><strong>T-and-Protrusion (TAP)</strong></td>
+            <td>2 (Side-branch stent with 1 mm carina overhang)</td>
+            <td>Suboptimal SB result after provisional stenting (T-angle &sim; 90&deg;)</td>
+            <td>Guarantees ostial SB coverage but leaves a small metallic neo-carina.</td>
+          </tr>
+          <tr>
+            <td><strong>Double Kissing Crush (DK-Crush)</strong></td>
+            <td>2 (Side-branch crushed by MV balloon)</td>
+            <td>Complex true bifurcation / Left Main stem (Medina 1,1,1 with long SB lesion &gt; 10 mm)</td>
+            <td>Two separate kissing-balloon inflations (1st post-crush, 2nd post-MV stent). Proven superior in DKCRUSH-V randomized trial.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h2>5. Simulation in the CardioCath 3D Cath Lab</h2>
+      <p>
+        Quantum Forge's CardioCath 3D Workstation features real-time Navier-Stokes hemodynamics across coronary bifurcation models. Users can advance a virtual 0.014-inch optical PressureWire X across left anterior descending stenoses, administer IV Adenosine boluses to provoke maximal hyperemia, measure continuous FFR and iFR pullbacks, and deploy metallic stents while observing carina shifts and resolving distal ischemic pressure drops live on the 5-channel bedside oscilloscope.
+      </p>
+
+      <div class="interactive-card">
+        <h4>Perform Virtual FFR Pullback & Bifurcation Stenting</h4>
+        <p>Advance the PressureWire X, calculate hyperemic FFR ratios, and simulate metallic stent expansion in the interactive CardioCath 3D Cath Lab.</p>
+        <a href="/">Launch 3D Workstation &rarr;</a>
+      </div>
+
+      <div class="references">
+        <h2>References & Interventional Citations</h2>
+        <ol>
+          <li>Pijls, N. H., De Bruyne, B., Peels, K., Van Der Voort, P. H., Bonnier, H. J., Bartunek, J. K., ... & Koolen, J. J. (1996). Measurement of fractional flow reserve to assess the functional severity of coronary-artery stenoses. <em>N. Engl. J. Med.</em>, 334(26), 1703–1708. <a href="https://doi.org/10.1056/NEJM199606273342604" target="_blank" rel="noopener">doi:10.1056/NEJM199606273342604</a></li>
+          <li>Davies, J. E., Sen, S., Dehbi, H. M., Al-Lamee, R., Petraco, R., Nijjer, S. S., ... & DEFINE-FLAIR Investigators. (2017). Use of the instantaneous wave-free ratio or fractional flow reserve in PCI. <em>N. Engl. J. Med.</em>, 376(19), 1824–1834. <a href="https://doi.org/10.1056/NEJMoa1700445" target="_blank" rel="noopener">doi:10.1056/NEJMoa1700445</a></li>
+          <li>Chen, S. L., Zhang, J. J., Han, Y., Kan, J., Chen, L., Qiu, C., ... & Stone, G. W. (2017). Double-kissing crush versus provisional stenting for left main true bifurcation lesions: the DKCRUSH-V randomized trial. <em>J. Am. Coll. Cardiol.</em>, 70(21), 2605–2616. <a href="https://doi.org/10.1016/j.jacc.2017.09.1066" target="_blank" rel="noopener">doi:10.1016/j.jacc.2017.09.1066</a></li>
+          <li>Finet, G., Gilard, M., Perrenot, B., Rioufol, G., Motreff, P., Gavit, L., ... & D&eacute;sir&eacute;, B. (2007). Fractal analysis of normal human coronary arterial tree: algorithmic description of the bifurcation diameter ratio. <em>EuroIntervention</em>, 3(4), 481–487. <a href="https://pubmed.ncbi.nlm.nih.gov/19737736/" target="_blank" rel="noopener">PMID: 19737736</a></li>
+        </ol>
+      </div>
+    </article>
+  </div>
+
+  <footer>
+    <div class="footer-links">
+      <a href="/">Launch 3D Lab</a>
+      <a href="/guides/">All Scientific Guides</a>
+      <a href="/about.html">About</a>
+      <a href="/contact.html">Contact</a>
+      <a href="/privacy.html">Privacy Policy</a>
+      <a href="/terms.html">Terms of Service</a>
+      <a href="/sitemap.xml">Sitemap (XML)</a>
+    </div>
+    <p>Copyright &copy; 2026 Ali Asghar. All Rights Reserved. Educational Simulation Only &mdash; Not for Medical Care.</p>
+  </footer>
+
+</body>
+</html>

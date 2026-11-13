@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Scientific & Clinical Guides — Quantum Forge</title>
+  <meta name="description" content="Peer-reviewed educational guides on reaction kinetics, transition-state theory, machine learning force fields, pharmacogenomics, and interventional cardiology.">
+  <meta name="author" content="Ali Asghar">
+  <meta name="copyright" content="Copyright © 2026 Ali Asghar. All Rights Reserved.">
+  <link rel="icon" type="image/png" href="../favicon.png">
+  <meta name="google-adsense-account" content="ca-pub-9402443776639153">
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9402443776639153" crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=AW-16732994716"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'AW-16732994716');
+  </script>
+  <style>
+    :root {
+      --bg: #090D16;
+      --card-bg: #111827;
+      --card-border: #1F2937;
+      --primary: #00E5FF;
+      --accent: #00BFA5;
+      --text: #F3F4F6;
+      --text-muted: #9CA3AF;
+      --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: var(--font-family);
+      line-height: 1.7;
+    }
+    header {
+      background: rgba(17, 24, 39, 0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--card-border);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    .logo-container {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      text-decoration: none;
+      color: var(--text);
+    }
+    .logo-badge {
+      background: linear-gradient(135deg, #00BFA5, #00E5FF);
+      color: #090D16;
+      font-weight: 800;
+      font-size: 1.1rem;
+      padding: 0.25rem 0.6rem;
+      border-radius: 6px;
+    }
+    .logo-title {
+      font-weight: 700;
+      font-size: 1.25rem;
+      letter-spacing: -0.025em;
+    }
+    nav {
+      display: flex;
+      gap: 1.25rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    nav a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.95rem;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+    nav a:hover, nav a.active {
+      color: var(--primary);
+    }
+    .container {
+      max-width: 1040px;
+      margin: 2.5rem auto;
+      padding: 0 1.5rem;
+    }
+    .hero {
+      text-align: center;
+      margin-bottom: 2.5rem;
+      padding: 2.5rem 1rem;
+      background: linear-gradient(180deg, rgba(17, 24, 39, 0.8) 0%, rgba(9, 13, 22, 0.4) 100%);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+    }
+    .hero h1 {
+      font-size: 2.4rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #FFFFFF 0%, #00E5FF 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 0.75rem;
+    }
+    .hero p {
+      font-size: 1.1rem;
+      color: var(--text-muted);
+      max-width: 720px;
+      margin: 0 auto;
+    }
+    .guides-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2.5rem;
+    }
+    .guide-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 1.75rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+    }
+    .guide-card:hover {
+      transform: translateY(-3px);
+      border-color: var(--primary);
+      box-shadow: 0 6px 20px rgba(0, 229, 255, 0.15);
+    }
+    .card-tag {
+      display: inline-block;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 0.2rem 0.55rem;
+      border-radius: 4px;
+      background: rgba(0, 229, 255, 0.12);
+      color: var(--primary);
+      margin-bottom: 0.75rem;
+      align-self: flex-start;
+    }
+    .guide-card h3 {
+      font-size: 1.2rem;
+      color: #FFFFFF;
+      margin-bottom: 0.75rem;
+      line-height: 1.4;
+    }
+    .guide-card p {
+      color: #9CA3AF;
+      font-size: 0.95rem;
+      margin-bottom: 1.25rem;
+      line-height: 1.6;
+      flex-grow: 1;
+    }
+    .read-more {
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.9rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+    .read-more:hover { color: var(--primary); text-decoration: underline; }
+    footer {
+      border-top: 1px solid var(--card-border);
+      padding: 3rem 1.5rem;
+      background: #060910;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      text-align: center;
+    }
+    .footer-links {
+      display: flex;
+      justify-content: center;
+      gap: 1.5rem;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+    }
+    .footer-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .footer-links a:hover { color: var(--primary); }
+  </style>
+</head>
+<body>
+
+  <header>
+    <a href="/" class="logo-container">
+      <span class="logo-badge">QF</span>
+      <span class="logo-title">Quantum Forge</span>
+    </a>
+    <nav>
+      <a href="/">Launch 3D Lab</a>
+      <a href="/guides/" class="active">Scientific Guides</a>
+      <a href="/about.html">About</a>
+      <a href="/contact.html">Contact</a>
+      <a href="/privacy.html">Privacy Policy</a>
+      <a href="/terms.html">Terms</a>
+    </nav>
+  </header>
+
+  <div class="container">
+    <div class="hero">
+      <h1>Peer-Reviewed Scientific & Clinical Guides</h1>
+      <p>In-depth monographs on transition-state modeling, machine learning potentials, clinical pharmacology, and cardiovascular hemodynamics authored for medical and chemical scholars.</p>
+    </div>
+
+    <div class="guides-grid">
+
+      <!-- Guide 1 -->
+      <article class="guide-card">
+        <div>
+          <span class="card-tag">Clinical Pharmacology &middot; MBBS</span>
+          <h3>Acetylsalicylic Acid: Irreversible Ser-530 COX Acetylation</h3>
+          <p>Structural biology of Cyclooxygenase-1/2, nucleophilic attack of Serine-530, steric occlusion of arachidonic acid, and antiplatelet clinical pharmacology.</p>
+        </div>
+        <a href="/guides/aspirin-cox-inhibition-mechanism.html" class="read-more">Read Full Guide &rarr;</a>
+      </article>
+
+      <!-- Guide 2 -->
+      <article class="guide-card">
+        <div>
+          <span class="card-tag">Reaction Kinetics &middot; Pharm-D</span>
+          <h3>Nucleophilic Substitution: SN1 vs SN2 Pathways</h3>
+          <p>Transition-state geometries, Walden inversion, carbocation lifetime, solvent effects (protic vs aprotic), and Eyring activation entropy signatures.</p>
+        </div>
+        <a href="/guides/sn1-vs-sn2-reaction-kinetics.html" class="read-more">Read Full Guide &rarr;</a>
+      </article>
+
+      <!-- Guide 3 -->
+      <article class="guide-card">
+        <div>
+          <span class="card-tag">Quantum Chemistry &middot; Theory</span>
+          <h3>Transition-State Theory & Activation Barrier Modeling</h3>
+          <p>Potential energy surfaces (PES), index-1 saddle points, harmonic TST, and Climbing Image Nudged Elastic Band (CI-NEB) algorithms.</p>
+        </div>
+        <a href="/guides/transition-state-theory-activation-energy.html" class="read-more">Read Full Guide &rarr;</a>
+      </article>
+
+      <!-- Guide 4 -->
+      <article class="guide-card">
+        <div>
+          <span class="card-tag">AI & Machine Learning &middot; MLIP</span>
+          <h3>Equivariant Neural Force Fields vs MMFF94 & DFT</h3>
+          <p>E(3)-equivariant message passing architectures (MACE, PaiNN), body-order expansions, and sub-second ab initio force prediction benchmarks.</p>
+        </div>
+        <a href="/guides/machine-learning-interatomic-potentials.html" class="read-more">Read Full Guide &rarr;</a>
+      </article>
+
+      <!-- Guide 5 -->
+      <article class="guide-card">
+        <div>
+          <span class="card-tag">Pharmacogenomics &middot; ADME</span>
+          <h3>Cytochrome P450 Polymorphisms & Clearance Curves</h3>
+          <p>CYP2D6, CYP2C19, and CYP2C9 genetic variants, Poor vs Extensive metabolizer phenotypes, and CPIC guideline dosing adaptations.</p>
+        </div>
+        <a href="/guides/cyp450-pharmacogenomics-adme.html" class="read-more">Read Full Guide &rarr;</a>
+      </article>
+
+      <!-- Guide 6 -->
+      <article class="guide-card">
+        <div>
+          <span class="card-tag">Toxicology & Critical Care</span>
+          <h3>Acetaminophen NAPQI Toxicity & N-Acetylcysteine Rescue</h3>
+          <p>CYP2E1 bioactivation, glutathione depletion thresholds, mitochondrial permeability transition pore opening, and Rumack-Matthew nomogram kinetics.</p>
+        </div>
+        <a href="/guides/acetaminophen-napqi-hepatotoxicity.html" class="read-more">Read Full Guide &rarr;</a>
+      </article>
+
+      <!-- Guide 7 -->
+      <article class="guide-card">
+        <div>
+          <span class="card-tag">Electrophysiology & Cardiology</span>
+          <h3>hERG Channel Blockade & Torsades de Pointes Risk</h3>
+          <p>Kv11.1 cryo-EM structure (PDB 5VA1), aromatic cavity trapping, Phase 3 repolarization delay, Early Afterdepolarizations, and CiPA screening.</p>
+        </div>
+        <a href="/guides/herg-channel-qt-prolongation.html" class="read-more">Read Full Guide &rarr;</a>
+      </article>
+
+      <!-- Guide 8 -->
+      <article class="guide-card">
+        <div>
+          <span class="card-tag">Interventional Cardiology &middot; Cath Lab</span>
+          <h3>Coronary Bifurcation FFR & Stent Fluid Dynamics</h3>
+          <p>Navier-Stokes pulsatile coronary flow, Murray's law bifurcation branching, endothelial wall shear stress, and DK-Crush stenting mechanics.</p>
+        </div>
+        <a href="/guides/coronary-bifurcation-ffr-hemodynamics.html" class="read-more">Read Full Guide &rarr;</a>
+      </article>
+
+    </div>
+  </div>
+
+  <footer>
+    <div class="footer-links">
+      <a href="/">Launch 3D Lab</a>
+      <a href="/guides/">Scientific Guides</a>
+      <a href="/about.html">About</a>
+      <a href="/contact.html">Contact</a>
+      <a href="/privacy.html">Privacy Policy</a>
+      <a href="/terms.html">Terms of Service</a>
+      <a href="/sitemap.xml">Sitemap (XML)</a>
+    </div>
+    <p>Copyright &copy; 2026 Ali Asghar. All Rights Reserved. Educational Simulation Only.</p>
+  </footer>
+
+</body>
+</html>

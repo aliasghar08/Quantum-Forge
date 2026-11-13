@@ -226,15 +226,16 @@ class _HistoryScreenState extends State<HistoryScreen> {
               // Empty State or Grid
               if (_reactions.isEmpty)
                 _buildEmptyState(palette, isMobile)
-              else
+              else ...[
                 _buildReactionList(palette, isMobile, constraints.maxWidth),
-
-              const SizedBox(height: 16),
-              AdSenseBannerWeb(
-                isSignedIn: _isAuthenticated,
-                isProUser: false,
-                placement: 'history_list',
-              ),
+                const SizedBox(height: 16),
+                // Policy guard: Only display ads on content-populated screens (never on empty states)
+                AdSenseBannerWeb(
+                  isSignedIn: _isAuthenticated,
+                  isProUser: false,
+                  placement: 'history_list',
+                ),
+              ],
             ],
           ),
         );
@@ -310,12 +311,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
                     ],
                   ),
                 ),
-              ),
-              const SizedBox(height: 12),
-              AdSenseBannerWeb(
-                isSignedIn: _isAuthenticated,
-                isProUser: false,
-                placement: 'history_auth',
               ),
             ],
           ),

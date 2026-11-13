@@ -171,7 +171,7 @@ void main() {
   });
 
   group('AdSense Responsive Screen Integrations', () {
-    testWidgets('HistoryScreen displays AdSenseBannerWeb in unauthenticated state without overflow',
+    testWidgets('HistoryScreen suppresses AdSenseBannerWeb in unauthenticated state to comply with AdSense policy',
         (tester) async {
       tester.view.physicalSize = const Size(390, 844);
       tester.view.devicePixelRatio = 1.0;
@@ -203,7 +203,8 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('History Requires an Account'), findsOneWidget);
-      expect(find.byType(AdSenseBannerWeb), findsOneWidget);
+      // Policy compliance: No ads on unauthenticated login prompts or empty state screens
+      expect(find.byType(AdSenseBannerWeb), findsNothing);
       expect(tester.takeException(), isNull);
     });
 

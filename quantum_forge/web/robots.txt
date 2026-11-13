@@ -1,0 +1,25 @@
+# Robots.txt for Quantum Forge (https://quantumforgeapp.com)
+User-agent: *
+Allow: /
+Allow: /about.html
+Allow: /contact.html
+Allow: /privacy.html
+Allow: /terms.html
+Allow: /guides/
+Allow: /ads.txt
+Allow: /sitemap.xml
+
+# Explicitly permit Googlebot, AdSense, and AdsBot crawlers full access
+User-agent: Googlebot
+Allow: /
+
+User-agent: Mediapartners-Google
+Allow: /
+
+User-agent: AdsBot-Google
+Allow: /
+
+User-agent: Google-Display-Ads-Bot
+Allow: /
+
+Sitemap: https://quantumforgeapp.com/sitemap.xml

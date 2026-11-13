@@ -81,3 +81,4 @@ capture_screenshot('CardioCath_11_Situation_Manual_Override.png')
 
 ws.close()
 print("All Clinical Heart Situation screenshots captured successfully!")
+

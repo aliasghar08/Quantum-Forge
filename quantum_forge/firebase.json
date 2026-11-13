@@ -53,6 +53,24 @@
         ]
       },
       {
+        "source": "/@(robots.txt|sitemap.xml|ads.txt|about.html|contact.html|privacy.html|terms.html)",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "public, max-age=3600, must-revalidate"
+          }
+        ]
+      },
+      {
+        "source": "/guides/**",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "public, max-age=3600, must-revalidate"
+          }
+        ]
+      },
+      {
         "source": "/assets/**",
         "headers": [
           {
