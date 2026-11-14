@@ -78,3 +78,4 @@ def predict_spectral_and_asm(
 if __name__ == "__main__":
     res = predict_spectral_and_asm(state_index=2, lorazepam_level=1.0, levetiracetam_level=1.0)
     print("NeuroSpike-Net Output:", res)
+

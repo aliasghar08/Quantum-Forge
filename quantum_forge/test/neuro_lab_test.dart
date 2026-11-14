@@ -18,6 +18,7 @@ import 'package:quantum_forge/features/neuro/presentation/widgets/spinal_cord_lo
 import 'package:quantum_forge/features/neuro/presentation/widgets/neuro_clinical_info_system.dart';
 import 'package:quantum_forge/features/neuro/presentation/widgets/neuro_drug_mechanism_dialog.dart';
 import 'package:quantum_forge/features/neuro/presentation/widgets/neuro_osce_exam_panel.dart';
+import 'package:quantum_forge/features/neuro/presentation/widgets/neuro_frontier_neurosurgery_panel.dart';
 
 void main() {
   group('NeuroLab 3D: Workstation & Physiology Engine Tests', () {
@@ -417,6 +418,68 @@ void main() {
       expect(find.text('B. FLOW-DIVERTER WSS CFD PROFILER'), findsOneWidget);
       expect(find.text('C. VIRTUAL COHORT & TORNADO PLOT'), findsOneWidget);
       expect(find.text('D. NeuroBBB-GNN & 1000Hz DATA EXPORT'), findsOneWidget);
+    });
+
+    testWidgets('switches to Frontier & DBS view and verifies 4 frontier neurosurgery labs', (tester) async {
+      tester.view.physicalSize = const Size(1600, 950);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(buildTestScreen());
+      await tester.pump();
+
+      // Tap Frontier & DBS Button
+      final frontierBtn = find.text('Frontier & DBS');
+      expect(frontierBtn, findsOneWidget);
+      await tester.ensureVisible(frontierBtn);
+      await tester.tap(frontierBtn);
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(find.byType(NeuroFrontierNeurosurgeryPanel), findsOneWidget);
+
+      // Verify all 4 tabs exist
+      expect(find.text('1. AWAKE DCS ELOQUENT MAPPING'), findsOneWidget);
+      expect(find.text('2. DBS CONNECTOME & BETA-LFP LAB'), findsOneWidget);
+      expect(find.text('3. ZERO-PHI INVERSE DIGITAL TWIN'), findsOneWidget);
+      expect(find.text('4. MULTIPLAYER GRAND ROUNDS'), findsOneWidget);
+
+      // Tab 1: Awake Craniotomy & DCS Mapping
+      expect(find.textContaining('OJEMANN MAPPING'), findsOneWidget);
+      expect(find.textContaining('Berger Safety Margin'), findsOneWidget);
+
+      // Switch to Tab 2: DBS Connectome
+      await tester.tap(find.text('2. DBS CONNECTOME & BETA-LFP LAB'));
+      await tester.pumpAndSettle();
+      expect(find.text('DBS STEREOTACTIC TARGET & DIRECTIONAL LEAD'), findsOneWidget);
+      expect(find.text('VTA & LOCAL FIELD POTENTIAL (LFP)'), findsOneWidget);
+
+      // Switch to Tab 3: Waveform Inverse
+      await tester.tap(find.text('3. ZERO-PHI INVERSE DIGITAL TWIN'));
+      await tester.pumpAndSettle();
+      expect(find.text('ZERO-PHI BROWSER-SIDE WAVEFORM PARSER'), findsOneWidget);
+      expect(find.text('Sync Inverted Parameters to Master Vitals Bar'), findsOneWidget);
+
+      // Switch to Tab 4: Multiplayer Grand Rounds
+      await tester.tap(find.text('4. MULTIPLAYER GRAND ROUNDS'));
+      await tester.pumpAndSettle();
+      expect(find.text('NEURO-ICU MULTIPLAYER GRAND ROUNDS'), findsOneWidget);
+      expect(find.text('ATTENDING CRISIS INJECTION PANEL'), findsOneWidget);
+      expect(find.text('Attending Neurosurgeon'), findsOneWidget);
+      expect(find.text('Resident / Fellow'), findsOneWidget);
+    });
+
+    testWidgets('supports deep linking to Frontier view via initialScenarioId', (tester) async {
+      tester.view.physicalSize = const Size(1600, 950);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(buildTestScreen(initialScenarioId: 'frontier'));
+      await tester.pump();
+
+      expect(find.byType(NeuroFrontierNeurosurgeryPanel), findsOneWidget);
+      expect(find.text('1. AWAKE DCS ELOQUENT MAPPING'), findsOneWidget);
     });
   });
 }

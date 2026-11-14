@@ -154,3 +154,4 @@ class NeuroFNOPerfusion(nn.Module):
             "tici_benefit_score": tici_benefit,
             "regional_perfusion": regional_perf,
         }
+

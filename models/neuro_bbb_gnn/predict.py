@@ -134,3 +134,4 @@ if __name__ == "__main__":
     for name, smi in REF_CNS_DRUGS.items():
         res = predict_bbb_penetration(smi, name)
         print(f"[{name}] logBB={res['logbb']}, MPO={res['cns_mpo_score']}, Class={res['cns_badge']}")
+

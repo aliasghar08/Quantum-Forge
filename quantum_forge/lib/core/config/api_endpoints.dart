@@ -91,6 +91,18 @@ class ApiEndpoints {
   static String get neuroResearchCohortUrl =>
       '${sanitize(neurolabBackendUrl)}/api/neuro/research-cohort';
 
+  /// NeuroLab Deep Brain Stimulation (DBS) VTA & Beta-LFP URL
+  static String get neuroDbsVtaUrl =>
+      '${sanitize(neurolabBackendUrl)}/api/neuro/dbs-vta';
+
+  /// NeuroLab Direct Cortical Stimulation (DCS) Eloquent Mapping URL
+  static String get neuroDcsMappingUrl =>
+      '${sanitize(neurolabBackendUrl)}/api/neuro/dcs-mapping';
+
+  /// NeuroLab Zero-PHI Waveform Inverse Digital Twin URL
+  static String get neuroWaveformInverseFitUrl =>
+      '${sanitize(neurolabBackendUrl)}/api/neuro/waveform-inverse-fit';
+
   /// CardioNephroGNN: Multi-target cardio-renal drug affinity and hERG cardiotoxicity prediction
   static String get cardioNephroPredictUrl =>
       '${sanitize(cardioCathBackendUrl)}/api/cardio-nephro/predict';

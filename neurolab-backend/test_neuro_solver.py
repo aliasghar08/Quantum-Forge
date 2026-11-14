@@ -282,3 +282,75 @@ def test_research_cohort():
     assert data["mean_icp_reduction_mm_hg"] > 15.0
     assert "Decompressive Hemicraniectomy" in data["tornado_sensitivities"]
     assert len(data["scatter_points"]) > 0
+
+
+def test_dbs_vta():
+    payload = {
+        "target_nucleus": "STN",
+        "active_contacts": [1],
+        "amplitude_ma": 2.8,
+        "pulse_width_us": 60.0,
+        "frequency_hz": 130.0,
+        "tissue_impedance_ohms": 1050.0,
+    }
+    res = client.post("/api/neuro/dbs-vta", json=payload)
+    assert res.status_code == 200
+    data = res.json()
+    assert data["target_nucleus"] == "STN"
+    assert data["vta_volume_mm3"] > 10.0
+    assert data["beta_band_lfp_suppression_percent"] > 50.0
+    assert "None" in data["internal_capsule_spill_risk"]
+
+    # High amplitude spillover into internal capsule
+    payload_high = dict(payload)
+    payload_high["amplitude_ma"] = 5.2
+    res_high = client.post("/api/neuro/dbs-vta", json=payload_high)
+    assert res_high.status_code == 200
+    assert "High" in res_high.json()["internal_capsule_spill_risk"]
+
+
+def test_dcs_mapping():
+    # Motor Hand stimulation
+    payload_motor = {
+        "cortical_site": "primary_motor_m1_hand",
+        "current_intensity_ma": 3.5,
+        "pulse_duration_ms": 1.0,
+        "train_frequency_hz": 50.0,
+        "distance_to_tumor_margin_mm": 12.0,
+    }
+    res_motor = client.post("/api/neuro/dcs-mapping", json=payload_motor)
+    assert res_motor.status_code == 200
+    data_motor = res_motor.json()
+    assert "Eloquent Motor" in data_motor["site_category"]
+    assert "Contralateral Hand" in data_motor["response_type"]
+    assert data_motor["motor_evoked_amplitude_uv"] > 100.0
+    assert data_motor["is_safe_resection_margin"] is False  # Eloquent site identified
+
+    # Broca speech arrest
+    payload_broca = {
+        "cortical_site": "broca_area",
+        "current_intensity_ma": 4.0,
+        "distance_to_tumor_margin_mm": 15.0,
+    }
+    res_broca = client.post("/api/neuro/dcs-mapping", json=payload_broca)
+    assert res_broca.status_code == 200
+    assert "Speech Arrest" in res_broca.json()["response_type"]
+
+
+def test_waveform_inverse_fit():
+    payload = {
+        "mean_icp": 16.0,
+        "icp_pulse_amplitude": 3.8,
+        "mean_abp": 100.0,
+        "abp_pulse_amplitude": 35.0,
+        "prx_correlation": 0.12,
+        "dataset_origin": "PhysioNet_MIMIC_ICU",
+    }
+    res = client.post("/api/neuro/waveform-inverse-fit", json=payload)
+    assert res.status_code == 200
+    data = res.json()
+    assert data["monro_kellie_elastance_coeff"] > 0.05
+    assert data["csf_outflow_resistance_rout"] >= 6.0
+    assert data["pressure_reactivity_index_prx"] == 0.12
+    assert "Intact Autoregulation" in data["autoregulation_state"]
+

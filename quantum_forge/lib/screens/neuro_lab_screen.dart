@@ -27,11 +27,13 @@ import '../features/neuro/presentation/widgets/neuro_master_vitals_state.dart';
 import '../features/neuro/presentation/widgets/neuro_master_vitals_bar.dart';
 import '../features/neuro/presentation/widgets/neuro_diagnostic_workstation_panel.dart';
 import '../features/neuro/presentation/widgets/neuro_research_workstation_panel.dart';
+import '../features/neuro/presentation/widgets/neuro_frontier_neurosurgery_panel.dart';
 
 enum NeuroWorkstationView {
   viewports,
   diagnostics,
   research,
+  frontier,
   osce,
 }
 
@@ -74,6 +76,10 @@ class _NeuroLabScreenState extends State<NeuroLabScreen> {
     _vitals = NeuroMasterVitalsState();
 
     if (widget.initialScenarioId != null) {
+      if (widget.initialScenarioId == 'frontier' ||
+          widget.initialScenarioId!.startsWith('room')) {
+        _activeView = NeuroWorkstationView.frontier;
+      }
       _activeScenario = kNeuroScenarios.firstWhere(
         (s) => s.id == widget.initialScenarioId,
         orElse: () => kNeuroScenarios[0],
@@ -263,6 +269,12 @@ class _NeuroLabScreenState extends State<NeuroLabScreen> {
                     ),
                     const SizedBox(width: 6),
                     _buildViewSelectorButton(
+                      title: 'Frontier & DBS',
+                      icon: Icons.psychology_outlined,
+                      view: NeuroWorkstationView.frontier,
+                    ),
+                    const SizedBox(width: 6),
+                    _buildViewSelectorButton(
                       title: 'OSCE Exam Mode',
                       icon: Icons.timer_outlined,
                       view: NeuroWorkstationView.osce,
@@ -378,6 +390,12 @@ class _NeuroLabScreenState extends State<NeuroLabScreen> {
         return Padding(
           padding: const EdgeInsets.all(8.0),
           child: NeuroResearchWorkstationPanel(vitals: _vitals),
+        );
+
+      case NeuroWorkstationView.frontier:
+        return Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: NeuroFrontierNeurosurgeryPanel(vitals: _vitals),
         );
 
       case NeuroWorkstationView.osce:

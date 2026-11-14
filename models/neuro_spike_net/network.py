@@ -99,3 +99,4 @@ class NeuroSpikeNet(nn.Module):
             "spike_wave_index": spike_idx,
             "seizure_termination_prob": term_prob,
         }
+

@@ -30,6 +30,12 @@ from neuro_solver import (
     BbbPredictResponse,
     ResearchCohortRequest,
     ResearchCohortResponse,
+    DbsVtaRequest,
+    DbsVtaResponse,
+    DcsMappingRequest,
+    DcsMappingResponse,
+    WaveformInverseFitRequest,
+    WaveformInverseFitResponse,
     NeuroComputationalSolver,
 )
 
@@ -169,3 +175,40 @@ def solve_research_cohort(request: ResearchCohortRequest):
     except Exception as e:
         logger.error(f"Error solving research cohort: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/neuro/dbs-vta", response_model=DbsVtaResponse)
+def solve_dbs_vta(request: DbsVtaRequest):
+    """
+    Deep Brain Stimulation (DBS) VTA, Beta-Band (13-30 Hz) Suppression & Connectome Solver.
+    """
+    try:
+        return NeuroComputationalSolver.solve_dbs_vta(request)
+    except Exception as e:
+        logger.error(f"Error solving DBS VTA: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/neuro/dcs-mapping", response_model=DcsMappingResponse)
+def solve_dcs_mapping(request: DcsMappingRequest):
+    """
+    Awake Craniotomy Direct Cortical Stimulation (DCS) Eloquent Mapping Solver.
+    """
+    try:
+        return NeuroComputationalSolver.solve_dcs_mapping(request)
+    except Exception as e:
+        logger.error(f"Error solving DCS mapping: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/neuro/waveform-inverse-fit", response_model=WaveformInverseFitResponse)
+def solve_waveform_inverse_fit(request: WaveformInverseFitRequest):
+    """
+    Zero-PHI Waveform Inverse Digital Twin Monro-Kellie Elastance & PRx Inversion Solver.
+    """
+    try:
+        return NeuroComputationalSolver.solve_waveform_inverse_fit(request)
+    except Exception as e:
+        logger.error(f"Error solving waveform inverse fit: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+

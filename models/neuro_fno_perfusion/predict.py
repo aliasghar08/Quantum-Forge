@@ -82,3 +82,4 @@ def predict_perfusion(
 if __name__ == "__main__":
     res = predict_perfusion()
     print("NeuroFNO-Perfusion Output:", res)
+

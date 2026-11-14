@@ -226,8 +226,10 @@ class _QuantumForgeAppState extends State<QuantumForgeApp> {
                   );
                 }
                 if (path == '/neuro' || path == 'neuro' || path == '/neurolab' || path == 'neurolab') {
+                  final room = uri?.queryParameters['room'];
+                  final scenario = uri?.queryParameters['scenario'] ?? (room != null ? 'room_$room' : null);
                   return NeuroLabScreen.route(
-                    initialScenarioId: uri?.queryParameters['scenario'],
+                    initialScenarioId: scenario,
                   );
                 }
                 if (path == '/pharmacogenomics' || path == 'pharmacogenomics') {

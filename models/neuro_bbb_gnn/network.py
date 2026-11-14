@@ -87,3 +87,4 @@ class NeuroBBBGNN(nn.Module):
             "neurotoxicity_liability": neurotox,
             "cns_penetrant_prob": cns_penetrant_prob,
         }
+
