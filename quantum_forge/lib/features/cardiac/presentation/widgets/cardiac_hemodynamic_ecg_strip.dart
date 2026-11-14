@@ -2919,7 +2919,8 @@ class _FiveChannelHospitalOscilloscopePainter extends CustomPainter {
   }
 
   void _drawSweepBeam(Canvas canvas, Size size) {
-    final cursorX = sweepProgress * size.width;
+    if (size.width <= 0 || size.height <= 0 || sweepProgress.isNaN) return;
+    final cursorX = (sweepProgress * size.width).clamp(0.0, size.width);
     final chHeight = size.height / 5.0;
     final totalSweepSeconds = sweepSpeedMmS == 50 ? 5.0 : 10.0;
     final hr = tcpActive ? 70.0 : (rhythm.defaultHr > 0 ? rhythm.defaultHr.toDouble() : bpm);
@@ -2975,6 +2976,7 @@ class _FiveChannelHospitalOscilloscopePainter extends CustomPainter {
   }
 
   void _drawPhosphorDot(Canvas canvas, Offset center, Color color) {
+    if (center.dx.isNaN || center.dy.isNaN || center.dx.isInfinite || center.dy.isInfinite) return;
     if (_isThermal) {
       canvas.drawCircle(center, 3.2, Paint()..color = color);
       canvas.drawCircle(center, 1.6, Paint()..color = Colors.white);

@@ -23,8 +23,10 @@ import 'package:flutter/material.dart';
 import 'package:quantum_forge/core/theme/theme_provider.dart';
 import '../../data/cardiac_pathology_models.dart';
 import '../../data/coronary_hemodynamics_engine.dart';
+import '../../data/cardiac_master_vitals_state.dart';
 import 'cardiac_three_engine.dart';
 import 'cardiac_clinical_info_system.dart';
+import 'cardiac_full_screen_heart_theater.dart';
 
 enum HeartViewMode {
   anatomy('Anatomy'),
@@ -48,6 +50,7 @@ class Cardiac3DAnatomicalHeartViewport extends StatefulWidget {
   final CoronaryDominance dominance;
   final bool isRevascularized;
   final double lvefPct;
+  final CardiacMasterVitalsState? masterVitals;
 
   const Cardiac3DAnatomicalHeartViewport({
     super.key,
@@ -59,6 +62,7 @@ class Cardiac3DAnatomicalHeartViewport extends StatefulWidget {
     this.dominance = CoronaryDominance.rightDominant,
     this.isRevascularized = false,
     this.lvefPct = 60.0,
+    this.masterVitals,
   });
 
   @override
@@ -146,6 +150,29 @@ class _Cardiac3DAnatomicalHeartViewportState
       _zoom = 1.0;
     });
     _threeBridge?.resetCamera();
+  }
+
+  void _openFullScreenTheater() {
+    Navigator.of(context).push(
+      PageRouteBuilder(
+        opaque: false,
+        barrierColor: Colors.black.withValues(alpha: 0.88),
+        pageBuilder: (context, animation, secondaryAnimation) {
+          return FadeTransition(
+            opacity: animation,
+            child: CardiacFullScreenHeartTheater(
+              scenario: widget.scenario,
+              cardiacPhase: widget.cardiacPhase,
+              bpm: widget.bpm,
+              dominance: widget.dominance,
+              isRevascularized: widget.isRevascularized,
+              lvefPct: widget.lvefPct,
+              masterVitals: widget.masterVitals,
+            ),
+          );
+        },
+      ),
+    );
   }
 
   @override
@@ -297,6 +324,17 @@ class _Cardiac3DAnatomicalHeartViewportState
                         tooltip: 'Reset 3D Camera',
                         isActive: false,
                         onTap: _resetCamera,
+                        palette: palette,
+                      ),
+                      const SizedBox(width: 4),
+
+                      // Full-Screen Micro-Anatomical Heart Theater Launcher
+                      _actionButton(
+                        key: const Key('launch_fullscreen_heart_theater'),
+                        icon: Icons.fullscreen_rounded,
+                        tooltip: 'Full-Screen Micro-Anatomical 3D Heart Theater',
+                        isActive: false,
+                        onTap: _openFullScreenTheater,
                         palette: palette,
                       ),
                     ],
@@ -482,6 +520,7 @@ class _Cardiac3DAnatomicalHeartViewportState
   }
 
   Widget _actionButton({
+    Key? key,
     required IconData icon,
     required String tooltip,
     required bool isActive,
@@ -491,6 +530,7 @@ class _Cardiac3DAnatomicalHeartViewportState
     return Tooltip(
       message: tooltip,
       child: GestureDetector(
+        key: key,
         behavior: HitTestBehavior.opaque,
         onTap: onTap,
         child: Container(
@@ -629,7 +669,9 @@ class _Vec3 {
   }
 }
 
-class _AnatomicalHeart3DPainter extends CustomPainter {
+typedef _AnatomicalHeart3DPainter = AnatomicalHeart3DPainter;
+
+class AnatomicalHeart3DPainter extends CustomPainter {
   final CardiacPathologyScenario scenario;
   final double cardiacPhase;
   final bool isCatheterEngaged;
@@ -644,7 +686,7 @@ class _AnatomicalHeart3DPainter extends CustomPainter {
   final bool showLabels;
   final double lvefPct;
 
-  _AnatomicalHeart3DPainter({
+  AnatomicalHeart3DPainter({
     required this.scenario,
     required this.cardiacPhase,
     required this.isCatheterEngaged,
@@ -2668,7 +2710,7 @@ class _AnatomicalHeart3DPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _AnatomicalHeart3DPainter old) {
+  bool shouldRepaint(covariant AnatomicalHeart3DPainter old) {
     return old.cardiacPhase != cardiacPhase ||
         old.rotationY != rotationY ||
         old.rotationX != rotationX ||

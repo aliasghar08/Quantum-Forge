@@ -770,7 +770,7 @@ class _NeuroFrontierNeurosurgeryPanelState
                           style: TextStyle(color: Color(0xFFE2E8F0), fontSize: 10)),
                       Switch(
                         value: _controlsHandedOver,
-                        activeColor: const Color(0xFF10B981),
+                        activeThumbColor: const Color(0xFF10B981),
                         onChanged: (v) => setState(() => _controlsHandedOver = v),
                       ),
                     ],

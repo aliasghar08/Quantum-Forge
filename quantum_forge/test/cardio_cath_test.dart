@@ -18,6 +18,7 @@ import 'package:quantum_forge/features/education/presentation/widgets/clinical_v
 import 'package:quantum_forge/features/education/presentation/widgets/study_card_export_dialog.dart';
 import 'package:quantum_forge/features/cardiac/data/cardiac_master_vitals_state.dart';
 import 'package:quantum_forge/features/cardiac/presentation/widgets/cardiac_master_vitals_bar.dart';
+import 'package:quantum_forge/features/cardiac/presentation/widgets/cardiac_full_screen_heart_theater.dart';
 
 void main() {
   group('CardioCath 3D: Coronary Angiography & Hemodynamic Lab Tests', () {
@@ -1452,6 +1453,104 @@ void main() {
       expect(vitals.diastolicBp, 64.0);
       // Alert banner
       expect(find.textContaining('CODE STEMI: ACUTE TRANSMURAL MI'), findsOneWidget);
+    });
+
+    testWidgets('Full-Screen Micro-Anatomical 3D Heart Theater: launches, inspects landmarks, tests cutaway slider and slow-motion',
+        (tester) async {
+      tester.view.physicalSize = const Size(1440, 1000);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(buildTestScreen(size: const Size(1440, 1000)));
+      await tester.pump();
+
+      // 1. Locate and tap the Full-Screen Heart Launcher button
+      final launchBtn = find.byKey(const Key('launch_fullscreen_heart_theater'));
+      expect(launchBtn, findsOneWidget);
+      await tester.ensureVisible(launchBtn);
+      await tester.tap(launchBtn);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+
+      // 2. Verify Theater is mounted
+      expect(find.byType(CardiacFullScreenHeartTheater), findsOneWidget);
+      expect(find.text('CARDIOCATH 3D: MICRO-ANATOMICAL THEATER'), findsOneWidget);
+      expect(find.text('4K WebGL PROCEDURAL'), findsOneWidget);
+      expect(
+        find.text('Educational Simulation Only — Not for Clinical Diagnosis or Patient Care'),
+        findsOneWidget,
+      );
+
+      // Verify Vitals badge synced
+      expect(
+        find.descendant(
+          of: find.byType(CardiacFullScreenHeartTheater),
+          matching: find.text('HR: '),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: find.byType(CardiacFullScreenHeartTheater),
+          matching: find.text('BP: '),
+        ),
+        findsOneWidget,
+      );
+
+      // 3. Verify Category filter chips
+      expect(find.byKey(const Key('theater_category_all')), findsOneWidget);
+      expect(find.byKey(const Key('theater_category_valves')), findsOneWidget);
+      expect(find.byKey(const Key('theater_category_conduction')), findsOneWidget);
+      expect(find.byKey(const Key('theater_category_coronaries')), findsOneWidget);
+
+      // 4. Test Category Filter tap
+      await tester.tap(find.byKey(const Key('theater_category_conduction')));
+      await tester.pump(const Duration(milliseconds: 100));
+
+      // 5. Test 3D Projected Name Tags and Click-to-Inspect Card
+      final saNodeTag = find.byKey(const Key('theater_tag_sa_node'));
+      if (saNodeTag.evaluate().isNotEmpty) {
+        await tester.tap(saNodeTag);
+        await tester.pump(const Duration(milliseconds: 100));
+
+        // Verify structure card opened (appears in both the projected tag and structure card)
+        expect(find.text('SA Node (Pacemaker)'), findsNWidgets(2));
+        expect(find.textContaining('Arterial Supply:'), findsOneWidget);
+        expect(find.byKey(const Key('theater_focus_landmark_button')), findsOneWidget);
+
+        // Close structure card
+        await tester.tap(find.byKey(const Key('theater_close_card_button')));
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+
+      // 6. Test Coronal Cutaway Slider
+      final cutawaySlider = find.byKey(const Key('theater_cutaway_slider'));
+      expect(cutawaySlider, findsOneWidget);
+      await tester.tap(cutawaySlider);
+      await tester.pump(const Duration(milliseconds: 100));
+
+      // 7. Test Slow-Motion Speed Pills and Play/Pause
+      final pauseBtn = find.byKey(const Key('theater_play_pause'));
+      expect(pauseBtn, findsOneWidget);
+      await tester.tap(pauseBtn);
+      await tester.pump(const Duration(milliseconds: 100));
+
+      final speed01 = find.byKey(const Key('theater_speed_0.1'));
+      expect(speed01, findsOneWidget);
+      await tester.tap(speed01);
+      await tester.pump(const Duration(milliseconds: 100));
+
+      // 8. Test Exit Theater Button
+      final exitBtn = find.byKey(const Key('theater_close_button'));
+      expect(exitBtn, findsOneWidget);
+      await tester.tap(exitBtn);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+
+      // Verify back to Cath lab screen
+      expect(find.byType(CardiacFullScreenHeartTheater), findsNothing);
+      expect(find.byType(Cardiac3DAnatomicalHeartViewport), findsOneWidget);
     });
   });
 }

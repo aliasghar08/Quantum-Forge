@@ -12,18 +12,23 @@ import 'package:web/web.dart' as web;
 
 import '../../data/cardiac_pathology_models.dart';
 import '../../data/coronary_hemodynamics_engine.dart';
+import '../../data/cardiac_landmark_models.dart';
 
 class CardioCathThreeBridge {
   static const String heartViewType = 'cardiocath-heart-3d';
+  static const String fullScreenHeartViewType = 'cardiocath-heart-fullscreen';
   static const String fluoroViewType = 'cardiocath-fluoro-xray';
 
   static bool _factoriesRegistered = false;
   static final Map<int, CardioCathThreeBridge> _heartBridges = {};
+  static final Map<int, CardioCathThreeBridge> _fullScreenBridges = {};
   static final Map<int, CardioCathThreeBridge> _fluoroBridges = {};
   static CardioCathThreeBridge? _latestHeartBridge;
+  static CardioCathThreeBridge? _latestFullScreenBridge;
   static CardioCathThreeBridge? _latestFluoroBridge;
 
   static CardioCathThreeBridge? get latestHeartBridge => _latestHeartBridge;
+  static CardioCathThreeBridge? get latestFullScreenHeartBridge => _latestFullScreenBridge;
   static CardioCathThreeBridge? get latestFluoroBridge => _latestFluoroBridge;
 
   final int _viewId;
@@ -68,6 +73,23 @@ class CardioCathThreeBridge {
       return element;
     });
 
+    // Full-Screen Heart 3D Platform View
+    ui_web.platformViewRegistry.registerViewFactory(fullScreenHeartViewType, (int viewId) {
+      final element = web.HTMLDivElement()
+        ..id = 'cardiocath-fullscreen-heart-container-$viewId'
+        ..style.width = '100%'
+        ..style.height = '100%'
+        ..style.position = 'relative'
+        ..style.overflow = 'hidden'
+        ..style.backgroundColor = '#040711';
+
+      final bridge = CardioCathThreeBridge._(viewId, element, false);
+      _fullScreenBridges[viewId] = bridge;
+      _latestFullScreenBridge = bridge;
+      bridge._scheduleInit();
+      return element;
+    });
+
     // Fluoro X-Ray Platform View
     ui_web.platformViewRegistry.registerViewFactory(fluoroViewType, (int viewId) {
       final element = web.HTMLDivElement()
@@ -88,6 +110,12 @@ class CardioCathThreeBridge {
 
   static CardioCathThreeBridge? forHeartView(int viewId) {
     final bridge = _heartBridges[viewId];
+    bridge?._scheduleInit();
+    return bridge;
+  }
+
+  static CardioCathThreeBridge? forFullScreenHeartView(int viewId) {
+    final bridge = _fullScreenBridges[viewId];
     bridge?._scheduleInit();
     return bridge;
   }
@@ -231,6 +259,71 @@ class CardioCathThreeBridge {
     } catch (_) {}
   }
 
+  void setCutawayDepth(double fraction) {
+    if (_viewer == null || _disposed) return;
+    try {
+      _viewer!.callMethod('setCutawayPlane'.toJS, fraction.toJS);
+    } catch (_) {}
+  }
+
+  void focusLandmark(String id) {
+    if (_viewer == null || _disposed) return;
+    try {
+      _viewer!.callMethod('focusLandmark'.toJS, id.toJS);
+    } catch (_) {}
+  }
+
+  void setTimeScale(double scale) {
+    if (_viewer == null || _disposed) return;
+    try {
+      _viewer!.callMethod('setTimeScale'.toJS, scale.toJS);
+    } catch (_) {}
+  }
+
+  void setCardiacPhase(double phase) {
+    if (_viewer == null || _disposed) return;
+    try {
+      _viewer!.callMethod('setCardiacPhase'.toJS, phase.toJS);
+    } catch (_) {}
+  }
+
+  void setShowLabels(bool show) {
+    if (_viewer == null || _disposed) return;
+    try {
+      _viewer!.callMethod('setShowLabels'.toJS, show.toJS);
+    } catch (_) {}
+  }
+
+  List<ProjectedLandmark> getProjectedLandmarks({String category = 'all'}) {
+    if (_viewer == null || _disposed) return [];
+    try {
+      final jsList = _viewer!.callMethod('getProjectedLandmarks'.toJS, category.toJS) as JSArray?;
+      if (jsList == null) return [];
+      final results = <ProjectedLandmark>[];
+      final length = jsList.length;
+      for (var i = 0; i < length; i++) {
+        final item = jsList[i] as JSObject;
+        results.add(ProjectedLandmark(
+          id: (item.getProperty('id'.toJS) as JSString).toDart,
+          name: (item.getProperty('name'.toJS) as JSString).toDart,
+          category: (item.getProperty('category'.toJS) as JSString).toDart,
+          x: (item.getProperty('x'.toJS) as JSNumber).toDartDouble,
+          y: (item.getProperty('y'.toJS) as JSNumber).toDartDouble,
+          normX: (item.getProperty('normX'.toJS) as JSNumber).toDartDouble,
+          normY: (item.getProperty('normY'.toJS) as JSNumber).toDartDouble,
+          depth: (item.getProperty('depth'.toJS) as JSNumber).toDartDouble,
+          visible: (item.getProperty('visible'.toJS) as JSBoolean).toDart,
+          bloodSupply: (item.getProperty('bloodSupply'.toJS) as JSString).toDart,
+          description: (item.getProperty('description'.toJS) as JSString).toDart,
+          clinicalPearl: (item.getProperty('clinicalPearl'.toJS) as JSString).toDart,
+        ));
+      }
+      return results;
+    } catch (_) {
+      return [];
+    }
+  }
+
   void dispose() {
     _disposed = true;
     if (_viewer != null) {
@@ -243,6 +336,7 @@ class CardioCathThreeBridge {
       _fluoroBridges.remove(_viewId);
     } else {
       _heartBridges.remove(_viewId);
+      _fullScreenBridges.remove(_viewId);
     }
   }
 }

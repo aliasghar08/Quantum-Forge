@@ -160,6 +160,17 @@
       this.aorticFlowParticles = [];
       this.cardiacPhase = 0.0;
       this.isDisposed = false;
+      this.timeScale = 1.0;
+      this.isPaused = false;
+      this.cutawayDepth = 0.0;
+      this.showLabels = true;
+      this.selectedLandmarkId = null;
+      this.cameraTargetPosition = null;
+      this.cameraTargetLookAt = null;
+      this.vortexParticles = [];
+      this.septalPerforators = [];
+      this.chordaeTendineae = [];
+      this._initLandmarks();
 
       this._initThreeScene();
       this._buildThoracicRibcage();
@@ -167,6 +178,271 @@
       this._setupControls();
       this._setupResizeObserver();
       this._startRenderLoop();
+    }
+
+    _initLandmarks() {
+      this.landmarks = [
+        {
+          id: 'sa_node',
+          name: 'SA Node (Pacemaker)',
+          category: 'conduction',
+          anchor: new THREE.Vector3(0.55, 0.58, 0.06),
+          normal: new THREE.Vector3(0.6, 0.7, 0.3).normalize(),
+          bloodSupply: 'SA Nodal Artery (60% RCA, 40% LCx)',
+          description: 'Primary physiological cardiac pacemaker at SVC-RA junction generating 60-100 bpm intrinsic rhythm.',
+          clinicalPearl: 'Sinus arrest and sick sinus syndrome commonly complicate acute proximal RCA occlusions.'
+        },
+        {
+          id: 'av_node',
+          name: 'AV Node (Triangle of Koch)',
+          category: 'conduction',
+          anchor: new THREE.Vector3(0.10, 0.15, 0.04),
+          normal: new THREE.Vector3(0.1, 0.2, 0.9).normalize(),
+          bloodSupply: 'AV Nodal Artery (90% RCA from crux, 10% LCx)',
+          description: 'Critical electrophysiological gateway delaying impulses (120-200 ms) to ensure complete ventricular filling.',
+          clinicalPearl: 'Inferior STEMI frequently produces transient high-grade AV block due to AV nodal ischemia and vagal hyperactivity.'
+        },
+        {
+          id: 'bundle_of_his',
+          name: 'Bundle of His & Membranous Septum',
+          category: 'conduction',
+          anchor: new THREE.Vector3(0.06, -0.05, 0.06),
+          normal: new THREE.Vector3(0.0, 0.1, 0.95).normalize(),
+          bloodSupply: 'Dual supply: AV nodal artery + 1st septal perforator of LAD',
+          description: 'Penetrates the central fibrous body to convey impulses from AV node to the bundle branches.',
+          clinicalPearl: 'Anterior STEMI causing infranodal His bundle block carries a high mortality rate and mandates temporary pacing.'
+        },
+        {
+          id: 'purkinje_network',
+          name: 'Purkinje Fiber Arborization',
+          category: 'conduction',
+          anchor: new THREE.Vector3(-0.18, -0.78, 0.08),
+          normal: new THREE.Vector3(-0.2, -0.8, 0.5).normalize(),
+          bloodSupply: 'Branching septal perforators (LAD) and marginals',
+          description: 'Subendocardial terminal conduction network propagating action potentials at 2-4 m/s for synchronized ventricular systole.',
+          clinicalPearl: 'Ischemic Purkinje tissue is a notorious source of ventricular tachycardia and triggers for ventricular fibrillation.'
+        },
+        {
+          id: 'mitral_valve',
+          name: 'Mitral (Bicuspid) Valve & Annulus',
+          category: 'valves',
+          anchor: new THREE.Vector3(-0.22, 0.18, 0.04),
+          normal: new THREE.Vector3(-0.3, 0.7, 0.6).normalize(),
+          bloodSupply: 'Avascular leaflets; fibrous ring perfused by atrial branches',
+          description: 'Bicuspid left AV valve (anterior & posterior leaflets) anchored to fibrous annulus; prevents backflow during LV systole.',
+          clinicalPearl: 'Anterior leaflet forms posterior boundary of LVOT; systolic anterior motion (SAM) causes dynamic obstruction in HOCM.'
+        },
+        {
+          id: 'anterolateral_papillary',
+          name: 'Anterolateral Papillary Muscle',
+          category: 'valves',
+          anchor: new THREE.Vector3(-0.26, -0.32, 0.12),
+          normal: new THREE.Vector3(-0.6, -0.2, 0.7).normalize(),
+          bloodSupply: 'Dual supply: LAD (diagonals) & LCx (obtuse marginals)',
+          description: 'Muscular LV column tethered to anterior and posterior mitral leaflets via primary and secondary chordae tendineae.',
+          clinicalPearl: 'Relatively protected from ischemic rupture due to dual vascular perfusion compared to posteromedial papillary muscle.'
+        },
+        {
+          id: 'posteromedial_papillary',
+          name: 'Posteromedial Papillary Muscle',
+          category: 'valves',
+          anchor: new THREE.Vector3(-0.28, -0.30, -0.15),
+          normal: new THREE.Vector3(-0.5, -0.3, -0.8).normalize(),
+          bloodSupply: 'Single blood supply: PDA (RCA in 85% of patients)',
+          description: 'Posteromedial muscular LV pillar anchoring chordae to posterior and anterior mitral leaflets.',
+          clinicalPearl: 'High rupture risk 3-5 days post-inferior STEMI, presenting with sudden holosystolic murmur, flash pulmonary edema, and shock.'
+        },
+        {
+          id: 'chordae_tendineae',
+          name: 'Chordae Tendineae (1°/2°/3° Cords)',
+          category: 'valves',
+          anchor: new THREE.Vector3(-0.24, -0.10, 0.02),
+          normal: new THREE.Vector3(-0.4, 0.2, 0.8).normalize(),
+          bloodSupply: 'Diffusion from intracardiac blood',
+          description: 'Collagenous tendinous cords spanning papillary heads to leaflet margins, preventing leaflet prolapse during ventricular systole.',
+          clinicalPearl: 'Rupture from infective endocarditis or myxomatous degeneration produces severe acute mitral regurgitation.'
+        },
+        {
+          id: 'aortic_valve',
+          name: 'Aortic Valve & Nodules of Arantius',
+          category: 'valves',
+          anchor: new THREE.Vector3(0.04, 0.32, 0.06),
+          normal: new THREE.Vector3(0.1, 0.8, 0.5).normalize(),
+          bloodSupply: 'Coronary root perfusion',
+          description: 'Tricuspid semilunar valve guarding systemic outflow; Nodules of Arantius ensure tight central coaptation during diastole.',
+          clinicalPearl: 'Bicuspid aortic valve (1-2% population) undergoes accelerated calcification, leading to premature severe aortic stenosis.'
+        },
+        {
+          id: 'sinuses_of_valsalva',
+          name: 'Sinuses of Valsalva (Aortic Root)',
+          category: 'valves',
+          anchor: new THREE.Vector3(0.06, 0.38, 0.12),
+          normal: new THREE.Vector3(0.2, 0.6, 0.7).normalize(),
+          bloodSupply: 'Aortic lumen blood flow',
+          description: 'Three anatomic root dilatations (Left, Right, Non-coronary) generating diastolic eddy currents that prevent leaflet sticking.',
+          clinicalPearl: 'Congenital or acquired aneurysm can rupture into RV or RA, creating a continuous machinery-like shunt murmur.'
+        },
+        {
+          id: 'tricuspid_valve',
+          name: 'Tricuspid Valve & Annulus',
+          category: 'valves',
+          anchor: new THREE.Vector3(0.34, 0.04, 0.14),
+          normal: new THREE.Vector3(0.6, 0.3, 0.7).normalize(),
+          bloodSupply: 'Right coronary atrial branches',
+          description: 'Right AV valve with anterior, posterior, and septal leaflets anchored by fibrous annulus and chordae tendineae.',
+          clinicalPearl: 'Carvallo sign: murmur of tricuspid regurgitation increases in intensity during inspiration due to increased right-heart preload.'
+        },
+        {
+          id: 'pulmonic_valve',
+          name: 'Pulmonic Semilunar Valve',
+          category: 'valves',
+          anchor: new THREE.Vector3(0.16, 0.34, 0.20),
+          normal: new THREE.Vector3(0.3, 0.6, 0.7).normalize(),
+          bloodSupply: 'RVOT branches',
+          description: 'Three semilunar cusps guarding the pulmonary trunk at the apex of the infundibulum (RVOT).',
+          clinicalPearl: 'Tetralogy of Fallot features infundibular and pulmonic valve stenosis, driving RV hypertrophy and right-to-left shunt.'
+        },
+        {
+          id: 'trabeculae_carneae',
+          name: 'Trabeculae Carneae (LV/RV)',
+          category: 'micro',
+          anchor: new THREE.Vector3(-0.16, -0.62, 0.22),
+          normal: new THREE.Vector3(-0.3, -0.6, 0.7).normalize(),
+          bloodSupply: 'Subendocardial coronary capillary network',
+          description: 'Muscular ridges and columns lining the ventricular walls, preventing suction cavitation and streamlining diastolic inflow.',
+          clinicalPearl: 'Left Ventricular Non-Compaction (LVNC) is characterized by prominent trabeculae with deep intertrabecular recesses.'
+        },
+        {
+          id: 'moderator_band',
+          name: 'Moderator Band (Septomarginal Trabecula)',
+          category: 'micro',
+          anchor: new THREE.Vector3(0.18, -0.38, 0.14),
+          normal: new THREE.Vector3(0.5, -0.4, 0.7).normalize(),
+          bloodSupply: 'First or second septal perforator branch',
+          description: 'Prominent muscular band in RV traversing from lower septum to base of anterior papillary muscle; conducts Right Bundle Branch.',
+          clinicalPearl: 'Crucial anatomic landmark in echocardiography and fetal imaging to unequivocally identify the morphologic Right Ventricle.'
+        },
+        {
+          id: 'crista_terminalis',
+          name: 'Crista Terminalis (Right Atrium)',
+          category: 'micro',
+          anchor: new THREE.Vector3(0.46, 0.35, 0.10),
+          normal: new THREE.Vector3(0.8, 0.4, 0.4).normalize(),
+          bloodSupply: 'Sinus node and right atrial circumflex branches',
+          description: 'Smooth vertical muscular crest separating smooth-walled sinus venarum from trabeculated anterior right atrium.',
+          clinicalPearl: 'Frequent site of origin for focal atrial tachycardia and anisotropic conduction supporting typical atrial flutter circuits.'
+        },
+        {
+          id: 'pectinate_muscles',
+          name: 'Pectinate Muscles (Atrial Appendages)',
+          category: 'micro',
+          anchor: new THREE.Vector3(0.42, 0.18, 0.25),
+          normal: new THREE.Vector3(0.7, 0.2, 0.6).normalize(),
+          bloodSupply: 'Atrial branches of RCA and LCx',
+          description: 'Comb-like muscular ridges lining anterior RA and both atrial appendages (RAA and LAA).',
+          clinicalPearl: 'The trabeculated LAA is the nidus for >90% of cardiogenic thrombi in non-valvular Atrial Fibrillation.'
+        },
+        {
+          id: 'fossa_ovalis',
+          name: 'Fossa Ovalis & Limbus',
+          category: 'micro',
+          anchor: new THREE.Vector3(0.06, 0.26, -0.06),
+          normal: new THREE.Vector3(0.2, 0.4, 0.8).normalize(),
+          bloodSupply: 'Interatrial septal branches',
+          description: 'Thin central fibrous depression in the interatrial septum representing the closed fetal foramen ovale.',
+          clinicalPearl: 'Patent Foramen Ovale (PFO, present in ~25% of population) enables right-to-left paradoxical embolization and cryptogenic stroke.'
+        },
+        {
+          id: 'coronary_sinus_ostium',
+          name: 'Coronary Sinus Ostium (Thebesian Valve)',
+          category: 'micro',
+          anchor: new THREE.Vector3(0.24, 0.08, -0.14),
+          normal: new THREE.Vector3(0.4, 0.1, -0.8).normalize(),
+          bloodSupply: 'Cardiac venous drainage',
+          description: 'Main cardiac venous orifice emptying into right atrium between IVC orifice and tricuspid valve.',
+          clinicalPearl: 'Cannulated during Cardiac Resynchronization Therapy (CRT) to advance pacing leads into coronary veins over the LV free wall.'
+        },
+        {
+          id: 'lad_artery',
+          name: 'Left Anterior Descending (LAD) Artery',
+          category: 'coronaries',
+          anchor: new THREE.Vector3(-0.06, 0.02, 0.40),
+          normal: new THREE.Vector3(-0.1, 0.1, 0.98).normalize(),
+          bloodSupply: 'Left Main Coronary Artery',
+          description: '\'Widowmaker\' artery coursing down anterior interventricular sulcus supplying >45% of LV myocardium, anterior septum, and apex.',
+          clinicalPearl: 'Acute proximal occlusion causes extensive anterior STEMI (V1-V4), high risk of cardiogenic shock, and mandates primary PCI.'
+        },
+        {
+          id: 'diagonal_d1',
+          name: 'First Diagonal (D1) Branch',
+          category: 'coronaries',
+          anchor: new THREE.Vector3(-0.35, -0.18, 0.40),
+          normal: new THREE.Vector3(-0.5, -0.2, 0.8).normalize(),
+          bloodSupply: 'LAD artery',
+          description: 'Large epicardial branch running anterolaterally across the high anterolateral left ventricular free wall.',
+          clinicalPearl: 'Isolated occlusion manifests as high lateral STEMI with ST-elevation in leads I and aVL and reciprocal depression in inferior leads.'
+        },
+        {
+          id: 'septal_perforators',
+          name: 'Intramyocardial Septal Perforators',
+          category: 'coronaries',
+          anchor: new THREE.Vector3(-0.04, -0.15, 0.22),
+          normal: new THREE.Vector3(0.0, -0.2, 0.9).normalize(),
+          bloodSupply: 'LAD artery',
+          description: 'Perpendicular penetrating arteries plunging into the interventricular septum to supply conduction fascicles and inner myocardium.',
+          clinicalPearl: 'Targeted during Alcohol Septal Ablation (infusion of dehydrated ethanol) to relieve LVOT gradient in obstructive HOCM.'
+        },
+        {
+          id: 'lcx_artery',
+          name: 'Left Circumflex (LCx) Artery',
+          category: 'coronaries',
+          anchor: new THREE.Vector3(-0.38, 0.20, 0.14),
+          normal: new THREE.Vector3(-0.8, 0.3, 0.4).normalize(),
+          bloodSupply: 'Left Main Coronary Artery',
+          description: 'Travels in the left atrioventricular sulcus to supply the posterolateral left ventricle and left atrium.',
+          clinicalPearl: 'Occlusion can be \'electrocardiographically silent\' on standard 12-lead ECG, requiring posterior leads (V7-V9) for detection.'
+        },
+        {
+          id: 'om1_branch',
+          name: 'First Obtuse Marginal (OM1) Branch',
+          category: 'coronaries',
+          anchor: new THREE.Vector3(-0.56, -0.15, 0.04),
+          normal: new THREE.Vector3(-0.9, -0.2, 0.2).normalize(),
+          bloodSupply: 'LCx artery',
+          description: 'Epicardial branch descending over the obtuse (lateral) border of the left ventricle.',
+          clinicalPearl: 'Key target vessel during CABG; supplies lateral LV wall and anterolateral papillary muscle.'
+        },
+        {
+          id: 'rca_artery',
+          name: 'Right Coronary Artery (RCA)',
+          category: 'coronaries',
+          anchor: new THREE.Vector3(0.52, 0.0, 0.28),
+          normal: new THREE.Vector3(0.8, 0.0, 0.5).normalize(),
+          bloodSupply: 'Right aortic sinus (Sinus of Valsalva)',
+          description: 'Courses along the right atrioventricular groove supplying the right ventricle, inferior wall, SA and AV nodes.',
+          clinicalPearl: 'Acute occlusion produces Inferior STEMI (II, III, aVF); RV involvement requires volume loading and avoidance of nitrates.'
+        },
+        {
+          id: 'pda_artery',
+          name: 'Posterior Descending Artery (PDA)',
+          category: 'coronaries',
+          anchor: new THREE.Vector3(0.14, -0.54, -0.26),
+          normal: new THREE.Vector3(0.2, -0.7, -0.6).normalize(),
+          bloodSupply: 'RCA (85% right-dominant) or LCx (10% left-dominant)',
+          description: 'Runs in posterior interventricular sulcus supplying inferior 1/3 of septum and posteromedial papillary muscle.',
+          clinicalPearl: 'Defines coronary dominance; provides sole arterial supply to posteromedial papillary muscle.'
+        },
+        {
+          id: 'left_ventricle_apex',
+          name: 'Left Ventricular Apex & Myocardium',
+          category: 'chambers',
+          anchor: new THREE.Vector3(-0.20, -0.80, 0.18),
+          normal: new THREE.Vector3(-0.2, -0.9, 0.3).normalize(),
+          bloodSupply: 'LAD artery termination (apical wrap-around)',
+          description: 'Muscular apex of the heart formed entirely by the left ventricle; location of apical point of maximal impulse (PMI).',
+          clinicalPearl: 'Apical ballooning and hypercontractile basal segments characterize Takotsubo (Stress) Cardiomyopathy.'
+        }
+      ];
     }
 
     _initThreeScene() {
@@ -198,6 +474,8 @@
       this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
       this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
       this.renderer.toneMappingExposure = 1.35;
+      this.renderer.localClippingEnabled = true;
+      this.cutawayPlane = new THREE.Plane(new THREE.Vector3(0, 0, -1), 2.5); // Default: uncut (in front)
 
       this.canvas = this.renderer.domElement;
       this.canvas.style.width = '100%';
@@ -342,6 +620,8 @@
         clearcoatRoughness: 0.08,
         depthWrite: false, // Internal structures and coronary arteries glow through
         side: THREE.DoubleSide,
+        clippingPlanes: [this.cutawayPlane],
+        clipShadows: true,
       });
 
       this.chamberMaterial = new THREE.MeshPhysicalMaterial({
@@ -480,33 +760,122 @@
       this.laMesh.position.set(-0.35, 0.35, -0.18);
       this.heartGroup.add(this.laMesh);
 
-      // ── 2. Internal Chambers & Valves ────────────────────────────────────
+      // ── 2. Microscopic Chambers, Subvalvular Apparatus & Valves ─────────────
       this.chambersGroup = new THREE.Group();
+      this.valvesGroup = new THREE.Group();
+      this.microAnatomyGroup = new THREE.Group();
+      this.chordaeGroup = new THREE.Group();
 
-      // Muscular Interventricular Septum
+      // Fibrous Tendon & Annulus Materials
+      const tendonMat = new THREE.MeshPhysicalMaterial({
+        color: 0xf8fafc,
+        roughness: 0.3,
+        metalness: 0.1,
+        transmission: 0.3,
+        transparent: true,
+        opacity: 0.9,
+      });
+
+      const annulusMat = new THREE.MeshPhysicalMaterial({
+        color: 0xe2e8f0,
+        roughness: 0.25,
+        metalness: 0.15,
+        transmission: 0.4,
+        transparent: true,
+        opacity: 0.8,
+      });
+
+      // Muscular Interventricular Septum (IVS)
       const septumGeom = new THREE.BoxGeometry(0.18, 0.95, 0.65);
       const septumMesh = new THREE.Mesh(septumGeom, this.chamberMaterial);
       septumMesh.position.set(0.04, -0.22, 0.02);
       septumMesh.rotation.z = 0.16;
       this.chambersGroup.add(septumMesh);
 
-      // Papillary Muscles & Chordae in LV Cavity
-      const papGeom = new THREE.CylinderGeometry(0.04, 0.065, 0.32, 10);
-      const papAnt = new THREE.Mesh(papGeom, this.chamberMaterial);
-      papAnt.position.set(-0.25, -0.32, 0.12);
-      papAnt.rotation.z = -0.25;
-      this.chambersGroup.add(papAnt);
+      // Papillary Muscles in Left Ventricle (LV)
+      const papGeom = new THREE.CylinderGeometry(0.045, 0.075, 0.34, 12);
+      this.papAnt = new THREE.Mesh(papGeom, this.chamberMaterial);
+      this.papAnt.position.set(-0.26, -0.32, 0.12);
+      this.papAnt.rotation.z = -0.25;
+      this.chambersGroup.add(this.papAnt);
 
-      const papPost = new THREE.Mesh(papGeom, this.chamberMaterial);
-      papPost.position.set(-0.28, -0.30, -0.15);
-      papPost.rotation.z = -0.22;
-      this.chambersGroup.add(papPost);
+      this.papPost = new THREE.Mesh(papGeom, this.chamberMaterial);
+      this.papPost.position.set(-0.28, -0.30, -0.15);
+      this.papPost.rotation.z = -0.22;
+      this.chambersGroup.add(this.papPost);
+
+      // Papillary Muscles in Right Ventricle (RV)
+      const papRvGeom = new THREE.CylinderGeometry(0.035, 0.055, 0.26, 10);
+      this.papRvAnt = new THREE.Mesh(papRvGeom, this.chamberMaterial);
+      this.papRvAnt.position.set(0.28, -0.40, 0.20);
+      this.chambersGroup.add(this.papRvAnt);
+
+      this.papRvPost = new THREE.Mesh(papRvGeom, this.chamberMaterial);
+      this.papRvPost.position.set(0.32, -0.35, -0.05);
+      this.chambersGroup.add(this.papRvPost);
+
+      this.papRvSeptal = new THREE.Mesh(papRvGeom, this.chamberMaterial);
+      this.papRvSeptal.position.set(0.12, -0.22, 0.08);
+      this.chambersGroup.add(this.papRvSeptal);
+
+      // Branching Chordae Tendineae (1°/2°/3° cords)
+      // Primary: to free margin of leaflets; Secondary: to ventricular body; Tertiary: to posterior leaflet base
+      const chordaeCurves = [
+        // Anterolateral papillary to anterior leaflet
+        [new THREE.Vector3(-0.26, -0.18, 0.12), new THREE.Vector3(-0.24, -0.04, 0.10), new THREE.Vector3(-0.22, 0.12, 0.08)],
+        [new THREE.Vector3(-0.26, -0.18, 0.12), new THREE.Vector3(-0.25, -0.02, 0.05), new THREE.Vector3(-0.22, 0.14, 0.04)],
+        // Anterolateral papillary to posterior leaflet
+        [new THREE.Vector3(-0.26, -0.18, 0.12), new THREE.Vector3(-0.27, -0.05, 0.02), new THREE.Vector3(-0.24, 0.12, -0.04)],
+        // Posteromedial papillary to posterior leaflet
+        [new THREE.Vector3(-0.28, -0.16, -0.15), new THREE.Vector3(-0.26, -0.04, -0.10), new THREE.Vector3(-0.23, 0.12, -0.08)],
+        [new THREE.Vector3(-0.28, -0.16, -0.15), new THREE.Vector3(-0.25, -0.02, -0.04), new THREE.Vector3(-0.22, 0.14, -0.02)],
+        // Posteromedial papillary to anterior leaflet
+        [new THREE.Vector3(-0.28, -0.16, -0.15), new THREE.Vector3(-0.24, -0.02, 0.02), new THREE.Vector3(-0.21, 0.12, 0.06)],
+        // RV Papillary chordae to tricuspid leaflets
+        [new THREE.Vector3(0.28, -0.28, 0.20), new THREE.Vector3(0.30, -0.12, 0.18), new THREE.Vector3(0.33, 0.02, 0.16)],
+        [new THREE.Vector3(0.32, -0.24, -0.05), new THREE.Vector3(0.33, -0.10, 0.04), new THREE.Vector3(0.35, 0.02, 0.10)],
+      ];
+      this.chordaeTendineae = [];
+      chordaeCurves.forEach(pts => {
+        const curve = new THREE.CatmullRomCurve3(pts);
+        const tube = new THREE.Mesh(new THREE.TubeGeometry(curve, 12, 0.008, 6, false), tendonMat);
+        this.chordaeGroup.add(tube);
+        this.chordaeTendineae.push(tube);
+      });
+      this.chambersGroup.add(this.chordaeGroup);
+
+      // Fibrous Valve Annuli Rings (Mitral, Aortic, Tricuspid, Pulmonic)
+      const mitralAnnulus = new THREE.Mesh(new THREE.TorusGeometry(0.18, 0.016, 8, 28), annulusMat);
+      mitralAnnulus.position.set(-0.22, 0.18, 0.04);
+      mitralAnnulus.rotation.x = Math.PI / 2.4;
+      this.valvesGroup.add(mitralAnnulus);
+
+      const aorticAnnulus = new THREE.Mesh(new THREE.TorusGeometry(0.12, 0.015, 8, 24), annulusMat);
+      aorticAnnulus.position.set(0.04, 0.30, 0.08);
+      aorticAnnulus.rotation.x = Math.PI / 2.6;
+      this.valvesGroup.add(aorticAnnulus);
+
+      const tricuspidAnnulus = new THREE.Mesh(new THREE.TorusGeometry(0.19, 0.016, 8, 28), annulusMat);
+      tricuspidAnnulus.position.set(0.34, 0.04, 0.12);
+      tricuspidAnnulus.rotation.x = Math.PI / 2.3;
+      this.valvesGroup.add(tricuspidAnnulus);
+
+      const pulmonicAnnulus = new THREE.Mesh(new THREE.TorusGeometry(0.12, 0.014, 8, 24), annulusMat);
+      pulmonicAnnulus.position.set(0.16, 0.32, 0.20);
+      pulmonicAnnulus.rotation.x = Math.PI / 2.5;
+      this.valvesGroup.add(pulmonicAnnulus);
 
       // Functional 3D Dynamic Valves (Aortic, Mitral, Tricuspid, Pulmonic)
-      this.valvesGroup = new THREE.Group();
+      this.valvesGroup = this.valvesGroup || new THREE.Group();
       this.aorticCusps = [];
+      this.sinusesOfValsalva = [];
+      this.nodulesOfArantius = [];
 
-      // Aortic Valve: 3 semilunar leaflets in the aortic root
+      // Aortic Valve: 3 semilunar leaflets in the aortic root + Sinuses of Valsalva + Nodules of Arantius
+      const sinusGeom = new THREE.SphereGeometry(0.055, 10, 10);
+      const noduleGeom = new THREE.SphereGeometry(0.016, 8, 8);
+      const noduleMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.1 });
+
       for (let c = 0; c < 3; c++) {
         const cuspGeom = new THREE.PlaneGeometry(0.14, 0.14);
         const cusp = new THREE.Mesh(cuspGeom, this.valveMaterial);
@@ -516,6 +885,19 @@
         cusp.rotation.y = angle;
         this.valvesGroup.add(cusp);
         this.aorticCusps.push(cusp);
+
+        // Sinus of Valsalva pouch
+        const sinus = new THREE.Mesh(sinusGeom, this.aortaMaterial);
+        sinus.position.set(0.04 + 0.10 * Math.cos(angle), 0.36, 0.10 * Math.sin(angle) + 0.06);
+        sinus.scale.set(0.9, 1.2, 0.9);
+        this.valvesGroup.add(sinus);
+        this.sinusesOfValsalva.push(sinus);
+
+        // Nodule of Arantius
+        const nodule = new THREE.Mesh(noduleGeom, noduleMat);
+        nodule.position.set(0.04 + 0.035 * Math.cos(angle), 0.34, 0.035 * Math.sin(angle) + 0.06);
+        this.valvesGroup.add(nodule);
+        this.nodulesOfArantius.push(nodule);
       }
 
       // Mitral Valve: Bicuspid leaflets (Anterior & Posterior)
@@ -553,8 +935,74 @@
         this.pulmonicCusps.push(pCusp);
       }
 
+      // ── Endocardial & Trabecular Micro-Architecture ─────────────────────────
+      // 1. Trabeculae Carneae: muscular ridges lining LV/RV apex
+      const trabMat = this.chamberMaterial;
+      const trabeculaeCurves = [
+        [new THREE.Vector3(-0.16, -0.55, 0.22), new THREE.Vector3(-0.24, -0.65, 0.16), new THREE.Vector3(-0.18, -0.75, 0.12)],
+        [new THREE.Vector3(-0.30, -0.48, 0.08), new THREE.Vector3(-0.36, -0.60, 0.04), new THREE.Vector3(-0.26, -0.72, 0.06)],
+        [new THREE.Vector3(0.24, -0.45, 0.18), new THREE.Vector3(0.30, -0.58, 0.14), new THREE.Vector3(0.18, -0.70, 0.10)],
+        [new THREE.Vector3(0.14, -0.50, 0.24), new THREE.Vector3(0.20, -0.62, 0.20), new THREE.Vector3(0.12, -0.72, 0.14)],
+      ];
+      trabeculaeCurves.forEach(pts => {
+        const curve = new THREE.CatmullRomCurve3(pts);
+        const trabMesh = new THREE.Mesh(new THREE.TubeGeometry(curve, 14, 0.024, 8, false), trabMat);
+        this.microAnatomyGroup.add(trabMesh);
+      });
+
+      // 2. Moderator Band (Septomarginal Trabecula) in RV
+      const modBandCurve = new THREE.CatmullRomCurve3([
+        new THREE.Vector3(0.08, -0.36, 0.08),
+        new THREE.Vector3(0.18, -0.38, 0.14),
+        new THREE.Vector3(0.28, -0.40, 0.20),
+      ]);
+      const modBandMesh = new THREE.Mesh(new THREE.TubeGeometry(modBandCurve, 12, 0.038, 10, false), trabMat);
+      this.microAnatomyGroup.add(modBandMesh);
+
+      // 3. Crista Terminalis in Right Atrium
+      const cristaCurve = new THREE.CatmullRomCurve3([
+        new THREE.Vector3(0.48, 0.48, 0.06),
+        new THREE.Vector3(0.46, 0.35, 0.10),
+        new THREE.Vector3(0.42, 0.15, 0.14),
+      ]);
+      const cristaMesh = new THREE.Mesh(new THREE.TubeGeometry(cristaCurve, 14, 0.028, 8, false), trabMat);
+      this.microAnatomyGroup.add(cristaMesh);
+
+      // 4. Pectinate Muscles in Right Atrial Appendage
+      for (let pm = 0; pm < 4; pm++) {
+        const py = 0.28 - pm * 0.06;
+        const pectCurve = new THREE.CatmullRomCurve3([
+          new THREE.Vector3(0.44, py, 0.10),
+          new THREE.Vector3(0.40, py - 0.02, 0.22),
+          new THREE.Vector3(0.34, py - 0.04, 0.28),
+        ]);
+        const pectMesh = new THREE.Mesh(new THREE.TubeGeometry(pectCurve, 10, 0.015, 6, false), trabMat);
+        this.microAnatomyGroup.add(pectMesh);
+      }
+
+      // 5. Fossa Ovalis & Limbus in Interatrial Septum
+      const fossaLimbus = new THREE.Mesh(new THREE.TorusGeometry(0.09, 0.018, 8, 20), annulusMat);
+      fossaLimbus.position.set(0.06, 0.26, -0.06);
+      fossaLimbus.rotation.y = Math.PI / 2.2;
+      this.microAnatomyGroup.add(fossaLimbus);
+
+      const fossaMembrane = new THREE.Mesh(
+        new THREE.CircleGeometry(0.075, 16),
+        new THREE.MeshPhysicalMaterial({ color: 0xe2e8f0, transparent: true, opacity: 0.5, side: THREE.DoubleSide })
+      );
+      fossaMembrane.position.set(0.06, 0.26, -0.06);
+      fossaMembrane.rotation.y = Math.PI / 2.2;
+      this.microAnatomyGroup.add(fossaMembrane);
+
+      // 6. Coronary Sinus Ostium & Thebesian Valve
+      const csOstium = new THREE.Mesh(new THREE.TorusGeometry(0.05, 0.012, 6, 16), annulusMat);
+      csOstium.position.set(0.24, 0.08, -0.14);
+      csOstium.rotation.x = Math.PI / 3;
+      this.microAnatomyGroup.add(csOstium);
+
       this.heartGroup.add(this.valvesGroup);
       this.heartGroup.add(this.chambersGroup);
+      this.heartGroup.add(this.microAnatomyGroup);
 
       // ── 3. Translucent Great Vessels (Ascending/Arch/Descending Aorta & Pulmonary) ──
       this.vesselsGroup = new THREE.Group();
@@ -789,6 +1237,27 @@
       }
       this.coronaryGroup.add(new THREE.Mesh(new THREE.TubeGeometry(this.pdaCurve, 20, 0.026, 10, false), this.coronaryMaterial));
 
+      // Intramyocardial Septal Perforators (Penetrating into IVS from LAD)
+      const septalMat = new THREE.MeshPhysicalMaterial({
+        color: 0xff385c,
+        roughness: 0.2,
+        metalness: 0.1,
+        transmission: 0.4,
+        transparent: true,
+        opacity: 0.85,
+      });
+      const septalCurves = [
+        new THREE.CatmullRomCurve3([new THREE.Vector3(-0.06, 0.02, 0.40), new THREE.Vector3(0.01, -0.06, 0.22), new THREE.Vector3(0.04, -0.15, 0.08)]),
+        new THREE.CatmullRomCurve3([new THREE.Vector3(-0.02, -0.26, 0.42), new THREE.Vector3(0.02, -0.32, 0.20), new THREE.Vector3(0.03, -0.38, 0.05)]),
+        new THREE.CatmullRomCurve3([new THREE.Vector3(-0.10, -0.58, 0.32), new THREE.Vector3(-0.06, -0.62, 0.18), new THREE.Vector3(-0.02, -0.68, 0.04)]),
+      ];
+      this.septalPerforators = [];
+      septalCurves.forEach(sc => {
+        const sm = new THREE.Mesh(new THREE.TubeGeometry(sc, 12, 0.016, 8, false), septalMat);
+        this.coronaryGroup.add(sm);
+        this.septalPerforators.push(sm);
+      });
+
       // 3D Metallic Stent (Deployed post-PCI at Proximal LAD)
       if (this.isRevascularized) {
         const stentCurve = new THREE.CatmullRomCurve3([
@@ -827,17 +1296,97 @@
       ]);
       this.conductionGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(this.internodalCurve.getPoints(20)), tractMat));
 
-      // Bundle of His & Purkinje Network descending interventricular septum
+      // Bundle of His descending interventricular septum
       this.hisCurve = new THREE.CatmullRomCurve3([
         new THREE.Vector3(0.10, 0.15, 0.04),
         new THREE.Vector3(0.06, -0.05, 0.06),
-        new THREE.Vector3(-0.12, -0.32, 0.10),
-        new THREE.Vector3(-0.25, -0.58, 0.14),
-        new THREE.Vector3(-0.18, -0.78, 0.08), // Apex arborization
+        new THREE.Vector3(-0.04, -0.22, 0.08),
       ]);
-      this.conductionGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(this.hisCurve.getPoints(24)), tractMat));
+      this.conductionGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(this.hisCurve.getPoints(16)), tractMat));
+
+      // Left Bundle Branch (LBB) & Right Bundle Branch (RBB)
+      const purkinjeMat = new THREE.LineBasicMaterial({ color: 0x67e8f9, linewidth: 2.0 });
+      this.lbbCurve = new THREE.CatmullRomCurve3([
+        new THREE.Vector3(-0.04, -0.22, 0.08),
+        new THREE.Vector3(-0.16, -0.38, 0.14),
+        new THREE.Vector3(-0.28, -0.55, 0.16),
+        new THREE.Vector3(-0.22, -0.78, 0.10),
+      ]);
+      this.conductionGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(this.lbbCurve.getPoints(20)), purkinjeMat));
+
+      this.rbbCurve = new THREE.CatmullRomCurve3([
+        new THREE.Vector3(-0.04, -0.22, 0.08),
+        new THREE.Vector3(0.08, -0.35, 0.12),
+        new THREE.Vector3(0.24, -0.42, 0.18), // traverses moderator band
+        new THREE.Vector3(0.32, -0.62, 0.12),
+      ]);
+      this.conductionGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(this.rbbCurve.getPoints(20)), purkinjeMat));
+
+      // Subendocardial Purkinje terminal arborization network
+      const purkinjeTerminals = [
+        [new THREE.Vector3(-0.22, -0.78, 0.10), new THREE.Vector3(-0.35, -0.72, 0.18), new THREE.Vector3(-0.45, -0.60, 0.14)],
+        [new THREE.Vector3(-0.22, -0.78, 0.10), new THREE.Vector3(-0.18, -0.82, 0.04), new THREE.Vector3(-0.30, -0.75, -0.08)],
+        [new THREE.Vector3(0.32, -0.62, 0.12), new THREE.Vector3(0.24, -0.72, 0.14), new THREE.Vector3(0.12, -0.76, 0.08)],
+        [new THREE.Vector3(-0.16, -0.38, 0.14), new THREE.Vector3(-0.26, -0.42, 0.22), new THREE.Vector3(-0.38, -0.48, 0.24)],
+      ];
+      purkinjeTerminals.forEach(pts => {
+        const curve = new THREE.CatmullRomCurve3(pts);
+        this.conductionGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(curve.getPoints(12)), purkinjeMat));
+      });
 
       this.heartGroup.add(this.conductionGroup);
+      this._buildVortexStreamlines();
+    }
+
+    _buildVortexStreamlines() {
+      if (this.vortexGroup) {
+        this.heartGroup.remove(this.vortexGroup);
+      }
+      this.vortexGroup = new THREE.Group();
+      const vortexMat = new THREE.PointsMaterial({
+        color: 0x38bdf8,
+        size: 0.038,
+        transparent: true,
+        opacity: 0.85,
+        blending: THREE.AdditiveBlending,
+      });
+
+      // Diastolic Transmitral Vortex Ring particles
+      const count = 72;
+      const positions = new Float32Array(count * 3);
+      for (let i = 0; i < count; i++) {
+        const theta = (i / count) * Math.PI * 2;
+        const r = 0.14 + (Math.random() - 0.5) * 0.04;
+        positions[i * 3 + 0] = -0.22 + Math.cos(theta) * r;
+        positions[i * 3 + 1] = 0.04 + (Math.random() - 0.5) * 0.10;
+        positions[i * 3 + 2] = 0.02 + Math.sin(theta) * r;
+      }
+      const vortexGeo = new THREE.BufferGeometry();
+      vortexGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+      this.vortexPoints = new THREE.Points(vortexGeo, vortexMat);
+      this.vortexGroup.add(this.vortexPoints);
+
+      // Systolic LVOT Ejection Streamlines (accelerating particles)
+      const lvotGeo = new THREE.BufferGeometry();
+      const lvotCount = 36;
+      const lvotPos = new Float32Array(lvotCount * 3);
+      for (let j = 0; j < lvotCount; j++) {
+        const t = j / lvotCount;
+        lvotPos[j * 3 + 0] = -0.15 + t * 0.20;
+        lvotPos[j * 3 + 1] = -0.10 + t * 0.45;
+        lvotPos[j * 3 + 2] = 0.02 + t * 0.05;
+      }
+      lvotGeo.setAttribute('position', new THREE.BufferAttribute(lvotPos, 3));
+      this.lvotPoints = new THREE.Points(lvotGeo, new THREE.PointsMaterial({
+        color: 0xf43f5e,
+        size: 0.042,
+        transparent: true,
+        opacity: 0.9,
+        blending: THREE.AdditiveBlending,
+      }));
+      this.vortexGroup.add(this.lvotPoints);
+
+      this.heartGroup.add(this.vortexGroup);
     }
 
     // ── Real-Time Pulsatile Blood Flow & Dye Particle Pipeline ────────────────
@@ -1396,9 +1945,134 @@
           }
         }
 
+        // Animate Intracardiac Vortex & LVOT particles
+        if (this.vortexGroup && (this.viewMode === 'bloodFlow' || this.viewMode === 'chambers' || this.cutawayDepth > 0.05)) {
+          if (this.vortexPoints) {
+            const isDiastole = (phi >= 0.50 && phi <= 0.92);
+            this.vortexPoints.visible = isDiastole;
+            if (isDiastole) {
+              this.vortexPoints.rotation.y += 0.045;
+            }
+          }
+          if (this.lvotPoints) {
+            const isSystole = (phi >= 0.20 && phi <= 0.52);
+            this.lvotPoints.visible = isSystole;
+            if (isSystole) {
+              this.lvotPoints.rotation.y += 0.025;
+            }
+          }
+        }
+
+        // Camera LERP to focused anatomical landmark
+        if (this.cameraTargetPosition && this.controls) {
+          this.camera.position.lerp(this.cameraTargetPosition, 0.08);
+          this.controls.target.lerp(this.cameraTargetLookAt, 0.08);
+          if (this.camera.position.distanceTo(this.cameraTargetPosition) < 0.04) {
+            this.cameraTargetPosition = null;
+            this.cameraTargetLookAt = null;
+          }
+        }
+
         this.renderer.render(this.scene, this.camera);
       };
       render();
+    }
+
+    setCutawayPlane(fraction) {
+      this.cutawayDepth = Math.max(0.0, Math.min(1.0, fraction));
+      if (this.cutawayPlane) {
+        // At 0.0 -> 2.5 (uncut)
+        // At 1.0 -> -0.1 (deep coronal cut through all 4 chambers)
+        this.cutawayPlane.constant = 2.5 - this.cutawayDepth * 2.6;
+      }
+      const showInterior = (this.cutawayDepth > 0.05) || (this.viewMode === 'chambers');
+      if (this.chambersGroup) this.chambersGroup.visible = showInterior;
+      if (this.valvesGroup) this.valvesGroup.visible = true;
+      if (this.microAnatomyGroup) this.microAnatomyGroup.visible = showInterior;
+      if (this.chordaeGroup) this.chordaeGroup.visible = showInterior;
+    }
+
+    setTimeScale(scale) {
+      this.timeScale = Math.max(0.0, Math.min(2.0, scale));
+      this.isPaused = (this.timeScale === 0.0);
+    }
+
+    setCardiacPhase(phase) {
+      this.cardiacPhase = Math.max(0.0, Math.min(1.0, phase));
+      if (this.currentFrameData) {
+        this.currentFrameData.cardiacPhase = this.cardiacPhase;
+      }
+    }
+
+    setShowLabels(show) {
+      this.showLabels = Boolean(show);
+    }
+
+    focusLandmark(id) {
+      const lm = this.landmarks ? this.landmarks.find(l => l.id === id) : null;
+      if (!lm || !this.camera || !this.controls) return;
+      this.selectedLandmarkId = id;
+
+      const targetPos = lm.anchor.clone();
+      if (this.heartGroup) {
+        targetPos.applyMatrix4(this.heartGroup.matrixWorld);
+      }
+
+      this.cameraTargetLookAt = targetPos.clone();
+      const dir = targetPos.clone().normalize();
+      if (dir.length() < 0.2) dir.set(0, 0, 1);
+      const camPos = targetPos.clone().add(dir.multiplyScalar(2.2));
+      camPos.z = Math.max(camPos.z, 1.2);
+      this.cameraTargetPosition = camPos;
+    }
+
+    getProjectedLandmarks(category = 'all') {
+      if (!this.camera || !this.container || !this.landmarks) return [];
+      const width = this.container.clientWidth || 800;
+      const height = this.container.clientHeight || 600;
+      const results = [];
+      const tempVec = new THREE.Vector3();
+      const camPos = this.camera.position.clone();
+      const isCutaway = (this.cutawayDepth > 0.12) || (this.viewMode === 'chambers');
+
+      for (let i = 0; i < this.landmarks.length; i++) {
+        const lm = this.landmarks[i];
+        if (category !== 'all' && lm.category !== category) continue;
+
+        tempVec.copy(lm.anchor);
+        if (this.heartGroup) {
+          tempVec.applyMatrix4(this.heartGroup.matrixWorld);
+        }
+
+        const toCam = camPos.clone().sub(tempVec).normalize();
+        const normalDot = lm.normal ? lm.normal.dot(toCam) : 1.0;
+        const isOccluded = (!isCutaway && normalDot < -0.22);
+
+        tempVec.project(this.camera);
+
+        const inFrustum = tempVec.x >= -1.15 && tempVec.x <= 1.15 &&
+                          tempVec.y >= -1.15 && tempVec.y <= 1.15 &&
+                          tempVec.z >= 0.0 && tempVec.z <= 1.0;
+
+        const screenX = (tempVec.x * 0.5 + 0.5) * width;
+        const screenY = (-tempVec.y * 0.5 + 0.5) * height;
+
+        results.push({
+          id: lm.id,
+          name: lm.name,
+          category: lm.category,
+          x: screenX,
+          y: screenY,
+          normX: tempVec.x * 0.5 + 0.5,
+          normY: -tempVec.y * 0.5 + 0.5,
+          depth: tempVec.z,
+          visible: inFrustum && !isOccluded,
+          bloodSupply: lm.bloodSupply,
+          description: lm.description,
+          clinicalPearl: lm.clinicalPearl,
+        });
+      }
+      return results;
     }
 
     dispose() {
@@ -1669,9 +2343,134 @@
         if (this.boneMat) this.boneMat.uniforms.uTime.value = performance.now() * 0.001;
         if (this.vesselMat) this.vesselMat.uniforms.uTime.value = performance.now() * 0.001;
 
+        // Animate Intracardiac Vortex & LVOT particles
+        if (this.vortexGroup && (this.viewMode === 'bloodFlow' || this.viewMode === 'chambers' || this.cutawayDepth > 0.05)) {
+          if (this.vortexPoints) {
+            const isDiastole = (phi >= 0.50 && phi <= 0.92);
+            this.vortexPoints.visible = isDiastole;
+            if (isDiastole) {
+              this.vortexPoints.rotation.y += 0.045;
+            }
+          }
+          if (this.lvotPoints) {
+            const isSystole = (phi >= 0.20 && phi <= 0.52);
+            this.lvotPoints.visible = isSystole;
+            if (isSystole) {
+              this.lvotPoints.rotation.y += 0.025;
+            }
+          }
+        }
+
+        // Camera LERP to focused anatomical landmark
+        if (this.cameraTargetPosition && this.controls) {
+          this.camera.position.lerp(this.cameraTargetPosition, 0.08);
+          this.controls.target.lerp(this.cameraTargetLookAt, 0.08);
+          if (this.camera.position.distanceTo(this.cameraTargetPosition) < 0.04) {
+            this.cameraTargetPosition = null;
+            this.cameraTargetLookAt = null;
+          }
+        }
+
         this.renderer.render(this.scene, this.camera);
       };
       render();
+    }
+
+    setCutawayPlane(fraction) {
+      this.cutawayDepth = Math.max(0.0, Math.min(1.0, fraction));
+      if (this.cutawayPlane) {
+        // At 0.0 -> 2.5 (uncut)
+        // At 1.0 -> -0.1 (deep coronal cut through all 4 chambers)
+        this.cutawayPlane.constant = 2.5 - this.cutawayDepth * 2.6;
+      }
+      const showInterior = (this.cutawayDepth > 0.05) || (this.viewMode === 'chambers');
+      if (this.chambersGroup) this.chambersGroup.visible = showInterior;
+      if (this.valvesGroup) this.valvesGroup.visible = true;
+      if (this.microAnatomyGroup) this.microAnatomyGroup.visible = showInterior;
+      if (this.chordaeGroup) this.chordaeGroup.visible = showInterior;
+    }
+
+    setTimeScale(scale) {
+      this.timeScale = Math.max(0.0, Math.min(2.0, scale));
+      this.isPaused = (this.timeScale === 0.0);
+    }
+
+    setCardiacPhase(phase) {
+      this.cardiacPhase = Math.max(0.0, Math.min(1.0, phase));
+      if (this.currentFrameData) {
+        this.currentFrameData.cardiacPhase = this.cardiacPhase;
+      }
+    }
+
+    setShowLabels(show) {
+      this.showLabels = Boolean(show);
+    }
+
+    focusLandmark(id) {
+      const lm = this.landmarks ? this.landmarks.find(l => l.id === id) : null;
+      if (!lm || !this.camera || !this.controls) return;
+      this.selectedLandmarkId = id;
+
+      const targetPos = lm.anchor.clone();
+      if (this.heartGroup) {
+        targetPos.applyMatrix4(this.heartGroup.matrixWorld);
+      }
+
+      this.cameraTargetLookAt = targetPos.clone();
+      const dir = targetPos.clone().normalize();
+      if (dir.length() < 0.2) dir.set(0, 0, 1);
+      const camPos = targetPos.clone().add(dir.multiplyScalar(2.2));
+      camPos.z = Math.max(camPos.z, 1.2);
+      this.cameraTargetPosition = camPos;
+    }
+
+    getProjectedLandmarks(category = 'all') {
+      if (!this.camera || !this.container || !this.landmarks) return [];
+      const width = this.container.clientWidth || 800;
+      const height = this.container.clientHeight || 600;
+      const results = [];
+      const tempVec = new THREE.Vector3();
+      const camPos = this.camera.position.clone();
+      const isCutaway = (this.cutawayDepth > 0.12) || (this.viewMode === 'chambers');
+
+      for (let i = 0; i < this.landmarks.length; i++) {
+        const lm = this.landmarks[i];
+        if (category !== 'all' && lm.category !== category) continue;
+
+        tempVec.copy(lm.anchor);
+        if (this.heartGroup) {
+          tempVec.applyMatrix4(this.heartGroup.matrixWorld);
+        }
+
+        const toCam = camPos.clone().sub(tempVec).normalize();
+        const normalDot = lm.normal ? lm.normal.dot(toCam) : 1.0;
+        const isOccluded = (!isCutaway && normalDot < -0.22);
+
+        tempVec.project(this.camera);
+
+        const inFrustum = tempVec.x >= -1.15 && tempVec.x <= 1.15 &&
+                          tempVec.y >= -1.15 && tempVec.y <= 1.15 &&
+                          tempVec.z >= 0.0 && tempVec.z <= 1.0;
+
+        const screenX = (tempVec.x * 0.5 + 0.5) * width;
+        const screenY = (-tempVec.y * 0.5 + 0.5) * height;
+
+        results.push({
+          id: lm.id,
+          name: lm.name,
+          category: lm.category,
+          x: screenX,
+          y: screenY,
+          normX: tempVec.x * 0.5 + 0.5,
+          normY: -tempVec.y * 0.5 + 0.5,
+          depth: tempVec.z,
+          visible: inFrustum && !isOccluded,
+          bloodSupply: lm.bloodSupply,
+          description: lm.description,
+          clinicalPearl: lm.clinicalPearl,
+        });
+      }
+      return results;
     }
 
     dispose() {
