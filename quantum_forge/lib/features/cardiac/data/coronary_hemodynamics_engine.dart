@@ -52,6 +52,10 @@ enum AcuteComplicationState {
 
 enum OscilloscopeRhythmType {
   nsr('nsr', 'Normal Sinus Rhythm', 'NSR', 72, 120, 80, 99, 38, 'Normal 1:1 AV conduction, upright P in Lead II, narrow QRS (<120 ms).'),
+  hyperkalemia('hyperkalemia', 'Hyperkalemia (K⁺ 7.2 mEq/L)', 'HYPER-K', 68, 118, 76, 98, 38, 'Severe Hyperkalemia (K⁺ 7.2 mEq/L): tall peaked T waves (+0.85 mV), widened QRS (148 ms), flattened P wave (+0.04 mV), prolonged PR (215 ms). Risk of sine-wave & arrest.'),
+  hypokalemia('hypokalemia', 'Hypokalemia (K⁺ 2.4 mEq/L)', 'HYPO-K', 78, 112, 72, 98, 37, 'Severe Hypokalemia (K⁺ 2.4 mEq/L): flattened T wave (+0.07 mV), prominent upright U wave (+0.24 mV), mild ST depression (-0.08 mV), prolonged QU/QTc (490 ms). Risk of TdP.'),
+  stemi('stemi', 'Acute MI (STEMI + Pathological Q)', 'STEMI+Q', 104, 98, 64, 94, 34, 'Acute Transmural MI: pathological deep wide Q waves (-0.38 mV, >40 ms), coved ST elevation (+0.45 mV), elevated sympathetic drive.'),
+  ischemia('ischemia', 'Subendocardial Ischemia / NSTEMI', 'ISCHEMIA', 102, 148, 92, 95, 36, 'Subendocardial Ischemia (NSTEMI / Angina): horizontal/downsloping ST depression (-0.25 mV), symmetrical deep T-wave inversion (-0.35 mV), elevated BP 148/92 mmHg.'),
   sinusBrady('sinus_brady', 'Sinus Bradycardia', 'S.BRADY', 45, 108, 68, 98, 42, 'HR < 50 bpm; athletic tone, vagal stimulation, or sinus node disease.'),
   sinusTachy('sinus_tachy', 'Sinus Tachycardia', 'S.TACHY', 135, 136, 86, 97, 36, 'HR > 100 bpm; response to pain, fever, hypovolemia, or sympathetic drive.'),
   afib('afib', 'Atrial Fibrillation with RVR', 'A-FIB', 130, 115, 74, 96, 35, 'Irregularly irregular R-R intervals with fibrillatory f-waves (350-600/min).'),
@@ -91,6 +95,20 @@ enum OscilloscopeRhythmType {
   bool get isShockable => this == OscilloscopeRhythmType.vfib || this == OscilloscopeRhythmType.vtach || this == OscilloscopeRhythmType.torsades;
   bool get isArrest => this == OscilloscopeRhythmType.vfib || this == OscilloscopeRhythmType.asystole;
   bool get isPacingCandidate => this == OscilloscopeRhythmType.sinusBrady || this == OscilloscopeRhythmType.avb2Mobitz2 || this == OscilloscopeRhythmType.avb3Complete || this == OscilloscopeRhythmType.asystole;
+  bool get isElectrolyte => this == OscilloscopeRhythmType.hyperkalemia || this == OscilloscopeRhythmType.hypokalemia;
+  bool get isIschemic => this == OscilloscopeRhythmType.stemi || this == OscilloscopeRhythmType.ischemia;
+
+  /// The 8 classic clinical ECG recognition patterns (core medical curriculum).
+  static const List<OscilloscopeRhythmType> classic8 = [
+    OscilloscopeRhythmType.nsr,
+    OscilloscopeRhythmType.hyperkalemia,
+    OscilloscopeRhythmType.hypokalemia,
+    OscilloscopeRhythmType.stemi,
+    OscilloscopeRhythmType.ischemia,
+    OscilloscopeRhythmType.afib,
+    OscilloscopeRhythmType.vtach,
+    OscilloscopeRhythmType.vfib,
+  ];
 }
 
 class CoronaryPhysiologyFrame {

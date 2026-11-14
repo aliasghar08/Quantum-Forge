@@ -1311,5 +1311,147 @@ void main() {
       expect(find.byKey(const Key('status_pill_auto')), findsOneWidget);
       expect(find.textContaining('AUTO-VITALS: MASSIVE PE'), findsOneWidget);
     });
+
+    testWidgets('8 Classic Clinical ECG Morphologies: verifies mathematical waveforms for Hyperkalemia, Hypokalemia, Ischemia, and STEMI',
+        (tester) async {
+      // 1. Hyperkalemia (K+ = 7.2 mEq/L):
+      // Peaked tented T-wave (+0.85 mV)
+      final hyperKT = CardiacHemodynamicEcgStrip.computeSyntheticEcgSample(0.460, 0.0, rhythm: OscilloscopeRhythmType.hyperkalemia);
+      expect(hyperKT, greaterThanOrEqualTo(0.80), reason: 'Hyperkalemia must produce tall peaked tented T-wave (+0.85 mV)');
+      
+      // Widened QRS complex (148 ms) with slurred S-wave nadir (-0.35 mV)
+      final hyperKS = CardiacHemodynamicEcgStrip.computeSyntheticEcgSample(0.315, 0.0, rhythm: OscilloscopeRhythmType.hyperkalemia);
+      expect(hyperKS, lessThan(-0.25), reason: 'Hyperkalemia must produce widened QRS with slurred S-wave nadir');
+
+      // Flattened/diminished P-wave (+0.04 mV)
+      final hyperKP = CardiacHemodynamicEcgStrip.computeSyntheticEcgSample(0.095, 0.0, rhythm: OscilloscopeRhythmType.hyperkalemia);
+      expect(hyperKP, closeTo(0.04, 0.02), reason: 'Hyperkalemia must produce flattened P-wave');
+
+      // Lead V1 peaked T-wave
+      final hyperKV1 = CardiacHemodynamicEcgStrip.computePrecordialV1Sample(0.460, OscilloscopeRhythmType.hyperkalemia);
+      expect(hyperKV1, greaterThan(0.60), reason: 'Hyperkalemia V1 must display peaked T-wave');
+
+      // 2. Hypokalemia (K+ = 2.4 mEq/L):
+      // Flattened/blunted T-wave (+0.07 mV)
+      final hypoKT = CardiacHemodynamicEcgStrip.computeSyntheticEcgSample(0.420, 0.0, rhythm: OscilloscopeRhythmType.hypokalemia);
+      expect(hypoKT, lessThanOrEqualTo(0.075), reason: 'Hypokalemia must produce flattened/blunted T-wave');
+
+      // Prominent upright U-wave (+0.24 mV) at phi ~0.615
+      final hypoKU = CardiacHemodynamicEcgStrip.computeSyntheticEcgSample(0.615, 0.0, rhythm: OscilloscopeRhythmType.hypokalemia);
+      expect(hypoKU, greaterThanOrEqualTo(0.20), reason: 'Hypokalemia must produce prominent upright U-wave (+0.24 mV)');
+
+      // Mild ST-segment depression (-0.08 mV)
+      final hypoKST = CardiacHemodynamicEcgStrip.computeSyntheticEcgSample(0.330, 0.0, rhythm: OscilloscopeRhythmType.hypokalemia);
+      expect(hypoKST, lessThan(0.0), reason: 'Hypokalemia must produce mild ST-segment depression');
+
+      // Lead V1 prominent U-wave
+      final hypoKV1 = CardiacHemodynamicEcgStrip.computePrecordialV1Sample(0.600, OscilloscopeRhythmType.hypokalemia);
+      expect(hypoKV1, greaterThan(0.18), reason: 'Hypokalemia V1 must display prominent upright U-wave');
+
+      // 3. Subendocardial Ischemia (NSTEMI / Angina):
+      // Horizontal/downsloping ST-segment depression (-0.25 mV)
+      final ischST = CardiacHemodynamicEcgStrip.computeSyntheticEcgSample(0.360, 0.0, rhythm: OscilloscopeRhythmType.ischemia);
+      expect(ischST, lessThanOrEqualTo(-0.24), reason: 'Ischemia must produce horizontal/downsloping ST depression (-0.25 mV)');
+
+      // Symmetrical deep T-wave inversion (-0.35 mV)
+      final ischT = CardiacHemodynamicEcgStrip.computeSyntheticEcgSample(0.500, 0.0, rhythm: OscilloscopeRhythmType.ischemia);
+      expect(ischT, lessThanOrEqualTo(-0.30), reason: 'Ischemia must produce symmetrical deep T-wave inversion (-0.35 mV)');
+
+      // 4. Acute STEMI with Pathological Q-waves:
+      // Pathological deep, wide Q-wave (-0.38 mV, >40 ms width)
+      final stemiQ = CardiacHemodynamicEcgStrip.computeSyntheticEcgSample(0.230, 4.5, rhythm: OscilloscopeRhythmType.stemi);
+      expect(stemiQ, lessThanOrEqualTo(-0.35), reason: 'STEMI must produce pathological deep wide Q-wave (-0.38 mV)');
+
+      // Coved ST-segment elevation (+0.45 mV)
+      final stemiST = CardiacHemodynamicEcgStrip.computeSyntheticEcgSample(0.400, 4.5, rhythm: OscilloscopeRhythmType.stemi);
+      expect(stemiST, greaterThanOrEqualTo(0.40), reason: 'STEMI must produce coved ST-segment elevation');
+    });
+
+    testWidgets('8 Classic Clinical ECG Situations: 1-Tap Quick-Bar buttons and Master Vitals synchronization',
+        (tester) async {
+      tester.view.physicalSize = const Size(1350, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      final vitals = CardiacMasterVitalsState();
+      final scenario = kCardiacScenarios.first;
+
+      await tester.pumpWidget(MaterialApp(
+        home: Scaffold(
+          body: CardiacHemodynamicEcgStrip(
+            scenario: scenario,
+            cardiacPhase: 0.25,
+            bpm: 72.0,
+            onBpmChanged: (_) {},
+            masterVitals: vitals,
+          ),
+        ),
+      ));
+      await tester.pump(const Duration(milliseconds: 100));
+
+      // 1. Verify all 8 Classic ECG Quick-Bar buttons exist
+      expect(find.byKey(const Key('ecg_quick_nsr')), findsOneWidget);
+      expect(find.byKey(const Key('ecg_quick_hyperkalemia')), findsOneWidget);
+      expect(find.byKey(const Key('ecg_quick_hypokalemia')), findsOneWidget);
+      expect(find.byKey(const Key('ecg_quick_stemi')), findsOneWidget);
+      expect(find.byKey(const Key('ecg_quick_ischemia')), findsOneWidget);
+      expect(find.byKey(const Key('ecg_quick_afib')), findsOneWidget);
+      expect(find.byKey(const Key('ecg_quick_vtach')), findsOneWidget);
+      expect(find.byKey(const Key('ecg_quick_vfib')), findsOneWidget);
+
+      // 2. Tap Hyperkalemia pill
+      await tester.tap(find.byKey(const Key('ecg_quick_hyperkalemia')));
+      await tester.pump(const Duration(milliseconds: 100));
+
+      // Vitals sync
+      expect(vitals.targetRhythm, OscilloscopeRhythmType.hyperkalemia);
+      expect(vitals.heartRateBpm, 68.0);
+      expect(vitals.systolicBp, 118.0);
+      expect(vitals.diastolicBp, 76.0);
+      // Interval readouts
+      expect(find.text('PR: 215 ms'), findsOneWidget);
+      expect(find.text('QRS: 148 ms'), findsOneWidget);
+      // Alert banner
+      expect(find.textContaining('HYPERKALEMIA (K⁺ 7.2 mEq/L)'), findsOneWidget);
+
+      // 3. Tap Hypokalemia pill
+      await tester.tap(find.byKey(const Key('ecg_quick_hypokalemia')));
+      await tester.pump(const Duration(milliseconds: 100));
+
+      // Vitals sync
+      expect(vitals.targetRhythm, OscilloscopeRhythmType.hypokalemia);
+      expect(vitals.heartRateBpm, 78.0);
+      expect(vitals.systolicBp, 112.0);
+      expect(vitals.diastolicBp, 72.0);
+      // Interval readouts (QU prolongation)
+      expect(find.text('QTc: 490 (QU) ms'), findsOneWidget);
+      // Alert banner
+      expect(find.textContaining('HYPOKALEMIA (K⁺ 2.4 mEq/L)'), findsOneWidget);
+
+      // 4. Tap Ischemia pill
+      await tester.tap(find.byKey(const Key('ecg_quick_ischemia')));
+      await tester.pump(const Duration(milliseconds: 100));
+
+      // Vitals sync
+      expect(vitals.targetRhythm, OscilloscopeRhythmType.ischemia);
+      expect(vitals.heartRateBpm, 102.0);
+      expect(vitals.systolicBp, 148.0);
+      expect(vitals.diastolicBp, 92.0);
+      // Alert banner
+      expect(find.textContaining('SUBENDOCARDIAL ISCHEMIA'), findsOneWidget);
+
+      // 5. Tap STEMI pill
+      await tester.tap(find.byKey(const Key('ecg_quick_stemi')));
+      await tester.pump(const Duration(milliseconds: 100));
+
+      // Vitals sync
+      expect(vitals.targetRhythm, OscilloscopeRhythmType.stemi);
+      expect(vitals.heartRateBpm, 104.0);
+      expect(vitals.systolicBp, 98.0);
+      expect(vitals.diastolicBp, 64.0);
+      // Alert banner
+      expect(find.textContaining('CODE STEMI: ACUTE TRANSMURAL MI'), findsOneWidget);
+    });
   });
 }

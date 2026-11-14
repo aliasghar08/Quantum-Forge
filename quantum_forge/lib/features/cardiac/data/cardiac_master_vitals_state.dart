@@ -152,6 +152,57 @@ enum CardiacClinicalSituation {
     stElevationMm: -0.5,
     description: 'End-stage heart failure decompensation, rapid A-Fib, severe systolic impairment, pulmonary congestion.',
     accentColor: Color(0xFFE040FB),
+  ),
+  hyperkalemia(
+    id: 'hyperkalemia',
+    title: 'Severe Hyperkalemia (K⁺ 7.2 mEq/L)',
+    shortLabel: 'Hyperkalemia',
+    badge: 'HYPER-K (K⁺ 7.2)',
+    heartRateBpm: 68.0,
+    systolicBp: 118.0,
+    diastolicBp: 76.0,
+    spo2Pct: 98.0,
+    respRate: 16.0,
+    etco2MmHg: 38.0,
+    lvefPct: 56.0,
+    rhythm: OscilloscopeRhythmType.hyperkalemia,
+    stElevationMm: 0.0,
+    description: 'Serum K⁺ 7.2 mEq/L: tall tented T-waves (+0.85 mV), widened QRS (148 ms), flattened P-wave (+0.04 mV), prolonged PR (215 ms). IV Calcium Gluconate indicated.',
+    accentColor: Color(0xFFFF5252),
+  ),
+  hypokalemia(
+    id: 'hypokalemia',
+    title: 'Severe Hypokalemia (K⁺ 2.4 mEq/L)',
+    shortLabel: 'Hypokalemia',
+    badge: 'HYPO-K (K⁺ 2.4)',
+    heartRateBpm: 78.0,
+    systolicBp: 112.0,
+    diastolicBp: 72.0,
+    spo2Pct: 98.0,
+    respRate: 16.0,
+    etco2MmHg: 37.0,
+    lvefPct: 58.0,
+    rhythm: OscilloscopeRhythmType.hypokalemia,
+    stElevationMm: -0.8,
+    description: 'Serum K⁺ 2.4 mEq/L: flattened T-wave (+0.07 mV), prominent upright U-wave (+0.24 mV), prolonged QU/QTc (490 ms). Risk of Torsades de Pointes; IV KCl replacement required.',
+    accentColor: Color(0xFFFFB74D),
+  ),
+  myocardialIschemia(
+    id: 'myocardial_ischemia',
+    title: 'Subendocardial Ischemia (NSTEMI / Angina)',
+    shortLabel: 'Ischemia',
+    badge: 'ISCHEMIA (ST↓+T-Inv)',
+    heartRateBpm: 102.0,
+    systolicBp: 148.0,
+    diastolicBp: 92.0,
+    spo2Pct: 95.0,
+    respRate: 20.0,
+    etco2MmHg: 36.0,
+    lvefPct: 45.0,
+    rhythm: OscilloscopeRhythmType.ischemia,
+    stElevationMm: -2.5,
+    description: 'Acute subendocardial ischemia (NSTEMI / Angina): horizontal/downsloping ST depression (-0.25 mV) and symmetrical deep T-wave inversion (-0.35 mV). Coupled with elevated afterload and tachycardia.',
+    accentColor: Color(0xFFFF9100),
   );
 
   final String id;
@@ -524,20 +575,41 @@ class CardiacMasterVitalsState extends ChangeNotifier {
     if (rhythm.isArrest) {
       _respRate = 6.0;
       _lvefPct = 15.0;
+      _stElevationMm = 0.0;
     } else if (rhythm == OscilloscopeRhythmType.vtach ||
         rhythm == OscilloscopeRhythmType.torsades) {
       _respRate = 24.0;
       _lvefPct = 25.0;
+      _stElevationMm = 0.0;
     } else if (rhythm == OscilloscopeRhythmType.sinusTachy ||
         rhythm == OscilloscopeRhythmType.svt) {
       _respRate = 22.0;
       _lvefPct = 65.0;
+      _stElevationMm = 0.0;
     } else if (rhythm == OscilloscopeRhythmType.sinusBrady) {
       _respRate = 12.0;
       _lvefPct = 58.0;
+      _stElevationMm = 0.0;
+    } else if (rhythm == OscilloscopeRhythmType.hyperkalemia) {
+      _respRate = 16.0;
+      _lvefPct = 56.0;
+      _stElevationMm = 0.0;
+    } else if (rhythm == OscilloscopeRhythmType.hypokalemia) {
+      _respRate = 16.0;
+      _lvefPct = 58.0;
+      _stElevationMm = -0.8;
+    } else if (rhythm == OscilloscopeRhythmType.stemi) {
+      _respRate = 20.0;
+      _lvefPct = 38.0;
+      _stElevationMm = 4.5;
+    } else if (rhythm == OscilloscopeRhythmType.ischemia) {
+      _respRate = 20.0;
+      _lvefPct = 45.0;
+      _stElevationMm = -2.5;
     } else {
       _respRate = 14.0;
       _lvefPct = 60.0;
+      _stElevationMm = 0.0;
     }
 
     notifyListeners();

@@ -124,10 +124,147 @@ class CardiacHemodynamicEcgStrip extends StatefulWidget {
   ///   * ST deviation: localized elevation/depression decaying from J-point into T-wave.
   ///   * T-wave: upright dome peaking at phi = 0.460 (+0.32 mV), ending by phi = 0.560.
   /// - Diastole (TP interval): (0.560, 1.0] and [0.0, 0.08) -> isoelectric 0.00 mV.
-  static double computeSyntheticEcgSample(double phase, double stElevationMm) {
+  static double computeSyntheticEcgSample(
+    double phase,
+    double stElevationMm, {
+    OscilloscopeRhythmType rhythm = OscilloscopeRhythmType.nsr,
+  }) {
     final phi = phase % 1.0;
     double v = 0.0;
 
+    // 1. Hyperkalemia (K⁺ = 7.2 mEq/L):
+    // Tall narrow-based peaked ("tented") T-wave (+0.85 mV), widened QRS (148 ms) with slurred S-wave,
+    // flattened/diminished P-wave (+0.04 mV), and prolonged PR interval (215 ms).
+    if (rhythm == OscilloscopeRhythmType.hyperkalemia) {
+      if (phi >= 0.050 && phi <= 0.140) {
+        // Flattened/diminished P-wave (+0.04 mV)
+        v = 0.04 * math.sin((phi - 0.050) / 0.090 * math.pi);
+      } else if (phi > 0.140 && phi < 0.200) {
+        // Prolonged PR interval delay (215 ms)
+        v = 0.0;
+      } else if (phi >= 0.200 && phi <= 0.225) {
+        // Q-wave dip (-0.12 mV)
+        v = -0.12 * math.sin((phi - 0.200) / 0.025 * math.pi);
+      } else if (phi > 0.225 && phi <= 0.275) {
+        // Widened R-wave (+1.10 mV)
+        final tau = (phi - 0.225) / 0.050;
+        v = 1.10 * math.sin(tau * math.pi);
+      } else if (phi > 0.275 && phi <= 0.348) {
+        // Widened, slurred S-wave nadir (-0.35 mV) -> total QRS duration = 148 ms (phi 0.200 to 0.348)
+        final tau = (phi - 0.275) / 0.073;
+        v = -0.35 * math.sin(tau * math.pi);
+      } else if (phi >= 0.380 && phi <= 0.540) {
+        // Tall, narrow-based, symmetrically peaked ("tented") T-wave (+0.85 mV)
+        final tau = (phi - 0.380) / 0.160;
+        v = 0.85 * math.pow(math.sin(tau * math.pi), 2.2);
+      } else {
+        v = 0.0;
+      }
+      return v;
+    }
+
+    // 2. Hypokalemia (K⁺ = 2.4 mEq/L):
+    // Flattened / blunted T wave (+0.07 mV), prominent upright U wave (+0.24 mV at phi ~0.62),
+    // mild ST-segment depression (-0.08 mV), and prolonged QU / QTc interval (490 ms).
+    if (rhythm == OscilloscopeRhythmType.hypokalemia) {
+      if (phi >= 0.08 && phi <= 0.17) {
+        // Normal/prominent P-wave (+0.18 mV)
+        v = 0.18 * math.sin((phi - 0.08) / 0.09 * math.pi);
+      } else if (phi > 0.17 && phi < 0.230) {
+        v = 0.0;
+      } else if (phi >= 0.230 && phi <= 0.255) {
+        v = -0.15 * math.sin((phi - 0.230) / 0.025 * math.pi);
+      } else if (phi > 0.255 && phi <= 0.285) {
+        if (phi <= 0.270) {
+          v = 1.25 * ((phi - 0.255) / 0.015);
+        } else {
+          v = 1.25 * ((0.285 - phi) / 0.015);
+        }
+      } else if (phi > 0.285 && phi <= 0.310) {
+        v = -0.28 * math.sin((phi - 0.285) / 0.025 * math.pi);
+      } else if (phi > 0.310 && phi <= 0.490) {
+        // Mild ST depression (-0.08 mV) + flattened/blunted T wave (+0.07 mV)
+        final stProgress = (phi - 0.310) / 0.180;
+        final stDepr = -0.08 * math.sin((1.0 - stProgress) * math.pi * 0.5);
+        double tFlat = 0.0;
+        if (phi >= 0.350) {
+          final tProg = (phi - 0.350) / 0.140;
+          tFlat = 0.07 * math.sin(tProg * math.pi);
+        }
+        v = stDepr + tFlat;
+      } else if (phi > 0.490 && phi <= 0.720) {
+        // Prominent upright U-wave (+0.24 mV peaking at phi ~0.615)
+        final uProg = (phi - 0.490) / 0.230;
+        v = 0.24 * math.pow(math.sin(uProg * math.pi), 1.3);
+      } else {
+        v = 0.0;
+      }
+      return v;
+    }
+
+    // 3. Subendocardial Ischemia (NSTEMI / Angina):
+    // Horizontal / downsloping ST-segment depression (-0.25 mV), symmetrical deep T-wave inversion (-0.35 mV).
+    if (rhythm == OscilloscopeRhythmType.ischemia) {
+      if (phi >= 0.08 && phi <= 0.17) {
+        v = 0.15 * math.sin((phi - 0.08) / 0.09 * math.pi);
+      } else if (phi > 0.17 && phi < 0.230) {
+        v = 0.0;
+      } else if (phi >= 0.230 && phi <= 0.255) {
+        v = -0.15 * math.sin((phi - 0.230) / 0.025 * math.pi);
+      } else if (phi > 0.255 && phi <= 0.285) {
+        if (phi <= 0.270) {
+          v = 1.25 * ((phi - 0.255) / 0.015);
+        } else {
+          v = 1.25 * ((0.285 - phi) / 0.015);
+        }
+      } else if (phi > 0.285 && phi <= 0.310) {
+        v = -0.28 * math.sin((phi - 0.285) / 0.025 * math.pi);
+      } else if (phi > 0.310 && phi <= 0.420) {
+        // Horizontal / downsloping ST-segment depression (-0.25 mV to -0.30 mV)
+        final tau = (phi - 0.310) / 0.110;
+        v = -0.25 - 0.05 * tau;
+      } else if (phi > 0.420 && phi <= 0.580) {
+        // Symmetrical deep T-wave inversion (-0.35 mV)
+        final tProg = (phi - 0.420) / 0.160;
+        v = -0.35 * math.sin(tProg * math.pi);
+      } else {
+        v = 0.0;
+      }
+      return v;
+    }
+
+    // 4. Acute Myocardial Infarction (STEMI with Pathological Q-Waves):
+    // Pathological deep, wide Q waves (-0.38 mV, >40 ms width: phi 0.210 to 0.255) + coved ST elevation (+0.45 mV).
+    if (rhythm == OscilloscopeRhythmType.stemi) {
+      if (phi >= 0.08 && phi <= 0.17) {
+        v = 0.14 * math.sin((phi - 0.08) / 0.09 * math.pi);
+      } else if (phi > 0.17 && phi < 0.210) {
+        v = 0.0;
+      } else if (phi >= 0.210 && phi <= 0.255) {
+        // Pathological deep, wide Q-wave (-0.38 mV, 45 ms duration)
+        final tau = (phi - 0.210) / 0.045;
+        v = -0.38 * math.sin(tau * math.pi);
+      } else if (phi > 0.255 && phi <= 0.285) {
+        // Preserved/diminished R-wave spike (+1.05 mV)
+        if (phi <= 0.270) {
+          v = 1.05 * ((phi - 0.255) / 0.015);
+        } else {
+          v = 1.05 * ((0.285 - phi) / 0.015);
+        }
+      } else if (phi > 0.285 && phi <= 0.305) {
+        v = -0.10 * math.sin((phi - 0.285) / 0.020 * math.pi);
+      } else if (phi > 0.305 && phi <= 0.580) {
+        // Coved "Tombstone" ST-segment elevation (+0.45 mV or scaled by stElevationMm)
+        final stMv = stElevationMm > 0 ? (stElevationMm / 10.0).clamp(0.40, 0.70) : 0.45;
+        final tau = (phi - 0.305) / 0.275;
+        v = stMv * math.pow(math.sin(tau * math.pi * 0.75 + 0.25), 0.85) + 0.15 * math.sin(tau * math.pi);
+      } else {
+        v = 0.0;
+      }
+      return v;
+    }
+
+    // 5. Default Normal Sinus Rhythm & standard conduction with optional ST shift
     if (phi >= 0.08 && phi <= 0.17) {
       // P-Wave (Atrial Depolarization)
       v = 0.15 * math.sin((phi - 0.08) / 0.09 * math.pi);
@@ -248,6 +385,54 @@ class CardiacHemodynamicEcgStrip extends StatefulWidget {
       }
       return 0.0;
     }
+    if (rhythm == OscilloscopeRhythmType.hyperkalemia) {
+      if (phi >= 0.20 && phi <= 0.348) {
+        final tau = (phi - 0.20) / 0.148;
+        return -0.95 * math.sin(tau * math.pi);
+      } else if (phi >= 0.380 && phi <= 0.540) {
+        final tau = (phi - 0.380) / 0.160;
+        return 0.75 * math.pow(math.sin(tau * math.pi), 2.0);
+      }
+      return 0.0;
+    }
+    if (rhythm == OscilloscopeRhythmType.hypokalemia) {
+      if (phi >= 0.250 && phi <= 0.270) {
+        return 0.22 * math.sin((phi - 0.250) / 0.020 * math.pi);
+      } else if (phi > 0.270 && phi <= 0.315) {
+        return -0.95 * math.sin((phi - 0.270) / 0.045 * math.pi);
+      } else if (phi > 0.340 && phi <= 0.480) {
+        return 0.05 * math.sin((phi - 0.340) / 0.140 * math.pi);
+      } else if (phi > 0.490 && phi <= 0.700) {
+        final tau = (phi - 0.490) / 0.210;
+        return 0.22 * math.pow(math.sin(tau * math.pi), 1.2);
+      }
+      return 0.0;
+    }
+    if (rhythm == OscilloscopeRhythmType.ischemia) {
+      if (phi >= 0.250 && phi <= 0.270) {
+        return 0.20 * math.sin((phi - 0.250) / 0.020 * math.pi);
+      } else if (phi > 0.270 && phi <= 0.315) {
+        return -0.95 * math.sin((phi - 0.270) / 0.045 * math.pi);
+      } else if (phi > 0.315 && phi <= 0.420) {
+        return -0.18;
+      } else if (phi > 0.420 && phi <= 0.580) {
+        final tau = (phi - 0.420) / 0.160;
+        return -0.28 * math.sin(tau * math.pi);
+      }
+      return 0.0;
+    }
+    if (rhythm == OscilloscopeRhythmType.stemi) {
+      if (phi >= 0.210 && phi <= 0.255) {
+        final tau = (phi - 0.210) / 0.045;
+        return -0.32 * math.sin(tau * math.pi);
+      } else if (phi > 0.255 && phi <= 0.285) {
+        return 0.35 * math.sin((phi - 0.255) / 0.030 * math.pi);
+      } else if (phi > 0.285 && phi <= 0.560) {
+        final tau = (phi - 0.285) / 0.275;
+        return 0.52 * math.sin(tau * math.pi);
+      }
+      return 0.0;
+    }
     // Normal V1 morphology: small r +0.2 mV, deep S -0.9 mV
     if (phi >= 0.250 && phi <= 0.270) {
       final tau = (phi - 0.250) / 0.020;
@@ -357,15 +542,19 @@ class _CardiacHemodynamicEcgStripState extends State<CardiacHemodynamicEcgStrip>
   List<OscilloscopeRhythmType> _blindOptions = [];
 
   static const List<OscilloscopeRhythmType> _blindRotationRhythms = [
+    OscilloscopeRhythmType.nsr,
+    OscilloscopeRhythmType.hyperkalemia,
+    OscilloscopeRhythmType.hypokalemia,
+    OscilloscopeRhythmType.stemi,
+    OscilloscopeRhythmType.ischemia,
+    OscilloscopeRhythmType.afib,
+    OscilloscopeRhythmType.vtach,
+    OscilloscopeRhythmType.vfib,
     OscilloscopeRhythmType.avb2Mobitz2,
     OscilloscopeRhythmType.torsades,
     OscilloscopeRhythmType.svt,
-    OscilloscopeRhythmType.afib,
-    OscilloscopeRhythmType.vtach,
     OscilloscopeRhythmType.avb3Complete,
     OscilloscopeRhythmType.sinusBrady,
-    OscilloscopeRhythmType.vfib,
-    OscilloscopeRhythmType.nsr,
   ];
 
   @override
@@ -449,6 +638,18 @@ class _CardiacHemodynamicEcgStripState extends State<CardiacHemodynamicEcgStrip>
       _alertBannerColor = const Color(0xFFFF1744);
     } else if (_currentRhythm == OscilloscopeRhythmType.vtach || _currentRhythm == OscilloscopeRhythmType.torsades) {
       _alertBannerText = '⚠️ TACHYARRHYTHMIA ALERT: ${_currentRhythm.label} — UNSTABLE HEMODYNAMICS';
+      _alertBannerColor = const Color(0xFFFF9100);
+    } else if (_currentRhythm == OscilloscopeRhythmType.hyperkalemia) {
+      _alertBannerText = '⚠️ CRITICAL ELECTROLYTE: HYPERKALEMIA (K⁺ 7.2 mEq/L) — PEAKED T + WIDENED QRS (IV CALCIUM GLUCONATE)';
+      _alertBannerColor = const Color(0xFFFF5252);
+    } else if (_currentRhythm == OscilloscopeRhythmType.hypokalemia) {
+      _alertBannerText = '⚠️ ELECTROLYTE DERANGEMENT: HYPOKALEMIA (K⁺ 2.4 mEq/L) — FLATTENED T + PROMINENT U-WAVE (IV KCl)';
+      _alertBannerColor = const Color(0xFFFFB74D);
+    } else if (_currentRhythm == OscilloscopeRhythmType.stemi) {
+      _alertBannerText = '⚠️ CODE STEMI: ACUTE TRANSMURAL MI — PATHOLOGICAL Q + COVED ST ELEVATION (EMERGENCY CATH)';
+      _alertBannerColor = const Color(0xFFFF1744);
+    } else if (_currentRhythm == OscilloscopeRhythmType.ischemia) {
+      _alertBannerText = '⚠️ ACUTE CORONARY SYNDROME: SUBENDOCARDIAL ISCHEMIA — ST DEPRESSION + T-INVERSION';
       _alertBannerColor = const Color(0xFFFF9100);
     } else if (_currentRhythm == OscilloscopeRhythmType.avb3Complete) {
       _alertBannerText = '⚠️ CRITICAL CONDUCTION BLOCK: 3° COMPLETE HEART BLOCK — PACEMAKER INDICATED';
@@ -1432,60 +1633,147 @@ class _CardiacHemodynamicEcgStripState extends State<CardiacHemodynamicEcgStrip>
     );
   }
 
+  Color _getRhythmChipColor(OscilloscopeRhythmType rhythm) {
+    if (rhythm.isArrest) {
+      return const Color(0xFFFF1744);
+    } else if (rhythm == OscilloscopeRhythmType.vtach || rhythm == OscilloscopeRhythmType.torsades) {
+      return const Color(0xFFFF9100);
+    } else if (rhythm == OscilloscopeRhythmType.stemi) {
+      return const Color(0xFFFF1744);
+    } else if (rhythm == OscilloscopeRhythmType.hyperkalemia) {
+      return const Color(0xFFFF5252);
+    } else if (rhythm == OscilloscopeRhythmType.hypokalemia) {
+      return const Color(0xFFFFB74D);
+    } else if (rhythm == OscilloscopeRhythmType.ischemia) {
+      return const Color(0xFFFF9100);
+    } else if (rhythm == OscilloscopeRhythmType.avb3Complete || rhythm == OscilloscopeRhythmType.avb2Mobitz2) {
+      return const Color(0xFFFF5252);
+    } else if (rhythm == OscilloscopeRhythmType.afib || rhythm == OscilloscopeRhythmType.aflutter || rhythm == OscilloscopeRhythmType.svt) {
+      return const Color(0xFFFFD740);
+    } else {
+      return const Color(0xFF00E676);
+    }
+  }
+
   Widget _buildRhythmSelectorBar() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       color: const Color(0xFF080D14),
       child: Row(
         children: [
-          const Text(
-            'RHYTHM:',
-            style: TextStyle(color: Colors.white54, fontSize: 9, fontWeight: FontWeight.bold, letterSpacing: 0.5),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+            decoration: BoxDecoration(
+              color: const Color(0xFF1E293B),
+              borderRadius: BorderRadius.circular(4),
+              border: Border.all(color: const Color(0xFF334155), width: 0.8),
+            ),
+            child: const Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.monitor_heart_rounded, color: Color(0xFF00E5FF), size: 11),
+                SizedBox(width: 4),
+                Text(
+                  '8 CLASSIC ECGs:',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 8.5,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ],
+            ),
           ),
           const SizedBox(width: 6),
           Expanded(
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(
-                children: OscilloscopeRhythmType.values.map((rhythm) {
-                  final isSelected = rhythm == _currentRhythm;
-                  Color chipColor = const Color(0xFF00E676);
-                  if (rhythm.isArrest) {
-                    chipColor = const Color(0xFFFF1744);
-                  } else if (rhythm == OscilloscopeRhythmType.vtach || rhythm == OscilloscopeRhythmType.torsades) {
-                    chipColor = const Color(0xFFFF9100);
-                  } else if (rhythm == OscilloscopeRhythmType.avb3Complete || rhythm == OscilloscopeRhythmType.avb2Mobitz2) {
-                    chipColor = const Color(0xFFFF5252);
-                  } else if (rhythm == OscilloscopeRhythmType.afib || rhythm == OscilloscopeRhythmType.aflutter || rhythm == OscilloscopeRhythmType.svt) {
-                    chipColor = const Color(0xFFFFD740);
-                  }
-
-                  return Padding(
-                    padding: const EdgeInsets.only(right: 5),
-                    child: InkWell(
-                      onTap: () => _switchRhythm(rhythm),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2.5),
-                        decoration: BoxDecoration(
-                          color: isSelected ? chipColor.withValues(alpha: 0.25) : Colors.white.withValues(alpha: 0.04),
-                          borderRadius: BorderRadius.circular(4),
-                          border: Border.all(
-                            color: isSelected ? chipColor : Colors.white12,
-                            width: isSelected ? 1.2 : 0.6,
+                children: [
+                  // ── The 8 Classic ECG Recognition Situations ───────────────
+                  ...OscilloscopeRhythmType.classic8.map((rhythm) {
+                    final isSelected = rhythm == _currentRhythm;
+                    final chipColor = _getRhythmChipColor(rhythm);
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 5),
+                      child: InkWell(
+                        key: Key('ecg_quick_${rhythm.id}'),
+                        onTap: () => _switchRhythm(rhythm),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2.5),
+                          decoration: BoxDecoration(
+                            color: isSelected
+                                ? chipColor.withValues(alpha: 0.25)
+                                : Colors.white.withValues(alpha: 0.04),
+                            borderRadius: BorderRadius.circular(4),
+                            border: Border.all(
+                              color: isSelected ? chipColor : Colors.white24,
+                              width: isSelected ? 1.4 : 0.7,
+                            ),
                           ),
-                        ),
-                        child: Text(
-                          rhythm.badge,
-                          style: TextStyle(
-                            color: isSelected ? chipColor : Colors.white70,
-                            fontSize: 8.5,
-                            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                          child: Text(
+                            rhythm.badge,
+                            style: TextStyle(
+                              color: isSelected ? chipColor : Colors.white,
+                              fontSize: 8.5,
+                              fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  );
-                }).toList(),
+                    );
+                  }),
+
+                  // ── Separator for Remaining Rhythms ───────────────────────
+                  Container(
+                    height: 14,
+                    width: 1,
+                    margin: const EdgeInsets.symmetric(horizontal: 6),
+                    color: Colors.white24,
+                  ),
+                  const Text(
+                    'MORE:',
+                    style: TextStyle(color: Colors.white38, fontSize: 8, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(width: 5),
+
+                  // ── Other Rhythms in Library ──────────────────────────────
+                  ...OscilloscopeRhythmType.values
+                      .where((r) => !OscilloscopeRhythmType.classic8.contains(r))
+                      .map((rhythm) {
+                    final isSelected = rhythm == _currentRhythm;
+                    final chipColor = _getRhythmChipColor(rhythm);
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 5),
+                      child: InkWell(
+                        key: Key('ecg_more_${rhythm.id}'),
+                        onTap: () => _switchRhythm(rhythm),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2.5),
+                          decoration: BoxDecoration(
+                            color: isSelected
+                                ? chipColor.withValues(alpha: 0.25)
+                                : Colors.white.withValues(alpha: 0.03),
+                            borderRadius: BorderRadius.circular(4),
+                            border: Border.all(
+                              color: isSelected ? chipColor : Colors.white12,
+                              width: isSelected ? 1.2 : 0.6,
+                            ),
+                          ),
+                          child: Text(
+                            rhythm.badge,
+                            style: TextStyle(
+                              color: isSelected ? chipColor : Colors.white60,
+                              fontSize: 8.5,
+                              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  }),
+                ],
               ),
             ),
           ),
@@ -1582,9 +1870,9 @@ class _CardiacHemodynamicEcgStripState extends State<CardiacHemodynamicEcgStrip>
                 children: [
                   const Text('INTERVALS (II)', style: TextStyle(color: Colors.white38, fontSize: 7.5, fontFamily: 'monospace')),
                   const SizedBox(height: 2),
-                  Text('PR: ${_currentRhythm.id.contains("avb_1") ? "260" : "160"} ms', style: const TextStyle(color: Color(0xFF90CAF9), fontSize: 8.5, fontFamily: 'monospace')),
-                  Text('QRS: ${_currentRhythm == OscilloscopeRhythmType.vtach ? "160" : (_currentRhythm == OscilloscopeRhythmType.avb3Complete ? "145" : "84")} ms', style: const TextStyle(color: Color(0xFF90CAF9), fontSize: 8.5, fontFamily: 'monospace')),
-                  Text('QTc: ${_currentRhythm == OscilloscopeRhythmType.torsades ? ">540" : "410"} ms', style: const TextStyle(color: Color(0xFF90CAF9), fontSize: 8.5, fontFamily: 'monospace')),
+                  Text('PR: ${_currentRhythm == OscilloscopeRhythmType.hyperkalemia ? "215" : (_currentRhythm.id.contains("avb_1") ? "260" : "160")} ms', style: const TextStyle(color: Color(0xFF90CAF9), fontSize: 8.5, fontFamily: 'monospace')),
+                  Text('QRS: ${_currentRhythm == OscilloscopeRhythmType.hyperkalemia ? "148" : (_currentRhythm == OscilloscopeRhythmType.vtach ? "160" : (_currentRhythm == OscilloscopeRhythmType.avb3Complete ? "145" : "84"))} ms', style: const TextStyle(color: Color(0xFF90CAF9), fontSize: 8.5, fontFamily: 'monospace')),
+                  Text('QTc: ${_currentRhythm == OscilloscopeRhythmType.hypokalemia ? "490 (QU)" : (_currentRhythm == OscilloscopeRhythmType.torsades ? ">540" : "410")} ms', style: const TextStyle(color: Color(0xFF90CAF9), fontSize: 8.5, fontFamily: 'monospace')),
                 ],
               ),
             ),
@@ -2388,7 +2676,7 @@ class _FiveChannelHospitalOscilloscopePainter extends CustomPainter {
           v = 1.30 * math.sin(tau * math.pi) * envelope;
         }
       } else {
-        v = CardiacHemodynamicEcgStrip.computeSyntheticEcgSample(localPhase, stElevationMm);
+        v = CardiacHemodynamicEcgStrip.computeSyntheticEcgSample(localPhase, stElevationMm, rhythm: rhythm);
       }
 
       if (tcpActive && localPhase >= 0.22 && localPhase <= 0.24) {
@@ -2655,7 +2943,7 @@ class _FiveChannelHospitalOscilloscopePainter extends CustomPainter {
     final r1 = Rect.fromLTWH(0, chHeight * 0.0, size.width, chHeight);
     final v1 = (rhythm == OscilloscopeRhythmType.vfib)
         ? 0.40 * math.sin(localPhase * 28.0)
-        : (rhythm == OscilloscopeRhythmType.asystole ? 0.0 : CardiacHemodynamicEcgStrip.computeSyntheticEcgSample(localPhase, stElevationMm));
+        : (rhythm == OscilloscopeRhythmType.asystole ? 0.0 : CardiacHemodynamicEcgStrip.computeSyntheticEcgSample(localPhase, stElevationMm, rhythm: rhythm));
     final y1 = (r1.top + r1.height * 0.76) - (v1 * (gainMmMv / 10.0) * (r1.height * 0.56));
     _drawPhosphorDot(canvas, Offset(cursorX, y1), _isThermal ? const Color(0xFF991B1B) : const Color(0xFF00E676));
 
