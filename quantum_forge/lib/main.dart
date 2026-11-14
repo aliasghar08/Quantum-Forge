@@ -22,6 +22,7 @@ import 'package:quantum_forge/core/services/session_state_service.dart';
 import 'package:quantum_forge/core/services/feedback_service.dart';
 import 'package:quantum_forge/core/widgets/floating_copyright_watermark.dart';
 import 'package:quantum_forge/screens/cardio_cath_screen.dart';
+import 'package:quantum_forge/screens/neuro_lab_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -192,6 +193,11 @@ class _QuantumForgeAppState extends State<QuantumForgeApp> {
                 final path = uri?.path ?? '';
                 if (path == '/cardiac' || path == 'cardiac') {
                   return CardioCathScreen.route(
+                    initialScenarioId: uri?.queryParameters['scenario'],
+                  );
+                }
+                if (path == '/neuro' || path == 'neuro' || path == '/neurolab' || path == 'neurolab') {
+                  return NeuroLabScreen.route(
                     initialScenarioId: uri?.queryParameters['scenario'],
                   );
                 }

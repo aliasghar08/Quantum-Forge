@@ -19,6 +19,7 @@ import 'package:quantum_forge/screens/pharmacogenomics_screen.dart';
 import 'package:quantum_forge/screens/osce_sandbox_screen.dart';
 import 'package:quantum_forge/screens/ddi_split_screen.dart';
 import 'package:quantum_forge/screens/cardio_cath_screen.dart';
+import 'package:quantum_forge/screens/neuro_lab_screen.dart';
 import 'package:quantum_forge/core/widgets/quantum_forge_logo.dart';
 import 'package:quantum_forge/core/services/url_service.dart';
 
@@ -200,6 +201,14 @@ class ProfessionalDrawer extends StatelessWidget {
               () => Navigator.of(context).push(CardioCathScreen.route()),
               showTooltips,
               'Coronary angiography, C-arm fluoroscopy and live hemodynamic telemetry lab.',
+            ),
+            _routeItem(
+              context,
+              Icons.psychology_rounded,
+              'NeuroLab 3D (Brain & Spine)',
+              () => Navigator.of(context).push(NeuroLabScreen.route()),
+              showTooltips,
+              'Brain anatomy, Circle of Willis, biplane DSA, 5-channel Neuro-ICU and spinal tracts.',
             ),
 
             SizedBox(height: gap(12)),

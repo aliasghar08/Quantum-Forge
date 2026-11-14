@@ -15,6 +15,7 @@ import 'package:quantum_forge/screens/pharmacogenomics_screen.dart';
 import 'package:quantum_forge/screens/osce_sandbox_screen.dart';
 import 'package:quantum_forge/screens/ddi_split_screen.dart';
 import 'package:quantum_forge/screens/cardio_cath_screen.dart';
+import 'package:quantum_forge/screens/neuro_lab_screen.dart';
 import 'package:quantum_forge/features/pharmacopeia/data/pharmacopeia_database.dart';
 import 'package:quantum_forge/features/pharmacopeia/data/medicine_pharmacology_profile.dart';
 
@@ -272,6 +273,14 @@ class _QuantumControlsPanelState extends State<QuantumControlsPanel> {
           subtitle: 'Coronary angiography & fluoroscopy simulator',
           onTap: () => Navigator.of(context).push(CardioCathScreen.route()),
         ),
+        const SizedBox(height: 8),
+        _clinicalActionPill(
+          icon: Icons.psychology_rounded,
+          color: const Color(0xFF38BDF8),
+          label: 'NeuroLab 3D',
+          subtitle: 'Brain, Circle of Willis & spinal workstation',
+          onTap: () => Navigator.of(context).push(NeuroLabScreen.route()),
+        ),
       ];
     }
 
@@ -340,6 +349,14 @@ class _QuantumControlsPanelState extends State<QuantumControlsPanel> {
         label: 'CardioCath 3D Lab',
         subtitle: 'C-Arm fluoroscopy & cardiac hemodynamics',
         onTap: () => Navigator.of(context).push(CardioCathScreen.route()),
+      ),
+      const SizedBox(height: 8),
+      _clinicalActionPill(
+        icon: Icons.psychology_rounded,
+        color: const Color(0xFF38BDF8),
+        label: 'NeuroLab 3D',
+        subtitle: 'Biplane DSA, IONM & spinal cord workstation',
+        onTap: () => Navigator.of(context).push(NeuroLabScreen.route()),
       ),
     ];
   }
