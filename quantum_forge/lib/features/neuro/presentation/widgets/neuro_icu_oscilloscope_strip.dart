@@ -23,6 +23,8 @@ class NeuroIcuOscilloscopeStrip extends StatefulWidget {
   final EegPattern eegPattern;
   final ValueChanged<EegPattern>? onEegPatternChanged;
   final bool isThrombectomized;
+  final double? mapMmHg;
+  final double? icpMmHg;
 
   const NeuroIcuOscilloscopeStrip({
     super.key,
@@ -31,6 +33,8 @@ class NeuroIcuOscilloscopeStrip extends StatefulWidget {
     this.eegPattern = EegPattern.normalAlpha,
     this.onEegPatternChanged,
     this.isThrombectomized = false,
+    this.mapMmHg,
+    this.icpMmHg,
   });
 
   @override
@@ -74,9 +78,9 @@ class _NeuroIcuOscilloscopeStripState extends State<NeuroIcuOscilloscopeStrip>
 
   @override
   Widget build(BuildContext context) {
-    // Current physiological numbers
-    final icp = widget.scenario.icpMmHg;
-    final map = widget.scenario.mapMmHg;
+    // Current physiological numbers (synchronized with Master Vitals if provided)
+    final icp = widget.icpMmHg ?? widget.scenario.icpMmHg;
+    final map = widget.mapMmHg ?? widget.scenario.mapMmHg;
     final cpp = map - icp;
     final isIcpAlarm = icp > 20.0;
     final isCppLow = cpp < 60.0;

@@ -67,6 +67,30 @@ class ApiEndpoints {
   static String get neuroIonmOscilloscopeUrl =>
       '${sanitize(neurolabBackendUrl)}/api/neuro/ionm-oscilloscope';
 
+  /// NeuroLab TCD Lindegaard Vasospasm Analysis URL
+  static String get neuroTcdVasospasmUrl =>
+      '${sanitize(neurolabBackendUrl)}/api/neuro/tcd-vasospasm';
+
+  /// NeuroLab qEEG Spectral & Seizure Dynamics URL
+  static String get neuroQeegSpectralUrl =>
+      '${sanitize(neurolabBackendUrl)}/api/neuro/qeeg-spectral';
+
+  /// NeuroLab EMG & Nerve Conduction Study (NCS) URL
+  static String get neuroEmgNcsUrl =>
+      '${sanitize(neurolabBackendUrl)}/api/neuro/emg-ncs';
+
+  /// NeuroLab Endovascular Flow Diverter WSS CFD URL
+  static String get neuroFlowDiverterUrl =>
+      '${sanitize(neurolabBackendUrl)}/api/neuro/aneurysm-flow-diverter';
+
+  /// NeuroLab BBB Permeability & CNS MPO Molecular Screener URL
+  static String get neuroBbbPredictUrl =>
+      '${sanitize(neurolabBackendUrl)}/api/neuro/bbb-predict';
+
+  /// NeuroLab In-Silico Virtual Neuro-ICU Cohort Simulation URL
+  static String get neuroResearchCohortUrl =>
+      '${sanitize(neurolabBackendUrl)}/api/neuro/research-cohort';
+
   /// CardioNephroGNN: Multi-target cardio-renal drug affinity and hERG cardiotoxicity prediction
   static String get cardioNephroPredictUrl =>
       '${sanitize(cardioCathBackendUrl)}/api/cardio-nephro/predict';

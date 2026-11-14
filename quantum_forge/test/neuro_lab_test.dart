@@ -203,6 +203,8 @@ void main() {
 
       final rxBtn = find.text('Neuropharmacology');
       expect(rxBtn, findsOneWidget);
+      await tester.ensureVisible(rxBtn);
+      await tester.pump();
       await tester.tap(rxBtn);
       await tester.pump(const Duration(milliseconds: 300));
 
@@ -229,6 +231,8 @@ void main() {
 
       final shieldBtn = find.byIcon(Icons.shield_rounded);
       expect(shieldBtn, findsWidgets);
+      await tester.ensureVisible(shieldBtn.first);
+      await tester.pump();
       await tester.tap(shieldBtn.first);
       await tester.pump(const Duration(milliseconds: 300));
 
@@ -291,6 +295,8 @@ void main() {
       // Tap OSCE Exam Mode toggle button
       final osceBtn = find.text('OSCE Exam Mode');
       expect(osceBtn, findsOneWidget);
+      await tester.ensureVisible(osceBtn);
+      await tester.pump();
       await tester.tap(osceBtn);
       await tester.pump();
 
@@ -363,6 +369,54 @@ void main() {
       expect(ionm.mepUv.length, 50);
       expect(ionm.icpMmHg.length, 50);
       expect(ionm.dominantFrequencyHz, 1.5);
+    });
+
+    testWidgets('switches to Clinical Diagnostics mode and renders 6-module diagnostic suite', (tester) async {
+      tester.view.physicalSize = const Size(1300, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(buildTestScreen());
+      await tester.pump();
+
+      // Verify Master Vitals Bar is mounted
+      expect(find.text('NEURO-CRITICAL CARE TELEMETRY CONTROLLER'), findsOneWidget);
+      expect(find.text('CPP = MAP - ICP'), findsOneWidget);
+
+      // Tap Clinical Diagnostics View
+      final diagBtn = find.text('Clinical Diagnostics');
+      expect(diagBtn, findsOneWidget);
+      await tester.tap(diagBtn);
+      await tester.pump();
+
+      // Diagnostic tabs should be present
+      expect(find.text('1. CRANIAL NERVES & REFLEXES'), findsOneWidget);
+      expect(find.text('2. TCD & LINDEGAARD'), findsOneWidget);
+      expect(find.text('3. qEEG & SEIZURE TITRATION'), findsOneWidget);
+      expect(find.text('4. EMG / NCS & RNS LAB'), findsOneWidget);
+    });
+
+    testWidgets('switches to Research & FNO mode and renders 4-module computational suite', (tester) async {
+      tester.view.physicalSize = const Size(1300, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(buildTestScreen());
+      await tester.pump();
+
+      // Tap Research & FNO View
+      final researchBtn = find.text('Research & FNO');
+      expect(researchBtn, findsOneWidget);
+      await tester.tap(researchBtn);
+      await tester.pump();
+
+      // Research tabs should be present
+      expect(find.text('A. NeuroFNO 3D COLLATERALS & PENUMBRA'), findsOneWidget);
+      expect(find.text('B. FLOW-DIVERTER WSS CFD PROFILER'), findsOneWidget);
+      expect(find.text('C. VIRTUAL COHORT & TORNADO PLOT'), findsOneWidget);
+      expect(find.text('D. NeuroBBB-GNN & 1000Hz DATA EXPORT'), findsOneWidget);
     });
   });
 }
