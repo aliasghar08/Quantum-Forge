@@ -161,6 +161,90 @@
     flutter_bootstrap.js is injected by the module script in <head>, not loaded
     here, so that the Firebase globals are in place before Flutter starts.
   -->
+  <!--
+    ============================================================================
+    Quantum Forge — High-Tech Branded Splash & Engine Loader
+    ----------------------------------------------------------------------------
+    Instantly displays during the 1-2 second Flutter Web engine initialization,
+    preventing any flash of raw HTML crawler text. Fades out smoothly as soon
+    as the Flutter canvas mounts.
+    ============================================================================
+  -->
+  <div id="app-splash-loader" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #060911; z-index: 999999; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #E2E8F0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; transition: opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1); pointer-events: all;">
+    <!-- Glowing Quantum Forge Atom Symbol -->
+    <div style="position: relative; width: 72px; height: 72px; margin-bottom: 22px;">
+      <div style="position: absolute; inset: -4px; border-radius: 22px; background: linear-gradient(135deg, rgba(0, 191, 165, 0.35), rgba(0, 229, 255, 0.35)); filter: blur(14px);"></div>
+      <div style="position: relative; width: 72px; height: 72px; border-radius: 18px; background: #0F172A; border: 1.5px solid rgba(0, 229, 255, 0.45); display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);">
+        <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="#00E5FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3" fill="#00BFA5"></circle>
+          <path d="M12 21a9 9 0 0 0 9-9 9 9 0 0 0-9-9 9 9 0 0 0 9 9z" stroke-dasharray="4 4"></path>
+          <path d="M3.6 9h16.8"></path>
+          <path d="M3.6 15h16.8"></path>
+          <path d="M12 2v20"></path>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Title & Brand Text -->
+    <h1 style="margin: 0 0 6px 0; font-size: 1.35rem; font-weight: 800; letter-spacing: -0.01em; color: #FFFFFF;">Quantum Forge</h1>
+    <p style="margin: 0 0 26px 0; font-size: 0.78rem; color: #64748B; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 600;">Reaction Dynamics &amp; Clinical Simulation Workstation</p>
+
+    <!-- High-Tech Animated Pulse Progress Bar -->
+    <div style="width: 210px; height: 3px; background: rgba(255, 255, 255, 0.08); border-radius: 999px; overflow: hidden; position: relative;">
+      <div id="splash-pulse" style="position: absolute; top: 0; left: 0; height: 100%; width: 45%; background: linear-gradient(90deg, #00BFA5, #00E5FF); border-radius: 999px; animation: qf-slide 1.3s cubic-bezier(0.4, 0, 0.2, 1) infinite;"></div>
+    </div>
+    <span style="margin-top: 14px; font-size: 0.72rem; color: #475569; letter-spacing: 0.04em;">Initializing computational modules...</span>
+  </div>
+
+  <style>
+    @keyframes qf-slide {
+      0% { left: -45%; width: 35%; }
+      50% { left: 35%; width: 55%; }
+      100% { left: 100%; width: 35%; }
+    }
+  </style>
+
+  <script>
+    (function() {
+      var dismissed = false;
+      function dismissSplash() {
+        if (dismissed) return;
+        dismissed = true;
+        var splash = document.getElementById('app-splash-loader');
+        if (splash) {
+          splash.style.opacity = '0';
+          splash.style.pointerEvents = 'none';
+          setTimeout(function() {
+            if (splash && splash.parentNode) {
+              splash.parentNode.removeChild(splash);
+            }
+          }, 360);
+        }
+        var crawler = document.getElementById('seo-crawler-content');
+        if (crawler) {
+          crawler.style.display = 'none';
+        }
+      }
+
+      window.__dismissQuantumSplash = dismissSplash;
+
+      // Observe DOM for Flutter canvas mounting
+      var observer = new MutationObserver(function(mutations, obs) {
+        var flt = document.querySelector('flutter-view') || document.querySelector('flt-glass-pane');
+        if (flt) {
+          obs.disconnect();
+          requestAnimationFrame(function() {
+            setTimeout(dismissSplash, 120);
+          });
+        }
+      });
+      observer.observe(document.documentElement, { childList: true, subtree: true });
+
+      // Fallback timeout to guarantee removal
+      setTimeout(dismissSplash, 4500);
+    })();
+  </script>
+
   <noscript>
     <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 960px; margin: 40px auto; padding: 24px; line-height: 1.7; color: #111; background: #fff; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
       <h1 style="color: #0f172a; font-size: 2rem;">Quantum Forge — Next-Generation Transition State MLIP & Quantum Chemistry Reaction Dynamics Workstation</h1>
