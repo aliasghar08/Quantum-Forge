@@ -15,6 +15,7 @@ class DdiSplitScreen extends StatelessWidget {
   static Route<void> route() {
     return MaterialPageRoute<void>(
       builder: (_) => const DdiSplitScreen(),
+      settings: const RouteSettings(name: '/ddi'),
     );
   }
 

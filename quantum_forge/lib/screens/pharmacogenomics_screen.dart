@@ -15,6 +15,7 @@ class PharmacogenomicsScreen extends StatelessWidget {
   static Route<void> route() {
     return MaterialPageRoute<void>(
       builder: (_) => const PharmacogenomicsScreen(),
+      settings: const RouteSettings(name: '/pharmacogenomics'),
     );
   }
 

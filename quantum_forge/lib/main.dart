@@ -23,6 +23,10 @@ import 'package:quantum_forge/core/services/feedback_service.dart';
 import 'package:quantum_forge/core/widgets/floating_copyright_watermark.dart';
 import 'package:quantum_forge/screens/cardio_cath_screen.dart';
 import 'package:quantum_forge/screens/neuro_lab_screen.dart';
+import 'package:quantum_forge/screens/pharmacogenomics_screen.dart';
+import 'package:quantum_forge/screens/osce_sandbox_screen.dart';
+import 'package:quantum_forge/screens/ddi_split_screen.dart';
+import 'package:quantum_forge/core/services/app_route_observer.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -119,13 +123,32 @@ Future<void> initialiseCloudFeatures() async {
 }
 
 class QuantumForgeApp extends StatefulWidget {
-  const QuantumForgeApp({super.key});
+  final String? initialRouteOverride;
+
+  const QuantumForgeApp({super.key, this.initialRouteOverride});
 
   @override
   State<QuantumForgeApp> createState() => _QuantumForgeAppState();
 }
 
 class _QuantumForgeAppState extends State<QuantumForgeApp> {
+  String _resolveInitialRoute() {
+    if (widget.initialRouteOverride != null) {
+      return widget.initialRouteOverride!;
+    }
+    // Check if the browser URL was launched/refreshed with a specific path
+    final defaultRoute = WidgetsBinding.instance.platformDispatcher.defaultRouteName;
+    if (defaultRoute != '/' && defaultRoute.isNotEmpty && defaultRoute != 'null') {
+      return defaultRoute;
+    }
+    // Otherwise, synchronously restore the last remembered screen from localStorage
+    final saved = AppRouteObserver.lastActiveRoute;
+    if (saved != null && saved.isNotEmpty && saved != '/') {
+      return saved;
+    }
+    return '/';
+  }
+
   @override
   Widget build(BuildContext context) {
     // Both notifiers participate in theming: the theme supplies the palette and
@@ -163,6 +186,10 @@ class _QuantumForgeAppState extends State<QuantumForgeApp> {
               title: 'Quantum Forge',
               debugShowCheckedModeBanner: false,
               theme: themeData,
+              initialRoute: _resolveInitialRoute(),
+              navigatorObservers: [
+                AppRouteObserver(),
+              ],
               builder: (context, child) {
                 // Compact mode also tightens the text scale slightly; opt out
                 // when the reader has asked for reduced motion *and* is on a
@@ -189,9 +216,11 @@ class _QuantumForgeAppState extends State<QuantumForgeApp> {
               },
               home: const AuthGate(),
               onGenerateRoute: (routeSettings) {
-                final uri = Uri.tryParse(routeSettings.name ?? '');
-                final path = uri?.path ?? '';
-                if (path == '/cardiac' || path == 'cardiac') {
+                final rawName = routeSettings.name ?? '';
+                final uri = Uri.tryParse(rawName);
+                final path = uri?.path.toLowerCase() ?? '';
+
+                if (path == '/cardiac' || path == 'cardiac' || path == '/cardio' || path == 'cardio' || path == '/cardiocath' || path == 'cardiocath') {
                   return CardioCathScreen.route(
                     initialScenarioId: uri?.queryParameters['scenario'],
                   );
@@ -200,6 +229,17 @@ class _QuantumForgeAppState extends State<QuantumForgeApp> {
                   return NeuroLabScreen.route(
                     initialScenarioId: uri?.queryParameters['scenario'],
                   );
+                }
+                if (path == '/pharmacogenomics' || path == 'pharmacogenomics') {
+                  return PharmacogenomicsScreen.route();
+                }
+                if (path == '/osce' || path == 'osce') {
+                  return OsceSandboxScreen.route(
+                    initialScenarioId: uri?.queryParameters['scenario'],
+                  );
+                }
+                if (path == '/ddi' || path == 'ddi') {
+                  return DdiSplitScreen.route();
                 }
                 return null;
               },

@@ -19,6 +19,9 @@ class OsceSandboxScreen extends StatefulWidget {
   static Route<void> route({String? initialScenarioId}) {
     return MaterialPageRoute<void>(
       builder: (_) => OsceSandboxScreen(initialScenarioId: initialScenarioId),
+      settings: RouteSettings(
+        name: initialScenarioId != null ? '/osce?scenario=$initialScenarioId' : '/osce',
+      ),
     );
   }
 

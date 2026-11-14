@@ -29,7 +29,9 @@ class NeuroLabScreen extends StatefulWidget {
   static Route<void> route({String? initialScenarioId}) {
     return MaterialPageRoute<void>(
       builder: (_) => NeuroLabScreen(initialScenarioId: initialScenarioId),
-      settings: const RouteSettings(name: '/neuro'),
+      settings: RouteSettings(
+        name: initialScenarioId != null ? '/neuro?scenario=$initialScenarioId' : '/neuro',
+      ),
     );
   }
 
