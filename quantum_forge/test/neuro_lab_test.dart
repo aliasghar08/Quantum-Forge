@@ -17,6 +17,7 @@ import 'package:quantum_forge/features/neuro/presentation/widgets/neuro_icu_osci
 import 'package:quantum_forge/features/neuro/presentation/widgets/spinal_cord_localizer_panel.dart';
 import 'package:quantum_forge/features/neuro/presentation/widgets/neuro_clinical_info_system.dart';
 import 'package:quantum_forge/features/neuro/presentation/widgets/neuro_drug_mechanism_dialog.dart';
+import 'package:quantum_forge/features/neuro/presentation/widgets/neuro_osce_exam_panel.dart';
 
 void main() {
   group('NeuroLab 3D: Workstation & Physiology Engine Tests', () {
@@ -277,6 +278,91 @@ void main() {
       );
       expect(icpVal.isFinite, isTrue);
       expect(icpVal, greaterThan(5.0));
+    });
+    testWidgets('activates Timed OSCE Exam Mode and submits station answers', (tester) async {
+      tester.view.physicalSize = const Size(1280, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(buildTestScreen());
+      await tester.pump();
+
+      // Tap OSCE Exam Mode toggle button
+      final osceBtn = find.text('OSCE Exam Mode');
+      expect(osceBtn, findsOneWidget);
+      await tester.tap(osceBtn);
+      await tester.pump();
+
+      // Check for masked ribbon and candidate panel
+      expect(find.textContaining('OSCE BOARD EXAM ACTIVE'), findsOneWidget);
+      expect(find.byType(NeuroOsceExamPanel), findsOneWidget);
+      expect(find.text('OSCE #2026-NEURO'), findsOneWidget);
+      expect(find.text('Station 1/5'), findsOneWidget);
+
+      // Select answers for Station 1
+      final locChoice = find.textContaining('Left MCA M1 trunk occlusion with large salvageable penumbra');
+      expect(locChoice, findsOneWidget);
+      await tester.ensureVisible(locChoice);
+      await tester.pump();
+      await tester.tap(locChoice);
+      await tester.pump();
+
+      final procChoice = find.textContaining('Solitaire™ Stent-Retriever Mechanical Thrombectomy');
+      expect(procChoice, findsOneWidget);
+      await tester.ensureVisible(procChoice);
+      await tester.pump();
+      await tester.tap(procChoice);
+      await tester.pump();
+
+      final rxChoice = find.textContaining('IV Tenecteplase 0.25 mg/kg bolus');
+      expect(rxChoice, findsOneWidget);
+      await tester.ensureVisible(rxChoice);
+      await tester.pump();
+      await tester.tap(rxChoice);
+      await tester.pump();
+
+      // Submit station
+      final submitBtn = find.text('Submit Station Responses');
+      expect(submitBtn, findsOneWidget);
+      await tester.ensureVisible(submitBtn);
+      await tester.pump();
+      await tester.tap(submitBtn);
+      await tester.pump();
+
+      // Score and faculty rationale should appear
+      expect(find.textContaining('Station Score: 100 / 100 Points'), findsOneWidget);
+      expect(find.textContaining('Faculty Rationale:'), findsOneWidget);
+    });
+
+    test('validates CloudHemodynamics and CloudIonm local fallbacks', () async {
+      final hemo = await NeuroHemodynamicsEngine.fetchCloudHemodynamics(
+        scenarioId: 'left_m1_stroke',
+        meanArterialPressure: 110.0,
+        heartRateBpm: 88.0,
+        baselineIcp: 14.0,
+        hasM1Occlusion: true,
+      );
+      expect(hemo.scenarioId, 'left_m1_stroke');
+      expect(hemo.icpMmHg, greaterThan(14.0));
+      expect(hemo.cppMmHg, greaterThan(50.0));
+      expect(hemo.ticiReperfusionGrade, contains('TICI 0'));
+
+      final ionm = await NeuroHemodynamicsEngine.fetchCloudIonmWaveforms(
+        scenarioId: 'left_m1_stroke',
+        eegPattern: EegPattern.focalDeltaSlowing,
+        spinalSyndrome: SpinalSyndrome.brownSequard,
+        baselineIcp: 14.0,
+        meanArterialPressure: 110.0,
+        durationSeconds: 0.5,
+        samplingRateHz: 100,
+      );
+      expect(ionm.timePoints.length, 50);
+      expect(ionm.eegLeftUv.length, 50);
+      expect(ionm.ssepUv.length, 50);
+      expect(ionm.mepUv.length, 50);
+      expect(ionm.icpMmHg.length, 50);
+      expect(ionm.dominantFrequencyHz, 1.5);
     });
   });
 }

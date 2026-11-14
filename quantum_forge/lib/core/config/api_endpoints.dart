@@ -53,6 +53,20 @@ class ApiEndpoints {
     defaultValue: 'https://cardiocath-backend-227207155336.us-central1.run.app',
   );
 
+  /// Dedicated Google Cloud Run Neurovascular & CSF Physics Backend
+  static const String neurolabBackendUrl = String.fromEnvironment(
+    'NEUROLAB_API_BASE_URL',
+    defaultValue: 'https://neurolab-backend-227207155336.us-central1.run.app',
+  );
+
+  /// NeuroLab Hemodynamics & Circle of Willis Autoregulation URL
+  static String get neuroHemodynamicsUrl =>
+      '${sanitize(neurolabBackendUrl)}/api/neuro/hemodynamics';
+
+  /// NeuroLab 500 Hz Multi-Channel IONM Oscilloscope Synthesis URL
+  static String get neuroIonmOscilloscopeUrl =>
+      '${sanitize(neurolabBackendUrl)}/api/neuro/ionm-oscilloscope';
+
   /// CardioNephroGNN: Multi-target cardio-renal drug affinity and hERG cardiotoxicity prediction
   static String get cardioNephroPredictUrl =>
       '${sanitize(cardioCathBackendUrl)}/api/cardio-nephro/predict';

@@ -463,3 +463,4 @@ class _Brain3DFallbackPainter extends CustomPainter {
         oldDelegate.isCoiled != isCoiled;
   }
 }
+

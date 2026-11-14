@@ -19,6 +19,7 @@ import '../features/neuro/presentation/widgets/neuro_icu_oscilloscope_strip.dart
 import '../features/neuro/presentation/widgets/spinal_cord_localizer_panel.dart';
 import '../features/neuro/presentation/widgets/neuro_clinical_info_system.dart';
 import '../features/neuro/presentation/widgets/neuro_drug_mechanism_dialog.dart';
+import '../features/neuro/presentation/widgets/neuro_osce_exam_panel.dart';
 
 class NeuroLabScreen extends StatefulWidget {
   final String? initialScenarioId;
@@ -46,6 +47,7 @@ class _NeuroLabScreenState extends State<NeuroLabScreen> {
 
   bool _isThrombectomized = false;
   bool _isCoiled = false;
+  bool _isOsceExamActive = false;
   int _activeViewportTab = 0; // 0 = 3D Brain/Spine, 1 = Biplane DSA
 
   @override
@@ -181,6 +183,34 @@ class _NeuroLabScreenState extends State<NeuroLabScreen> {
                   const NeuroInfoButton(topicId: 'circle_of_willis', size: 16),
                   const Spacer(),
 
+                  // OSCE Exam Mode Button
+                  ElevatedButton.icon(
+                    icon: Icon(
+                      _isOsceExamActive ? Icons.assignment_turned_in_rounded : Icons.timer_outlined,
+                      size: 14,
+                      color: _isOsceExamActive ? const Color(0xFF00E676) : const Color(0xFFFFD740),
+                    ),
+                    label: Text(
+                      _isOsceExamActive ? 'OSCE Active' : 'OSCE Exam Mode',
+                      style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: _isOsceExamActive ? const Color(0xFF064E3B) : const Color(0xFF1E293B),
+                      foregroundColor: Colors.white,
+                      side: BorderSide(
+                        color: _isOsceExamActive ? const Color(0xFF00E676) : const Color(0xFFFFD740),
+                        width: 1.0,
+                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _isOsceExamActive = !_isOsceExamActive;
+                      });
+                    },
+                  ),
+                  const SizedBox(width: 8),
+
                   // Molecular Neuropharmacology Dialog Trigger
                   ElevatedButton.icon(
                     icon: const Icon(Icons.medication_rounded, size: 14, color: Color(0xFF38BDF8)),
@@ -215,86 +245,127 @@ class _NeuroLabScreenState extends State<NeuroLabScreen> {
               ),
             ),
 
-            // 3. Clinical Scenario Horizontal Switcher Bar
-            Container(
-              color: const Color(0xFF070B13),
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
+            if (_isOsceExamActive)
+              Container(
+                color: const Color(0xFF070B13),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 child: Row(
-                  children: kNeuroScenarios.map((scenario) {
-                    final isSel = scenario.id == _activeScenario.id;
-                    return Padding(
-                      padding: const EdgeInsets.only(right: 8),
-                      child: ChoiceChip(
-                        avatar: Icon(
-                          isSel ? Icons.radio_button_checked : Icons.radio_button_unchecked,
-                          size: 14,
-                          color: isSel ? Colors.black : Colors.white60,
-                        ),
-                        label: Text(scenario.badge, style: const TextStyle(fontSize: 11)),
-                        selected: isSel,
-                        selectedColor: scenario.badgeColor.withValues(alpha: 0.9),
-                        backgroundColor: const Color(0xFF1E293B),
-                        labelStyle: TextStyle(
-                          color: isSel ? Colors.black : Colors.white70,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        onSelected: (val) {
-                          if (val) _switchScenario(scenario);
-                        },
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFB45309).withValues(alpha: 0.25),
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(color: const Color(0xFFFFB74D), width: 1.0),
                       ),
-                    );
-                  }).toList(),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.lock_clock_rounded, color: Color(0xFFFFB74D), size: 14),
+                          SizedBox(width: 6),
+                          Text(
+                            'OSCE BOARD EXAM ACTIVE — CLINICAL PATHOLOGY LABELS MASKED',
+                            style: TextStyle(
+                              color: Color(0xFFFFB74D),
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 0.8,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Spacer(),
+                    TextButton.icon(
+                      icon: const Icon(Icons.exit_to_app_rounded, size: 14, color: Colors.white70),
+                      label: const Text('Exit Exam Mode', style: TextStyle(color: Colors.white70, fontSize: 11)),
+                      onPressed: () => setState(() => _isOsceExamActive = false),
+                    ),
+                  ],
+                ),
+              )
+            else ...[
+              // 3. Clinical Scenario Horizontal Switcher Bar
+              Container(
+                color: const Color(0xFF070B13),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: kNeuroScenarios.map((scenario) {
+                      final isSel = scenario.id == _activeScenario.id;
+                      return Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: ChoiceChip(
+                          avatar: Icon(
+                            isSel ? Icons.radio_button_checked : Icons.radio_button_unchecked,
+                            size: 14,
+                            color: isSel ? Colors.black : Colors.white60,
+                          ),
+                          label: Text(scenario.badge, style: const TextStyle(fontSize: 11)),
+                          selected: isSel,
+                          selectedColor: scenario.badgeColor.withValues(alpha: 0.9),
+                          backgroundColor: const Color(0xFF1E293B),
+                          labelStyle: TextStyle(
+                            color: isSel ? Colors.black : Colors.white70,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          onSelected: (val) {
+                            if (val) _switchScenario(scenario);
+                          },
+                        ),
+                      );
+                    }).toList(),
+                  ),
                 ),
               ),
-            ),
 
-            // 4. Clinical Scenario Context Ribbon
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-              decoration: BoxDecoration(
-                color: _activeScenario.badgeColor.withValues(alpha: 0.08),
-                border: Border(bottom: BorderSide(color: _activeScenario.badgeColor.withValues(alpha: 0.25))),
-              ),
-              child: Row(
-                children: [
-                  Flexible(
-                    flex: 3,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: _activeScenario.badgeColor.withValues(alpha: 0.25),
-                        borderRadius: BorderRadius.circular(4),
+              // 4. Clinical Scenario Context Ribbon
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                decoration: BoxDecoration(
+                  color: _activeScenario.badgeColor.withValues(alpha: 0.08),
+                  border: Border(bottom: BorderSide(color: _activeScenario.badgeColor.withValues(alpha: 0.25))),
+                ),
+                child: Row(
+                  children: [
+                    Flexible(
+                      flex: 3,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: _activeScenario.badgeColor.withValues(alpha: 0.25),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          _activeScenario.title,
+                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: _activeScenario.badgeColor),
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      flex: 5,
                       child: Text(
-                        _activeScenario.title,
-                        style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: _activeScenario.badgeColor),
+                        _activeScenario.clinicalSummary,
+                        style: const TextStyle(fontSize: 11, color: Color(0xFFCBD5E1)),
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    flex: 5,
-                    child: Text(
-                      _activeScenario.clinicalSummary,
-                      style: const TextStyle(fontSize: 11, color: Color(0xFFCBD5E1)),
-                      overflow: TextOverflow.ellipsis,
+                    const SizedBox(width: 8),
+                    Flexible(
+                      flex: 3,
+                      child: Text(
+                        'Rx: ${_activeScenario.recommendedDrugMoa}',
+                        style: const TextStyle(fontSize: 10.5, color: Color(0xFF38BDF8), fontWeight: FontWeight.bold),
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  Flexible(
-                    flex: 3,
-                    child: Text(
-                      'Rx: ${_activeScenario.recommendedDrugMoa}',
-                      style: const TextStyle(fontSize: 10.5, color: Color(0xFF38BDF8), fontWeight: FontWeight.bold),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
+            ],
 
             // 5. Main 2x2 Workstation Canvas
             Expanded(
@@ -364,36 +435,61 @@ class _NeuroLabScreenState extends State<NeuroLabScreen> {
                           ),
                           const SizedBox(width: 8),
 
-                          // Right Column: Oscilloscope & Spinal Localizer
+                          // Right Column: Oscilloscope & Spinal Localizer (or OSCE Exam Panel)
                           Expanded(
                             flex: 5,
-                            child: Column(
-                              children: [
-                                // Top Right: 5-Channel Neuro-ICU Monitor
-                                Expanded(
-                                  flex: 6,
-                                  child: NeuroIcuOscilloscopeStrip(
-                                    scenario: _activeScenario,
-                                    spinalSyndrome: _selectedSyndrome,
-                                    eegPattern: _activeEegPattern,
-                                    onEegPatternChanged: (p) => setState(() => _activeEegPattern = p),
-                                    isThrombectomized: _isThrombectomized,
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
+                            child: _isOsceExamActive
+                                ? Column(
+                                    children: [
+                                      Expanded(
+                                        flex: 7,
+                                        child: NeuroOsceExamPanel(
+                                          onExitExamMode: () => setState(() => _isOsceExamActive = false),
+                                          onSyncScenario: _switchScenario,
+                                          onDeployThrombectomy: _deployThrombectomy,
+                                          onDeployCoil: _deployCoils,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Expanded(
+                                        flex: 5,
+                                        child: NeuroIcuOscilloscopeStrip(
+                                          scenario: _activeScenario,
+                                          spinalSyndrome: _selectedSyndrome,
+                                          eegPattern: _activeEegPattern,
+                                          onEegPatternChanged: (p) => setState(() => _activeEegPattern = p),
+                                          isThrombectomized: _isThrombectomized,
+                                        ),
+                                      ),
+                                    ],
+                                  )
+                                : Column(
+                                    children: [
+                                      // Top Right: 5-Channel Neuro-ICU Monitor
+                                      Expanded(
+                                        flex: 6,
+                                        child: NeuroIcuOscilloscopeStrip(
+                                          scenario: _activeScenario,
+                                          spinalSyndrome: _selectedSyndrome,
+                                          eegPattern: _activeEegPattern,
+                                          onEegPatternChanged: (p) => setState(() => _activeEegPattern = p),
+                                          isThrombectomized: _isThrombectomized,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 8),
 
-                                // Bottom Right: Spinal Cord Localizer
-                                Expanded(
-                                  flex: 5,
-                                  child: SpinalCordLocalizerPanel(
-                                    selectedSyndrome: _selectedSyndrome,
-                                    onSyndromeChanged: (s) => setState(() => _selectedSyndrome = s),
-                                    selectedLevel: _selectedSpineLevel,
-                                    onLevelChanged: (lvl) => setState(() => _selectedSpineLevel = lvl),
+                                      // Bottom Right: Spinal Cord Localizer
+                                      Expanded(
+                                        flex: 5,
+                                        child: SpinalCordLocalizerPanel(
+                                          selectedSyndrome: _selectedSyndrome,
+                                          onSyndromeChanged: (s) => setState(() => _selectedSyndrome = s),
+                                          selectedLevel: _selectedSpineLevel,
+                                          onLevelChanged: (lvl) => setState(() => _selectedSpineLevel = lvl),
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                ),
-                              ],
-                            ),
                           ),
                         ],
                       ),
@@ -404,6 +500,18 @@ class _NeuroLabScreenState extends State<NeuroLabScreen> {
                       padding: const EdgeInsets.all(8),
                       child: Column(
                         children: [
+                          if (_isOsceExamActive) ...[
+                            SizedBox(
+                              height: 520,
+                              child: NeuroOsceExamPanel(
+                                onExitExamMode: () => setState(() => _isOsceExamActive = false),
+                                onSyncScenario: _switchScenario,
+                                onDeployThrombectomy: _deployThrombectomy,
+                                onDeployCoil: _deployCoils,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                          ],
                           SizedBox(
                             height: 380,
                             child: Neuro3DBrainViewport(

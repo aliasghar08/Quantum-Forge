@@ -298,23 +298,23 @@ class _NeuroIcuOscilloscopeStripState extends State<NeuroIcuOscilloscopeStrip>
   }) {
     return Expanded(
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.centerLeft,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
                     label,
                     style: const TextStyle(fontSize: 9.5, fontWeight: FontWeight.bold, color: Colors.white60, letterSpacing: 0.5),
-                    overflow: TextOverflow.ellipsis,
                   ),
-                ),
-                const SizedBox(width: 4),
-                Flexible(
-                  child: Container(
+                  const SizedBox(width: 4),
+                  Container(
                     padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
                     decoration: BoxDecoration(
                       color: badgeColor.withValues(alpha: 0.8),
@@ -323,24 +323,22 @@ class _NeuroIcuOscilloscopeStripState extends State<NeuroIcuOscilloscopeStrip>
                     child: Text(
                       badgeText,
                       style: const TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: Colors.white),
-                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 2),
-            Text(
-              value,
-              style: TextStyle(
-                fontSize: isSmallValue ? 14 : 20,
-                fontWeight: FontWeight.bold,
-                fontFamily: 'monospace',
-                color: accentColor,
+                ],
               ),
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
+              const SizedBox(height: 2),
+              Text(
+                value,
+                style: TextStyle(
+                  fontSize: isSmallValue ? 14 : 20,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: 'monospace',
+                  color: accentColor,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
