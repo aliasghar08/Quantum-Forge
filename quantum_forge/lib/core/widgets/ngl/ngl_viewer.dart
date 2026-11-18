@@ -322,6 +322,7 @@ class NglViewerState extends State<NglViewer> {
       width: widget.width,
       height: widget.height,
       child: Stack(
+        fit: StackFit.expand,
         children: [
           Positioned.fill(
             child: HtmlElementView(

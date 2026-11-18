@@ -25,6 +25,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:quantum_forge/core/widgets/reaction_animation_widget.dart';
 import 'package:quantum_forge/features/reaction_runner/presentation/widgets/molecular_viewer_widget.dart';
+import 'package:quantum_forge/core/widgets/visualizations/bond_energy_spectrum_widget.dart';
+import 'package:quantum_forge/core/utils/molecular.dart';
 
 const String _frame1 =
     '3\nReactant\nC 0.00 0.00 0.00\nO 1.43 0.00 0.00\nH 2.39 0.00 0.00\n';
@@ -856,5 +858,56 @@ void main() {
     expect(tester.takeException(), isNull);
 
     await tester.pumpWidget(const SizedBox.shrink());
+  });
+
+  testWidgets('mobile iPhone viewport (375px) layout: verifies no overflow on telemetry and bond spectrum header', (tester) async {
+    FlutterErrorDetails? errorDetails;
+    final originalOnError = FlutterError.onError;
+    FlutterError.onError = (details) {
+      errorDetails = details;
+    };
+
+    try {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SizedBox(
+              width: 375,
+              height: 400,
+              child: BondEnergySpectrumWidget(
+                bonds: [
+                  BondDataPoint(
+                    index: 1,
+                    a1: Atom('C', 0, 0, 0, Colors.grey, 1.7, 0.77),
+                    a2: Atom('O', 1.43, 0, 0, Colors.red, 1.52, 0.73),
+                    distance: 1.43,
+                    idealDistance: 1.43,
+                    energy: 85.0,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+
+      if (errorDetails != null) {
+        // ignore: avoid_print
+        print('=== FLUTTER ERROR CAUGHT ===');
+        // ignore: avoid_print
+        print(errorDetails!.toString());
+      }
+      expect(errorDetails, isNull);
+
+      final titleFinder = find.text('Dynamic Bond Energy & Cleavage Spectrum');
+      expect(titleFinder, findsOneWidget);
+      final textWidget = tester.widget<Text>(titleFinder);
+      expect(textWidget.maxLines, 1);
+      expect(textWidget.overflow, TextOverflow.ellipsis);
+    } finally {
+      FlutterError.onError = originalOnError;
+      await tester.pumpWidget(const SizedBox.shrink());
+    }
   });
 }

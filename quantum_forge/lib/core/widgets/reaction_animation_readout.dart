@@ -5,11 +5,12 @@ extension _ReactionAnimationReadoutExt on _ReactionAnimationWidgetState {
   Widget _buildReadout() {
       final energy = _energyAtFrame;
       final absolute = _absoluteEnergyAtFrame;
+      final isMobile = MediaQuery.of(context).size.width < 500;
 
       return Padding(
-        padding: const EdgeInsets.fromLTRB(16, 4, 16, 2),
+        padding: EdgeInsets.fromLTRB(isMobile ? 10 : 16, 4, isMobile ? 10 : 16, 2),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          padding: EdgeInsets.symmetric(horizontal: isMobile ? 8 : 12, vertical: isMobile ? 6 : 8),
           decoration: BoxDecoration(
             color: const Color(0xFF4FC3F7).withValues(alpha: 0.06),
             borderRadius: BorderRadius.circular(8),
@@ -22,30 +23,30 @@ extension _ReactionAnimationReadoutExt on _ReactionAnimationWidgetState {
             child: Row(
               children: [
                 _infoItem('Frame', '${_frame + 1} / $_frameCount'),
-                const SizedBox(width: 16),
+                SizedBox(width: isMobile ? 10 : 16),
                 if (energy != null) ...[
                   _infoItem('Energy', '${energy.toStringAsFixed(2)} kcal·mol⁻¹'),
-                  const SizedBox(width: 16),
+                  SizedBox(width: isMobile ? 10 : 16),
                 ],
                 if (absolute != null) ...[
                   _infoItem('MLIP E', '${absolute.toStringAsFixed(4)} eV'),
-                  const SizedBox(width: 16),
+                  SizedBox(width: isMobile ? 10 : 16),
                 ],
                 _infoItem('Progress', '${_progressPercent.toStringAsFixed(1)}%'),
-                const SizedBox(width: 16),
+                SizedBox(width: isMobile ? 10 : 16),
                 _infoItem('Status', _playing ? 'Playing' : 'Stopped'),
-                const SizedBox(width: 16),
+                SizedBox(width: isMobile ? 10 : 16),
                 _infoItem('Speed', '$_effectiveFrameRate FPS'),
-                const SizedBox(width: 16),
+                SizedBox(width: isMobile ? 10 : 16),
                 _infoItem('Cycle', '${_cycleSeconds.toStringAsFixed(1)} s'),
-                const SizedBox(width: 16),
+                SizedBox(width: isMobile ? 10 : 16),
                 _infoItem('Loop', _loopMode.name),
-                const SizedBox(width: 16),
+                SizedBox(width: isMobile ? 10 : 16),
                 _infoItem(
                   'TS frame',
                   '${_transitionStateFrame + 1} / $_frameCount',
                 ),
-                const SizedBox(width: 16),
+                SizedBox(width: isMobile ? 10 : 16),
                 _infoItem('Bonds', '${_bondsForCurrentFrame().length}'),
               ],
             ),
@@ -55,25 +56,28 @@ extension _ReactionAnimationReadoutExt on _ReactionAnimationWidgetState {
     }
 
   Widget _infoItem(String label, String value) {
-      return Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            '$label: ',
-            style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.45),
-              fontSize: 10,
+      return FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              '$label: ',
+              style: TextStyle(
+                color: Colors.white.withValues(alpha: 0.45),
+                fontSize: 10,
+              ),
             ),
-          ),
-          Text(
-            value,
-            style: const TextStyle(
-              color: Color(0xFF4FC3F7),
-              fontSize: 10,
-              fontWeight: FontWeight.w600,
+            Text(
+              value,
+              style: const TextStyle(
+                color: Color(0xFF4FC3F7),
+                fontSize: 10,
+                fontWeight: FontWeight.w600,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       );
     }
 

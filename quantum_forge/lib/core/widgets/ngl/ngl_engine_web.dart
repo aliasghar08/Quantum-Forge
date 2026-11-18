@@ -197,7 +197,12 @@ class NglEngine {
         ..id = 'quantum-forge-ngl-$viewId'
         ..style.width = '100%'
         ..style.height = '100%'
+        ..style.minWidth = '100%'
+        ..style.minHeight = '100%'
+        ..style.display = 'block'
+        ..style.overflow = 'hidden'
         ..style.position = 'relative'
+        ..style.touchAction = 'none'
         ..style.backgroundColor = backgroundColor;
 
       final engine = NglEngine._(viewId, element);
@@ -343,7 +348,7 @@ class NglEngine {
       return;
     }
 
-    if (_sizeSyncAttempts++ < 120) {
+    if (_sizeSyncAttempts++ < 300) {
       _afterNextFrame(_syncCanvasSize);
     }
   }
@@ -359,8 +364,10 @@ class NglEngine {
             final w = _element.clientWidth;
             final h = _element.clientHeight;
             if (w > 0 && h > 0) {
-              if ((w - _lastObservedWidth).abs() > 20 ||
-                  (h - _lastObservedHeight).abs() > 20) {
+              if (!_canvasSized ||
+                  (w - _lastObservedWidth).abs() > 10 ||
+                  (h - _lastObservedHeight).abs() > 10) {
+                _canvasSized = true;
                 _lastObservedWidth = w;
                 _lastObservedHeight = h;
                 if (_component != null) {

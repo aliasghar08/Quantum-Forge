@@ -131,73 +131,160 @@ class _BondEnergySpectrumWidgetState extends State<BondEnergySpectrumWidget>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Header Bar with Mode Switcher & Filter
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(6),
-                decoration: BoxDecoration(
-                  color: Colors.cyanAccent.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Icon(
-                  Icons.auto_graph_rounded,
-                  color: Colors.cyanAccent,
-                  size: 16,
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Column(
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final isNarrow = constraints.maxWidth < 620;
+              if (isNarrow) {
+                return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Wrap(
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      spacing: 8,
-                      runSpacing: 4,
+                    Row(
                       children: [
-                        const Text(
-                          'Dynamic Bond Energy & Cleavage Spectrum',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 13,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: 0.3,
+                        Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            color: Colors.cyanAccent.withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Icon(
+                            Icons.auto_graph_rounded,
+                            color: Colors.cyanAccent,
+                            size: 16,
                           ),
                         ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: Colors.cyanAccent.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(6),
-                            border: Border.all(color: Colors.cyanAccent.withValues(alpha: 0.3)),
-                          ),
-                          child: Text(
-                            '${widget.bonds.length} Active Bonds',
-                            style: const TextStyle(
-                              color: Colors.cyanAccent,
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
-                            ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  const Expanded(
+                                    child: Text(
+                                      'Dynamic Bond Energy & Cleavage Spectrum',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 12.5,
+                                        fontWeight: FontWeight.w800,
+                                        letterSpacing: 0.2,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: Colors.cyanAccent.withValues(alpha: 0.15),
+                                      borderRadius: BorderRadius.circular(6),
+                                      border: Border.all(color: Colors.cyanAccent.withValues(alpha: 0.3)),
+                                    ),
+                                    child: Text(
+                                      '${widget.bonds.length} Bonds',
+                                      style: const TextStyle(
+                                        color: Colors.cyanAccent,
+                                        fontSize: 9.5,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              Text(
+                                'Real-time Morse potential & strain tracking',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  color: palette.textMuted,
+                                  fontSize: 10,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ],
                     ),
-                    Text(
-                      'Real-time Morse potential estimate & covalent strain tracking',
-                      style: TextStyle(
-                        color: palette.textMuted,
-                        fontSize: 10.5,
-                      ),
-                      overflow: TextOverflow.ellipsis,
+                    const SizedBox(height: 8),
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: _buildViewModeTabs(),
                     ),
                   ],
-                ),
-              ),
-              const SizedBox(width: 8),
+                );
+              }
 
-              // View Mode Tabs
-              _buildViewModeTabs(),
-            ],
+              return Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: Colors.cyanAccent.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(
+                      Icons.auto_graph_rounded,
+                      color: Colors.cyanAccent,
+                      size: 16,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            const Expanded(
+                              child: Text(
+                                'Dynamic Bond Energy & Cleavage Spectrum',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: 0.3,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: Colors.cyanAccent.withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(6),
+                                border: Border.all(color: Colors.cyanAccent.withValues(alpha: 0.3)),
+                              ),
+                              child: Text(
+                                '${widget.bonds.length} Active Bonds',
+                                style: const TextStyle(
+                                  color: Colors.cyanAccent,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        Text(
+                          'Real-time Morse potential estimate & covalent strain tracking',
+                          style: TextStyle(
+                            color: palette.textMuted,
+                            fontSize: 10.5,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+
+                  // View Mode Tabs
+                  _buildViewModeTabs(),
+                ],
+              );
+            },
           ),
 
           const SizedBox(height: 10),
@@ -376,6 +463,7 @@ class _BondEnergySpectrumWidgetState extends State<BondEnergySpectrumWidget>
   Widget _buildSpectrumView(List<BondDataPoint> bonds, double maxEnergy) {
     return LayoutBuilder(
       builder: (context, constraints) {
+        final isMobile = constraints.maxWidth < 480;
         return Column(
           children: bonds.asMap().entries.map((entry) {
             final b = entry.value;
@@ -389,7 +477,10 @@ class _BondEnergySpectrumWidgetState extends State<BondEnergySpectrumWidget>
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 150),
                 margin: const EdgeInsets.only(bottom: 6),
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                padding: EdgeInsets.symmetric(
+                  horizontal: isMobile ? 8 : 10,
+                  vertical: isMobile ? 5 : 6,
+                ),
                 decoration: BoxDecoration(
                   color: isHovered
                       ? color.withValues(alpha: 0.12)
@@ -405,8 +496,8 @@ class _BondEnergySpectrumWidgetState extends State<BondEnergySpectrumWidget>
                   children: [
                     // Bond ID Badge
                     Container(
-                      width: 22,
-                      height: 22,
+                      width: isMobile ? 20 : 22,
+                      height: isMobile ? 20 : 22,
                       decoration: BoxDecoration(
                         color: color.withValues(alpha: 0.2),
                         shape: BoxShape.circle,
@@ -417,26 +508,29 @@ class _BondEnergySpectrumWidgetState extends State<BondEnergySpectrumWidget>
                           '${b.index}',
                           style: TextStyle(
                             color: color,
-                            fontSize: 10,
+                            fontSize: isMobile ? 9.5 : 10,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                       ),
                     ),
-                    const SizedBox(width: 8),
+                    SizedBox(width: isMobile ? 6 : 8),
 
                     // Atoms label
                     SizedBox(
-                      width: 65,
+                      width: isMobile ? 48 : 65,
                       child: Text(
                         b.label,
-                        style: const TextStyle(
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
                           color: Colors.white,
-                          fontSize: 12,
+                          fontSize: isMobile ? 11 : 12,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                     ),
+                    const SizedBox(width: 6),
 
                     // Visual Progress Bar
                     Expanded(
@@ -448,7 +542,7 @@ class _BondEnergySpectrumWidgetState extends State<BondEnergySpectrumWidget>
                             child: Stack(
                               children: [
                                 Container(
-                                  height: 8,
+                                  height: isMobile ? 6 : 8,
                                   color: Colors.white.withValues(alpha: 0.06),
                                 ),
                                 AnimatedFractionallySizedBox(
@@ -456,7 +550,7 @@ class _BondEnergySpectrumWidgetState extends State<BondEnergySpectrumWidget>
                                   curve: Curves.easeOutCubic,
                                   widthFactor: ratio,
                                   child: Container(
-                                    height: 8,
+                                    height: isMobile ? 6 : 8,
                                     decoration: BoxDecoration(
                                       gradient: LinearGradient(
                                         colors: [
@@ -474,18 +568,27 @@ class _BondEnergySpectrumWidgetState extends State<BondEnergySpectrumWidget>
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text(
-                                'Dist: ${b.distance.toStringAsFixed(2)} Å (Eq: ${b.idealDistance.toStringAsFixed(2)} Å)',
-                                style: TextStyle(
-                                  color: Colors.white.withValues(alpha: 0.45),
-                                  fontSize: 9.5,
+                              Flexible(
+                                child: Text(
+                                  isMobile
+                                      ? 'r: ${b.distance.toStringAsFixed(2)}Å'
+                                      : 'Dist: ${b.distance.toStringAsFixed(2)} Å (Eq: ${b.idealDistance.toStringAsFixed(2)} Å)',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    color: Colors.white.withValues(alpha: 0.45),
+                                    fontSize: 9.0,
+                                  ),
                                 ),
                               ),
+                              const SizedBox(width: 4),
                               Text(
-                                'Strain: ${b.strainPercentage >= 0 ? '+' : ''}${b.strainPercentage.toStringAsFixed(1)}%',
+                                isMobile
+                                    ? '${b.strainPercentage >= 0 ? '+' : ''}${b.strainPercentage.toStringAsFixed(0)}%'
+                                    : 'Strain: ${b.strainPercentage >= 0 ? '+' : ''}${b.strainPercentage.toStringAsFixed(1)}%',
                                 style: TextStyle(
                                   color: _strainColor(b.strainPercentage),
-                                  fontSize: 9.5,
+                                  fontSize: 9.0,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
@@ -494,17 +597,21 @@ class _BondEnergySpectrumWidgetState extends State<BondEnergySpectrumWidget>
                         ],
                       ),
                     ),
-                    const SizedBox(width: 14),
+                    SizedBox(width: isMobile ? 8 : 14),
 
                     // Energy Readout
                     SizedBox(
-                      width: 95,
+                      width: isMobile ? 68 : 95,
                       child: Text(
-                        '${b.energy.toStringAsFixed(1)} kcal/mol',
+                        isMobile
+                            ? '${b.energy.toStringAsFixed(1)} kcal'
+                            : '${b.energy.toStringAsFixed(1)} kcal/mol',
                         textAlign: TextAlign.right,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           color: color,
-                          fontSize: 12,
+                          fontSize: isMobile ? 10.5 : 12,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
@@ -541,20 +648,26 @@ class _BondEnergySpectrumWidgetState extends State<BondEnergySpectrumWidget>
         ),
         const SizedBox(height: 10),
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
           decoration: BoxDecoration(
             color: Colors.white.withValues(alpha: 0.04),
             borderRadius: BorderRadius.circular(10),
             border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
           ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _metricPill('Active Bond', '#${activeBond.index} ${activeBond.label}', Colors.cyanAccent),
-              _metricPill('Equilibrium (r₀)', '${activeBond.idealDistance.toStringAsFixed(2)} Å', Colors.white70),
-              _metricPill('Observed (r)', '${activeBond.distance.toStringAsFixed(2)} Å', _strainColor(activeBond.strainPercentage)),
-              _metricPill('Potential Well Depth', '${activeBond.energy.toStringAsFixed(1)} kcal/mol', _energyColor(activeBond.energy)),
-            ],
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _metricPill('Active Bond', '#${activeBond.index} ${activeBond.label}', Colors.cyanAccent),
+                const SizedBox(width: 14),
+                _metricPill('Equilibrium (r₀)', '${activeBond.idealDistance.toStringAsFixed(2)} Å', Colors.white70),
+                const SizedBox(width: 14),
+                _metricPill('Observed (r)', '${activeBond.distance.toStringAsFixed(2)} Å', _strainColor(activeBond.strainPercentage)),
+                const SizedBox(width: 14),
+                _metricPill('Potential Well Depth', '${activeBond.energy.toStringAsFixed(1)} kcal/mol', _energyColor(activeBond.energy)),
+              ],
+            ),
           ),
         ),
       ],

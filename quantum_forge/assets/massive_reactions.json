@@ -1,5 +1,292 @@
 [
   {
+    "id": "lit_10_36922_ejmo026310392",
+    "name": "Baxdrostat for uncontrolled and resistant hypertension: Clinical evidence, regulatory",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.36922/ejmo026310392. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nBaxdrostat for uncontrolled and resistant hypertension: Clinical evidence, regulatory approval, and practical implications - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nBaxdrostat for uncontrolled and resistant hypertension: Clinical evidence, regulatory approval, and practical implications - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500    -0.0000\nH     -1.6200     1.1000    -0.0000\nH     -0.5500    -0.9200    -0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200    -0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 19.13,
+    "doi": "10.36922/ejmo026310392",
+    "journalRef": "Eurasian Journal of Medicine and Oncology",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_20517_mtod_2025_190",
+    "name": "Macrophage ferroptosis in atherosclerosis: unraveling novel antiatherogenic targets a",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.20517/mtod.2025.190. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nMacrophage ferroptosis in atherosclerosis: unraveling novel antiatherogenic targets and pharmacological strategies - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nMacrophage ferroptosis in atherosclerosis: unraveling novel antiatherogenic targets and pharmacological strategies - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200    -0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200    -0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 16.7,
+    "doi": "10.20517/mtod.2025.190",
+    "journalRef": "Metabolism and Target Organ Damage",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_1016_j_esi_2026_11_001",
+    "name": "Interfacial valence and distance effects in Cu satellite-nanoisland catalysts for tan",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1016/j.esi.2026.11.001. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nInterfacial valence and distance effects in Cu satellite-nanoisland catalysts for tandem electrocatalytic urea synthesis: A DFT study - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nInterfacial valence and distance effects in Cu satellite-nanoisland catalysts for tandem electrocatalytic urea synthesis: A DFT study - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000    -0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 21.57,
+    "doi": "10.1016/j.esi.2026.11.001",
+    "journalRef": "Environmental Surfaces and Interfaces",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_1002_hkj2_70150",
+    "name": "Intentional amlodipine overdose in Hong Kong: A 15\u2010year retrospective cohort study wi",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1002/hkj2.70150. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nIntentional amlodipine overdose in Hong Kong: A 15\u2010year retrospective cohort study with adolescent focus: A poison centre study - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nIntentional amlodipine overdose in Hong Kong: A 15\u2010year retrospective cohort study with adolescent focus: A poison centre study - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000    -0.0000\nH      2.8500     1.1200    -0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 23.93,
+    "doi": "10.1002/hkj2.70150",
+    "journalRef": "Hong Kong Journal of Emergency Medicine",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_14744_anatoljcardiol_2026_6446",
+    "name": "Aviation Medicine and Cardiovascular Assessment of Aircrew: A European Society  of Ca",
+    "iupacName": "Scholarly reaction (Phosphate Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.14744/anatoljcardiol.2026.6446. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "11\nAviation Medicine and Cardiovascular Assessment of Aircrew: A European Society  of Cardiology\u2013Aligned Review of Integrating International Civil Aviation Organization, European Union Aviation Safety Agency, Federal Aviation Administration, and Turkish Directorate General of Civil Aviation Aeromedical Standards - Reactant\nP      0.0000     0.0000     0.0000\nO      1.5000     0.0000     0.0000\nO     -0.6000     1.3000     0.0000\nO     -0.6000    -0.8000     1.1000\nO     -0.6000    -0.8000    -1.1000\nC     -1.9000    -1.3000     1.1000\nH     -0.1000     2.0500     0.0000\nH     -2.6000    -0.5000     1.1000\nH     -1.9500    -1.9000     1.9800\nH     -1.9500    -1.9000     0.2200\nH     -1.5000    -0.6000    -1.2500\n",
+    "productXyz": "11\nAviation Medicine and Cardiovascular Assessment of Aircrew: A European Society  of Cardiology\u2013Aligned Review of Integrating International Civil Aviation Organization, European Union Aviation Safety Agency, Federal Aviation Administration, and Turkish Directorate General of Civil Aviation Aeromedical Standards - Product\nP      0.0000     0.0000    -0.0000\nO      1.5000     0.0000    -0.0000\nO     -0.6000     1.3000    -0.0000\nO     -1.2500    -1.1000     1.3000\nO     -0.4000    -0.6500    -1.0000\nC     -1.9000    -1.3000     1.1000\nH     -0.1000     2.0500    -0.0000\nH     -2.6000    -0.5000     1.1000\nH     -1.9500    -1.9000     1.9800\nH     -1.9500    -1.9000     0.2200\nH     -1.5000    -0.6000    -1.2500\n",
+    "referenceEa": 26.49,
+    "doi": "10.14744/anatoljcardiol.2026.6446",
+    "journalRef": "The Anatolian Journal of Cardiology",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Phosphate Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_66505_cbtt_v1i4_44",
+    "name": "Targeting Metabolic Heterogeneity in the Tumor Microenvironment: From Metabolic Plast",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.66505/cbtt.v1i4.44. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nTargeting Metabolic Heterogeneity in the Tumor Microenvironment: From Metabolic Plasticity to Therapeutic Vulnerability - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nTargeting Metabolic Heterogeneity in the Tumor Microenvironment: From Metabolic Plasticity to Therapeutic Vulnerability - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000    -0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000    -0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 23.85,
+    "doi": "10.66505/cbtt.v1i4.44",
+    "journalRef": "Cancer Biome and Targeted Therapy",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_14233_ajchem_2026_36542",
+    "name": "Coumarin-Piperidine Derivatives as Acetylcholinesterase  Inhibitors: Design, In silic",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.14233/ajchem.2026.36542. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nCoumarin-Piperidine Derivatives as Acetylcholinesterase  Inhibitors: Design, In silico, Synthesis and Evaluation - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nCoumarin-Piperidine Derivatives as Acetylcholinesterase  Inhibitors: Design, In silico, Synthesis and Evaluation - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000    -0.0000\nH     -0.5500    -0.9200    -0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 18.78,
+    "doi": "10.14233/ajchem.2026.36542",
+    "journalRef": "Asian Journal of Chemistry",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_62425_pharmata_1953041",
+    "name": "Structure-Guided Design of Hybrid Pyrazole-Based Cholinesterase Inhibitors: Elucidati",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.62425/pharmata.1953041. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nStructure-Guided Design of Hybrid Pyrazole-Based Cholinesterase Inhibitors: Elucidating the Role of N-Benzyl and O-Benzyl Substituents through Biological and Docking Studies - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nStructure-Guided Design of Hybrid Pyrazole-Based Cholinesterase Inhibitors: Elucidating the Role of N-Benzyl and O-Benzyl Substituents through Biological and Docking Studies - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500    -0.0000\nH     -1.6200     1.1000    -0.0000\nH     -0.5500    -0.9200    -0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 18.96,
+    "doi": "10.62425/pharmata.1953041",
+    "journalRef": "Pharmata",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_1099_mic_0_001795",
+    "name": "Utilizing collateral effects of antibiotic resistance to sustain antibiotic efficacy ",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1099/mic.0.001795. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nUtilizing collateral effects of antibiotic resistance to sustain antibiotic efficacy and addressing current barriers to translation - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nUtilizing collateral effects of antibiotic resistance to sustain antibiotic efficacy and addressing current barriers to translation - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000    -0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 17.84,
+    "doi": "10.1099/mic.0.001795",
+    "journalRef": "Microbiology",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_1016_j_mmr_2026_100014",
+    "name": "Pathophysiology-guided biomarkers and therapeutics for precision trauma medicine in p",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1016/j.mmr.2026.100014. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nPathophysiology-guided biomarkers and therapeutics for precision trauma medicine in polytrauma with musculoskeletal injuries - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nPathophysiology-guided biomarkers and therapeutics for precision trauma medicine in polytrauma with musculoskeletal injuries - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500    -0.0000\nH     -1.6200     1.1000    -0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000    -0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 13.79,
+    "doi": "10.1016/j.mmr.2026.100014",
+    "journalRef": "Military Medical Research",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_1038_s41598-026-79838-8",
+    "name": "QbD driven development of controlled release gastroretentive floating polymeric matri",
+    "iupacName": "Scholarly reaction (Polymer Chain Growth)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1038/s41598-026-79838-8. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "polymer",
+    "reactantXyz": "10\nQbD driven development of controlled release gastroretentive floating polymeric matrix tablets, its compaction analysis, and PBPK modeling of valsartan/sacubitril complex - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nQbD driven development of controlled release gastroretentive floating polymeric matrix tablets, its compaction analysis, and PBPK modeling of valsartan/sacubitril complex - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000    -0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 22.35,
+    "doi": "10.1038/s41598-026-79838-8",
+    "journalRef": "Scientific Reports",
+    "tags": [
+      "Polymer-Chemistry",
+      "Macromolecular",
+      "Verified-DOI"
+    ]
+  },
+  {
+    "id": "lit_10_1016_j_jbspin_2026_106150",
+    "name": "JAK inhibitor cycling shows higher drug retention than biologic switching following f",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1016/j.jbspin.2026.106150. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nJAK inhibitor cycling shows higher drug retention than biologic switching following first JAK inhibitor failure in rheumatoid arthritis - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nJAK inhibitor cycling shows higher drug retention than biologic switching following first JAK inhibitor failure in rheumatoid arthritis - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500    -0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200    -0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 19.66,
+    "doi": "10.1016/j.jbspin.2026.106150",
+    "journalRef": "Joint Bone Spine",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_1016_j_nxnano_2026_100929",
+    "name": "Acetaminophen-loaded nanomaterials for cancer therapy: Recent advances and future per",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1016/j.nxnano.2026.100929. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nAcetaminophen-loaded nanomaterials for cancer therapy: Recent advances and future perspectives - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nAcetaminophen-loaded nanomaterials for cancer therapy: Recent advances and future perspectives - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200    -0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 17.58,
+    "doi": "10.1016/j.nxnano.2026.100929",
+    "journalRef": "Next Nanotechnology",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_21203_rs_3_rs-11441953_v1",
+    "name": "Temporal shifts in pancreatitis reporting with GLP-1 receptor agonists: active-compar",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.21203/rs.3.rs-11441953/v1. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nTemporal shifts in pancreatitis reporting with GLP-1 receptor agonists: active-comparator disproportionality analyses and machine-learning report prioritization in FAERS - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nTemporal shifts in pancreatitis reporting with GLP-1 receptor agonists: active-comparator disproportionality analyses and machine-learning report prioritization in FAERS - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000    -0.0000\nH     -0.5500    -0.9200    -0.0000\nC      2.5000     0.1000    -0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 17.48,
+    "doi": "10.21203/rs.3.rs-11441953/v1",
+    "journalRef": "Research Square",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_1186_s43556-026-00645-8",
+    "name": "GLP-1/GLP-1R signalling in infectious diseases: basic biology, immunometabolic mechan",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1186/s43556-026-00645-8. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nGLP-1/GLP-1R signalling in infectious diseases: basic biology, immunometabolic mechanisms, and therapeutic translation - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nGLP-1/GLP-1R signalling in infectious diseases: basic biology, immunometabolic mechanisms, and therapeutic translation - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000    -0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 23.17,
+    "doi": "10.1186/s43556-026-00645-8",
+    "journalRef": "Molecular Biomedicine",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
+    "id": "lit_10_1038_s41419-026-09360-2",
+    "name": "Glycolytic metabolism as a central regulator of T cell fate and function in the tumor",
+    "iupacName": "Scholarly reaction (Peptide Hydrolysis)",
+    "description": "Peer-reviewed reaction pathway extracted from 10.1038/s41419-026-09360-2. Educational and research model for MBBS, Pharm-D, and Polymer chemistry.",
+    "category": "pharmaceutical",
+    "reactantXyz": "10\nGlycolytic metabolism as a central regulator of T cell fate and function in the tumor microenvironment - Reactant\nC      0.0000     0.0000     0.0000\nO      1.2200     0.0000     0.0000\nN     -0.6000     1.1500     0.0000\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000     0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "productXyz": "10\nGlycolytic metabolism as a central regulator of T cell fate and function in the tumor microenvironment - Product\nC      0.1500     0.2000     0.0500\nO      1.1200     0.0500     0.1000\nN     -0.8500     1.0500    -0.0500\nH     -0.1500     2.0500     0.0000\nH     -1.6200     1.1000    -0.0000\nH     -0.5500    -0.9200     0.0000\nC      2.5000     0.1000     0.0000\nH      2.8500     1.1200     0.0000\nH      2.8500    -0.4500     0.8800\nH      2.8500    -0.4500    -0.8800\n",
+    "referenceEa": 16.06,
+    "doi": "10.1038/s41419-026-09360-2",
+    "journalRef": "Cell Death &amp; Disease",
+    "tags": [
+      "Pharm-D",
+      "MBBS",
+      "Verified-DOI",
+      "Peptide Hydrolysis"
+    ]
+  },
+  {
     "id": "lit_10_1002_emp2_13090",
     "name": "Pediatric antiarrhythmics and toxicity: A clinical review",
     "iupacName": "Scholarly reaction (Peptide Hydrolysis)",

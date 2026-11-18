@@ -56,6 +56,7 @@ extension _ReactionAnimationCanvasExt on _ReactionAnimationWidgetState {
     final rawH = (screenW < 600) ? screenH * 0.40 : screenH * 0.75;
     final height = rawH.clamp(220.0, 300.0);
     return SizedBox(
+      width: double.infinity,
       height: height,
       child: _wrapCanvasSlotWithGestures(_buildCanvas()),
     );
@@ -70,6 +71,7 @@ extension _ReactionAnimationCanvasExt on _ReactionAnimationWidgetState {
         : maxH;
     final height = byRatio.clamp(220.0, 300.0);
     return SizedBox(
+      width: double.infinity,
       height: height,
       child: _wrapCanvasSlotWithGestures(_buildCanvas()),
     );

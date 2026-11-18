@@ -422,3 +422,4 @@ const List<CardiacLandmarkDefinition> kCardiacLandmarksRegistry = [
     clinicalPearl: 'Apical ballooning and hypercontractile basal segments characterize Takotsubo (Stress) Cardiomyopathy.',
   ),
 ];
+

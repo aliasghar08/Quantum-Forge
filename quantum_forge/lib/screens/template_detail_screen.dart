@@ -72,7 +72,12 @@ class TemplateDetailScreen extends StatelessWidget {
         ),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
+        padding: EdgeInsets.fromLTRB(
+          16,
+          16,
+          16,
+          MediaQuery.of(context).size.width < 600 ? 80 : 32,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -233,7 +238,7 @@ class TemplateDetailScreen extends StatelessWidget {
                             ),
                         ],
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 36),
                       FilledButton.icon(
                         onPressed: () => _onSimulatePressed(context),
                         style: FilledButton.styleFrom(
