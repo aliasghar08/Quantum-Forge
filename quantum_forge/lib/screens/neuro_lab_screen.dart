@@ -504,11 +504,11 @@ class _NeuroLabScreenState extends State<NeuroLabScreen> {
                 color: _activeScenario.badgeColor.withValues(alpha: 0.08),
                 border: Border(bottom: BorderSide(color: _activeScenario.badgeColor.withValues(alpha: 0.25))),
               ),
-              child: Row(
-                children: [
-                  Flexible(
-                    flex: 3,
-                    child: Container(
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: [
+                    Container(
                       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                       decoration: BoxDecoration(
                         color: _activeScenario.badgeColor.withValues(alpha: 0.25),
@@ -517,29 +517,20 @@ class _NeuroLabScreenState extends State<NeuroLabScreen> {
                       child: Text(
                         _activeScenario.title,
                         style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold, color: _activeScenario.badgeColor),
-                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    flex: 5,
-                    child: Text(
+                    const SizedBox(width: 10),
+                    Text(
                       _activeScenario.clinicalSummary,
                       style: const TextStyle(fontSize: 10.5, color: Color(0xFFCBD5E1)),
-                      overflow: TextOverflow.ellipsis,
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  Flexible(
-                    flex: 3,
-                    child: Text(
+                    const SizedBox(width: 10),
+                    Text(
                       'Rx: ${_activeScenario.recommendedDrugMoa}',
                       style: const TextStyle(fontSize: 10, color: Color(0xFF38BDF8), fontWeight: FontWeight.bold),
-                      overflow: TextOverflow.ellipsis,
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
 

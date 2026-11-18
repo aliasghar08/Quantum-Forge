@@ -286,9 +286,11 @@ extension _ReactionAnimationCanvasExt on _ReactionAnimationWidgetState {
                 color: Colors.black.withValues(alpha: 0.4),
                 borderRadius: BorderRadius.circular(4),
               ),
-              child: const Text(
-                'Quantum Forge © Ali Asghar · aliasgharinnocent@yahoo.com',
-                style: TextStyle(
+              child: Text(
+                MediaQuery.of(context).size.width < 500
+                    ? '© Ali Asghar'
+                    : 'Quantum Forge © Ali Asghar · aliasgharinnocent@yahoo.com',
+                style: const TextStyle(
                   color: Colors.white38,
                   fontSize: 9.5,
                   fontWeight: FontWeight.w600,

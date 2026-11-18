@@ -101,7 +101,10 @@ class TemplateDetailScreen extends StatelessWidget {
               ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(14),
-                child: FirebaseAuth.instance.currentUser != null
+                child: (FirebaseAuth.instance.currentUser != null ||
+                        template.tags.contains('Pharm-D') ||
+                        template.tags.contains('MBBS') ||
+                        template.id == 'aspirin_synthesis')
                     ? ReactionAnimationWidget(
                         // ── Preview trajectory ─────────────────────────────────
                         //

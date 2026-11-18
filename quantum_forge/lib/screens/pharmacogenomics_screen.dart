@@ -22,47 +22,55 @@ class PharmacogenomicsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final palette = ThemeNotifier.paletteOf(context);
+    final isMobile = MediaQuery.of(context).size.width < 640;
 
     return Scaffold(
       backgroundColor: palette.scaffold,
       appBar: AppBar(
         backgroundColor: palette.panel,
-        title: const Row(
+        title: Row(
           children: [
-            Icon(Icons.biotech_rounded, color: Color(0xFF00E5FF), size: 22),
-            SizedBox(width: 10),
-            Text(
-              'Interactive Pharmacogenomics & ADME Engine',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            const Icon(Icons.biotech_rounded, color: Color(0xFF00E5FF), size: 22),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                isMobile
+                    ? 'Pharmacogenomics & ADME'
+                    : 'Interactive Pharmacogenomics & ADME Engine',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
             ),
           ],
         ),
         actions: [
-          Container(
-            margin: const EdgeInsets.only(right: 16),
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            decoration: BoxDecoration(
-              color: const Color(0xFF00BFA5).withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(6),
-              border: Border.all(color: const Color(0xFF00BFA5).withValues(alpha: 0.4)),
-            ),
-            child: const Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.school_rounded, color: Color(0xFF00BFA5), size: 14),
-                SizedBox(width: 6),
-                Text(
-                  'MBBS / PHARM-D CURRICULUM',
-                  style: TextStyle(
-                    color: Color(0xFF00BFA5),
-                    fontSize: 10.5,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 0.3,
+          if (!isMobile)
+            Container(
+              margin: const EdgeInsets.only(right: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: const Color(0xFF00BFA5).withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(color: const Color(0xFF00BFA5).withValues(alpha: 0.4)),
+              ),
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.school_rounded, color: Color(0xFF00BFA5), size: 14),
+                  SizedBox(width: 6),
+                  Text(
+                    'MBBS / PHARM-D CURRICULUM',
+                    style: TextStyle(
+                      color: Color(0xFF00BFA5),
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 0.3,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
         ],
       ),
       body: SingleChildScrollView(

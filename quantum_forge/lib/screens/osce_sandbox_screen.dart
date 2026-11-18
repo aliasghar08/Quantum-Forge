@@ -113,47 +113,55 @@ class _OsceSandboxScreenState extends State<OsceSandboxScreen> {
   @override
   Widget build(BuildContext context) {
     final palette = ThemeNotifier.paletteOf(context);
+    final isMobile = MediaQuery.of(context).size.width < 640;
 
     return Scaffold(
       backgroundColor: palette.scaffold,
       appBar: AppBar(
         backgroundColor: palette.panel,
-        title: const Row(
+        title: Row(
           children: [
-            Icon(Icons.medical_services_rounded, color: Color(0xFF00E5FF), size: 22),
-            SizedBox(width: 10),
-            Text(
-              'OSCE Clinical Emergency Simulation Sandbox',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            const Icon(Icons.medical_services_rounded, color: Color(0xFF00E5FF), size: 22),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                isMobile
+                    ? 'OSCE Clinical Sandbox'
+                    : 'OSCE Clinical Emergency Simulation Sandbox',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
             ),
           ],
         ),
         actions: [
-          Container(
-            margin: const EdgeInsets.only(right: 16),
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            decoration: BoxDecoration(
-              color: const Color(0xFFFFB300).withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(6),
-              border: Border.all(color: const Color(0xFFFFB300).withValues(alpha: 0.4)),
-            ),
-            child: const Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.timer_outlined, color: Color(0xFFFFB300), size: 14),
-                SizedBox(width: 6),
-                Text(
-                  'TIMED OSCE BENCHMARK',
-                  style: TextStyle(
-                    color: Color(0xFFFFB300),
-                    fontSize: 10.5,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 0.3,
+          if (!isMobile)
+            Container(
+              margin: const EdgeInsets.only(right: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFFB300).withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(color: const Color(0xFFFFB300).withValues(alpha: 0.4)),
+              ),
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.timer_outlined, color: Color(0xFFFFB300), size: 14),
+                  SizedBox(width: 6),
+                  Text(
+                    'TIMED OSCE BENCHMARK',
+                    style: TextStyle(
+                      color: Color(0xFFFFB300),
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 0.3,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
         ],
       ),
       body: SingleChildScrollView(

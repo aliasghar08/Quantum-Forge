@@ -26,6 +26,9 @@ import 'package:quantum_forge/screens/neuro_lab_screen.dart';
 import 'package:quantum_forge/screens/pharmacogenomics_screen.dart';
 import 'package:quantum_forge/screens/osce_sandbox_screen.dart';
 import 'package:quantum_forge/screens/ddi_split_screen.dart';
+import 'package:quantum_forge/screens/auth_screen.dart';
+import 'package:quantum_forge/screens/template_detail_screen.dart';
+import 'package:quantum_forge/features/reaction_library/data/medical_reaction_templates.dart';
 import 'package:quantum_forge/core/services/app_route_observer.dart';
 
 void main() {
@@ -242,6 +245,29 @@ class _QuantumForgeAppState extends State<QuantumForgeApp> {
                 }
                 if (path == '/ddi' || path == 'ddi') {
                   return DdiSplitScreen.route();
+                }
+                if (path == '/auth' || path == 'auth' || path == '/login' || path == 'login') {
+                  return MaterialPageRoute<void>(
+                    settings: routeSettings,
+                    builder: (ctx) => AuthScreen(
+                      onLoginSuccess: () {
+                        if (Navigator.of(ctx).canPop()) {
+                          Navigator.of(ctx).pop();
+                        } else {
+                          Navigator.of(ctx).pushReplacementNamed('/');
+                        }
+                      },
+                    ),
+                  );
+                }
+                if (path == '/aspirin' || path == 'aspirin' || path == '/template' || path == 'template') {
+                  return MaterialPageRoute<void>(
+                    settings: routeSettings,
+                    builder: (_) => TemplateDetailScreen(
+                      template: kMedicalReactionTemplates.first,
+                      onLoad: () {},
+                    ),
+                  );
                 }
                 return null;
               },

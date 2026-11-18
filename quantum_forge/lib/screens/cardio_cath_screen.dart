@@ -550,7 +550,9 @@ class _CardioCathScreenState extends State<CardioCathScreen>
   @override
   Widget build(BuildContext context) {
     final palette = ThemeNotifier.paletteOf(context);
-    final isDesktop = MediaQuery.of(context).size.width >= 960;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isDesktop = screenWidth >= 960;
+    final isMobile = screenWidth < 700;
     final hemo = _hemoResult;
 
     return Scaffold(
@@ -569,117 +571,212 @@ class _CardioCathScreenState extends State<CardioCathScreen>
         ),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
           children: [
-            const Text(
-              'CardioCath 3D: Coronary Angiography & Hemodynamic Lab',
-              style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
-            ),
             Text(
-              'MBBS & Pharm-D Cath Lab Simulation | Procedural 3D & Synchronized Fluoroscopy',
-              style: TextStyle(
-                fontSize: 10.5,
-                color: palette.textMuted,
-                fontWeight: FontWeight.normal,
-              ),
+              isMobile ? 'CardioCath 3D Lab' : 'CardioCath 3D: Coronary Angiography & Hemodynamic Lab',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(fontSize: isMobile ? 14 : 15, fontWeight: FontWeight.bold),
             ),
+            if (!isMobile)
+              Text(
+                'MBBS & Pharm-D Cath Lab Simulation | Procedural 3D & Synchronized Fluoroscopy',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 10.5,
+                  color: palette.textMuted,
+                  fontWeight: FontWeight.normal,
+                ),
+              ),
           ],
         ),
-        actions: [
-          // WebXR VR Lab Button
-          Padding(
-            padding: const EdgeInsets.only(right: 6),
-            child: ActionChip(
-              avatar: const Icon(Icons.view_in_ar_rounded, color: Color(0xFF00E5FF), size: 15),
-              label: const Text('WebXR VR Lab', style: TextStyle(fontSize: 11, color: Color(0xFF00E5FF), fontWeight: FontWeight.bold)),
-              backgroundColor: const Color(0xFF00E5FF).withValues(alpha: 0.15),
-              side: const BorderSide(color: Color(0xFF00E5FF), width: 0.8),
-              onPressed: _showWebXrPrompt,
-            ),
-          ),
-
-          // AI Attending Proctor
-          Padding(
-            padding: const EdgeInsets.only(right: 6),
-            child: ActionChip(
-              avatar: const Icon(Icons.psychology_rounded, color: Color(0xFFFFD600), size: 15),
-              label: const Text('AI Proctor', style: TextStyle(fontSize: 11, color: Color(0xFFFFD600), fontWeight: FontWeight.bold)),
-              backgroundColor: const Color(0xFFFFD600).withValues(alpha: 0.15),
-              side: const BorderSide(color: Color(0xFFFFD600), width: 0.8),
-              onPressed: _showAiProctorDebrief,
-            ),
-          ),
-
-          // OSCE Exam Mode Toggle
-          Padding(
-            padding: const EdgeInsets.only(right: 6),
-            child: ActionChip(
-              avatar: Icon(
-                _isOsceMode ? Icons.school_rounded : Icons.quiz_rounded,
-                color: _isOsceMode ? Colors.black : const Color(0xFF10B981),
-                size: 15,
-              ),
-              label: Text(
-                _isOsceMode ? 'Exit OSCE' : 'OSCE Exam Mode',
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.bold,
-                  color: _isOsceMode ? Colors.black : const Color(0xFF10B981),
+        actions: isMobile
+            ? [
+                // OSCE Exam Mode Toggle
+                Padding(
+                  padding: const EdgeInsets.only(right: 4),
+                  child: ActionChip(
+                    avatar: Icon(
+                      _isOsceMode ? Icons.school_rounded : Icons.quiz_rounded,
+                      color: _isOsceMode ? Colors.black : const Color(0xFF10B981),
+                      size: 13,
+                    ),
+                    label: Text(
+                      _isOsceMode ? 'Exit' : 'OSCE',
+                      style: TextStyle(
+                        fontSize: 10.5,
+                        fontWeight: FontWeight.bold,
+                        color: _isOsceMode ? Colors.black : const Color(0xFF10B981),
+                      ),
+                    ),
+                    backgroundColor: _isOsceMode
+                        ? const Color(0xFF10B981)
+                        : const Color(0xFF10B981).withValues(alpha: 0.15),
+                    side: const BorderSide(color: Color(0xFF10B981), width: 0.8),
+                    onPressed: _toggleOsceMode,
+                  ),
                 ),
-              ),
-              backgroundColor: _isOsceMode
-                  ? const Color(0xFF10B981)
-                  : const Color(0xFF10B981).withValues(alpha: 0.15),
-              side: const BorderSide(color: Color(0xFF10B981), width: 0.8),
-              onPressed: _toggleOsceMode,
-            ),
-          ),
-
-          // Inspect Drug MoA Button
-          Padding(
-            padding: const EdgeInsets.only(right: 6),
-            child: ActionChip(
-              avatar: const Icon(Icons.medication_liquid_rounded,
-                  color: Color(0xFF00E5FF), size: 15),
-              label: const Text(
-                'Inspect Drug MoA',
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF00E5FF),
+                PopupMenuButton<String>(
+                  icon: const Icon(Icons.more_vert_rounded),
+                  tooltip: 'More Lab Tools',
+                  onSelected: (val) {
+                    if (val == 'webxr') _showWebXrPrompt();
+                    if (val == 'proctor') _showAiProctorDebrief();
+                    if (val == 'moa') {
+                      showDialog<void>(
+                        context: context,
+                        builder: (_) => CardiacDrugMechanismDialog(scenario: _activeScenario),
+                      );
+                    }
+                    if (val == 'gnn') {
+                      showDialog<void>(
+                        context: context,
+                        builder: (_) => const CardioNephroGnnDialog(),
+                      );
+                    }
+                  },
+                  itemBuilder: (ctx) => [
+                    const PopupMenuItem(
+                      value: 'webxr',
+                      child: Row(
+                        children: [
+                          Icon(Icons.view_in_ar_rounded, color: Color(0xFF00E5FF), size: 16),
+                          SizedBox(width: 8),
+                          Text('WebXR VR Lab'),
+                        ],
+                      ),
+                    ),
+                    const PopupMenuItem(
+                      value: 'proctor',
+                      child: Row(
+                        children: [
+                          Icon(Icons.psychology_rounded, color: Color(0xFFFFD600), size: 16),
+                          SizedBox(width: 8),
+                          Text('AI Proctor Debrief'),
+                        ],
+                      ),
+                    ),
+                    const PopupMenuItem(
+                      value: 'moa',
+                      child: Row(
+                        children: [
+                          Icon(Icons.medication_liquid_rounded, color: Color(0xFF00E5FF), size: 16),
+                          SizedBox(width: 8),
+                          Text('Inspect Drug MoA'),
+                        ],
+                      ),
+                    ),
+                    const PopupMenuItem(
+                      value: 'gnn',
+                      child: Row(
+                        children: [
+                          Icon(Icons.hub_rounded, color: Color(0xFFA78BFA), size: 16),
+                          SizedBox(width: 8),
+                          Text('CardioNephroGNN Screener'),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-              backgroundColor: const Color(0xFF00E5FF).withValues(alpha: 0.15),
-              side: const BorderSide(color: Color(0xFF00E5FF), width: 0.8),
-              onPressed: () => showDialog<void>(
-                context: context,
-                builder: (_) => CardiacDrugMechanismDialog(scenario: _activeScenario),
-              ),
-            ),
-          ),
-
-          // CardioNephroGNN Screener Button
-          Padding(
-            padding: const EdgeInsets.only(right: 12),
-            child: ActionChip(
-              avatar: const Icon(Icons.hub_rounded,
-                  color: Color(0xFFA78BFA), size: 15),
-              label: const Text(
-                'CardioNephroGNN',
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFFA78BFA),
+              ]
+            : [
+                // WebXR VR Lab Button
+                Padding(
+                  padding: const EdgeInsets.only(right: 6),
+                  child: ActionChip(
+                    avatar: const Icon(Icons.view_in_ar_rounded, color: Color(0xFF00E5FF), size: 15),
+                    label: const Text('WebXR VR Lab', style: TextStyle(fontSize: 11, color: Color(0xFF00E5FF), fontWeight: FontWeight.bold)),
+                    backgroundColor: const Color(0xFF00E5FF).withValues(alpha: 0.15),
+                    side: const BorderSide(color: Color(0xFF00E5FF), width: 0.8),
+                    onPressed: _showWebXrPrompt,
+                  ),
                 ),
-              ),
-              backgroundColor: const Color(0xFF8B5CF6).withValues(alpha: 0.18),
-              side: const BorderSide(color: Color(0xFFA78BFA), width: 0.9),
-              onPressed: () => showDialog<void>(
-                context: context,
-                builder: (_) => const CardioNephroGnnDialog(),
-              ),
-            ),
-          ),
-        ],
+
+                // AI Attending Proctor
+                Padding(
+                  padding: const EdgeInsets.only(right: 6),
+                  child: ActionChip(
+                    avatar: const Icon(Icons.psychology_rounded, color: Color(0xFFFFD600), size: 15),
+                    label: const Text('AI Proctor', style: TextStyle(fontSize: 11, color: Color(0xFFFFD600), fontWeight: FontWeight.bold)),
+                    backgroundColor: const Color(0xFFFFD600).withValues(alpha: 0.15),
+                    side: const BorderSide(color: Color(0xFFFFD600), width: 0.8),
+                    onPressed: _showAiProctorDebrief,
+                  ),
+                ),
+
+                // OSCE Exam Mode Toggle
+                Padding(
+                  padding: const EdgeInsets.only(right: 6),
+                  child: ActionChip(
+                    avatar: Icon(
+                      _isOsceMode ? Icons.school_rounded : Icons.quiz_rounded,
+                      color: _isOsceMode ? Colors.black : const Color(0xFF10B981),
+                      size: 15,
+                    ),
+                    label: Text(
+                      _isOsceMode ? 'Exit OSCE' : 'OSCE Exam Mode',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                        color: _isOsceMode ? Colors.black : const Color(0xFF10B981),
+                      ),
+                    ),
+                    backgroundColor: _isOsceMode
+                        ? const Color(0xFF10B981)
+                        : const Color(0xFF10B981).withValues(alpha: 0.15),
+                    side: const BorderSide(color: Color(0xFF10B981), width: 0.8),
+                    onPressed: _toggleOsceMode,
+                  ),
+                ),
+
+                // Inspect Drug MoA Button
+                Padding(
+                  padding: const EdgeInsets.only(right: 6),
+                  child: ActionChip(
+                    avatar: const Icon(Icons.medication_liquid_rounded,
+                        color: Color(0xFF00E5FF), size: 15),
+                    label: const Text(
+                      'Inspect Drug MoA',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF00E5FF),
+                      ),
+                    ),
+                    backgroundColor: const Color(0xFF00E5FF).withValues(alpha: 0.15),
+                    side: const BorderSide(color: Color(0xFF00E5FF), width: 0.8),
+                    onPressed: () => showDialog<void>(
+                      context: context,
+                      builder: (_) => CardiacDrugMechanismDialog(scenario: _activeScenario),
+                    ),
+                  ),
+                ),
+
+                // CardioNephroGNN Screener Button
+                Padding(
+                  padding: const EdgeInsets.only(right: 12),
+                  child: ActionChip(
+                    avatar: const Icon(Icons.hub_rounded,
+                        color: Color(0xFFA78BFA), size: 15),
+                    label: const Text(
+                      'CardioNephroGNN',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFFA78BFA),
+                      ),
+                    ),
+                    backgroundColor: const Color(0xFF8B5CF6).withValues(alpha: 0.18),
+                    side: const BorderSide(color: Color(0xFFA78BFA), width: 0.9),
+                    onPressed: () => showDialog<void>(
+                      context: context,
+                      builder: (_) => const CardioNephroGnnDialog(),
+                    ),
+                  ),
+                ),
+              ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(12),
@@ -863,40 +960,15 @@ class _CardioCathScreenState extends State<CardioCathScreen>
   }
 
   Widget _buildLegalDisclaimerBanner(dynamic palette) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
-      decoration: BoxDecoration(
-        color: const Color(0xFFFFB300).withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: const Color(0xFFFFB300).withValues(alpha: 0.45),
-        ),
-      ),
-      child: Row(
-        children: [
-          const Icon(Icons.warning_amber_rounded,
-              color: Color(0xFFFFB300), size: 18),
-          const SizedBox(width: 10),
-          const Expanded(
-            child: Text(
-              'Educational Simulation Only — Not for Clinical Diagnosis, Interventional Planning, or Patient Care. '
-              'Coronary fluoroscopy projections and contrast advection are simplified pedagogical models. '
-              'Exempt under 21 U.S.C. § 360j(o) & EU MDR • 100% Synthetic Zero-PHI • Independent Nominative Fair-Use.',
-              style: TextStyle(
-                color: Color(0xFFFFB300),
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
-                height: 1.35,
-              ),
-            ),
-          ),
-          const SizedBox(width: 8),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isNarrow = constraints.maxWidth < 720;
+        final buttons = [
           const CardiacInfoButton(
             topicId: 'legal_samd_shield',
             customLabel: 'Legal Info',
             size: 13,
           ),
-          const SizedBox(width: 6),
           InkWell(
             onTap: () => showCardiacInteractiveGuideDialog(context),
             borderRadius: BorderRadius.circular(6),
@@ -924,7 +996,6 @@ class _CardioCathScreenState extends State<CardioCathScreen>
               ),
             ),
           ),
-          const SizedBox(width: 6),
           InkWell(
             onTap: () => showCardiacLegalShieldDialog(context),
             borderRadius: BorderRadius.circular(6),
@@ -952,8 +1023,77 @@ class _CardioCathScreenState extends State<CardioCathScreen>
               ),
             ),
           ),
-        ],
-      ),
+        ];
+
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+          decoration: BoxDecoration(
+            color: const Color(0xFFFFB300).withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: const Color(0xFFFFB300).withValues(alpha: 0.45),
+            ),
+          ),
+          child: isNarrow
+              ? Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(Icons.warning_amber_rounded,
+                            color: Color(0xFFFFB300), size: 18),
+                        SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            'Educational Simulation Only — Not for Clinical Diagnosis, Interventional Planning, or Patient Care. '
+                            'Coronary fluoroscopy projections and contrast advection are simplified pedagogical models. '
+                            'Exempt under 21 U.S.C. § 360j(o) & EU MDR • 100% Synthetic Zero-PHI • Independent Nominative Fair-Use.',
+                            style: TextStyle(
+                              color: Color(0xFFFFB300),
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              height: 1.35,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 6,
+                      children: buttons,
+                    ),
+                  ],
+                )
+              : Row(
+                  children: [
+                    const Icon(Icons.warning_amber_rounded,
+                        color: Color(0xFFFFB300), size: 18),
+                    const SizedBox(width: 10),
+                    const Expanded(
+                      child: Text(
+                        'Educational Simulation Only — Not for Clinical Diagnosis, Interventional Planning, or Patient Care. '
+                        'Coronary fluoroscopy projections and contrast advection are simplified pedagogical models. '
+                        'Exempt under 21 U.S.C. § 360j(o) & EU MDR • 100% Synthetic Zero-PHI • Independent Nominative Fair-Use.',
+                        style: TextStyle(
+                          color: Color(0xFFFFB300),
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          height: 1.35,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    ...buttons.map((b) => Padding(
+                          padding: const EdgeInsets.only(left: 6),
+                          child: b,
+                        )),
+                  ],
+                ),
+        );
+      },
     );
   }
 
