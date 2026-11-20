@@ -22,6 +22,7 @@ import 'package:quantum_forge/screens/cardio_cath_screen.dart';
 import 'package:quantum_forge/screens/neuro_lab_screen.dart';
 import 'package:quantum_forge/screens/nephro_lab_screen.dart';
 import 'package:quantum_forge/screens/pulmo_vent_screen.dart';
+import 'package:quantum_forge/screens/ward_rounds_screen.dart';
 import 'package:quantum_forge/core/widgets/quantum_forge_logo.dart';
 import 'package:quantum_forge/core/services/url_service.dart';
 
@@ -170,6 +171,15 @@ class ProfessionalDrawer extends StatelessWidget {
                   letterSpacing: 1.2,
                 ),
               ),
+            ),
+
+            _routeItem(
+              context,
+              Icons.emergency_rounded,
+              'WardRounds 3D (ER/ICU Triage & POCUS)',
+              () => Navigator.of(context).push(WardRoundsScreen.route()),
+              showTooltips,
+              'Undifferentiated ER/ICU triage, bedside POCUS ultrasound, and student mastery radar.',
             ),
 
             _routeItem(

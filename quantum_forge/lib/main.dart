@@ -25,6 +25,7 @@ import 'package:quantum_forge/screens/cardio_cath_screen.dart';
 import 'package:quantum_forge/screens/neuro_lab_screen.dart';
 import 'package:quantum_forge/screens/nephro_lab_screen.dart';
 import 'package:quantum_forge/screens/pulmo_vent_screen.dart';
+import 'package:quantum_forge/screens/ward_rounds_screen.dart';
 import 'package:quantum_forge/screens/pharmacogenomics_screen.dart';
 import 'package:quantum_forge/screens/osce_sandbox_screen.dart';
 import 'package:quantum_forge/screens/ddi_split_screen.dart';
@@ -225,6 +226,13 @@ class _QuantumForgeAppState extends State<QuantumForgeApp> {
                 final uri = Uri.tryParse(rawName);
                 final path = uri?.path.toLowerCase() ?? '';
 
+                if (path == '/ward' || path == 'ward' || path == '/wardrounds' || path == 'wardrounds') {
+                  final caseParam = uri?.queryParameters['case'];
+                  final caseIdx = caseParam != null ? int.tryParse(caseParam) : null;
+                  return WardRoundsScreen.route(
+                    initialCaseIndex: caseIdx,
+                  );
+                }
                 if (path == '/cardiac' || path == 'cardiac' || path == '/cardio' || path == 'cardio' || path == '/cardiocath' || path == 'cardiocath') {
                   return CardioCathScreen.route(
                     initialScenarioId: uri?.queryParameters['scenario'],
