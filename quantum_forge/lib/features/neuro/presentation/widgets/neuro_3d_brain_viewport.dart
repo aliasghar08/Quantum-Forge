@@ -16,6 +16,8 @@ import 'package:flutter/material.dart';
 import '../../data/neuro_pathology_models.dart';
 import 'neuro_three_engine.dart';
 import 'neuro_clinical_info_system.dart';
+import 'neuro_master_vitals_state.dart';
+import 'neuro_full_screen_brain_theater.dart';
 
 class Neuro3DBrainViewport extends StatefulWidget {
   final NeuroScenario scenario;
@@ -25,6 +27,7 @@ class Neuro3DBrainViewport extends StatefulWidget {
   final bool isCoiled;
   final VoidCallback? onDeployThrombectomy;
   final VoidCallback? onDeployCoils;
+  final NeuroMasterVitalsState? vitals;
 
   const Neuro3DBrainViewport({
     super.key,
@@ -35,6 +38,7 @@ class Neuro3DBrainViewport extends StatefulWidget {
     this.isCoiled = false,
     this.onDeployThrombectomy,
     this.onDeployCoils,
+    this.vitals,
   });
 
   @override
@@ -80,6 +84,30 @@ class _Neuro3DBrainViewportState extends State<Neuro3DBrainViewport> {
         widget.isCoiled != oldWidget.isCoiled) {
       _syncBridgeState();
     }
+  }
+
+  void _openFullScreenTheater() {
+    Navigator.of(context).push(
+      PageRouteBuilder(
+        opaque: false,
+        barrierColor: Colors.black.withValues(alpha: 0.88),
+        pageBuilder: (context, animation, secondaryAnimation) {
+          return FadeTransition(
+            opacity: animation,
+            child: NeuroFullScreenBrainTheater(
+              scenario: widget.scenario,
+              selectedLayer: widget.selectedLayer,
+              onLayerChanged: widget.onLayerChanged,
+              isThrombectomized: widget.isThrombectomized,
+              isCoiled: widget.isCoiled,
+              onDeployThrombectomy: widget.onDeployThrombectomy,
+              onDeployCoils: widget.onDeployCoils,
+              vitals: widget.vitals,
+            ),
+          );
+        },
+      ),
+    );
   }
 
   @override
@@ -154,6 +182,17 @@ class _Neuro3DBrainViewportState extends State<Neuro3DBrainViewport> {
                     final b = _bridge ?? NeuroLabThreeBridge.latestBrainBridge;
                     b?.resetCamera();
                   },
+                ),
+                const SizedBox(width: 6),
+                IconButton(
+                  key: const Key('launch_fullscreen_brain_theater'),
+                  tooltip: 'Full-Screen 3D Brain Theater',
+                  icon: const Icon(Icons.fullscreen_rounded, color: Color(0xFF00E5FF), size: 18),
+                  style: IconButton.styleFrom(
+                    backgroundColor: const Color(0xFF0F172A).withValues(alpha: 0.85),
+                    padding: const EdgeInsets.all(6),
+                  ),
+                  onPressed: _openFullScreenTheater,
                 ),
               ],
             ),

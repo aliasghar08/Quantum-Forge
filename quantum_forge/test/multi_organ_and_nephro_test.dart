@@ -10,6 +10,9 @@ import 'package:quantum_forge/core/security/chemical_safety_guard.dart';
 import 'package:quantum_forge/features/reaction_runner/presentation/widgets/domain_of_applicability_advisory_widget.dart';
 import 'package:quantum_forge/features/cardiac/data/cardiac_master_vitals_state.dart';
 import 'package:quantum_forge/features/cardiac/data/coronary_hemodynamics_engine.dart';
+import 'package:quantum_forge/screens/nephro_lab_screen.dart';
+import 'package:quantum_forge/features/nephro/presentation/widgets/nephro_3d_viewport.dart';
+import 'package:quantum_forge/features/nephro/presentation/widgets/nephro_full_screen_nephron_theater.dart';
 
 void main() {
   group('MultiOrganPatientState & Cardiorenal Coupling Tests', () {
@@ -226,6 +229,83 @@ void main() {
       expect(find.textContaining('Pathophysiological Mechanism'), findsOneWidget);
       expect(find.textContaining('Attending Board Question'), findsOneWidget);
       expect(find.text('Submit Answer'), findsOneWidget);
+    });
+
+    testWidgets(
+        'launches NephroFullScreenNephronTheater with 3D tags, drug highlights, and clean dismissal',
+        (tester) async {
+      tester.view.physicalSize = const Size(1440, 1000);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: MediaQuery(
+            data: MediaQueryData(size: Size(1440, 1000)),
+            child: NephroLabScreen(),
+          ),
+        ),
+      );
+      await tester.pump();
+
+      // Verify Nephro3DViewport is present
+      expect(find.byType(Nephro3DViewport), findsOneWidget);
+
+      // Tap launch button
+      final launchBtn =
+          find.byKey(const Key('launch_fullscreen_nephron_theater'));
+      expect(launchBtn, findsOneWidget);
+      await tester.ensureVisible(launchBtn);
+      await tester.tap(launchBtn);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+
+      // Verify Nephron Theater mounted
+      expect(find.byType(NephroFullScreenNephronTheater), findsOneWidget);
+      expect(
+        find.textContaining('GLOMERULUS, NEPHRON & JGA THEATER'),
+        findsOneWidget,
+      );
+
+      // Verify Vitals badge inside theater
+      expect(
+        find.descendant(
+          of: find.byType(NephroFullScreenNephronTheater),
+          matching: find.textContaining('eGFR '),
+        ),
+        findsOneWidget,
+      );
+
+      // Test Toggle Name Tags
+      final tagsToggle = find.byKey(const Key('nephro_theater_tags_toggle'));
+      expect(tagsToggle, findsOneWidget);
+      await tester.tap(tagsToggle);
+      await tester.pump(const Duration(milliseconds: 100));
+
+      // Test Select Drug Site chip
+      final dapagliflozinChip =
+          find.byKey(const Key('nephro_drug_dapagliflozin'));
+      expect(dapagliflozinChip, findsOneWidget);
+      await tester.tap(dapagliflozinChip);
+      await tester.pump(const Duration(milliseconds: 100));
+
+      // Test Reset Camera
+      final resetCamBtn = find.byKey(const Key('nephro_theater_reset_cam'));
+      expect(resetCamBtn, findsOneWidget);
+      await tester.tap(resetCamBtn);
+      await tester.pump(const Duration(milliseconds: 100));
+
+      // Exit Theater
+      final exitBtn = find.byKey(const Key('nephro_theater_exit_button'));
+      expect(exitBtn, findsOneWidget);
+      await tester.tap(exitBtn);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+
+      // Verify back to NephroLabScreen
+      expect(find.byType(NephroFullScreenNephronTheater), findsNothing);
+      expect(find.byType(Nephro3DViewport), findsOneWidget);
     });
   });
 }

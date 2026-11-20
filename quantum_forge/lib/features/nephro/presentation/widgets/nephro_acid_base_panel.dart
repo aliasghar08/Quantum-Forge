@@ -182,15 +182,18 @@ class _NephroAcidBasePanelState extends State<NephroAcidBasePanel> {
                   children: [
                     const Icon(Icons.scatter_plot_rounded, size: 14, color: Color(0xFF00E5FF)),
                     const SizedBox(width: 6),
-                    Text(
-                      'Anion Gap (Albumin-Corrected): ${agCorr.toStringAsFixed(1)} mEq/L',
-                      style: TextStyle(
-                        fontSize: 10.5,
-                        fontWeight: FontWeight.bold,
-                        color: agCorr > 12.0 ? const Color(0xFFFF5252) : const Color(0xFF00E676),
+                    Expanded(
+                      child: Text(
+                        'Anion Gap (Albumin-Corrected): ${agCorr.toStringAsFixed(1)} mEq/L',
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 10.5,
+                          fontWeight: FontWeight.bold,
+                          color: agCorr > 12.0 ? const Color(0xFFFF5252) : const Color(0xFF00E676),
+                        ),
                       ),
                     ),
-                    const Spacer(),
+                    const SizedBox(width: 6),
                     Text(
                       agCorr > 12.0 ? 'ELEVATED (HAGMA)' : 'NORMAL GAP (8–12)',
                       style: TextStyle(
@@ -214,12 +217,15 @@ class _NephroAcidBasePanelState extends State<NephroAcidBasePanel> {
                   children: [
                     const Icon(Icons.air_rounded, size: 14, color: Color(0xFFFFB74D)),
                     const SizedBox(width: 6),
-                    Text(
-                      'Winter’s Expected PaCO₂: ${(winter - 2).round()}–${(winter + 2).round()} mmHg (Obs: ${v.paco2MmHg.round()})',
-                      style: const TextStyle(
-                        fontSize: 10.5,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                    Expanded(
+                      child: Text(
+                        'Winter’s Expected PaCO₂: ${(winter - 2).round()}–${(winter + 2).round()} mmHg (Obs: ${v.paco2MmHg.round()})',
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 10.5,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
                       ),
                     ),
                   ],
@@ -255,14 +261,17 @@ class _NephroAcidBasePanelState extends State<NephroAcidBasePanel> {
                   children: [
                     const Icon(Icons.change_circle_rounded, size: 14, color: Color(0xFFAB47BC)),
                     const SizedBox(width: 6),
-                    Text(
-                      dd != null
-                          ? 'Delta-Delta (Δ/Δ) Ratio: ${dd.toStringAsFixed(2)}'
-                          : 'Delta-Delta: N/A (Baseline HCO₃⁻ ~24)',
-                      style: const TextStyle(
-                        fontSize: 10.5,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFFE2E8F0),
+                    Expanded(
+                      child: Text(
+                        dd != null
+                            ? 'Delta-Delta (Δ/Δ) Ratio: ${dd.toStringAsFixed(2)}'
+                            : 'Delta-Delta: N/A (Baseline HCO₃⁻ ~24)',
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 10.5,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFFE2E8F0),
+                        ),
                       ),
                     ),
                   ],

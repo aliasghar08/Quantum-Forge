@@ -15,6 +15,8 @@ import 'package:flutter/material.dart';
 import '../../data/neuro_pathology_models.dart';
 import 'neuro_three_engine.dart';
 import 'neuro_clinical_info_system.dart';
+import 'neuro_master_vitals_state.dart';
+import 'neuro_full_screen_dsa_theater.dart';
 
 class NeuroDsaViewport extends StatefulWidget {
   final NeuroScenario scenario;
@@ -23,6 +25,9 @@ class NeuroDsaViewport extends StatefulWidget {
   final bool isThrombectomized;
   final bool isCoiled;
   final VoidCallback? onInjectContrast;
+  final VoidCallback? onDeployThrombectomy;
+  final VoidCallback? onDeployCoils;
+  final NeuroMasterVitalsState? vitals;
 
   const NeuroDsaViewport({
     super.key,
@@ -32,6 +37,9 @@ class NeuroDsaViewport extends StatefulWidget {
     this.isThrombectomized = false,
     this.isCoiled = false,
     this.onInjectContrast,
+    this.onDeployThrombectomy,
+    this.onDeployCoils,
+    this.vitals,
   });
 
   @override
@@ -83,6 +91,31 @@ class _NeuroDsaViewportState extends State<NeuroDsaViewport> {
     final b = _bridge ?? NeuroLabThreeBridge.latestDsaBridge;
     b?.injectContrast();
     widget.onInjectContrast?.call();
+  }
+
+  void _openFullScreenTheater() {
+    Navigator.of(context).push(
+      PageRouteBuilder(
+        opaque: false,
+        barrierColor: Colors.black.withValues(alpha: 0.88),
+        pageBuilder: (context, animation, secondaryAnimation) {
+          return FadeTransition(
+            opacity: animation,
+            child: NeuroFullScreenDsaTheater(
+              scenario: widget.scenario,
+              projection: widget.projection,
+              onProjectionChanged: widget.onProjectionChanged,
+              isThrombectomized: widget.isThrombectomized,
+              isCoiled: widget.isCoiled,
+              onInjectContrast: widget.onInjectContrast,
+              onDeployThrombectomy: widget.onDeployThrombectomy,
+              onDeployCoils: widget.onDeployCoils,
+              vitals: widget.vitals,
+            ),
+          );
+        },
+      ),
+    );
   }
 
   @override
@@ -161,6 +194,17 @@ class _NeuroDsaViewportState extends State<NeuroDsaViewport> {
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                   ),
                   onPressed: _handleInject,
+                ),
+                const SizedBox(width: 6),
+                IconButton(
+                  key: const Key('launch_fullscreen_dsa_theater'),
+                  tooltip: 'Full-Screen Biplane DSA Theater',
+                  icon: const Icon(Icons.fullscreen_rounded, color: Color(0xFF00E5FF), size: 18),
+                  style: IconButton.styleFrom(
+                    backgroundColor: const Color(0xFF0F172A).withValues(alpha: 0.85),
+                    padding: const EdgeInsets.all(6),
+                  ),
+                  onPressed: _openFullScreenTheater,
                 ),
               ],
             ),

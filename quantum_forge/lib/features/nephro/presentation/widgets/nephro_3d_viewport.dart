@@ -9,7 +9,9 @@ import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../../../../core/theme/theme_provider.dart';
+import '../../../clinical_core/data/multi_organ_patient_state.dart';
 import 'nephro_three_engine.dart';
+import 'nephro_full_screen_nephron_theater.dart';
 
 enum NephronViewMode {
   all('Full Nephron & Vasculature'),
@@ -24,12 +26,16 @@ class Nephro3DViewport extends StatefulWidget {
   final NephronViewMode viewMode;
   final String? activeDrugTarget;
   final ValueChanged<NephronViewMode>? onViewModeChanged;
+  final ValueChanged<String?>? onDrugSelected;
+  final NephroMasterVitalsState? vitals;
 
   const Nephro3DViewport({
     super.key,
     this.viewMode = NephronViewMode.all,
     this.activeDrugTarget,
     this.onViewModeChanged,
+    this.onDrugSelected,
+    this.vitals,
   });
 
   @override
@@ -69,6 +75,25 @@ class _Nephro3DViewportState extends State<Nephro3DViewport> {
       _zoom = 1.0;
     });
     _threeBridge?.resetCamera();
+  }
+
+  void _openFullScreenTheater() {
+    Navigator.of(context).push(
+      PageRouteBuilder(
+        opaque: false,
+        barrierColor: Colors.black.withValues(alpha: 0.88),
+        pageBuilder: (context, animation, secondaryAnimation) {
+          return FadeTransition(
+            opacity: animation,
+            child: NephroFullScreenNephronTheater(
+              activeDrugTarget: widget.activeDrugTarget,
+              onDrugSelected: widget.onDrugSelected,
+              vitals: widget.vitals,
+            ),
+          );
+        },
+      ),
+    );
   }
 
   @override
@@ -166,6 +191,13 @@ class _Nephro3DViewportState extends State<Nephro3DViewport> {
                     icon: const Icon(Icons.refresh_rounded, color: Colors.white70, size: 18),
                     tooltip: 'Reset 3D Camera',
                     onPressed: _resetCamera,
+                  ),
+                  const SizedBox(width: 6),
+                  IconButton(
+                    key: const Key('launch_fullscreen_nephron_theater'),
+                    icon: const Icon(Icons.fullscreen_rounded, color: Color(0xFF00E5FF), size: 18),
+                    tooltip: 'Full-Screen Nephron Theater',
+                    onPressed: _openFullScreenTheater,
                   ),
                 ],
               ),

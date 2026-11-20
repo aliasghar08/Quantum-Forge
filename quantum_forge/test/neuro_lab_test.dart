@@ -19,6 +19,8 @@ import 'package:quantum_forge/features/neuro/presentation/widgets/neuro_clinical
 import 'package:quantum_forge/features/neuro/presentation/widgets/neuro_drug_mechanism_dialog.dart';
 import 'package:quantum_forge/features/neuro/presentation/widgets/neuro_osce_exam_panel.dart';
 import 'package:quantum_forge/features/neuro/presentation/widgets/neuro_frontier_neurosurgery_panel.dart';
+import 'package:quantum_forge/features/neuro/presentation/widgets/neuro_full_screen_brain_theater.dart';
+import 'package:quantum_forge/features/neuro/presentation/widgets/neuro_full_screen_dsa_theater.dart';
 
 void main() {
   group('NeuroLab 3D: Workstation & Physiology Engine Tests', () {
@@ -480,6 +482,147 @@ void main() {
 
       expect(find.byType(NeuroFrontierNeurosurgeryPanel), findsOneWidget);
       expect(find.text('1. AWAKE DCS ELOQUENT MAPPING'), findsOneWidget);
+    });
+
+    testWidgets(
+        'launches NeuroFullScreenBrainTheater from Neuro3DBrainViewport with 3D tags, cutaway, and clean dismissal',
+        (tester) async {
+      tester.view.physicalSize = const Size(1440, 1000);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(buildTestScreen(size: const Size(1440, 1000)));
+      await tester.pump();
+
+      // Locate and tap the Full-Screen Brain launcher button
+      final launchBtn =
+          find.byKey(const Key('launch_fullscreen_brain_theater'));
+      expect(launchBtn, findsOneWidget);
+      await tester.ensureVisible(launchBtn);
+      await tester.tap(launchBtn);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+
+      // Verify Theater is mounted
+      expect(find.byType(NeuroFullScreenBrainTheater), findsOneWidget);
+      expect(
+        find.textContaining('CEREBRAL & SPINAL NEURO-ANATOMY THEATER'),
+        findsOneWidget,
+      );
+
+      // Verify Vitals badge inside theater
+      expect(
+        find.descendant(
+          of: find.byType(NeuroFullScreenBrainTheater),
+          matching: find.textContaining('MAP '),
+        ),
+        findsOneWidget,
+      );
+
+      // Test Toggle Name Tags
+      final tagsToggle =
+          find.byKey(const Key('neuro_brain_theater_tags_toggle'));
+      expect(tagsToggle, findsOneWidget);
+      await tester.tap(tagsToggle);
+      await tester.pump(const Duration(milliseconds: 100));
+
+      // Test Category Filter Chips
+      final vesselsChip = find.byKey(const Key('neuro_cat_vessels'));
+      expect(vesselsChip, findsOneWidget);
+      await tester.tap(vesselsChip);
+      await tester.pump(const Duration(milliseconds: 100));
+
+      // Test Reset Camera
+      final resetCamBtn =
+          find.byKey(const Key('neuro_brain_theater_reset_cam'));
+      expect(resetCamBtn, findsOneWidget);
+      await tester.tap(resetCamBtn);
+      await tester.pump(const Duration(milliseconds: 100));
+
+      // Exit Theater
+      final exitBtn =
+          find.byKey(const Key('neuro_brain_theater_exit_button'));
+      expect(exitBtn, findsOneWidget);
+      await tester.tap(exitBtn);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+
+      // Verify back to neuro lab
+      expect(find.byType(NeuroFullScreenBrainTheater), findsNothing);
+      expect(find.byType(Neuro3DBrainViewport), findsOneWidget);
+    });
+
+    testWidgets(
+        'launches NeuroFullScreenDsaTheater from NeuroDsaViewport with projection switch, calipers, and clean dismissal',
+        (tester) async {
+      tester.view.physicalSize = const Size(1440, 1000);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(buildTestScreen(size: const Size(1440, 1000)));
+      await tester.pump();
+
+      // Switch to DSA tab
+      final dsaTab = find.text('Biplane DSA Angiography');
+      expect(dsaTab, findsOneWidget);
+      await tester.tap(dsaTab);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+
+      // Locate and tap the Full-Screen DSA launcher button
+      final launchBtn =
+          find.byKey(const Key('launch_fullscreen_dsa_theater'));
+      expect(launchBtn, findsOneWidget);
+      await tester.ensureVisible(launchBtn);
+      await tester.tap(launchBtn);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+
+      // Verify DSA Theater is mounted
+      expect(find.byType(NeuroFullScreenDsaTheater), findsOneWidget);
+      expect(
+        find.textContaining('BIPLANE DSA NEURO-ANGIOGRAPHY THEATER'),
+        findsOneWidget,
+      );
+
+      // Test Toggle Calipers
+      final calipersToggle =
+          find.byKey(const Key('dsa_theater_calipers_toggle'));
+      expect(calipersToggle, findsOneWidget);
+      await tester.tap(calipersToggle);
+      await tester.pump(const Duration(milliseconds: 100));
+
+      // Verify Calipers HUD is visible
+      expect(
+        find.text('ANGIOGRAPHIC VASCULAR CALIPERS'),
+        findsOneWidget,
+      );
+
+      // Test Toggle Tags
+      final tagsToggle = find.byKey(const Key('dsa_theater_tags_toggle'));
+      expect(tagsToggle, findsOneWidget);
+      await tester.tap(tagsToggle);
+      await tester.pump(const Duration(milliseconds: 100));
+
+      // Test Play/Pause Cine button
+      final playPauseBtn =
+          find.byKey(const Key('dsa_theater_play_pause_btn'));
+      expect(playPauseBtn, findsOneWidget);
+      await tester.tap(playPauseBtn);
+      await tester.pump(const Duration(milliseconds: 100));
+
+      // Exit DSA Theater
+      final exitBtn = find.byKey(const Key('neuro_dsa_theater_exit_button'));
+      expect(exitBtn, findsOneWidget);
+      await tester.tap(exitBtn);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+
+      // Verify back to neuro lab
+      expect(find.byType(NeuroFullScreenDsaTheater), findsNothing);
+      expect(find.byType(NeuroDsaViewport), findsOneWidget);
     });
   });
 }
