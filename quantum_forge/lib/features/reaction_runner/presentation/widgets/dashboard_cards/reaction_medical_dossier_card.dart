@@ -19,6 +19,7 @@ import 'package:quantum_forge/features/ddi/presentation/widgets/split_molecular_
 import 'package:quantum_forge/screens/ddi_split_screen.dart';
 import 'package:quantum_forge/core/widgets/ngl/ngl_engine.dart';
 import 'package:quantum_forge/features/education/presentation/widgets/study_card_export_dialog.dart';
+import '../domain_of_applicability_advisory_widget.dart';
 import 'medical_dossier_diagrams.dart';
 import 'research_ui.dart';
 
@@ -448,6 +449,12 @@ class _ReactionMedicalDossierCardState extends State<ReactionMedicalDossierCard>
 
             // ── Verified Data Provenance Status Bar ───────────────────────────────
             _buildProvenanceStatusBar(context, p),
+            const SizedBox(height: 10),
+
+            // ── Domain of Applicability (DoA) Advisory ───────────────────────────
+            DomainOfApplicabilityAdvisoryWidget(
+              chemicalName: '${p.genericName} ${p.iupacName} ${p.chemicalClass}',
+            ),
             const SizedBox(height: 14),
 
             // ── Segmented Navigation Tabs ─────────────────────────────────────────

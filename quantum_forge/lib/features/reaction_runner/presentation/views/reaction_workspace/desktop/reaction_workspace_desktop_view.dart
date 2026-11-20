@@ -4,6 +4,7 @@ import 'package:quantum_forge/state/settings_provider.dart';
 import 'package:quantum_forge/features/reaction_runner/presentation/views/reaction_workspace_viewmodel.dart';
 import 'package:quantum_forge/core/theme/theme_provider.dart';
 import 'package:quantum_forge/core/algorithms/solvent_properties.dart';
+import 'package:quantum_forge/features/reaction_runner/presentation/widgets/domain_of_applicability_advisory_widget.dart';
 
 class ReactionWorkspaceDesktopView extends StatelessWidget {
   const ReactionWorkspaceDesktopView({super.key});
@@ -129,7 +130,15 @@ class ReactionWorkspaceDesktopView extends StatelessWidget {
 
                   // Status & Model Accuracy Overview Banner
                   _buildStatusOverviewCard(),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 10),
+
+                  // Domain-of-Applicability (DoA) Advisory
+                  DomainOfApplicabilityAdvisoryWidget(
+                    chemicalName: vm.reactionTitle,
+                    molecularFormula: vm.reactionSubtitle,
+                    spinMultiplicity: int.tryParse(vm.spinMultiplicity.replaceAll(RegExp(r'[^0-9]'), '')) ?? 1,
+                  ),
+                  const SizedBox(height: 10),
 
                   // Export Actions Wrap
                   Wrap(

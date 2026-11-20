@@ -1128,6 +1128,11 @@ class _LibraryScreenState extends State<LibraryScreen> {
       list = list.where((t) => !t.isDerived).toList();
     } else if (_provenanceFilter == ProvenanceFilter.derivedOnly) {
       list = list.where((t) => t.isDerived).toList();
+    } else if (_provenanceFilter == ProvenanceFilter.verifiedDoiOnly) {
+      list = list
+          .where((t) =>
+              !t.isDerived && t.effectiveLiteratureDoi.trim().isNotEmpty)
+          .toList();
     }
 
     switch (_sortOrder) {

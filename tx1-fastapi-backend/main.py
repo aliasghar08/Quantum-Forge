@@ -40,6 +40,51 @@ from app.legacy_gnn import (
     BASE_DIR,
 )
 from app.mlip_registry import registry
+from safety_filter import screen_chemical_input
+
+# Transition metals atomic numbers for Domain-of-Applicability (DoA) guardrails
+TRANSITION_METALS = {
+    21, 22, 23, 24, 25, 26, 27, 28, 29, 30,  # Sc - Zn
+    39, 40, 41, 42, 43, 44, 45, 46, 47, 48,  # Y - Cd
+    57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71,  # Lanthanides
+    72, 73, 74, 75, 76, 77, 78, 79, 80,      # Hf - Hg
+    89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103,  # Actinides
+}
+
+def evaluate_doa(atomic_numbers: list[int] | None = None, spin_multiplicity: int = 1) -> dict:
+    has_tm = False
+    tm_elements = []
+    if atomic_numbers:
+        for z in atomic_numbers:
+            if z in TRANSITION_METALS:
+                has_tm = True
+                tm_elements.append(z)
+
+    open_shell = (spin_multiplicity > 1)
+    in_domain = not has_tm and not open_shell
+
+    reasons = []
+    if has_tm:
+        reasons.append(f"Transition metals present in structure (Atomic Z: {sorted(set(tm_elements))})")
+    if open_shell:
+        reasons.append(f"Open-shell spin multiplicity detected (2S+1 = {spin_multiplicity})")
+
+    warning_text = None
+    if not in_domain:
+        warning_text = (
+            "Domain-of-Applicability (DoA) Advisory: This system involves transition metals or "
+            f"an open-shell spin state ({' + '.join(reasons)}). Standard organic MLIP models "
+            "operate outside their primary C/H/N/O/S/P/halogen training domain. Literature-calibrated "
+            "reference benchmarks or hybrid DFT validation are strongly recommended."
+        )
+
+    return {
+        "in_domain": in_domain,
+        "has_transition_metal": has_tm,
+        "open_shell_spin": open_shell,
+        "reasons": reasons,
+        "advisory": warning_text,
+    }
 
 # ==========================================
 # APPLICATION AND LIFESPAN
@@ -236,6 +281,7 @@ def predict_energy(molecule: MoleculeRequest):
             "strategy": calculator.name(),
             "model_requested": molecule.mlip_model,
             "model_used": calculator.name(),
+            "doa_advisory": evaluate_doa(atomic_numbers, 1),
         }
     except HTTPException:
         raise
@@ -583,6 +629,18 @@ async def run_reaction(reaction_id: str, req: ReactionRequest):
 async def submit_reaction(req: ReactionRequest, background_tasks: BackgroundTasks):
     if len(req.reactant_xyz) > 500_000 or len(req.product_xyz) > 500_000:
         raise HTTPException(status_code=413, detail="Coordinate input size exceeds 500 KB limit.")
+
+    # CBRN and Controlled Substance Chemical Safety Screen
+    safety_r = screen_chemical_input(req.reactant_xyz)
+    if not safety_r.allowed:
+        raise HTTPException(status_code=403, detail=safety_r.compliance_message)
+    safety_p = screen_chemical_input(req.product_xyz)
+    if not safety_p.allowed:
+        raise HTTPException(status_code=403, detail=safety_p.compliance_message)
+    if req.custom_catalyst:
+        safety_c = screen_chemical_input(req.custom_catalyst)
+        if not safety_c.allowed:
+            raise HTTPException(status_code=403, detail=safety_c.compliance_message)
 
     reaction_id = str(uuid.uuid4())
     # The id is included inside the dict, not just used as the key. Without it,
@@ -1225,6 +1283,13 @@ def get_pharma_dossiers():
 @app.post("/api/pharma/predict")
 def predict_pharma_intelligence(req: PharmaQueryRequest):
     """Predicts MoA, species-specific toxicity risk, activation barrier Ea, and discipline affinities."""
+    # Screen query against CBRN & Controlled Substance policies
+    for text_field in [req.name, req.iupac, req.smiles]:
+        if text_field:
+            chk = screen_chemical_input(text_field)
+            if not chk.allowed:
+                raise HTTPException(status_code=403, detail=chk.compliance_message)
+
     m = get_pharma_model()
     if m is not None and req.features and len(req.features) == 32:
         feats_tensor = torch.tensor([req.features], dtype=torch.float32).to(DEVICE)

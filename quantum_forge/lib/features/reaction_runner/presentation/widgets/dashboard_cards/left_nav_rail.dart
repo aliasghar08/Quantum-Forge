@@ -20,6 +20,7 @@ import 'package:quantum_forge/screens/osce_sandbox_screen.dart';
 import 'package:quantum_forge/screens/ddi_split_screen.dart';
 import 'package:quantum_forge/screens/cardio_cath_screen.dart';
 import 'package:quantum_forge/screens/neuro_lab_screen.dart';
+import 'package:quantum_forge/screens/nephro_lab_screen.dart';
 import 'package:quantum_forge/core/widgets/quantum_forge_logo.dart';
 import 'package:quantum_forge/core/services/url_service.dart';
 
@@ -209,6 +210,14 @@ class ProfessionalDrawer extends StatelessWidget {
               () => Navigator.of(context).push(NeuroLabScreen.route()),
               showTooltips,
               'Brain anatomy, Circle of Willis, biplane DSA, 5-channel Neuro-ICU and spinal tracts.',
+            ),
+            _routeItem(
+              context,
+              Icons.water_drop_rounded,
+              'NephroLab 3D (Glomerulus & ICU)',
+              () => Navigator.of(context).push(NephroLabScreen.route()),
+              showTooltips,
+              'Procedural nephron 3D, ABG/Anion Gap/Winter suite, and ADME clearance.',
             ),
 
             SizedBox(height: gap(12)),

@@ -28,6 +28,9 @@ import '../features/neuro/presentation/widgets/neuro_master_vitals_bar.dart';
 import '../features/neuro/presentation/widgets/neuro_diagnostic_workstation_panel.dart';
 import '../features/neuro/presentation/widgets/neuro_research_workstation_panel.dart';
 import '../features/neuro/presentation/widgets/neuro_frontier_neurosurgery_panel.dart';
+import '../features/clinical_core/presentation/widgets/multi_organ_coupling_pill.dart';
+import '../features/clinical_core/presentation/widgets/clinical_safety_proctor_banner.dart';
+import '../features/clinical_core/data/multi_organ_patient_state.dart';
 
 enum NeuroWorkstationView {
   viewports,
@@ -182,6 +185,7 @@ class _NeuroLabScreenState extends State<NeuroLabScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isMobile = MediaQuery.of(context).size.width < 960;
     return Scaffold(
       backgroundColor: const Color(0xFF030508),
       body: SafeArea(
@@ -298,6 +302,10 @@ class _NeuroLabScreenState extends State<NeuroLabScreen> {
                     ),
                     const SizedBox(width: 8),
 
+                    // Multi-Organ Digital Patient Coupling Control
+                    const MultiOrganCouplingPill(),
+                    const SizedBox(width: 8),
+
                     // 7-Pillar Shield Trigger
                     IconButton(
                       tooltip: 'SaMD 7-Pillar Regulatory Shield',
@@ -323,6 +331,12 @@ class _NeuroLabScreenState extends State<NeuroLabScreen> {
                 vitals: _vitals,
                 onReset: () => _syncVitalsWithScenario(_activeScenario),
               ),
+            ),
+
+            // 3b. Closed-Loop Socratic AI Attending Proctor Interceptor
+            ClinicalSafetyProctorBanner(
+              patientState: MultiOrganPatientState.instance,
+              isMobile: isMobile,
             ),
 
             // 4. Dynamic Workstation Content Body

@@ -5,12 +5,15 @@
 
 export 'analytics_screen.dart';
 export 'auth_screen.dart';
+export 'cardio_cath_screen.dart';
 export 'coordinate_editor_screen.dart';
 export 'dashboard_screen.dart';
 export 'ddi_split_screen.dart';
 export 'history_screen.dart';
 export 'library_screen.dart';
 export 'method_validation_screen.dart';
+export 'nephro_lab_screen.dart';
+export 'neuro_lab_screen.dart';
 export 'osce_sandbox_screen.dart';
 export 'pharmacogenomics_screen.dart';
 export 'pharmacopeia_screen.dart';

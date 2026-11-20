@@ -27,7 +27,8 @@ enum CatalystFilter {
 enum ProvenanceFilter {
   all('All Sources'),
   curatedOnly('Curated Ground Truth'),
-  derivedOnly('Generated Variants');
+  derivedOnly('Generated Variants'),
+  verifiedDoiOnly('Verified Literature DOI Only');
 
   final String label;
   const ProvenanceFilter(this.label);

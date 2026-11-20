@@ -34,6 +34,9 @@ import '../features/cardiac/presentation/widgets/cardiac_research_workstation_pa
 import '../features/cardiac/presentation/widgets/cardiac_fellowship_suite_panel.dart';
 import '../features/education/presentation/widgets/clinical_vignette_quiz_drawer.dart';
 import '../features/education/presentation/widgets/study_card_export_dialog.dart';
+import '../features/clinical_core/presentation/widgets/multi_organ_coupling_pill.dart';
+import '../features/clinical_core/presentation/widgets/clinical_safety_proctor_banner.dart';
+import '../features/clinical_core/data/multi_organ_patient_state.dart';
 
 class CardioCathScreen extends StatefulWidget {
   final String? initialScenarioId;
@@ -594,6 +597,11 @@ class _CardioCathScreenState extends State<CardioCathScreen>
         ),
         actions: isMobile
             ? [
+                // Multi-Organ Coupling Pill
+                const Padding(
+                  padding: EdgeInsets.only(right: 4),
+                  child: MultiOrganCouplingPill(),
+                ),
                 // OSCE Exam Mode Toggle
                 Padding(
                   padding: const EdgeInsets.only(right: 4),
@@ -682,6 +690,11 @@ class _CardioCathScreenState extends State<CardioCathScreen>
                 ),
               ]
             : [
+                // Multi-Organ Digital Patient Coupling Control
+                const Padding(
+                  padding: EdgeInsets.only(right: 6),
+                  child: MultiOrganCouplingPill(),
+                ),
                 // WebXR VR Lab Button
                 Padding(
                   padding: const EdgeInsets.only(right: 6),
@@ -785,6 +798,13 @@ class _CardioCathScreenState extends State<CardioCathScreen>
           children: [
             // ── SaMD Compliance Banner ──────────────────────────────────────
             _buildLegalDisclaimerBanner(palette),
+            const SizedBox(height: 8),
+
+            // ── Closed-Loop Socratic AI Attending Proctor Interceptor ────────
+            ClinicalSafetyProctorBanner(
+              patientState: MultiOrganPatientState.instance,
+              isMobile: isMobile,
+            ),
             const SizedBox(height: 12),
 
             // ── OSCE Challenge Exam Mode Card (If active) ───────────────────
