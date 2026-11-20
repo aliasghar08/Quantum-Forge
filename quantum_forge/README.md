@@ -175,7 +175,8 @@ Quantum Forge is deployed globally via Firebase Hosting:
 
 ---
 
-## 👤 Author
+## 🏢 Company & Engineering
 
-Developed by **Ali Asghar**  
-Contact: aliasgharinnocent@yahoo.com
+**Quantum Forge** is a flagship product engineered and operated by **Dart Nexus Lab**.  
+Contact: eliasgharinnocent@yahoo.com  
+Website: [https://quantumforgeapp.com](https://quantumforgeapp.com)

@@ -30,10 +30,10 @@ void main() {
       await tester.pumpWidget(buildWatermarkTestApp(const Size(1200, 800)));
       await tester.pumpAndSettle();
 
-      expect(find.textContaining('Ali Asghar'), findsOneWidget);
-      expect(find.textContaining('aliasgharinnocent@yahoo.com'), findsOneWidget);
+      expect(find.textContaining('Dart Nexus Lab'), findsOneWidget);
+      expect(find.textContaining('eliasgharinnocent@yahoo.com'), findsOneWidget);
       expect(find.textContaining('Quantum Forge'), findsOneWidget);
-      expect(find.textContaining('All Rights Reserved'), findsOneWidget);
+      expect(find.textContaining('A Product of Dart Nexus Lab'), findsOneWidget);
       expect(find.textContaining('DMCA Protected'), findsOneWidget);
 
       // Verify descendant IgnorePointer is ignoring
@@ -51,8 +51,8 @@ void main() {
       await tester.pumpWidget(buildWatermarkTestApp(const Size(480, 800)));
       await tester.pumpAndSettle();
 
-      expect(find.textContaining('Ali Asghar'), findsOneWidget);
-      expect(find.textContaining('aliasgharinnocent@yahoo.com'), findsOneWidget);
+      expect(find.textContaining('Dart Nexus Lab'), findsOneWidget);
+      expect(find.textContaining('eliasgharinnocent@yahoo.com'), findsOneWidget);
     });
 
     testWidgets('Underlying content can be tapped through IgnorePointer', (tester) async {

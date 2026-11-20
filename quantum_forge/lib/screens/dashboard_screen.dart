@@ -1098,7 +1098,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   child: Padding(
                     padding: const EdgeInsets.only(bottom: 24),
                     child: Text(
-                      'Quantum Forge © Ali Asghar · aliasgharinnocent@yahoo.com',
+                      'Quantum Forge — A Product of Dart Nexus Lab · eliasgharinnocent@yahoo.com',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 11,

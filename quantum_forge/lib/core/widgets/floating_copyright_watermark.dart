@@ -1,6 +1,6 @@
 // ============================================================================
 // Floating Copyright Watermark & Legal Protection Badge
-// Copyright (c) 2026 Ali Asghar <aliasgharinnocent@yahoo.com>. All Rights Reserved.
+// Copyright (c) 2026 Dart Nexus Lab <eliasgharinnocent@yahoo.com>. All Rights Reserved.
 // ============================================================================
 
 import 'package:flutter/material.dart';
@@ -12,8 +12,8 @@ import 'package:quantum_forge/core/services/app_route_observer.dart';
 class FloatingCopyrightWatermark extends StatelessWidget {
   const FloatingCopyrightWatermark({super.key});
 
-  static const String ownerName = 'Ali Asghar';
-  static const String ownerEmail = 'aliasgharinnocent@yahoo.com';
+  static const String ownerName = 'Dart Nexus Lab';
+  static const String ownerEmail = 'eliasgharinnocent@yahoo.com';
   static const String appTitle = 'Quantum Forge';
 
   @override
@@ -43,9 +43,9 @@ class FloatingCopyrightWatermark extends StatelessWidget {
               final String textContent;
               if (width >= 620 && !isMobile) {
                 textContent =
-                    '$appTitle © $ownerName · $ownerEmail · All Rights Reserved · DMCA Protected';
+                    '$appTitle — A Product of $ownerName · $ownerEmail · DMCA Protected';
               } else if (width >= 400 || !isMobile) {
-                textContent = '$appTitle © $ownerName · $ownerEmail';
+                textContent = '$appTitle — $ownerName · $ownerEmail';
               } else {
                 textContent = '© $ownerName · $ownerEmail';
               }

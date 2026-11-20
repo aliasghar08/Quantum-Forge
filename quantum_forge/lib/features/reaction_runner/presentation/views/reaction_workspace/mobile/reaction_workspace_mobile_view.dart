@@ -133,7 +133,7 @@ class ReactionWorkspaceMobileView extends StatelessWidget {
               child: Padding(
                 padding: const EdgeInsets.only(bottom: 12),
                 child: Text(
-                  'Quantum Forge © Ali Asghar · aliasgharinnocent@yahoo.com',
+                  'Quantum Forge — A Product of Dart Nexus Lab · eliasgharinnocent@yahoo.com',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 11,

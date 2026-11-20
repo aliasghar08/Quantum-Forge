@@ -288,8 +288,8 @@ extension _ReactionAnimationCanvasExt on _ReactionAnimationWidgetState {
               ),
               child: Text(
                 MediaQuery.of(context).size.width < 500
-                    ? '© Ali Asghar'
-                    : 'Quantum Forge © Ali Asghar · aliasgharinnocent@yahoo.com',
+                    ? '© Dart Nexus Lab'
+                    : 'Quantum Forge — A Product of Dart Nexus Lab · eliasgharinnocent@yahoo.com',
                 style: const TextStyle(
                   color: Colors.white38,
                   fontSize: 9.5,

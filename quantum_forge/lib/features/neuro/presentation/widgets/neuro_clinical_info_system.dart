@@ -437,7 +437,7 @@ class NeuroLegalShieldDialog extends StatelessWidget {
                   _PillarTile(
                     number: '5',
                     title: '100% Proprietary Procedural 3D & Zero Copyright Mesh Ingestion',
-                    body: 'All 3D cortical surfaces, Circle of Willis vessels, ventricles, and spinal cords are mathematically generated via Three.js procedural algorithms. Zero copyrighted DICOMs or commercial CAD meshes are incorporated.',
+                    body: 'All 3D cortical surfaces, Circle of Willis vessels, ventricles, and spinal cords are mathematically generated via Three.js procedural algorithms engineered by Dart Nexus Lab. Zero copyrighted DICOMs or commercial CAD meshes are incorporated.',
                   ),
                   _PillarTile(
                     number: '6',
