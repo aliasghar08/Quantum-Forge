@@ -33,7 +33,7 @@ class QuantumDefaults {
   const QuantumDefaults({
     this.charge = 0,
     this.spinMultiplicity = 1,
-    this.mlipModel = 'tx1-fastapi',
+    this.mlipModel = 'quantumforge-reaction-gnn',
     this.optimizerAlgorithm = 'NEB-CI',
   });
 
@@ -41,7 +41,7 @@ class QuantumDefaults {
     return QuantumDefaults(
       charge: json['charge'] as int? ?? 0,
       spinMultiplicity: json['spinMultiplicity'] as int? ?? 1,
-      mlipModel: json['mlipModel'] as String? ?? 'tx1-fastapi',
+      mlipModel: json['mlipModel'] as String? ?? 'quantumforge-reaction-gnn',
       optimizerAlgorithm: json['optimizerAlgorithm'] as String? ?? 'NEB-CI',
     );
   }
@@ -1580,7 +1580,7 @@ final List<ReactionTemplate> kReactionTemplates = [
     literatureBarrierKcalMol: 14.8,
     hasLiteratureCatalyst: true,
     literatureDoi: '10.1021/ed085p941',
-    defaults: const QuantumDefaults(mlipModel: 'tx1-fastapi', optimizerAlgorithm: 'NEB-CI'),
+    defaults: const QuantumDefaults(mlipModel: 'quantumforge-reaction-gnn', optimizerAlgorithm: 'NEB-CI'),
   ),
   ReactionTemplate(
     id: 'aldol-01',
@@ -1686,7 +1686,7 @@ final List<ReactionTemplate> kReactionTemplates = [
     literatureBarrierKcalMol: 13.2,
     hasLiteratureCatalyst: true,
     literatureDoi: '10.1021/ja00073a014',
-    defaults: const QuantumDefaults(mlipModel: 'tx1-fastapi', optimizerAlgorithm: 'NEB-CI'),
+    defaults: const QuantumDefaults(mlipModel: 'quantumforge-reaction-gnn', optimizerAlgorithm: 'NEB-CI'),
   ),
   ReactionTemplate(
     id: 'sn2',
@@ -1707,7 +1707,7 @@ final List<ReactionTemplate> kReactionTemplates = [
     literatureBarrierKcalMol: 13.2,
     hasLiteratureCatalyst: true,
     literatureDoi: '10.1021/ja00206a030',
-    defaults: const QuantumDefaults(charge: -1, mlipModel: 'tx1-fastapi'),
+    defaults: const QuantumDefaults(charge: -1, mlipModel: 'quantumforge-reaction-gnn'),
   ),
   ReactionTemplate(
     id: 'cope',
@@ -1728,7 +1728,7 @@ final List<ReactionTemplate> kReactionTemplates = [
     literatureBarrierKcalMol: 19.5,
     hasLiteratureCatalyst: true,
     literatureDoi: '10.1021/ja00041a058',
-    defaults: const QuantumDefaults(mlipModel: 'tx1-fastapi', optimizerAlgorithm: 'NEB-CI'),
+    defaults: const QuantumDefaults(mlipModel: 'quantumforge-reaction-gnn', optimizerAlgorithm: 'NEB-CI'),
   ),
   ReactionTemplate(
     id: 'claisen',
@@ -1749,7 +1749,7 @@ final List<ReactionTemplate> kReactionTemplates = [
     literatureBarrierKcalMol: 18.2,
     hasLiteratureCatalyst: true,
     literatureDoi: '10.1021/ja00046a007',
-    defaults: const QuantumDefaults(mlipModel: 'tx1-fastapi'),
+    defaults: const QuantumDefaults(mlipModel: 'quantumforge-reaction-gnn'),
   ),
   ReactionTemplate(
     id: 'h_abstraction',
@@ -1770,7 +1770,7 @@ final List<ReactionTemplate> kReactionTemplates = [
     literatureBarrierKcalMol: 5.5,
     hasLiteratureCatalyst: true,
     literatureDoi: '10.1021/jp972097d',
-    defaults: const QuantumDefaults(spinMultiplicity: 2, mlipModel: 'tx1-fastapi'),
+    defaults: const QuantumDefaults(spinMultiplicity: 2, mlipModel: 'quantumforge-reaction-gnn'),
   ),
   ReactionTemplate(
     id: 'ene_reaction',
@@ -1791,7 +1791,7 @@ final List<ReactionTemplate> kReactionTemplates = [
     literatureBarrierKcalMol: 15.4,
     hasLiteratureCatalyst: true,
     literatureDoi: '10.1039/c9cp01847e',
-    defaults: const QuantumDefaults(mlipModel: 'tx1-fastapi'),
+    defaults: const QuantumDefaults(mlipModel: 'quantumforge-reaction-gnn'),
   ),
   ReactionTemplate(
     id: 'decarboxylation',
@@ -1833,7 +1833,7 @@ final List<ReactionTemplate> kReactionTemplates = [
     literatureBarrierKcalMol: 21.3,
     hasLiteratureCatalyst: true,
     literatureDoi: '10.1002/chem.200600431',
-    defaults: const QuantumDefaults(mlipModel: 'tx1-fastapi')),
+    defaults: const QuantumDefaults(mlipModel: 'quantumforge-reaction-gnn')),
   ReactionTemplate(
     id: 'heck',
     name: 'Heck Coupling (Pd Migratory Insertion)',
@@ -1887,7 +1887,7 @@ final List<ReactionTemplate> kReactionTemplates = [
     doi: '10.1021/ja00073a014',
     journalRef: 'J. Am. Chem. Soc. 1990, 112, 8650',
     tags: ['retro', '[4+2]', 'pyrolysis', 'fragmentation', 'high-Ea'],
-    defaults: const QuantumDefaults(mlipModel: 'tx1-fastapi', optimizerAlgorithm: 'Dimer'),
+    defaults: const QuantumDefaults(mlipModel: 'quantumforge-reaction-gnn', optimizerAlgorithm: 'Dimer'),
   ),
   ReactionTemplate(
     id: 'e2_elimination',
@@ -1904,7 +1904,7 @@ final List<ReactionTemplate> kReactionTemplates = [
     doi: '10.1021/ja00206a031',
     journalRef: 'J. Am. Chem. Soc. 1987, 109, 1645',
     tags: ['anti-periplanar', 'bimolecular', 'Zaitsev', 'concerted'],
-    defaults: const QuantumDefaults(charge: -1, mlipModel: 'tx1-fastapi'),
+    defaults: const QuantumDefaults(charge: -1, mlipModel: 'quantumforge-reaction-gnn'),
   ),
 
   // ── NEW COMPLEX TEMPLATES ──────────────────────────────────────────────────
@@ -2069,7 +2069,7 @@ H     0.000    1.400    0.000''',
     doi: '10.1021/cr040677k',
     journalRef: 'Chem. Rev. 2004, 104, 2857',
     tags: ['ylide', 'phosphorus', '[2+2]', 'oxaphosphetane', 'Z-selective', 'Nobel'],
-    defaults: const QuantumDefaults(mlipModel: 'tx1-fastapi'),
+    defaults: const QuantumDefaults(mlipModel: 'quantumforge-reaction-gnn'),
   ),
 
   ReactionTemplate(
@@ -2256,7 +2256,7 @@ H     1.745   -0.950    5.000''',
     hasLiteratureCatalyst: true,
     literatureDoi: '10.1021/ja005513q',
     defaults: const QuantumDefaults(
-        mlipModel: 'tx1-fastapi', optimizerAlgorithm: 'NEB-CI'),
+        mlipModel: 'quantumforge-reaction-gnn', optimizerAlgorithm: 'NEB-CI'),
   ),
   ReactionTemplate(
     id: 'benzoyl_chloride_syn',

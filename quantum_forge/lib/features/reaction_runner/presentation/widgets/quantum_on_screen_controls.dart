@@ -25,6 +25,7 @@ class QuantumOnScreenControlsCard extends StatefulWidget {
 
 class _QuantumOnScreenControlsCardState extends State<QuantumOnScreenControlsCard> {
   static const _mlipModels = [
+    'quantumforge-reaction-gnn',
     'tx1-fastapi',
     'MACE-MP-0',
     'CHGNet',

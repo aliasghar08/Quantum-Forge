@@ -117,10 +117,17 @@ class Tx1Calculator:
 
     _model: MolecularGraphNetwork | None = None
 
-    def __init__(self, checkpoint: Path | None = None, use_rbf: bool = False, use_cutoff: bool = False) -> None:
+    def __init__(
+        self,
+        checkpoint: Path | None = None,
+        use_rbf: bool = False,
+        use_cutoff: bool = False,
+        model_name: str | None = None,
+    ) -> None:
         self.checkpoint = checkpoint or checkpoint_path()
         self.use_rbf = use_rbf
         self.use_cutoff = use_cutoff
+        self._model_name = model_name
         self._load()
 
     def _load(self) -> None:
@@ -175,6 +182,8 @@ class Tx1Calculator:
         return [float(e.item()) for e in energies]
 
     def name(self) -> str:
+        if self._model_name:
+            return self._model_name
         if self.use_rbf:
             return "tx1-v2a"
-        return "tx1-fastapi"
+        return "quantumforge-reaction-gnn"

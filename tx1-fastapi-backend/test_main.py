@@ -248,10 +248,32 @@ def test_health_reports_loaded_strategies_and_digests():
     assert res.status_code == 200
     data = res.json()
     assert "strategies_loaded" in data
+    assert "quantumforge-reaction-gnn" in data["strategies_loaded"]
     assert "tx1-fastapi" in data["strategies_loaded"]
     assert "tx1-v2" in data["strategies_loaded"]
     assert "checkpoint_digests" in data
+    assert "quantumforge-reaction-gnn" in data["checkpoint_digests"]
     assert "tx1-fastapi" in data["checkpoint_digests"]
+
+
+def test_predict_with_quantumforge_reaction_gnn():
+    water = {
+        "atomic_numbers": [8, 1, 1],
+        "positions": [
+            [0.0, 0.0, 0.1173],
+            [0.0, 0.7572, -0.4692],
+            [0.0, -0.7572, -0.4692],
+        ],
+        "mlip_model": "quantumforge-reaction-gnn",
+    }
+    res = client().post("/predict", json=water)
+    assert res.status_code == 200
+    data = res.json()
+    assert data["status"] == "success"
+    assert "energy_ev" in data
+    assert isinstance(data["energy_ev"], float)
+    assert data["strategy"] == "quantumforge-reaction-gnn"
+    assert data["model_requested"] == "quantumforge-reaction-gnn"
 
 
 def test_predict_with_tx1_v2_reports_uncertainty():

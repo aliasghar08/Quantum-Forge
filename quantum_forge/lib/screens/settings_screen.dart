@@ -1514,8 +1514,12 @@ class _BackendUrlFieldState extends State<_BackendUrlField> {
             style: TextStyle(color: palette.textPrimary, fontSize: 13),
             items: const [
               DropdownMenuItem(
+                value: 'quantumforge-reaction-gnn',
+                child: Text('quantumforge-reaction-gnn (Primary Rxn-GNN TS & Barrier)'),
+              ),
+              DropdownMenuItem(
                 value: 'tx1-fastapi',
-                child: Text('tx1-fastapi (Legacy v1, distance-only)'),
+                child: Text('tx1-fastapi (Legacy alias for Rxn-GNN)'),
               ),
               DropdownMenuItem(
                 value: 'tx1-v2a',

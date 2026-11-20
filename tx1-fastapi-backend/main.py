@@ -95,7 +95,7 @@ model_error: str | None = None
 def load_model() -> None:
     global model, model_error
     try:
-        calc = registry.get("tx1-fastapi")
+        calc = registry.get("quantumforge-reaction-gnn")
         if isinstance(calc, Tx1Calculator) and calc._model is not None:
             calc._model.to(DEVICE)
             model = calc._model
@@ -103,7 +103,7 @@ def load_model() -> None:
             model = calc  # type: ignore[assignment]
         model_error = None
         weight_source = os.environ.get("TX1_CACHE_DIR", str(checkpoint_path()))
-        print(f"[MLIP] {type(model).__name__} loaded from {weight_source}")
+        print(f"[MLIP] {type(model).__name__} (quantumforge-reaction-gnn) loaded from {weight_source}")
         print(f"Model loaded successfully onto {DEVICE}")
         try:
             registry.get("tx1-v2")
@@ -219,7 +219,7 @@ def health() -> dict:
 class MoleculeRequest(BaseModel):
     atomic_numbers: list[int]
     positions: list[list[float]]
-    mlip_model: str = "tx1-fastapi"
+    mlip_model: str = "quantumforge-reaction-gnn"
 
 
 class SingleMolecule(BaseModel):
@@ -270,7 +270,7 @@ def predict_energy(molecule: MoleculeRequest):
                 energy_val = calculator.energy_ev(atomic_numbers, positions)
         except Exception as exc:
             print(f"[MLIP] {calculator.name()} failed in predict: {exc}")
-            fallback = registry.get("tx1-fastapi")
+            fallback = registry.get("quantumforge-reaction-gnn")
             energy_val = fallback.energy_ev(atomic_numbers, positions)
             calculator = fallback
 
@@ -301,7 +301,7 @@ def predict_batch(req: BatchMoleculeRequest):
             else:
                 e_val = calculator.energy_ev(mol.atomic_numbers, mol.positions)
         except Exception as exc:
-            fallback = registry.get("tx1-fastapi")
+            fallback = registry.get("quantumforge-reaction-gnn")
             e_val = fallback.energy_ev(mol.atomic_numbers, mol.positions)
         predictions.append({
             "energy_ev": e_val,
@@ -322,7 +322,7 @@ class ReactionRequest(BaseModel):
     product_xyz: str
     charge: int = 0
     spin_multiplicity: int = 1
-    mlip_model: str = "tx1-fastapi"
+    mlip_model: str = "quantumforge-reaction-gnn"
     solvent_model: str = "Vacuum"
     temperature_k: float = 298.15
     optimizer_algorithm: str = "NEB-CI"
@@ -548,8 +548,8 @@ async def run_reaction(reaction_id: str, req: ReactionRequest):
         try:
             calculator.energy_ev(atomic_numbers, r_pos)
         except Exception as exc:
-            print(f"[MLIP] {calculator.name()} unavailable for reaction {reaction_id}: {exc}; falling back to tx1-fastapi")
-            calculator = registry.get("tx1-fastapi")
+            print(f"[MLIP] {calculator.name()} unavailable for reaction {reaction_id}: {exc}; falling back to quantumforge-reaction-gnn")
+            calculator = registry.get("quantumforge-reaction-gnn")
             fallback_used = True
 
         # Precompute all intermediate positions (vectorized coordinates)
@@ -898,7 +898,7 @@ async def start_hybrid_md(request: Request):
     content_type = request.headers.get("content-type", "")
     job_id = str(uuid.uuid4())
     pdb_path = ""
-    mlip_model = "tx1-fastapi"
+    mlip_model = "quantumforge-reaction-gnn"
     simulation_length_ns = 200.0
 
     if "multipart/form-data" in content_type:
@@ -925,7 +925,7 @@ async def start_hybrid_md(request: Request):
         with open(pdb_path, "wb") as f:
             f.write(content)
 
-        mlip_model = form.get("mlip_model", "tx1-fastapi")
+        mlip_model = form.get("mlip_model", "quantumforge-reaction-gnn")
         try:
             simulation_length_ns = float(form.get("simulation_length_ns", 200.0))
         except (ValueError, TypeError):
@@ -934,7 +934,7 @@ async def start_hybrid_md(request: Request):
         try:
             req_json = await request.json()
             raw_input = str(req_json.get("pdb_path", "")).strip()
-            mlip_model = req_json.get("mlip_model", "tx1-fastapi")
+            mlip_model = req_json.get("mlip_model", "quantumforge-reaction-gnn")
             simulation_length_ns = float(req_json.get("simulation_length_ns", 200.0))
         except Exception:
             raise HTTPException(status_code=400, detail="Invalid JSON or Form.")

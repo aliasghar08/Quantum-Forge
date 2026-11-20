@@ -32,7 +32,7 @@ extension ReactionProviderBackendExt on ReactionNotifier {
         reactionId: '',
         state: ReactionState.pending,
         progress: 0.0,
-        message: 'Submitting to ${settings.mlipModel == 'tx1-fastapi' ? 'GNN (tx1)' : 'DMF'} compute node…',
+        message: 'Submitting to ${(settings.mlipModel == 'quantumforge-reaction-gnn' || settings.mlipModel == 'tx1-fastapi') ? 'QuantumForge Rxn-GNN' : 'DMF'} compute node…',
         reactionName: reactionName,
         templateId: templateId,
       );
@@ -78,7 +78,7 @@ extension ReactionProviderBackendExt on ReactionNotifier {
         reactionId: reactionId,
         state: ReactionState.optimizing,
         progress: 0.05,
-        message: '${settings.mlipModel == 'tx1-fastapi' ? 'GNN (tx1)' : 'Direct MaxFlux'} running (${settings.mlipModel})…',
+        message: '${(settings.mlipModel == 'quantumforge-reaction-gnn' || settings.mlipModel == 'tx1-fastapi') ? 'QuantumForge Rxn-GNN' : 'Direct MaxFlux'} running (${settings.mlipModel})…',
         reactionName: reactionName,
         templateId: templateId,
       );

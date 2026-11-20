@@ -57,7 +57,7 @@ class QuantumSettings {
     // System
     this.charge = 0,
     this.spinMultiplicity = 1,
-    this.mlipModel = 'tx1-fastapi',
+    this.mlipModel = 'quantumforge-reaction-gnn',
     this.backendUrl = '',
     this.solventModel = 'Vacuum',
     this.temperatureK = 298.15,
@@ -288,7 +288,7 @@ class QuantumSettingsNotifier extends ValueNotifier<QuantumSettings> {
       value = QuantumSettings(
         charge: AppStorage.getInt(_keyCharge) ?? 0,
         spinMultiplicity: AppStorage.getInt(_keySpin) ?? 1,
-        mlipModel: AppStorage.getString(_keyMlip) ?? 'tx1-fastapi',
+        mlipModel: AppStorage.getString(_keyMlip) ?? 'quantumforge-reaction-gnn',
         backendUrl: AppStorage.getString(_keyBackendUrl) ?? '',
         solventModel: AppStorage.getString(_keySolvent) ?? 'Vacuum',
         temperatureK: AppStorage.getDouble(_keyTemp) ?? 298.15,

@@ -39,6 +39,9 @@ class ApiEndpoints {
 
   /// Local development servers, one per MLIP microservice.
   static const Map<String, int> _localPorts = {
+    'quantumforge-reaction-gnn': 8005,
+    'quantumforge-rxn-gnn': 8005,
+    'quantumforge-ts-gnn': 8005,
     'tx1-fastapi': 8005,
     'MACE-MP-0': 8001,
     'MACE-OFF23': 8001,
@@ -160,7 +163,9 @@ class ApiEndpoints {
       if (clean.isNotEmpty) return clean;
     }
     if (isDebug) {
-      final port = _localPorts[mlipModel] ?? _localPorts['tx1-fastapi']!;
+      final port = _localPorts[mlipModel] ??
+          _localPorts['quantumforge-reaction-gnn'] ??
+          _localPorts['tx1-fastapi']!;
       return 'http://127.0.0.1:$port';
     }
     return sanitize(productionBaseUrl, debug: false);

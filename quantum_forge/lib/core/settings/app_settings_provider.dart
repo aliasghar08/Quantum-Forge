@@ -163,8 +163,8 @@ class AppSettings {
   /// [kDefaultGnnBackendUrl].
   final String gnnBackendUrl;
 
-  /// Transition1x GNN model strategy ('tx1-fastapi', 'tx1-v2a', 'tx1-v2b', 'tx1-v2').
-  /// Defaults to 'tx1-fastapi' until v2 rollout is complete.
+  /// Native Quantum Forge Reaction GNN model strategy ('quantumforge-reaction-gnn', 'tx1-v2a', 'tx1-v2b', 'tx1-v2', 'tx1-fastapi').
+  /// Defaults to 'quantumforge-reaction-gnn'.
   final String modelStrategy;
 
   const AppSettings({
@@ -188,7 +188,7 @@ class AppSettings {
     this.autoImportDeepLink = true,
     this.backendUrl = kDefaultComputeBackendUrl,
     this.gnnBackendUrl = kDefaultGnnBackendUrl,
-    this.modelStrategy = 'tx1-fastapi',
+    this.modelStrategy = 'quantumforge-reaction-gnn',
   });
 
   /// True when a real compute backend has been configured.
@@ -196,7 +196,7 @@ class AppSettings {
 
   /// Active model strategy for the GNN potential.
   String get effectiveModelStrategy =>
-      modelStrategy.trim().isNotEmpty ? modelStrategy.trim() : 'tx1-fastapi';
+      modelStrategy.trim().isNotEmpty ? modelStrategy.trim() : 'quantumforge-reaction-gnn';
 
   /// The effective URL to use for the currently selected MLIP model.
   ///
@@ -209,7 +209,7 @@ class AppSettings {
   ///   2. In **release** builds, a user-typed URL that differs from the
   ///      compile-time default wins; otherwise the default flows through
   ///      [ApiEndpoints] (which sanitises it and blocks loopback in release).
-  String effectiveBackendUrl([String mlipModel = 'tx1-fastapi']) {
+  String effectiveBackendUrl([String mlipModel = 'quantumforge-reaction-gnn']) {
     final typed = backendUrl.trim();
     if (kDebugMode && typed.isNotEmpty) {
       return ApiEndpoints.forModel(mlipModel, userOverride: typed);
@@ -435,7 +435,7 @@ class AppSettingsNotifier extends ChangeNotifier {
         gnnBackendUrl:
             AppStorage.getString(_keyGnnBackendUrl) ?? kDefaultGnnBackendUrl,
         modelStrategy:
-            AppStorage.getString(_keyModelStrategy) ?? 'tx1-fastapi',
+            AppStorage.getString(_keyModelStrategy) ?? 'quantumforge-reaction-gnn',
       );
     } catch (e) {
       debugPrint('AppSettingsNotifier: could not load settings — $e');

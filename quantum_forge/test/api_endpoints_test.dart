@@ -4,6 +4,8 @@ import 'package:quantum_forge/core/config/api_endpoints.dart';
 void main() {
   group('ApiEndpoints.forModel', () {
     test('debug uses 127.0.0.1 dev servers per model', () {
+      expect(ApiEndpoints.forModel('quantumforge-reaction-gnn', debug: true),
+          'http://127.0.0.1:8005');
       expect(ApiEndpoints.forModel('tx1-fastapi', debug: true),
           'http://127.0.0.1:8005');
       expect(ApiEndpoints.forModel('MACE-MP-0', debug: true),
@@ -13,7 +15,7 @@ void main() {
     });
 
     test('release never returns a loopback or plain-http URL', () {
-      for (final model in ['tx1-fastapi', 'MACE-MP-0', 'CHGNet', 'ANI-2x']) {
+      for (final model in ['quantumforge-reaction-gnn', 'tx1-fastapi', 'MACE-MP-0', 'CHGNet', 'ANI-2x']) {
         final url = ApiEndpoints.forModel(model, debug: false);
         expect(url, startsWith('https://'));
         expect(ApiEndpoints.isLoopback(url), isFalse);

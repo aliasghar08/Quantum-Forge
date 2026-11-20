@@ -5,11 +5,12 @@ one the caller asked for. Loads are lazy — the first request that names a
 model pays the load, subsequent requests reuse it.
 
 Model strategies:
-    'tx1-fastapi'  — Legacy v1 (186k params, distance-only)
-    'tx1-v2a'      — v2a: RBF + cosine cutoff (186k params)
-    'tx1-v2b'      — v2b: PaiNN-lite (500k params, single model)
-    'tx1-v2'       — v2: PaiNN-lite ensemble (500k x 5, with calibrated UQ)
-    'MACE-MP-0'    — MACE Materials Project foundation model (small)
+    'quantumforge-reaction-gnn' — Native Quantum Forge Reaction GNN (TS & Barrier Inference)
+    'tx1-fastapi'              — Backward-compatible alias for QuantumForge Reaction-GNN
+    'tx1-v2a'                  — v2a: RBF + cosine cutoff (186k params)
+    'tx1-v2b'                  — v2b: PaiNN-lite (500k params, single model)
+    'tx1-v2'                   — v2: PaiNN-lite ensemble (500k x 5, with calibrated UQ)
+    'MACE-MP-0'                — MACE Materials Project foundation model (small)
 """
 
 from __future__ import annotations
@@ -32,8 +33,19 @@ class MLIPCalculator(Protocol):
     def name(self) -> str: ...
 
 
+PRIMARY_MLIP_MODEL = "quantumforge-reaction-gnn"
+
+_ALIASES: dict[str, str] = {
+    "tx1-fastapi": PRIMARY_MLIP_MODEL,
+    "quantumforge-rxn-gnn": PRIMARY_MLIP_MODEL,
+    "quantumforge-ts-gnn": PRIMARY_MLIP_MODEL,
+}
+
 _STRATEGIES = {
-    "tx1-fastapi": "Legacy v1 (186k params, distance-only)",
+    "quantumforge-reaction-gnn": "QuantumForge Reaction-GNN (Transition-State & Barrier Inference)",
+    "tx1-fastapi": "QuantumForge Reaction-GNN (Legacy alias)",
+    "quantumforge-rxn-gnn": "QuantumForge Reaction-GNN (TS & Barrier Inference)",
+    "quantumforge-ts-gnn": "QuantumForge Reaction-GNN (TS & Barrier Inference)",
     "tx1-v2a": "v2a: RBF + cutoff (186k params)",
     "tx1-v2b": "v2b: PaiNN-lite (500k params, single model)",
     "tx1-v2": "v2: PaiNN-lite ensemble (500k x 5, with uncertainty)",
@@ -68,43 +80,66 @@ class ModelRegistry:
 
     def get(self, requested: str) -> MLIPCalculator:
         with self._lock:
-            if requested in self._loaded:
-                self._loaded.move_to_end(requested)
-                return self._loaded[requested]
+            target = requested
+            if target not in self._loaders and target in _ALIASES:
+                target = _ALIASES[target]
 
-            loader = self._loaders.get(requested)
+            if target in self._loaded:
+                self._loaded.move_to_end(target)
+                return self._loaded[target]
+
+            loader = self._loaders.get(target)
+            if loader is None:
+                loader = self._loaders.get(requested)
             if loader is None:
                 return self._fallback_locked()
 
             try:
                 calculator = loader()
             except Exception as exc:
-                self._failures[requested] = f"{type(exc).__name__}: {exc}"
+                self._failures[target] = f"{type(exc).__name__}: {exc}"
                 return self._fallback_locked()
 
             while len(self._loaded) >= self._max_loaded:
                 self._loaded.popitem(last=False)
 
-            self._loaded[requested] = calculator
-            self._failures.pop(requested, None)
+            self._loaded[target] = calculator
+            if requested != target:
+                self._loaded[requested] = calculator
+            self._failures.pop(target, None)
             return calculator
 
     def _fallback_locked(self) -> MLIPCalculator:
-        if "tx1-fastapi" in self._loaded:
-            self._loaded.move_to_end("tx1-fastapi")
-            return self._loaded["tx1-fastapi"]
-        calculator = self._loaders["tx1-fastapi"]()
-        self._loaded["tx1-fastapi"] = calculator
+        for candidate in (PRIMARY_MLIP_MODEL, "tx1-fastapi"):
+            if candidate in self._loaders:
+                if candidate in self._loaded:
+                    self._loaded.move_to_end(candidate)
+                    return self._loaded[candidate]
+                calculator = self._loaders[candidate]()
+                self._loaded[candidate] = calculator
+                return calculator
+
+        first_key = next(iter(self._loaders))
+        calculator = self._loaders[first_key]()
+        self._loaded[first_key] = calculator
         return calculator
 
     def loaded_strategies(self) -> list[str]:
         with self._lock:
-            return list(self._loaded.keys())
+            loaded = list(self._loaded.keys())
+            if PRIMARY_MLIP_MODEL in loaded and "tx1-fastapi" not in loaded:
+                loaded.append("tx1-fastapi")
+            elif "tx1-fastapi" in loaded and PRIMARY_MLIP_MODEL not in loaded:
+                loaded.append(PRIMARY_MLIP_MODEL)
+            return loaded
 
     def checkpoint_digests(self) -> dict[str, str]:
         base_dir = Path(__file__).resolve().parent.parent
+        t1x_digest = _file_digest(base_dir / "t1x_model_checkpoint.pt")
         digests = {
-            "tx1-fastapi": _file_digest(base_dir / "t1x_model_checkpoint.pt"),
+            PRIMARY_MLIP_MODEL: t1x_digest,
+            "tx1-fastapi": t1x_digest,
+            "quantumforge-rxn-gnn": t1x_digest,
             "tx1-v2a": _file_digest(base_dir / "t1x_model_checkpoint_v2a.pt"),
             "tx1-v2b": _file_digest(base_dir / "t1x_model_checkpoint_v2b.pt"),
         }
@@ -134,7 +169,12 @@ def _default_loaders() -> dict[str, Callable[[], MLIPCalculator]]:
 
     def _tx1() -> MLIPCalculator:
         from app.legacy_gnn import Tx1Calculator
-        return Tx1Calculator(checkpoint=base_dir / "t1x_model_checkpoint.pt", use_rbf=False, use_cutoff=False)
+        return Tx1Calculator(
+            checkpoint=base_dir / "t1x_model_checkpoint.pt",
+            use_rbf=False,
+            use_cutoff=False,
+            model_name=PRIMARY_MLIP_MODEL,
+        )
 
     def _tx1_v2a() -> MLIPCalculator:
         from app.legacy_gnn import Tx1Calculator
@@ -179,7 +219,10 @@ def _default_loaders() -> dict[str, Callable[[], MLIPCalculator]]:
         return MaceCalculator(family="mp", size="small", device="cpu")
 
     return {
+        PRIMARY_MLIP_MODEL: _tx1,
         "tx1-fastapi": _tx1,
+        "quantumforge-rxn-gnn": _tx1,
+        "quantumforge-ts-gnn": _tx1,
         "tx1-v2a": _tx1_v2a,
         "tx1-v2b": _tx1_v2b,
         "tx1-v2": _tx1_v2,

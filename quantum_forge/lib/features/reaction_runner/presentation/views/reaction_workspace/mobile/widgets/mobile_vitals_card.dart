@@ -284,8 +284,9 @@ class MobileVitalsCard extends StatelessWidget {
                           dropdownColor: const Color(0xFF161B22),
                           style: const TextStyle(color: Colors.white, fontSize: 13),
                           items: const [
+                            DropdownMenuItem(value: 'quantumforge-reaction-gnn', child: Text('QuantumForge Rxn-GNN (TS & Barrier Inference)')),
                             DropdownMenuItem(value: 'tx1-v2', child: Text('tx1-v2 (Transformer Rebuilder)')),
-                            DropdownMenuItem(value: 'tx1-fastapi', child: Text('tx1-fastapi (FastAPI ASE Bridge)')),
+                            DropdownMenuItem(value: 'tx1-fastapi', child: Text('tx1-fastapi (FastAPI ASE Bridge - Legacy)')),
                             DropdownMenuItem(value: 'MACE-MP-0', child: Text('MACE-MP-0 Foundation')),
                             DropdownMenuItem(value: 'CHGNet', child: Text('CHGNet Pretrained')),
                             DropdownMenuItem(value: 'GFN2-xTB', child: Text('GFN2-xTB Semiempirical')),

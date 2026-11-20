@@ -44,7 +44,7 @@ void main() {
 
       // Verify MLIP & Solvent
       expect(find.text('Surrogate MLIP Potential'), findsOneWidget);
-      expect(find.text('tx1-fastapi'), findsOneWidget);
+      expect(find.text('quantumforge-reaction-gnn'), findsOneWidget);
       expect(find.text('Solvation Medium'), findsOneWidget);
       expect(find.text('Vacuum'), findsOneWidget);
 

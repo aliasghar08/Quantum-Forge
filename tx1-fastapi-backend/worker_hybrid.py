@@ -35,7 +35,7 @@ def embed_molecule_with_timeout(mol, timeout=10.0):
     return result["status"]
 
 @celery_app.task(name="run_hybrid_md")
-def run_hybrid_md(pdb_path: str, job_id: str, mlip_model: str = "tx1-fastapi", simulation_length_ns: float = 200.0):
+def run_hybrid_md(pdb_path: str, job_id: str, mlip_model: str = "quantumforge-reaction-gnn", simulation_length_ns: float = 200.0):
     """
     Executes a hybrid ML/MM Molecular Dynamics simulation.
     Includes memory guards for 512MB RAM constraints on cloud free tiers.
