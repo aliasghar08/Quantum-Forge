@@ -133,8 +133,11 @@ class AutonomousDaemon:
             logger.info("All registered papers up to date. Expanding continuous clinical & pharmaceutical library...")
             try:
                 from seed_massive_firebase import run_upload_pipeline
-                run_upload_pipeline(target_count=500, batch_size=250, workers=4, category_mode="medical")
-                logger.info("Continuous clinical expansion completed: 500 new medical reactions seeded.")
+                upload_target = int(os.environ.get("AUTOUPLOAD_TARGET_COUNT", "2500"))
+                batch_sz = int(os.environ.get("AUTOUPLOAD_BATCH_SIZE", "250"))
+                workers_cnt = int(os.environ.get("AUTOUPLOAD_WORKERS", "4"))
+                run_upload_pipeline(target_count=upload_target, batch_size=batch_sz, workers=workers_cnt, category_mode="medical")
+                logger.info("Continuous clinical expansion completed: %d new medical reactions seeded.", upload_target)
             except Exception as e:
                 logger.warning("Continuous clinical expansion error: %s", e)
             return False

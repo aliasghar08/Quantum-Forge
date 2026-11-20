@@ -51,7 +51,36 @@ def get_auth_token_threadsafe():
         return token
 
 def get_auth_token():
-    """Reads access token from gcloud CLI first, then falls back to firebase-tools.json."""
+    """Reads access token from environment, Cloud Run/GCE metadata, Google Auth ADC, gcloud, or firebase-tools.json."""
+    if os.environ.get("FIREBASE_AUTH_TOKEN"):
+        return os.environ["FIREBASE_AUTH_TOKEN"]
+
+    # 1. Cloud Run / Compute Engine Instance Metadata Server
+    try:
+        req = urllib.request.Request(
+            "http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token",
+            headers={"Metadata-Flavor": "Google"}
+        )
+        with urllib.request.urlopen(req, timeout=2) as resp:
+            data = json.loads(resp.read().decode())
+            if "access_token" in data and data["access_token"]:
+                return data["access_token"]
+    except Exception:
+        pass
+
+    # 2. google.auth Application Default Credentials (ADC)
+    try:
+        import google.auth
+        import google.auth.transport.requests
+        creds, _ = google.auth.default(scopes=["https://www.googleapis.com/auth/cloud-platform"])
+        auth_req = google.auth.transport.requests.Request()
+        creds.refresh(auth_req)
+        if creds.token:
+            return creds.token
+    except Exception:
+        pass
+
+    # 3. Local gcloud CLI
     try:
         token = subprocess.check_output(
             ["gcloud", "auth", "print-access-token"],
@@ -62,6 +91,7 @@ def get_auth_token():
     except Exception:
         pass
 
+    # 4. Fallback to firebase-tools.json configstore
     configstore_path = os.path.expanduser("~/.config/configstore/firebase-tools.json")
     if os.path.exists(configstore_path):
         try:
@@ -81,7 +111,7 @@ def get_auth_token():
         except Exception:
             pass
 
-    raise RuntimeError("No valid credentials found. Please run 'gcloud auth login' or 'firebase login'.")
+    raise RuntimeError("No valid credentials found. Please run 'gcloud auth login' or provide Google Application Default Credentials.")
 
 def refresh_access_token(refresh_token):
     """Refreshes Google OAuth access token using refresh_token."""

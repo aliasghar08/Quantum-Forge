@@ -8,13 +8,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN pip install --no-cache-dir torch --extra-index-url https://download.pytorch.org/whl/cpu && \
     pip install --no-cache-dir rdkit ase numpy requests google-auth google-cloud-firestore
 
-# Copy autonomous trainer scripts, ledger, and backend GNN models
+# Copy autonomous trainer scripts, library seeders, ledger, and backend GNN models
 COPY scripts/autonomous_trainer/ ./scripts/autonomous_trainer/
+COPY scripts/seed_massive_firebase.py ./scripts/seed_massive_firebase.py
 COPY data/autonomous_training/literature_ledger.sqlite ./data/autonomous_training/literature_ledger.sqlite
 COPY tx1-fastapi-backend/app/ ./tx1-fastapi-backend/app/
 COPY tx1-fastapi-backend/models/ ./tx1-fastapi-backend/models/
 COPY tx1-fastapi-backend/t1x_model_checkpoint_v2b.pt ./tx1-fastapi-backend/
 
 ENV PYTHONUNBUFFERED=1
-ENV PYTHONPATH=/app/scripts/autonomous_trainer:/app/tx1-fastapi-backend
+ENV PYTHONPATH=/app/scripts:/app/scripts/autonomous_trainer:/app/tx1-fastapi-backend
 CMD ["python3", "scripts/autonomous_trainer/daemon.py", "--run-once"]
