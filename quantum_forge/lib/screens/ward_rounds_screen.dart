@@ -11,6 +11,7 @@
 // Strictly Educational Simulation — 7-Pillar SaMD Legal Shield.
 // ============================================================================
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../features/clinical_core/presentation/widgets/multi_organ_coupling_pill.dart';
 import '../features/ward/data/ward_rounds_engine.dart';
@@ -157,7 +158,7 @@ class _WardRoundsScreenState extends State<WardRoundsScreen> {
             Expanded(
               child: LayoutBuilder(
                 builder: (context, constraints) {
-                  final isDesktop = constraints.maxWidth >= 1050;
+                  final isDesktop = kIsWeb || constraints.maxWidth >= 1050;
                   if (isDesktop) {
                     return _buildDesktopLayout();
                   }
@@ -168,7 +169,7 @@ class _WardRoundsScreenState extends State<WardRoundsScreen> {
           ],
         ),
       ),
-      bottomNavigationBar: MediaQuery.of(context).size.width < 1050
+      bottomNavigationBar: (!kIsWeb && MediaQuery.of(context).size.width < 1050)
           ? _buildMobileBottomBar()
           : null,
     );

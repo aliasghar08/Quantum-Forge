@@ -53,7 +53,7 @@ extension _ReactionAnimationCanvasExt on _ReactionAnimationWidgetState {
     // Unbounded (e.g. Dashboard): dynamically give the canvas a reasonable height.
     final screenH = MediaQuery.of(context).size.height;
     final screenW = MediaQuery.of(context).size.width;
-    final rawH = (screenW < 600) ? screenH * 0.40 : screenH * 0.75;
+    final rawH = (!kIsWeb && screenW < 600) ? screenH * 0.40 : screenH * 0.75;
     final height = rawH.clamp(220.0, 300.0);
     return SizedBox(
       width: double.infinity,
@@ -287,7 +287,7 @@ extension _ReactionAnimationCanvasExt on _ReactionAnimationWidgetState {
                 borderRadius: BorderRadius.circular(4),
               ),
               child: Text(
-                MediaQuery.of(context).size.width < 500
+                (!kIsWeb && MediaQuery.of(context).size.width < 500)
                     ? '© Dart Nexus Lab'
                     : 'Quantum Forge — A Product of Dart Nexus Lab · eliasgharinnocent@yahoo.com',
                 style: const TextStyle(
@@ -305,7 +305,7 @@ extension _ReactionAnimationCanvasExt on _ReactionAnimationWidgetState {
             top: 10,
             right: 10,
             bottom: 10,
-            width: MediaQuery.of(context).size.width < 640 ? 200 : 240,
+            width: (!kIsWeb && MediaQuery.of(context).size.width < 640) ? 200 : 240,
             child: Material(
               type: MaterialType.transparency,
               child: _ViewerSettingsPanel(

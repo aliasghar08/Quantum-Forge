@@ -9,6 +9,7 @@
 // no external package, no AnimationLimiter context dependency.
 // ============================================================================
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:quantum_forge/features/reaction_library/data/reaction_templates.dart';
 import 'package:quantum_forge/features/reaction_library/presentation/widgets/reaction_card_widget.dart';
@@ -84,8 +85,8 @@ class _LibraryGridState extends State<LibraryGrid>
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.sizeOf(context).width;
-    final isMobile = width < 600;
-    final columns = width >= 1200
+    final isMobile = !kIsWeb && width < 600;
+    final columns = (kIsWeb || width >= 1200)
         ? 3
         : width >= 820
             ? 2

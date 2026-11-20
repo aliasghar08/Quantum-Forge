@@ -5,6 +5,7 @@
 // bacterial steric resistance mutations with permanent SaMD legal liability banner.
 // ============================================================================
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:quantum_forge/core/theme/theme_provider.dart';
 import 'package:quantum_forge/features/ddi/presentation/widgets/split_molecular_viewer.dart';
@@ -22,7 +23,7 @@ class DdiSplitScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final palette = ThemeNotifier.paletteOf(context);
-    final isMobile = MediaQuery.of(context).size.width < 640;
+    final isMobile = !kIsWeb && MediaQuery.of(context).size.width < 640;
 
     return Scaffold(
       backgroundColor: palette.scaffold,

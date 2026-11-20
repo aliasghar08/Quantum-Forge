@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:quantum_forge/core/state/quantum_provider.dart';
 import 'package:quantum_forge/features/reaction_runner/presentation/views/reaction_workspace_viewmodel.dart';
@@ -13,8 +14,9 @@ class ReactionWorkspaceScreen extends StatelessWidget {
       create: (_) => ReactionWorkspaceViewModel(),
       child: LayoutBuilder(
         builder: (context, constraints) {
-          // Breakpoint: Mobile screens (< 650px) render dedicated mobile tree
-          if (constraints.maxWidth < 650) {
+          // On Web, always render the full Desktop workstation.
+          // Native mobile (< 650px) uses the mobile tree.
+          if (!kIsWeb && constraints.maxWidth < 650) {
             return const ReactionWorkspaceMobileView();
           }
           return const ReactionWorkspaceDesktopView();

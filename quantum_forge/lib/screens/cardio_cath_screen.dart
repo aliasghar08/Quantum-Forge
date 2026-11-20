@@ -15,6 +15,7 @@
 // ============================================================================
 
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:quantum_forge/core/theme/theme_provider.dart';
 import '../features/cardiac/data/cardiac_pathology_models.dart';
@@ -554,8 +555,8 @@ class _CardioCathScreenState extends State<CardioCathScreen>
   Widget build(BuildContext context) {
     final palette = ThemeNotifier.paletteOf(context);
     final screenWidth = MediaQuery.of(context).size.width;
-    final isDesktop = screenWidth >= 960;
-    final isMobile = screenWidth < 700;
+    final isDesktop = kIsWeb || screenWidth >= 960;
+    final isMobile = !kIsWeb && screenWidth < 700;
     final hemo = _hemoResult;
 
     return Scaffold(

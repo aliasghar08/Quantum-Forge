@@ -14,6 +14,7 @@
 // Strictly follows the SaMD 7-Pillar Educational Simulation Legal Shield.
 // ============================================================================
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../features/neuro/data/neuro_pathology_models.dart';
 import '../features/neuro/presentation/widgets/neuro_3d_brain_viewport.dart';
@@ -185,7 +186,7 @@ class _NeuroLabScreenState extends State<NeuroLabScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isMobile = MediaQuery.of(context).size.width < 960;
+    final isMobile = !kIsWeb && MediaQuery.of(context).size.width < 960;
     return Scaffold(
       backgroundColor: const Color(0xFF030508),
       body: SafeArea(

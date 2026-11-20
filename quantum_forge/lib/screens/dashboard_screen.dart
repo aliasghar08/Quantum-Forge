@@ -5,6 +5,7 @@
 // All widgets are in separate files under dashboard_cards/.
 // ============================================================================
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -720,7 +721,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       child: ListenableBuilder(
         listenable: _viewModel,
         builder: (context, _) {
-        final isMobile = MediaQuery.of(context).size.width < 650;
+        final isMobile = !kIsWeb && MediaQuery.of(context).size.width < 650;
         return Scaffold(
           backgroundColor: palette.scaffold,
           drawer: ProfessionalDrawer(
@@ -871,7 +872,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           // Bottom navigation for mobile (< 600px)
           bottomNavigationBar: LayoutBuilder(
             builder: (context, constraints) {
-              if (MediaQuery.of(context).size.width >= 600) return const SizedBox.shrink();
+              if (kIsWeb || MediaQuery.of(context).size.width >= 600) return const SizedBox.shrink();
               return Container(
                 decoration: BoxDecoration(
                   color: palette.drawer,
@@ -1025,7 +1026,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
         return LayoutBuilder(
           builder: (context, constraints) {
-            final isDesktop = constraints.maxWidth >= 900;
+            final isDesktop = kIsWeb || constraints.maxWidth >= 900;
             
             final palette = context.watch<ThemeNotifier>().palette;
             final mainContent = Column(
@@ -1864,7 +1865,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
       child: LayoutBuilder(
         builder: (context, constraints) {
-          final isMobile = constraints.maxWidth < 560;
+          final isMobile = !kIsWeb && constraints.maxWidth < 560;
 
           if (isMobile) {
             return Column(

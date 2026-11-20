@@ -3,6 +3,7 @@
 // Copyright (c) 2026 Dart Nexus Lab <eliasgharinnocent@yahoo.com>. All Rights Reserved.
 // ============================================================================
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:quantum_forge/core/services/app_route_observer.dart';
 
@@ -19,7 +20,7 @@ class FloatingCopyrightWatermark extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final media = MediaQuery.of(context);
-    final isMobile = media.size.width < 600;
+    final isMobile = !kIsWeb && media.size.width < 600;
     final currentRoute = AppRouteObserver.lastActiveRoute;
     final isRootDashboard =
         currentRoute == null || currentRoute == '/' || currentRoute == 'null';

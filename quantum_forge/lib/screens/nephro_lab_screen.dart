@@ -11,6 +11,7 @@
 // Strictly Educational In-Silico Simulation — SaMD 7-Pillar Legal Shield.
 // ============================================================================
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../features/clinical_core/data/multi_organ_patient_state.dart';
 import '../features/clinical_core/presentation/widgets/multi_organ_coupling_pill.dart';
@@ -57,7 +58,7 @@ class _NephroLabScreenState extends State<NephroLabScreen> {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
-    final isDesktop = size.width >= 960;
+    final isDesktop = kIsWeb || size.width >= 960;
 
     return Scaffold(
       backgroundColor: const Color(0xFF040814),

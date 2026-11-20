@@ -5,6 +5,7 @@
 // and pharmacokinetic toxic accumulation curves with permanent SaMD legal shields.
 // ============================================================================
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:quantum_forge/core/theme/theme_provider.dart';
 import 'package:quantum_forge/features/pharmacogenomics/presentation/widgets/pharmacogenomics_mutator.dart';
@@ -22,7 +23,7 @@ class PharmacogenomicsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final palette = ThemeNotifier.paletteOf(context);
-    final isMobile = MediaQuery.of(context).size.width < 640;
+    final isMobile = !kIsWeb && MediaQuery.of(context).size.width < 640;
 
     return Scaffold(
       backgroundColor: palette.scaffold,

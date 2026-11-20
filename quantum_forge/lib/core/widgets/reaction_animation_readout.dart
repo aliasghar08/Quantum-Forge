@@ -5,7 +5,7 @@ extension _ReactionAnimationReadoutExt on _ReactionAnimationWidgetState {
   Widget _buildReadout() {
       final energy = _energyAtFrame;
       final absolute = _absoluteEnergyAtFrame;
-      final isMobile = MediaQuery.of(context).size.width < 500;
+      final isMobile = !kIsWeb && MediaQuery.of(context).size.width < 500;
 
       return Padding(
         padding: EdgeInsets.fromLTRB(isMobile ? 10 : 16, 4, isMobile ? 10 : 16, 2),

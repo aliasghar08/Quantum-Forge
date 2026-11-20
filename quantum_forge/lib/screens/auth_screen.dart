@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:quantum_forge/core/state/quantum_provider.dart';
@@ -414,7 +415,7 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
   Widget build(BuildContext context) {
     final palette = context.watch<ThemeNotifier>().palette;
     final size = MediaQuery.of(context).size;
-    final isDesktop = size.width >= 920;
+    final isDesktop = kIsWeb || size.width >= 920;
 
     return Scaffold(
       backgroundColor: palette.scaffold,

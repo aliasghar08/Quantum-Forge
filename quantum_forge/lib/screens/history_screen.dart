@@ -2,6 +2,7 @@
 // HistoryScreen — Reaction run history (Strictly Authenticated / Cloud Only)
 // ============================================================================
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:quantum_forge/core/state/quantum_provider.dart';
 import 'package:quantum_forge/core/services/reaction_repository.dart';
@@ -203,7 +204,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final isMobile = constraints.maxWidth < 600;
+        final isMobile = !kIsWeb && constraints.maxWidth < 600;
 
         // If not authenticated, require signing in
         if (!_isAuthenticated) {

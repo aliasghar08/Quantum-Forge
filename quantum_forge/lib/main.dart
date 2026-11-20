@@ -1,5 +1,7 @@
 import 'dart:async' show unawaited;
+import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:quantum_forge/core/state/quantum_provider.dart';
@@ -210,11 +212,54 @@ class _QuantumForgeAppState extends State<QuantumForgeApp> {
                       )
                     : media;
 
+                Widget appContent = child ?? const SizedBox.shrink();
+
+                // On Web, enforce minimum desktop width (1280px) so mobile browsers
+                // never compress desktop workstations, multi-panel rails, or 3D canvases
+                // into narrow 375-430px columns. If a browser viewport is < 1280px,
+                // wrap in a horizontal SingleChildScrollView with a minimum width of 1280px
+                // and supply a desktop-sized MediaQuery to all descendants.
+                if (kIsWeb) {
+                  final isUnderMin = media.size.width < 1280.0;
+                  final effectiveWidth = math.max(1280.0, media.size.width);
+                  final desktopMedia = scaledMedia.copyWith(
+                    size: Size(effectiveWidth, media.size.height),
+                  );
+
+                  if (isUnderMin) {
+                    appContent = SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      physics: const ClampingScrollPhysics(),
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(
+                          minWidth: 1280.0,
+                          minHeight: media.size.height,
+                        ),
+                        child: SizedBox(
+                          width: 1280.0,
+                          height: media.size.height,
+                          child: appContent,
+                        ),
+                      ),
+                    );
+                  }
+
+                  return MediaQuery(
+                    data: desktopMedia,
+                    child: Stack(
+                      children: [
+                        appContent,
+                        const FloatingCopyrightWatermark(),
+                      ],
+                    ),
+                  );
+                }
+
                 return MediaQuery(
                   data: scaledMedia,
                   child: Stack(
                     children: [
-                      child ?? const SizedBox.shrink(),
+                      appContent,
                       const FloatingCopyrightWatermark(),
                     ],
                   ),

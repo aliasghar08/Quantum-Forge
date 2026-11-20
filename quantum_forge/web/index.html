@@ -18,6 +18,8 @@
 
   <meta charset="UTF-8">
   <meta content="IE=edge" http-equiv="X-UA-Compatible">
+  <!-- Force Desktop Virtual Viewport (1280px) & Smooth Pinch-to-Zoom on Mobile -->
+  <meta name="viewport" content="width=1280, initial-scale=0.32, minimum-scale=0.25, maximum-scale=5.0, user-scalable=yes">
   <meta name="description" content="Quantum Forge — Next-Generation Transition State MLIP & Quantum Chemistry Reaction Dynamics Workstation">
   <meta name="author" content="Dart Nexus Lab <eliasgharinnocent@yahoo.com>">
   <meta name="copyright" content="Copyright © 2026 Dart Nexus Lab. All Rights Reserved.">
@@ -174,7 +176,7 @@
     as the Flutter canvas mounts.
     ============================================================================
   -->
-  <div id="app-splash-loader" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #060911; z-index: 999999; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #E2E8F0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; transition: opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1); pointer-events: all;">
+  <div id="app-splash-loader" style="position: fixed; top: 0; left: 0; width: 100vw; min-width: 1280px; height: 100vh; background: #060911; z-index: 999999; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #E2E8F0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; transition: opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1); pointer-events: all;">
     <!-- Glowing Quantum Forge Atom Symbol -->
     <div style="position: relative; width: 72px; height: 72px; margin-bottom: 22px;">
       <div style="position: absolute; inset: -4px; border-radius: 22px; background: linear-gradient(135deg, rgba(0, 191, 165, 0.35), rgba(0, 229, 255, 0.35)); filter: blur(14px);"></div>
@@ -201,6 +203,21 @@
   </div>
 
   <style>
+    html, body {
+      min-width: 1280px;
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      background: #060911;
+      overflow-x: auto;
+      -webkit-text-size-adjust: 100%;
+    }
+    flutter-view, flt-glass-pane {
+      min-width: 1280px;
+      width: 100% !important;
+      height: 100% !important;
+    }
     @keyframes qf-slide {
       0% { left: -45%; width: 35%; }
       50% { left: 35%; width: 55%; }
