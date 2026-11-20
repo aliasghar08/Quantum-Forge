@@ -84,6 +84,52 @@ enum ClinicalContraindicationType {
       'Immune-mediated deposition of immune complexes in podocyte slit diaphragms.',
     ],
     correctOptionIndex: 0,
+  ),
+  barotraumaInVent(
+    title: 'CONTRAINDICATION: Volutrauma / Barotrauma (Pplat > 30 cmH₂O or ΔP > 15)',
+    system: 'Critical Care Pulmonology',
+    severity: 'CRITICAL / LUNG INJURY',
+    badge: 'BAROTRAUMA RISK',
+    color: Color(0xFFFF1744),
+    summary:
+        'Plateau pressure > 30 cmH2O or driving pressure > 15 cmH2O induces ventilator-induced lung injury (VILI) and pneumothorax.',
+    pathophysiology:
+        'Excessive transpulmonary pressure strains alveolar microarchitecture, shearing alveolar septa and tearing capillary endothelium (volutrauma/barotrauma). This increases alveolar permeability, worsening pulmonary edema and precipitating gross barotrauma (pneumothorax, pneumomediastinum). ARDSNet demonstrated a 9% absolute mortality reduction by targeting Pplat < 30 cmH2O.',
+    correctiveAction:
+        'Reduce tidal volume to 4-6 mL/kg PBW immediately. Titrate PEEP to minimize driving pressure (ΔP = Pplat - PEEP < 14 cmH2O). Consider prone positioning and deep sedation with neuromuscular blockade.',
+    guidelineRef: 'ARDSNet ARMA Trial (NEJM 2000) • Lung-Protective Ventilation',
+    socraticQuestion:
+        'What is the primary target parameter to reduce mortality from ventilator-induced lung injury (VILI) in severe ARDS?',
+    options: [
+      'Plateau pressure < 30 cmH2O and driving pressure < 15 cmH2O',
+      'Peak inspiratory pressure < 50 cmH2O with tidal volume 10 mL/kg',
+      'Hyperventilation to maintain arterial pH > 7.45',
+      'Zero PEEP to prevent overdistension',
+    ],
+    correctOptionIndex: 0,
+  ),
+  tensionPneumoVent(
+    title: 'CONTRAINDICATION: Positive-Pressure Ventilation in Unrecognized Tension Pneumothorax',
+    system: 'Critical Care Emergency',
+    severity: 'LETHAL / CIRCULATORY COLLAPSE',
+    badge: 'TENSION PNEUMOTHORAX',
+    color: Color(0xFFD50000),
+    summary:
+        'Positive-pressure ventilation with a one-way pleural leak accelerates tension pneumothorax, causing immediate cardiac arrest.',
+    pathophysiology:
+        'A one-way valve in the visceral or parietal pleura allows positive-pressure breaths to enter the pleural space during inspiration without escaping during expiration. Intrapleural pressure becomes positive, collapsing the ipsilateral lung, shifting the mediastinum, and kinking the superior and inferior vena cava. Venous return plummets to near zero, precipitating pulseless electrical activity (PEA) cardiac arrest.',
+    correctiveAction:
+        'Immediate needle thoracostomy decompression (14G angiocatheter in 2nd intercostal space midclavicular line or 5th intercostal space anterior axillary line), followed immediately by formal tube thoracostomy (chest tube).',
+    guidelineRef: 'ATLS Advanced Trauma Life Support (10th Ed) • Immediate Decompression Protocol',
+    socraticQuestion:
+        'Why does positive-pressure mechanical ventilation cause rapid hemodynamic collapse in a patient with a tension pneumothorax?',
+    options: [
+      'Positive pleural pressure collapses the vena cava, abolishing venous return and cardiac output.',
+      'It induces direct coronary artery vasospasm via vagal stimulation.',
+      'It triggers profound hypokalemic metabolic alkalosis.',
+      'It creates massive pulmonary capillary engorgement.',
+    ],
+    correctOptionIndex: 0,
   );
 
   final String title;
@@ -277,6 +323,17 @@ class _ClinicalSafetyProctorBannerState extends State<ClinicalSafetyProctorBanne
     // 3. Nephrotoxic risk in severe impairment
     if (nephro.egfrMlMin < 30.0 && nephro.clearanceRatio < 0.35) {
       return ClinicalContraindicationType.nsaidInSevereAki;
+    }
+
+    // 4. Tension Pneumothorax on Positive Pressure
+    final pulmo = widget.patientState.pulmoVitals;
+    if (pulmo.activeSituation.id == 'tension_pneumo' && !pulmo.isChestTubeDecompressed) {
+      return ClinicalContraindicationType.tensionPneumoVent;
+    }
+
+    // 5. Volutrauma / Barotrauma in ARDS
+    if (pulmo.isBarotraumaRisk && pulmo.plateauPressureCmH2o > 32.0) {
+      return ClinicalContraindicationType.barotraumaInVent;
     }
 
     return null;

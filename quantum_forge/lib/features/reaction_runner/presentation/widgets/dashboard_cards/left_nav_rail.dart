@@ -21,6 +21,7 @@ import 'package:quantum_forge/screens/ddi_split_screen.dart';
 import 'package:quantum_forge/screens/cardio_cath_screen.dart';
 import 'package:quantum_forge/screens/neuro_lab_screen.dart';
 import 'package:quantum_forge/screens/nephro_lab_screen.dart';
+import 'package:quantum_forge/screens/pulmo_vent_screen.dart';
 import 'package:quantum_forge/core/widgets/quantum_forge_logo.dart';
 import 'package:quantum_forge/core/services/url_service.dart';
 
@@ -218,6 +219,14 @@ class ProfessionalDrawer extends StatelessWidget {
               () => Navigator.of(context).push(NephroLabScreen.route()),
               showTooltips,
               'Procedural nephron 3D, ABG/Anion Gap/Winter suite, and ADME clearance.',
+            ),
+            _routeItem(
+              context,
+              Icons.air_rounded,
+              'PulmoVent 3D (ICU Vent & ECMO)',
+              () => Navigator.of(context).push(PulmoVentScreen.route()),
+              showTooltips,
+              '3D bronchial tree, Weibel Gen 0-16, mechanical ventilation CRT sweep, P-V loops, and ECMO twin.',
             ),
 
             SizedBox(height: gap(12)),
