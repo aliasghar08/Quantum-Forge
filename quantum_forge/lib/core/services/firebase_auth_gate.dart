@@ -28,10 +28,21 @@ import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
+import 'package:quantum_forge/features/reaction_runner/presentation/widgets/dashboard_cards/left_nav_rail.dart';
+import 'package:quantum_forge/features/reaction_library/data/reaction_templates.dart';
 import 'package:quantum_forge/screens/dashboard_screen.dart';
 
 class AuthGate extends StatefulWidget {
-  const AuthGate({super.key});
+  final NavDestination? initialDestination;
+  final String? initialReactionSlug;
+  final ReactionTemplate? initialTemplate;
+
+  const AuthGate({
+    super.key,
+    this.initialDestination,
+    this.initialReactionSlug,
+    this.initialTemplate,
+  });
 
   /// How long to wait for Firebase to become available before giving up and
   /// showing the sign-in form. This bounds the "stuck on spinner" case when
@@ -158,6 +169,10 @@ class _AuthGateState extends State<AuthGate> {
     // Visitors and returning researchers can both view the Home Workbench.
     // Protected operations (running simulations, opening the reaction library)
     // require authentication and will route to AuthScreen.
-    return const DashboardScreen();
+    return DashboardScreen(
+      initialDestination: widget.initialDestination,
+      initialReactionSlug: widget.initialReactionSlug,
+      initialTemplate: widget.initialTemplate,
+    );
   }
 }

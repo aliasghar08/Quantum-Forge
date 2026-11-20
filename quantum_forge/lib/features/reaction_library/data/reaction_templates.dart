@@ -128,6 +128,19 @@ class ReactionTemplate {
 
   String get effectiveLiteratureDoi => literatureDoi ?? doi;
 
+  /// Clean URL-safe slug generated from the reaction name or id (e.g. "aspirin-synthesis").
+  String get slug => toSlug(name.isNotEmpty ? name : id);
+
+  static String toSlug(String input) {
+    if (input.isEmpty) return 'reaction';
+    final cleaned = input
+        .toLowerCase()
+        .replaceAll(RegExp(r'\([^)]*\)'), '')
+        .replaceAll(RegExp(r'[^a-z0-9]+'), '-')
+        .replaceAll(RegExp(r'^-+|-+$'), '');
+    return cleaned.isNotEmpty ? cleaned : input.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '-');
+  }
+
   /// Resolved primary medical, pharmacological, or chemical subfield.
   String get subfield {
     // 1. Check if tags explicitly specify a known subfield
@@ -411,6 +424,7 @@ class ReactionTemplate {
 
   Map<String, dynamic> toJson() {
     return {
+      'slug': slug,
       'name': name,
       'iupacName': iupacName,
       'description': description,

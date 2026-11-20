@@ -62,6 +62,9 @@ class AvogadroBridge {
 
   static bool stripImportParams(Uri current) => false;
 
+  /// Synchronizes an arbitrary relative path (e.g. /reaction/aspirin-synthesis) into the address bar.
+  static void syncNavPath(String path) {}
+
   /// Synchronizes the current page route/hash into the browser address bar without reloading.
   static void syncNavRoute(String routeName) {}
 }

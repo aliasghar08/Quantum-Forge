@@ -197,21 +197,45 @@ class AvogadroBridge {
     }
   }
 
-  /// Synchronizes the current page route/hash into the browser address bar without reloading.
-  static void syncNavRoute(String routeName) {
+  /// Synchronizes an arbitrary relative path (e.g. /reaction/aspirin-synthesis or /library) into the address bar.
+  static void syncNavPath(String path) {
     try {
       final history = _window.getProperty('history'.toJS) as JSObject?;
       if (history == null) return;
-      final uri = Uri.base;
-      final fragment = routeName == 'newReaction' ? null : routeName;
-      final newUri = uri.replace(fragment: fragment);
+      final currentUri = Uri.base;
+      if (currentUri.path == path) return;
+      final newUrl = '${currentUri.origin}$path';
       history.callMethod(
-        'replaceState'.toJS,
+        'pushState'.toJS,
         null,
         ''.toJS,
-        newUri.toString().toJS,
+        newUrl.toJS,
       );
     } catch (_) {}
+  }
+
+  /// Synchronizes the current page route into the browser address bar using clean paths.
+  static void syncNavRoute(String routeName) {
+    String path;
+    switch (routeName) {
+      case 'library':
+        path = '/library';
+        break;
+      case 'history':
+        path = '/history';
+        break;
+      case 'editor':
+        path = '/editor';
+        break;
+      case 'methodValidation':
+        path = '/analytics';
+        break;
+      case 'newReaction':
+      default:
+        path = '/';
+        break;
+    }
+    syncNavPath(path);
   }
 
   static void _scheduleRevoke(JSString url) {

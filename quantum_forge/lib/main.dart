@@ -3,6 +3,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_web_plugins/url_strategy.dart';
 import 'package:flutter/services.dart';
 import 'package:quantum_forge/core/state/quantum_provider.dart';
 import 'package:quantum_forge/core/services/firebase_auth_gate.dart';
@@ -23,6 +24,7 @@ import 'package:quantum_forge/core/services/auth_service.dart';
 import 'package:quantum_forge/core/services/session_state_service.dart';
 import 'package:quantum_forge/core/services/feedback_service.dart';
 import 'package:quantum_forge/core/widgets/floating_copyright_watermark.dart';
+import 'package:quantum_forge/features/reaction_runner/presentation/widgets/dashboard_cards/left_nav_rail.dart';
 import 'package:quantum_forge/screens/cardio_cath_screen.dart';
 import 'package:quantum_forge/screens/neuro_lab_screen.dart';
 import 'package:quantum_forge/screens/nephro_lab_screen.dart';
@@ -38,6 +40,9 @@ import 'package:quantum_forge/core/services/app_route_observer.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
+  if (kIsWeb) {
+    usePathUrlStrategy();
+  }
   // Hook automatic crash capture BEFORE runApp so no errors are missed.
   FeedbackService.instance.initialize();
 
@@ -143,6 +148,12 @@ class _QuantumForgeAppState extends State<QuantumForgeApp> {
   String _resolveInitialRoute() {
     if (widget.initialRouteOverride != null) {
       return widget.initialRouteOverride!;
+    }
+    if (kIsWeb) {
+      final path = Uri.base.path;
+      if (path.isNotEmpty && path != '/') {
+        return path + (Uri.base.hasQuery ? '?${Uri.base.query}' : '');
+      }
     }
     // Check if the browser URL was launched/refreshed with a specific path
     final defaultRoute = WidgetsBinding.instance.platformDispatcher.defaultRouteName;
@@ -271,6 +282,38 @@ class _QuantumForgeAppState extends State<QuantumForgeApp> {
                 final uri = Uri.tryParse(rawName);
                 final path = uri?.path.toLowerCase() ?? '';
 
+                if (path.startsWith('/reaction/') || path.startsWith('reaction/')) {
+                  final slug = path.replaceFirst(RegExp(r'^/?reaction/'), '').trim();
+                  return MaterialPageRoute<void>(
+                    settings: routeSettings,
+                    builder: (_) => AuthGate(initialReactionSlug: slug),
+                  );
+                }
+                if (path == '/library' || path == 'library') {
+                  return MaterialPageRoute<void>(
+                    settings: routeSettings,
+                    builder: (_) => const AuthGate(initialDestination: NavDestination.library),
+                  );
+                }
+                if (path == '/history' || path == 'history') {
+                  return MaterialPageRoute<void>(
+                    settings: routeSettings,
+                    builder: (_) => const AuthGate(initialDestination: NavDestination.history),
+                  );
+                }
+                if (path == '/editor' || path == 'editor') {
+                  return MaterialPageRoute<void>(
+                    settings: routeSettings,
+                    builder: (_) => const AuthGate(initialDestination: NavDestination.editor),
+                  );
+                }
+                if (path == '/analytics' || path == 'analytics' || path == '/method-validation' || path == 'method-validation') {
+                  return MaterialPageRoute<void>(
+                    settings: routeSettings,
+                    builder: (_) => const AuthGate(initialDestination: NavDestination.methodValidation),
+                  );
+                }
+
                 if (path == '/ward' || path == 'ward' || path == '/wardrounds' || path == 'wardrounds') {
                   final caseParam = uri?.queryParameters['case'];
                   final caseIdx = caseParam != null ? int.tryParse(caseParam) : null;
@@ -278,24 +321,24 @@ class _QuantumForgeAppState extends State<QuantumForgeApp> {
                     initialCaseIndex: caseIdx,
                   );
                 }
-                if (path == '/cardiac' || path == 'cardiac' || path == '/cardio' || path == 'cardio' || path == '/cardiocath' || path == 'cardiocath') {
+                if (path == '/cardiac' || path == 'cardiac' || path == '/cardio' || path == 'cardio' || path == '/cardiocath' || path == 'cardiocath' || path == '/cardio-cath' || path == 'cardio-cath') {
                   return CardioCathScreen.route(
                     initialScenarioId: uri?.queryParameters['scenario'],
                   );
                 }
-                if (path == '/neuro' || path == 'neuro' || path == '/neurolab' || path == 'neurolab') {
+                if (path == '/neuro' || path == 'neuro' || path == '/neurolab' || path == 'neurolab' || path == '/neuro-lab' || path == 'neuro-lab') {
                   final room = uri?.queryParameters['room'];
                   final scenario = uri?.queryParameters['scenario'] ?? (room != null ? 'room_$room' : null);
                   return NeuroLabScreen.route(
                     initialScenarioId: scenario,
                   );
                 }
-                if (path == '/nephro' || path == 'nephro' || path == '/nephrolab' || path == 'nephrolab') {
+                if (path == '/nephro' || path == 'nephro' || path == '/nephrolab' || path == 'nephrolab' || path == '/nephro-lab' || path == 'nephro-lab') {
                   return NephroLabScreen.route(
                     initialSituationId: uri?.queryParameters['situation'],
                   );
                 }
-                if (path == '/pulmo' || path == 'pulmo' || path == '/pulmovent' || path == 'pulmovent') {
+                if (path == '/pulmo' || path == 'pulmo' || path == '/pulmovent' || path == 'pulmovent' || path == '/pulmo-vent' || path == 'pulmo-vent') {
                   return PulmoVentScreen.route(
                     initialSituationId: uri?.queryParameters['situation'],
                   );

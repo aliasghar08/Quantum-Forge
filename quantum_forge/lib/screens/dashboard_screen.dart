@@ -9,6 +9,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:quantum_forge/core/services/reaction_url_resolver.dart';
 import 'package:quantum_forge/core/services/url_service.dart';
 import 'package:quantum_forge/core/state/quantum_provider.dart';
 import 'package:quantum_forge/core/services/file_picker_service.dart';
@@ -72,8 +73,17 @@ import 'package:quantum_forge/core/widgets/locked_animation_placeholder.dart';
 
 class DashboardScreen extends StatefulWidget {
   final DashboardViewModel? viewModel;
+  final NavDestination? initialDestination;
+  final String? initialReactionSlug;
+  final ReactionTemplate? initialTemplate;
 
-  const DashboardScreen({super.key, this.viewModel});
+  const DashboardScreen({
+    super.key,
+    this.viewModel,
+    this.initialDestination,
+    this.initialReactionSlug,
+    this.initialTemplate,
+  });
 
   @override
   State<DashboardScreen> createState() => _DashboardScreenState();
@@ -111,9 +121,45 @@ class _DashboardScreenState extends State<DashboardScreen> {
       });
     } catch (_) {}
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      _applyInitialRoutesAndTemplates();
       _handleIncomingStructure();
       _handleIncomingSharedReaction();
     });
+  }
+
+  Future<void> _applyInitialRoutesAndTemplates() async {
+    if (widget.initialDestination != null) {
+      _viewModel.setNavDestination(widget.initialDestination!);
+    }
+    if (widget.initialTemplate != null) {
+      _onTemplateSelected(widget.initialTemplate!);
+      return;
+    }
+    if (widget.initialReactionSlug != null && widget.initialReactionSlug!.isNotEmpty) {
+      final template = await ReactionUrlResolver.resolve(widget.initialReactionSlug!);
+      if (template != null && mounted) {
+        _onTemplateSelected(template);
+      }
+    } else if (kIsWeb) {
+      final path = Uri.base.path;
+      if (path.startsWith('/reaction/')) {
+        final slug = path.replaceFirst(RegExp(r'^/?reaction/'), '').trim();
+        if (slug.isNotEmpty) {
+          final template = await ReactionUrlResolver.resolve(slug);
+          if (template != null && mounted) {
+            _onTemplateSelected(template);
+          }
+        }
+      } else if (path == '/library') {
+        _viewModel.setNavDestination(NavDestination.library);
+      } else if (path == '/history') {
+        _viewModel.setNavDestination(NavDestination.history);
+      } else if (path == '/editor') {
+        _viewModel.setNavDestination(NavDestination.editor);
+      } else if (path == '/analytics') {
+        _viewModel.setNavDestination(NavDestination.methodValidation);
+      }
+    }
   }
 
   void _onViewModelChanged() {
@@ -353,6 +399,31 @@ class _DashboardScreenState extends State<DashboardScreen> {
         content: Text('Viewing public shared reaction: $rxnName'),
         backgroundColor: const Color(0xFF00B0FF),
         duration: const Duration(seconds: 5),
+      ),
+    );
+  }
+
+  void _copyReactionUrl(ReactionTemplate template) {
+    final url = ReactionUrlResolver.getShareUrl(template);
+    Clipboard.setData(ClipboardData(text: url));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            const Icon(Icons.check_circle_rounded, color: Color(0xFF00E676), size: 18),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                'Copied direct reaction link: $url',
+                style: const TextStyle(fontWeight: FontWeight.w600),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: const Color(0xFF0F172A),
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 3),
       ),
     );
   }
@@ -1925,6 +1996,34 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               ),
                             ),
                           ),
+                          if (hasTemplate)
+                            InkWell(
+                              onTap: () => _copyReactionUrl(_viewModel.activeTemplate!),
+                              borderRadius: BorderRadius.circular(6),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF00E5FF).withValues(alpha: 0.15),
+                                  borderRadius: BorderRadius.circular(6),
+                                  border: Border.all(color: const Color(0xFF00E5FF).withValues(alpha: 0.4)),
+                                ),
+                                child: const Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(Icons.link_rounded, size: 12, color: Color(0xFF00E5FF)),
+                                    SizedBox(width: 3),
+                                    Text(
+                                      'Copy Link',
+                                      style: TextStyle(
+                                        color: Color(0xFF00E5FF),
+                                        fontSize: 9.5,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
                         ],
                       ),
                     ),
@@ -2021,6 +2120,39 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             ),
                           ),
                         ),
+                        if (hasTemplate) ...[
+                          const SizedBox(width: 8),
+                          Tooltip(
+                            message: 'Copy direct reaction link (${ReactionUrlResolver.getShareUrl(_viewModel.activeTemplate!)})',
+                            child: InkWell(
+                              onTap: () => _copyReactionUrl(_viewModel.activeTemplate!),
+                              borderRadius: BorderRadius.circular(6),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF00E5FF).withValues(alpha: 0.15),
+                                  borderRadius: BorderRadius.circular(6),
+                                  border: Border.all(color: const Color(0xFF00E5FF).withValues(alpha: 0.4)),
+                                ),
+                                child: const Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(Icons.link_rounded, size: 13, color: Color(0xFF00E5FF)),
+                                    SizedBox(width: 4),
+                                    Text(
+                                      'Copy Link',
+                                      style: TextStyle(
+                                        color: Color(0xFF00E5FF),
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ],
                     ),
                     const SizedBox(height: 3),

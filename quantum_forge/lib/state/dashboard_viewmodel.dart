@@ -199,7 +199,16 @@ class DashboardViewModel extends ChangeNotifier {
   void setNavDestination(NavDestination dest) {
     if (_navDest == dest) return;
     _navDest = dest;
-    AvogadroBridge.syncNavRoute(dest.name);
+    if (dest == NavDestination.newReaction) {
+      if (_activeTemplate != null) {
+        AvogadroBridge.syncNavPath('/reaction/${_activeTemplate!.slug}');
+      } else {
+        AvogadroBridge.syncNavPath('/');
+      }
+    } else {
+      _activeTemplate = null;
+      AvogadroBridge.syncNavRoute(dest.name);
+    }
     notifyListeners();
   }
 
@@ -261,7 +270,7 @@ class DashboardViewModel extends ChangeNotifier {
     _activeTemplate = template;
     _navDest = NavDestination.newReaction;
     _triggerAutoRun();
-    AvogadroBridge.syncNavRoute(NavDestination.newReaction.name);
+    AvogadroBridge.syncNavPath('/reaction/${template.slug}');
     notifyListeners();
   }
 
@@ -317,7 +326,7 @@ class DashboardViewModel extends ChangeNotifier {
     
     _activeTemplate = template;
     _navDest = NavDestination.newReaction;
-    AvogadroBridge.syncNavRoute(NavDestination.newReaction.name);
+    AvogadroBridge.syncNavPath('/reaction/${template.slug}');
     notifyListeners();
   }
 

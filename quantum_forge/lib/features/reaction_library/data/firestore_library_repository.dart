@@ -247,6 +247,39 @@ class FirestoreLibraryRepository {
     };
   }
 
+  /// Fetches a specific reaction template by document ID or URL slug.
+  Future<ReactionTemplate?> getTemplateBySlugOrId(String slugOrId) async {
+    // 1. Try direct document lookup
+    try {
+      final doc = await _col.doc(slugOrId).get();
+      if (doc.exists && doc.data() != null) {
+        return ReactionTemplate.fromJson(doc.data() as Map<String, dynamic>, doc.id);
+      }
+    } catch (_) {}
+
+    final cleanSlug = ReactionTemplate.toSlug(slugOrId);
+
+    // 2. Query by 'slug' field
+    try {
+      final q = await _col.where('slug', isEqualTo: cleanSlug).limit(1).get();
+      if (q.docs.isNotEmpty) {
+        final d = q.docs.first;
+        return ReactionTemplate.fromJson(d.data() as Map<String, dynamic>, d.id);
+      }
+    } catch (_) {}
+
+    // 3. Query by 'name' field
+    try {
+      final qName = await _col.where('name', isEqualTo: slugOrId).limit(1).get();
+      if (qName.docs.isNotEmpty) {
+        final d = qName.docs.first;
+        return ReactionTemplate.fromJson(d.data() as Map<String, dynamic>, d.id);
+      }
+    } catch (_) {}
+
+    return null;
+  }
+
   // ── Seeding (admin / first-run only) ──────────────────────────────────────
 
   /// Writes [templates] to Firestore in snappy 100-document batches with timeouts
