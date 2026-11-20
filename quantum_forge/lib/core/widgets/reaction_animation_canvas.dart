@@ -275,26 +275,29 @@ extension _ReactionAnimationCanvasExt on _ReactionAnimationWidgetState {
               ),
             ),
         ],
-        // ── Watermark (Bottom Right) ──
+        // ── Watermark (Bottom Center) ──
         Positioned(
-          right: 10,
+          left: 0,
+          right: 0,
           bottom: 10,
           child: IgnorePointer(
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-              decoration: BoxDecoration(
-                color: Colors.black.withValues(alpha: 0.4),
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: Text(
-                (!kIsWeb && MediaQuery.of(context).size.width < 500)
-                    ? '© Dart Nexus Lab'
-                    : 'Quantum Forge — A Product of Dart Nexus Lab · eliasgharinnocent@yahoo.com',
-                style: const TextStyle(
-                  color: Colors.white38,
-                  fontSize: 9.5,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 0.2,
+            child: Center(
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.4),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  (!kIsWeb && MediaQuery.of(context).size.width < 500)
+                      ? '© Dart Nexus Lab'
+                      : 'Quantum Forge — A Product of Dart Nexus Lab · eliasgharinnocent@yahoo.com',
+                  style: const TextStyle(
+                    color: Colors.white38,
+                    fontSize: 9.5,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 0.2,
+                  ),
                 ),
               ),
             ),

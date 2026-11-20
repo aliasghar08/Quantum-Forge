@@ -36,7 +36,7 @@ class FloatingCopyrightWatermark extends StatelessWidget {
       child: IgnorePointer(
         ignoring: true,
         child: Align(
-          alignment: Alignment.bottomRight,
+          alignment: Alignment.bottomCenter,
           child: LayoutBuilder(
             builder: (context, constraints) {
               final width = constraints.maxWidth;
