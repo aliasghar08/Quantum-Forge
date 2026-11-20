@@ -19,6 +19,8 @@ import 'package:quantum_forge/features/education/presentation/widgets/study_card
 import 'package:quantum_forge/features/cardiac/data/cardiac_master_vitals_state.dart';
 import 'package:quantum_forge/features/cardiac/presentation/widgets/cardiac_master_vitals_bar.dart';
 import 'package:quantum_forge/features/cardiac/presentation/widgets/cardiac_full_screen_heart_theater.dart';
+import 'package:quantum_forge/features/cardiac/presentation/widgets/cardiac_full_screen_fluo_theater.dart';
+import 'package:quantum_forge/features/cardiac/presentation/widgets/cardiac_full_screen_carm_theater.dart';
 
 void main() {
   group('CardioCath 3D: Coronary Angiography & Hemodynamic Lab Tests', () {
@@ -1551,6 +1553,159 @@ void main() {
       // Verify back to Cath lab screen
       expect(find.byType(CardiacFullScreenHeartTheater), findsNothing);
       expect(find.byType(Cardiac3DAnatomicalHeartViewport), findsOneWidget);
+    });
+
+    testWidgets(
+        'launches CardiacFullScreenFluoTheater from Fluoroscopy viewport with tags and QCA calipers',
+        (tester) async {
+      tester.view.physicalSize = const Size(1440, 1000);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(buildTestScreen(size: const Size(1440, 1000)));
+      await tester.pump();
+
+      // 1. Locate and tap the Full-Screen Fluoroscopy Launcher button
+      final launchBtn =
+          find.byKey(const Key('launch_fullscreen_fluo_theater'));
+      expect(launchBtn, findsOneWidget);
+      await tester.ensureVisible(launchBtn);
+      await tester.tap(launchBtn);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+
+      // 2. Verify Fluo Theater is mounted
+      expect(find.byType(CardiacFullScreenFluoTheater), findsOneWidget);
+      expect(find.textContaining('ANGIO LAO'), findsOneWidget);
+
+      // Verify Vitals badge synced
+      expect(
+        find.descendant(
+          of: find.byType(CardiacFullScreenFluoTheater),
+          matching: find.textContaining('HR '),
+        ),
+        findsOneWidget,
+      );
+
+      // 3. Test Toggle 3D Name Tags
+      final tagsToggle = find.byKey(const Key('fluo_theater_tags_toggle'));
+      expect(tagsToggle, findsOneWidget);
+      await tester.tap(tagsToggle);
+      await tester.pump(const Duration(milliseconds: 100));
+
+      // 4. Test Toggle QCA Calipers
+      final qcaToggle = find.byKey(const Key('fluo_theater_qca_toggle'));
+      expect(qcaToggle, findsOneWidget);
+      await tester.tap(qcaToggle);
+      await tester.pump(const Duration(milliseconds: 100));
+
+      // Verify QCA HUD is mounted
+      expect(find.textContaining('QCA CALIPERS'), findsOneWidget);
+      expect(find.textContaining('Reference Vessel (RVD):'), findsOneWidget);
+      expect(find.textContaining('Minimal Lumen (MLD):'), findsOneWidget);
+
+      // 5. Test Toggle LUT Inversion
+      final lutBtn =
+          find.byKey(const Key('fluo_theater_invert_lut_button'));
+      expect(lutBtn, findsOneWidget);
+      await tester.tap(lutBtn);
+      await tester.pump(const Duration(milliseconds: 100));
+
+      // 6. Test Exit Theater Button
+      final exitBtn = find.byKey(const Key('fluo_theater_exit_button'));
+      expect(exitBtn, findsOneWidget);
+      await tester.tap(exitBtn);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+
+      // Verify back to Cath lab screen
+      expect(find.byType(CardiacFullScreenFluoTheater), findsNothing);
+      expect(find.byType(CardiacFluoroscopyViewport), findsOneWidget);
+    });
+
+    testWidgets(
+        'launches CardiacFullScreenCarmTheater from C-Arm Twin with orbit, radiation badges, and presets',
+        (tester) async {
+      tester.view.physicalSize = const Size(1440, 1000);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(buildTestScreen(size: const Size(1440, 1000)));
+      await tester.pump();
+
+      // 1. Locate and tap the Full-Screen C-Arm Launcher button
+      final launchBtn =
+          find.byKey(const Key('launch_fullscreen_carm_theater'));
+      expect(launchBtn, findsOneWidget);
+      await tester.ensureVisible(launchBtn);
+      await tester.tap(launchBtn);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+
+      // 2. Verify C-Arm Theater is mounted
+      expect(find.byType(CardiacFullScreenCarmTheater), findsOneWidget);
+      expect(
+        find.text('C-ARM GANTRY & RADIATION PHYSICS THEATER'),
+        findsOneWidget,
+      );
+
+      // Verify Dosimetry badge inside C-Arm theater
+      expect(
+        find.descendant(
+          of: find.byType(CardiacFullScreenCarmTheater),
+          matching: find.textContaining('Air Kerma:'),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: find.byType(CardiacFullScreenCarmTheater),
+          matching: find.textContaining('DAP:'),
+        ),
+        findsOneWidget,
+      );
+
+      // 3. Test Toggle Name Tags
+      final tagsToggle = find.byKey(const Key('carm_theater_tags_toggle'));
+      expect(tagsToggle, findsOneWidget);
+      await tester.tap(tagsToggle);
+      await tester.pump(const Duration(milliseconds: 100));
+
+      // 4. Test Toggle Scatter Cloud
+      final scatterToggle =
+          find.byKey(const Key('carm_theater_scatter_toggle'));
+      expect(scatterToggle, findsOneWidget);
+      await tester.tap(scatterToggle);
+      await tester.pump(const Duration(milliseconds: 100));
+
+      // 5. Test Preset Chips
+      final spiderChip = find.descendant(
+        of: find.byType(CardiacFullScreenCarmTheater),
+        matching: find.text('RAO Caudal (Spider View)'),
+      );
+      expect(spiderChip, findsOneWidget);
+      await tester.tap(spiderChip);
+      await tester.pump(const Duration(milliseconds: 100));
+
+      // 6. Test Reset Camera Button
+      final resetCamBtn =
+          find.byKey(const Key('carm_theater_reset_cam_button'));
+      expect(resetCamBtn, findsOneWidget);
+      await tester.tap(resetCamBtn);
+      await tester.pump(const Duration(milliseconds: 100));
+
+      // 7. Test Exit Theater Button
+      final exitBtn = find.byKey(const Key('carm_theater_exit_button'));
+      expect(exitBtn, findsOneWidget);
+      await tester.tap(exitBtn);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+
+      // Verify back to Cath lab screen
+      expect(find.byType(CardiacFullScreenCarmTheater), findsNothing);
+      expect(find.byType(CardiacCArmGantryTwin), findsOneWidget);
     });
   });
 }

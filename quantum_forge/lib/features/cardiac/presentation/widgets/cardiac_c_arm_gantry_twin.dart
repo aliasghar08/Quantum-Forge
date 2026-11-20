@@ -10,7 +10,9 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:quantum_forge/core/theme/theme_provider.dart';
 import '../../data/cardiac_pathology_models.dart';
+import '../../data/cardiac_master_vitals_state.dart';
 import 'cardiac_clinical_info_system.dart';
+import 'cardiac_full_screen_carm_theater.dart';
 
 class CardiacCArmGantryTwin extends StatelessWidget {
   final double laoRaoAngle;
@@ -18,6 +20,10 @@ class CardiacCArmGantryTwin extends StatelessWidget {
   final ValueChanged<double> onLaoRaoChanged;
   final ValueChanged<double> onCranCaudChanged;
   final ValueChanged<CArmProjectionPreset> onSelectPreset;
+  final CardiacMasterVitalsState? masterVitals;
+  final double airKermaMgy;
+  final double dapGyCm2;
+  final int fluoroSeconds;
 
   const CardiacCArmGantryTwin({
     super.key,
@@ -26,7 +32,36 @@ class CardiacCArmGantryTwin extends StatelessWidget {
     required this.onLaoRaoChanged,
     required this.onCranCaudChanged,
     required this.onSelectPreset,
+    this.masterVitals,
+    this.airKermaMgy = 420.0,
+    this.dapGyCm2 = 28.5,
+    this.fluoroSeconds = 345,
   });
+
+  void _openFullScreenTheater(BuildContext context) {
+    Navigator.of(context).push(
+      PageRouteBuilder(
+        opaque: false,
+        barrierColor: Colors.black.withValues(alpha: 0.88),
+        pageBuilder: (context, animation, secondaryAnimation) {
+          return FadeTransition(
+            opacity: animation,
+            child: CardiacFullScreenCarmTheater(
+              laoRaoAngle: laoRaoAngle,
+              cranCaudAngle: cranCaudAngle,
+              onLaoRaoChanged: onLaoRaoChanged,
+              onCranCaudChanged: onCranCaudChanged,
+              onSelectPreset: onSelectPreset,
+              masterVitals: masterVitals,
+              airKermaMgy: airKermaMgy,
+              dapGyCm2: dapGyCm2,
+              fluoroSeconds: fluoroSeconds,
+            ),
+          );
+        },
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -71,10 +106,24 @@ class CardiacCArmGantryTwin extends StatelessWidget {
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        const SizedBox(width: 6),
+                        const SizedBox(width: 4),
                         const CardiacInfoButton(
                           topicId: 'viewport_c_arm',
                           size: 12,
+                        ),
+                        const SizedBox(width: 4),
+                        Tooltip(
+                          message: 'Full-Screen C-Arm Theater',
+                          child: InkWell(
+                            key: const Key('launch_fullscreen_carm_theater'),
+                            onTap: () => _openFullScreenTheater(context),
+                            borderRadius: BorderRadius.circular(4),
+                            child: const Padding(
+                              padding: EdgeInsets.all(2.0),
+                              child: Icon(Icons.fullscreen_rounded,
+                                  color: Color(0xFF00E5FF), size: 16),
+                            ),
+                          ),
                         ),
                       ],
                     ),

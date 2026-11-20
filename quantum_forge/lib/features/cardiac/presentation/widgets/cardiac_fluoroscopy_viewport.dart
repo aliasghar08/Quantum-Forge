@@ -11,8 +11,10 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../../data/cardiac_pathology_models.dart';
 import '../../data/coronary_hemodynamics_engine.dart';
+import '../../data/cardiac_master_vitals_state.dart';
 import 'cardiac_three_engine.dart';
 import 'cardiac_clinical_info_system.dart';
+import 'cardiac_full_screen_fluo_theater.dart';
 
 class CardiacFluoroscopyViewport extends StatefulWidget {
   final CardiacPathologyScenario scenario;
@@ -25,6 +27,9 @@ class CardiacFluoroscopyViewport extends StatefulWidget {
   final CoronaryDominance dominance;
   final bool isRevascularized;
   final VoidCallback? onSimulatePci;
+  final CardiacMasterVitalsState? masterVitals;
+  final ValueChanged<double>? onLaoRaoChanged;
+  final ValueChanged<double>? onCranCaudChanged;
 
   const CardiacFluoroscopyViewport({
     super.key,
@@ -38,6 +43,9 @@ class CardiacFluoroscopyViewport extends StatefulWidget {
     this.dominance = CoronaryDominance.rightDominant,
     this.isRevascularized = false,
     this.onSimulatePci,
+    this.masterVitals,
+    this.onLaoRaoChanged,
+    this.onCranCaudChanged,
   });
 
   @override
@@ -110,6 +118,35 @@ class _CardiacFluoroscopyViewportState extends State<CardiacFluoroscopyViewport>
   void dispose() {
     _threeBridge?.dispose();
     super.dispose();
+  }
+
+  void _openFullScreenTheater() {
+    Navigator.of(context).push(
+      PageRouteBuilder(
+        opaque: false,
+        barrierColor: Colors.black.withValues(alpha: 0.88),
+        pageBuilder: (context, animation, secondaryAnimation) {
+          return FadeTransition(
+            opacity: animation,
+            child: CardiacFullScreenFluoTheater(
+              scenario: widget.scenario,
+              laoRaoAngle: widget.laoRaoAngle,
+              cranCaudAngle: widget.cranCaudAngle,
+              contrastIntensity: widget.contrastIntensity,
+              cardiacPhase: widget.cardiacPhase,
+              onInjectContrast: widget.onInjectContrast,
+              isInjecting: widget.isInjecting,
+              dominance: widget.dominance,
+              isRevascularized: widget.isRevascularized,
+              onSimulatePci: widget.onSimulatePci,
+              masterVitals: widget.masterVitals,
+              onLaoRaoChanged: widget.onLaoRaoChanged,
+              onCranCaudChanged: widget.onCranCaudChanged,
+            ),
+          );
+        },
+      ),
+    );
   }
 
   @override
@@ -209,11 +246,25 @@ class _CardiacFluoroscopyViewportState extends State<CardiacFluoroscopyViewport>
                       ),
                     ),
                   ),
-                  const SizedBox(width: 6),
+                  const SizedBox(width: 4),
                   const CardiacInfoButton(
                     topicId: 'viewport_fluoroscopy',
                     customLabel: 'X-Ray Info',
                     size: 12,
+                  ),
+                  const SizedBox(width: 4),
+                  Tooltip(
+                    message: 'Full-Screen Coronary Angiography Theater',
+                    child: InkWell(
+                      key: const Key('launch_fullscreen_fluo_theater'),
+                      onTap: _openFullScreenTheater,
+                      borderRadius: BorderRadius.circular(4),
+                      child: const Padding(
+                        padding: EdgeInsets.all(2.0),
+                        child: Icon(Icons.fullscreen_rounded,
+                            color: Color(0xFF00E5FF), size: 16),
+                      ),
+                    ),
                   ),
                   const SizedBox(width: 6),
                   Container(
