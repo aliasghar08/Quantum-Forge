@@ -19,37 +19,15 @@
 // 100% zero-copyright procedural mathematics. Strictly SaMD educational simulation.
 // ============================================================================
 
-import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../data/neuro_pathology_models.dart';
+import '../../data/neuro_dsa_landmark_models.dart';
+import 'neuro_dsa_painters.dart';
 import 'neuro_master_vitals_state.dart';
 
-class DsaLandmarkTag {
-  final String id;
-  final String label;
-  final String shortCode;
-  final String projectionVisibility;
-  final String clinicalPearl;
-  final double xAp;
-  final double yAp;
-  final double xLat;
-  final double yLat;
-  final Color badgeColor;
-
-  const DsaLandmarkTag({
-    required this.id,
-    required this.label,
-    required this.shortCode,
-    required this.projectionVisibility,
-    required this.clinicalPearl,
-    required this.xAp,
-    required this.yAp,
-    required this.xLat,
-    required this.yLat,
-    this.badgeColor = const Color(0xFF00E5FF),
-  });
-}
+export '../../data/neuro_dsa_landmark_models.dart';
+export 'neuro_dsa_painters.dart';
 
 class NeuroFullScreenDsaTheater extends StatefulWidget {
   final NeuroScenario scenario;
@@ -106,112 +84,7 @@ class _NeuroFullScreenDsaTheaterState
   DsaLandmarkTag? _selectedTag;
   final FocusNode _focusNode = FocusNode();
 
-  static const List<DsaLandmarkTag> kDsaTags = [
-    DsaLandmarkTag(
-      id: 'cervical_ica',
-      label: 'Cervical Internal Carotid Artery (C1)',
-      shortCode: 'Cervical ICA',
-      projectionVisibility: 'AP & Lateral',
-      clinicalPearl:
-          'Ascends vertically without branching in the neck (differentiating it from ECA). Atherosclerotic plaque at carotid bifurcation is primary source of thromboemboli.',
-      xAp: -15,
-      yAp: -75,
-      xLat: -30,
-      yLat: -75,
-      badgeColor: Color(0xFF38BDF8),
-    ),
-    DsaLandmarkTag(
-      id: 'carotid_siphon',
-      label: 'Carotid Siphon & Ophthalmic Artery',
-      shortCode: 'Carotid Siphon',
-      projectionVisibility: 'Lateral profile best',
-      clinicalPearl:
-          'S-shaped intracavernous curvature. The ophthalmic artery emerges from the anterior genu (C6 segment); visual preservation verifies microcatheter positioning proximal to occlusion.',
-      xAp: -12,
-      yAp: -35,
-      xLat: -10,
-      yLat: -35,
-      badgeColor: Color(0xFF6366F1),
-    ),
-    DsaLandmarkTag(
-      id: 'm1_mca_trunk',
-      label: 'M1 Middle Cerebral Artery (Sphenoidal Segment)',
-      shortCode: 'M1 MCA',
-      projectionVisibility: 'AP Frontal best',
-      clinicalPearl:
-          'Traverses horizontally toward Sylvian fissure. Acute cutoff with meniscus sign indicates LVO; target for Solitaire™ or Trevo™ mechanical thrombectomy within 24h window.',
-      xAp: -36,
-      yAp: -12,
-      xLat: 5,
-      yLat: -12,
-      badgeColor: Color(0xFF00E5FF),
-    ),
-    DsaLandmarkTag(
-      id: 'm2_sylvian',
-      label: 'M2 Insular / Sylvian Branches (Superior & Inferior)',
-      shortCode: 'M2 Sylvian',
-      projectionVisibility: 'AP & Lateral',
-      clinicalPearl:
-          'Loops over the insular cortex in the Sylvian valley (the "Sylvian Triangle" angiographic landmark). Bifurcation branch occlusion can cause isolated expressive aphasia or brachiofacial paresis.',
-      xAp: -55,
-      yAp: 15,
-      xLat: 20,
-      yLat: 15,
-      badgeColor: Color(0xFF06B6D4),
-    ),
-    DsaLandmarkTag(
-      id: 'a1_aca',
-      label: 'Anterior Cerebral Artery (A1 / A2 Segments)',
-      shortCode: 'A1/A2 ACA',
-      projectionVisibility: 'AP Frontal profile',
-      clinicalPearl:
-          'Courses medially over optic chiasm. Pericallosal and callosomarginal branches wrap the corpus callosum. ACA cross-fills across ACom when contralateral ICA is clamped.',
-      xAp: -5,
-      yAp: 5,
-      xLat: -8,
-      yLat: 25,
-      badgeColor: Color(0xFF10B981),
-    ),
-    DsaLandmarkTag(
-      id: 'acom_neck',
-      label: 'ACom Aneurysm Inflow Neck & Dome',
-      shortCode: 'ACom Neck',
-      projectionVisibility: 'Oblique & Lateral',
-      clinicalPearl:
-          'Dome-to-neck ratio < 1.5 indicates a "wide-necked" aneurysm requiring stent-assisted coiling or intrasaccular flow disruptor (WEB device) to avoid coil protrusion into parent vessel.',
-      xAp: 0,
-      yAp: 2,
-      xLat: -4,
-      yLat: 30,
-      badgeColor: Color(0xFFEC4899),
-    ),
-    DsaLandmarkTag(
-      id: 'basilar_trunk',
-      label: 'Basilar Artery & Superior Cerebellar (SCA)',
-      shortCode: 'Basilar Trunk',
-      projectionVisibility: 'AP & Lateral',
-      clinicalPearl:
-          'Formed by bilateral vertebral arteries. High-velocity inflow; basilar apex aneurysms present with sudden coma and bilateral pinpoint pupils from pontine ischemia.',
-      xAp: 0,
-      yAp: -50,
-      xLat: -22,
-      yLat: -50,
-      badgeColor: Color(0xFFF59E0B),
-    ),
-    DsaLandmarkTag(
-      id: 'sagittal_sinus',
-      label: 'Superior Sagittal Sinus (Venous Phase)',
-      shortCode: 'Sagittal Sinus',
-      projectionVisibility: 'Late Venous Lateral',
-      clinicalPearl:
-          'Empty delta sign on contrast imaging signals dural sinus thrombosis (CVST). Normal filling confirms complete cerebral perfusion wash-out time (<7 seconds).',
-      xAp: 0,
-      yAp: 58,
-      xLat: -10,
-      yLat: 58,
-      badgeColor: Color(0xFF94A3B8),
-    ),
-  ];
+  static const List<DsaLandmarkTag> kDsaTags = kDefaultDsaTags;
 
   @override
   void initState() {
@@ -370,7 +243,7 @@ class _NeuroFullScreenDsaTheaterState
                     : null,
                 onPanEnd: (_) => _activeCaliperDragIndex = null,
                 child: CustomPaint(
-                  painter: _NeuroDsaCinePainter(
+                  painter: NeuroDsaCinePainter(
                     projection: _projection,
                     cinePhase: _cinePhase,
                     contrastIntensity: _contrastIntensity,
@@ -387,7 +260,7 @@ class _NeuroFullScreenDsaTheaterState
               Positioned.fill(
                 child: IgnorePointer(
                   child: CustomPaint(
-                    painter: _DsaCalipersPainter(
+                    painter: DsaCalipersPainter(
                       vesselPt1: _caliperPt1,
                       vesselPt2: _caliperPt2,
                       neckPt1: _neckPt1,
@@ -978,242 +851,3 @@ class _NeuroFullScreenDsaTheaterState
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Procedural Biplane DSA Subtraction Painter
-// ─────────────────────────────────────────────────────────────────────────────
-
-class _NeuroDsaCinePainter extends CustomPainter {
-  final DsaProjection projection;
-  final double cinePhase;
-  final double contrastIntensity;
-  final bool hasM1Occlusion;
-  final bool hasAneurysm;
-  final bool isCoiled;
-
-  _NeuroDsaCinePainter({
-    required this.projection,
-    required this.cinePhase,
-    required this.contrastIntensity,
-    required this.hasM1Occlusion,
-    required this.hasAneurysm,
-    required this.isCoiled,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final cx = size.width / 2;
-    final cy = size.height / 2 - 10;
-    final scale = size.height / 340.0;
-
-    // 1. Subtle Subtracted Bone Cranial Mask
-    _drawBoneMask(canvas, cx, cy, scale);
-
-    // 2. Neurovascular Contrast Trees (Pulsatile wash)
-    if (projection == DsaProjection.ap) {
-      _drawFrontalDsa(canvas, cx, cy, scale);
-    } else {
-      _drawLateralDsa(canvas, cx, cy, scale);
-    }
-  }
-
-  void _drawBoneMask(Canvas canvas, double cx, double cy, double s) {
-    final bonePaint = Paint()
-      ..color = Colors.white.withValues(alpha: 0.04)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.2;
-
-    // Calvarium vault outline
-    final craniumPath = Path()
-      ..addOval(Rect.fromCenter(
-        center: Offset(cx, cy),
-        width: 240.0 * s,
-        height: 270.0 * s,
-      ));
-    canvas.drawPath(craniumPath, bonePaint);
-
-    // Petrous ridges & orbit rims
-    final p1 = Offset(cx - 70 * s, cy + 30 * s);
-    final p2 = Offset(cx + 70 * s, cy + 30 * s);
-    canvas.drawLine(p1, p2, bonePaint);
-  }
-
-  void _drawFrontalDsa(Canvas canvas, double cx, double cy, double s) {
-    final vesselOpacity = (0.75 + math.sin(cinePhase * math.pi * 2) * 0.15) * contrastIntensity;
-    final vesselPaint = Paint()
-      ..color = Colors.white.withValues(alpha: vesselOpacity.clamp(0.2, 1.0))
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round
-      ..strokeWidth = 3.5 * s;
-
-    final branchPaint = Paint()
-      ..color = Colors.white.withValues(alpha: (vesselOpacity * 0.85).clamp(0.1, 0.9))
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round
-      ..strokeWidth = 2.0 * s;
-
-    // Cervical ICA ascending
-    final icaPath = Path()
-      ..moveTo(cx - 30 * s, cy + 120 * s)
-      ..lineTo(cx - 28 * s, cy + 40 * s)
-      ..quadraticBezierTo(cx - 32 * s, cy + 15 * s, cx - 20 * s, cy - 10 * s);
-    canvas.drawPath(icaPath, vesselPaint);
-
-    // A1 and A2 ACA
-    final acaPath = Path()
-      ..moveTo(cx - 20 * s, cy - 10 * s)
-      ..lineTo(cx - 5 * s, cy - 25 * s)
-      ..lineTo(cx - 4 * s, cy - 85 * s);
-    canvas.drawPath(acaPath, branchPaint);
-
-    // M1 MCA Horizontal Segment
-    if (hasM1Occlusion) {
-      // Meniscus cutoff at proximal M1
-      final m1Path = Path()
-        ..moveTo(cx - 20 * s, cy - 10 * s)
-        ..lineTo(cx - 42 * s, cy - 18 * s);
-      canvas.drawPath(m1Path, vesselPaint);
-
-      // Occlusion marker band
-      final occlPaint = Paint()
-        ..color = const Color(0xFFEF4444)
-        ..style = PaintingStyle.fill;
-      canvas.drawCircle(Offset(cx - 42 * s, cy - 18 * s), 4.5 * s, occlPaint);
-    } else {
-      // Patent M1 & M2 Candelabra
-      final m1Path = Path()
-        ..moveTo(cx - 20 * s, cy - 10 * s)
-        ..lineTo(cx - 55 * s, cy - 20 * s)
-        ..quadraticBezierTo(cx - 75 * s, cy - 40 * s, cx - 85 * s, cy - 65 * s);
-      canvas.drawPath(m1Path, vesselPaint);
-
-      // Distal M3/M4 cortical arborization
-      final m2Path = Path()
-        ..moveTo(cx - 55 * s, cy - 20 * s)
-        ..lineTo(cx - 80 * s, cy - 5 * s)
-        ..lineTo(cx - 95 * s, cy + 15 * s);
-      canvas.drawPath(m2Path, branchPaint);
-    }
-
-    // Aneurysm at ACom
-    if (hasAneurysm) {
-      final acomPt = Offset(cx - 5 * s, cy - 25 * s);
-      final aPaint = Paint()
-        ..color = isCoiled ? const Color(0xFFCBD5E1) : Colors.white.withValues(alpha: 0.9)
-        ..style = PaintingStyle.fill;
-      canvas.drawCircle(acomPt, 7.5 * s, aPaint);
-
-      if (isCoiled) {
-        final coilMesh = Paint()
-          ..color = const Color(0xFF1E293B)
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 1.0;
-        canvas.drawCircle(acomPt, 7.5 * s, coilMesh);
-      }
-    }
-  }
-
-  void _drawLateralDsa(Canvas canvas, double cx, double cy, double s) {
-    final vesselOpacity = (0.75 + math.sin(cinePhase * math.pi * 2) * 0.15) * contrastIntensity;
-    final vesselPaint = Paint()
-      ..color = Colors.white.withValues(alpha: vesselOpacity.clamp(0.2, 1.0))
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round
-      ..strokeWidth = 3.5 * s;
-
-    final branchPaint = Paint()
-      ..color = Colors.white.withValues(alpha: (vesselOpacity * 0.85).clamp(0.1, 0.9))
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round
-      ..strokeWidth = 2.0 * s;
-
-    // Carotid Siphon (classic S-loop on lateral projection)
-    final siphonPath = Path()
-      ..moveTo(cx - 45 * s, cy + 120 * s)
-      ..lineTo(cx - 45 * s, cy + 40 * s)
-      ..cubicTo(
-        cx - 55 * s, cy + 10 * s,
-        cx - 20 * s, cy - 10 * s,
-        cx - 30 * s, cy - 35 * s,
-      );
-    canvas.drawPath(siphonPath, vesselPaint);
-
-    // Pericallosal ACA arch
-    final acaPath = Path()
-      ..moveTo(cx - 30 * s, cy - 35 * s)
-      ..quadraticBezierTo(cx + 10 * s, cy - 65 * s, cx + 55 * s, cy - 40 * s);
-    canvas.drawPath(acaPath, branchPaint);
-
-    // MCA Sylvian Triangle & Distal branches
-    final mcaPath = Path()
-      ..moveTo(cx - 30 * s, cy - 35 * s)
-      ..quadraticBezierTo(cx + 5 * s, cy - 20 * s, cx + 45 * s, cy - 10 * s);
-    canvas.drawPath(mcaPath, vesselPaint);
-  }
-
-  @override
-  bool shouldRepaint(covariant _NeuroDsaCinePainter old) {
-    return old.projection != projection ||
-        old.cinePhase != cinePhase ||
-        old.contrastIntensity != contrastIntensity ||
-        old.hasM1Occlusion != hasM1Occlusion ||
-        old.hasAneurysm != hasAneurysm ||
-        old.isCoiled != isCoiled;
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Draggable Calipers Painter
-// ─────────────────────────────────────────────────────────────────────────────
-
-class _DsaCalipersPainter extends CustomPainter {
-  final Offset vesselPt1;
-  final Offset vesselPt2;
-  final Offset neckPt1;
-  final Offset neckPt2;
-  final double vesselMm;
-  final double neckMm;
-  final double domeNeckRatio;
-
-  _DsaCalipersPainter({
-    required this.vesselPt1,
-    required this.vesselPt2,
-    required this.neckPt1,
-    required this.neckPt2,
-    required this.vesselMm,
-    required this.neckMm,
-    required this.domeNeckRatio,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    // Vessel caliper line (Cyan)
-    final vesselLine = Paint()
-      ..color = const Color(0xFF00E5FF)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.5;
-    canvas.drawLine(vesselPt1, vesselPt2, vesselLine);
-
-    // Aneurysm neck line (Magenta)
-    final neckLine = Paint()
-      ..color = const Color(0xFFEC4899)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.5;
-    canvas.drawLine(neckPt1, neckPt2, neckLine);
-
-    // Draggable handle circles
-    final handleFill = Paint()
-      ..color = Colors.white
-      ..style = PaintingStyle.fill;
-    for (final pt in [vesselPt1, vesselPt2, neckPt1, neckPt2]) {
-      canvas.drawCircle(pt, 5.0, handleFill);
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant _DsaCalipersPainter old) {
-    return old.vesselPt1 != vesselPt1 ||
-        old.vesselPt2 != vesselPt2 ||
-        old.neckPt1 != neckPt1 ||
-        old.neckPt2 != neckPt2;
-  }
-}
