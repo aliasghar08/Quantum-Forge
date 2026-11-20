@@ -222,6 +222,7 @@ class _CardiacFullScreenHeartTheaterState
   Widget build(BuildContext context) {
     final palette = ThemeNotifier.paletteOf(context);
     final size = MediaQuery.of(context).size;
+    final isMobile = size.width < 768;
 
     if (kIsWeb && _threeBridge == null) {
       _threeBridge = CardioCathThreeBridge.latestFullScreenHeartBridge;
@@ -434,9 +435,9 @@ class _CardiacFullScreenHeartTheaterState
             // ── Click-to-Inspect Clinical Structure Card ─────────────────
             if (_selectedLandmark != null)
               Positioned(
-                left: 20,
-                bottom: 155,
-                child: _buildStructureDetailCard(_selectedLandmark!),
+                left: math.max(16.0, (size.width - math.min(360.0, size.width - 32)) / 2),
+                bottom: isMobile ? 210 : 155,
+                child: _buildStructureDetailCard(_selectedLandmark!, size, isMobile),
               ),
 
             // ── Top Glassmorphic Navigation & Telemetry HUD ─────────────
@@ -450,8 +451,8 @@ class _CardiacFullScreenHeartTheaterState
                 children: [
                   // Row 1: Header + SaMD Disclaimer + Telemetry Readout + Actions
                   Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 14, vertical: 8),
+                    padding: EdgeInsets.symmetric(
+                        horizontal: isMobile ? 10 : 14, vertical: isMobile ? 6 : 8),
                     decoration: BoxDecoration(
                       color: const Color(0xFF0A1124).withValues(alpha: 0.88),
                       borderRadius: BorderRadius.circular(10),
@@ -465,171 +466,144 @@ class _CardiacFullScreenHeartTheaterState
                         ),
                       ],
                     ),
-                    child: Row(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        // Title & Icon
-                        Container(
-                          padding: const EdgeInsets.all(5),
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: const Color(0xFFEF4444).withValues(alpha: 0.2),
-                            border: Border.all(
-                                color: const Color(0xFFEF4444).withValues(alpha: 0.6)),
-                          ),
-                          child: const Icon(Icons.favorite_rounded,
-                              color: Color(0xFFEF4444), size: 16),
-                        ),
-                        const SizedBox(width: 8),
-                        Flexible(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Row(
+                        Row(
+                          children: [
+                            // Title & Icon
+                            Container(
+                              padding: const EdgeInsets.all(5),
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: const Color(0xFFEF4444).withValues(alpha: 0.2),
+                                border: Border.all(
+                                    color: const Color(0xFFEF4444).withValues(alpha: 0.6)),
+                              ),
+                              child: const Icon(Icons.favorite_rounded,
+                                  color: Color(0xFFEF4444), size: 16),
+                            ),
+                            const SizedBox(width: 8),
+                            Flexible(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  const Flexible(
-                                    child: Text(
-                                      'CARDIOCATH 3D: MICRO-ANATOMICAL THEATER',
-                                      overflow: TextOverflow.ellipsis,
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 12.0,
-                                        fontWeight: FontWeight.bold,
-                                        letterSpacing: 0.8,
+                                  Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Flexible(
+                                        child: Text(
+                                          'CARDIOCATH 3D: MICRO-ANATOMICAL THEATER',
+                                          overflow: TextOverflow.ellipsis,
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 12.0,
+                                            fontWeight: FontWeight.bold,
+                                            letterSpacing: 0.8,
+                                          ),
+                                        ),
                                       ),
-                                    ),
+                                      const SizedBox(width: 6),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 5, vertical: 1.5),
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFF00E5FF).withValues(alpha: 0.2),
+                                          borderRadius: BorderRadius.circular(4),
+                                          border: Border.all(
+                                              color: const Color(0xFF00E5FF).withValues(alpha: 0.6)),
+                                        ),
+                                        child: const Text(
+                                          '4K WebGL PROCEDURAL',
+                                          style: TextStyle(
+                                            color: Color(0xFF00E5FF),
+                                            fontSize: 8.0,
+                                            fontWeight: FontWeight.w700,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                  const SizedBox(width: 6),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 5, vertical: 1.5),
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFF00E5FF).withValues(alpha: 0.2),
-                                      borderRadius: BorderRadius.circular(4),
-                                      border: Border.all(
-                                          color: const Color(0xFF00E5FF).withValues(alpha: 0.6)),
-                                    ),
-                                    child: const Text(
-                                      '4K WebGL PROCEDURAL',
-                                      style: TextStyle(
-                                        color: Color(0xFF00E5FF),
-                                        fontSize: 8.0,
-                                        fontWeight: FontWeight.w700,
-                                      ),
+                                  const Text(
+                                    'Educational Simulation Only — Not for Clinical Diagnosis or Patient Care',
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      color: Color(0xFFFFB300),
+                                      fontSize: 9.0,
+                                      fontWeight: FontWeight.w500,
                                     ),
                                   ),
                                 ],
                               ),
-                              const Text(
-                                'Educational Simulation Only — Not for Clinical Diagnosis or Patient Care',
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  color: Color(0xFFFFB300),
-                                  fontSize: 9.0,
-                                  fontWeight: FontWeight.w500,
-                                ),
+                            ),
+
+                            if (!isMobile) ...[
+                              const SizedBox(width: 8),
+                              _buildTelemetryBadge(
+                                bpm: effectiveBpm,
+                                sbp: effectiveSbp,
+                                dbp: effectiveDbp,
+                                lvef: effectiveLvef,
+                                spo2: effectiveSpo2,
+                                rhythm: rhythmName,
                               ),
                             ],
+
+                            const SizedBox(width: 8),
+
+                            // Action: Toggle Name Tags
+                            IconButton(
+                              key: const Key('theater_toggle_name_tags'),
+                              icon: Icon(
+                                _showNameTags
+                                    ? Icons.label_rounded
+                                    : Icons.label_off_rounded,
+                                color: _showNameTags
+                                    ? const Color(0xFF00E5FF)
+                                    : Colors.grey,
+                                size: 18,
+                              ),
+                              tooltip: _showNameTags
+                                  ? 'Hide Anatomical Name Tags'
+                                  : 'Show Anatomical Name Tags',
+                              onPressed: () {
+                                setState(() => _showNameTags = !_showNameTags);
+                                _threeBridge?.setShowLabels(_showNameTags);
+                              },
+                            ),
+
+                            // Action: Reset Camera
+                            IconButton(
+                              key: const Key('theater_reset_camera'),
+                              icon: const Icon(Icons.refresh_rounded,
+                                  color: Colors.white70, size: 18),
+                              tooltip: 'Reset 3D Camera Orbit',
+                              onPressed: _resetCamera,
+                            ),
+
+                            // Action: Exit Theater
+                            IconButton(
+                              key: const Key('theater_close_button'),
+                              icon: const Icon(Icons.fullscreen_exit_rounded,
+                                  color: Color(0xFFFF5252), size: 22),
+                              tooltip: 'Exit Full-Screen Theater (Esc)',
+                              onPressed: () => Navigator.of(context).pop(),
+                            ),
+                          ],
+                        ),
+                        if (isMobile) ...[
+                          const SizedBox(height: 6),
+                          _buildTelemetryBadge(
+                            bpm: effectiveBpm,
+                            sbp: effectiveSbp,
+                            dbp: effectiveDbp,
+                            lvef: effectiveLvef,
+                            spo2: effectiveSpo2,
+                            rhythm: rhythmName,
                           ),
-                        ),
-
-                        const SizedBox(width: 8),
-
-                        // Synchronized Telemetry Badge
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 10, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF040711).withValues(alpha: 0.75),
-                            borderRadius: BorderRadius.circular(6),
-                            border: Border.all(
-                                color: const Color(0xFF1E293B)),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              _vitalsItem(
-                                label: 'HR',
-                                value: '${effectiveBpm.round()}',
-                                unit: 'bpm',
-                                color: const Color(0xFF00E676),
-                              ),
-                              _vitalsDivider(),
-                              _vitalsItem(
-                                label: 'BP',
-                                value:
-                                    '${effectiveSbp.round()}/${effectiveDbp.round()}',
-                                unit: 'mmHg',
-                                color: const Color(0xFF00E5FF),
-                              ),
-                              _vitalsDivider(),
-                              _vitalsItem(
-                                label: 'LVEF',
-                                value: '${effectiveLvef.round()}%',
-                                unit: '',
-                                color: const Color(0xFFFF5252),
-                              ),
-                              _vitalsDivider(),
-                              _vitalsItem(
-                                label: 'SpO₂',
-                                value: '${effectiveSpo2.round()}%',
-                                unit: '',
-                                color: const Color(0xFF7C4DFF),
-                              ),
-                              _vitalsDivider(),
-                              Text(
-                                rhythmName,
-                                style: const TextStyle(
-                                  color: Color(0xFFE2E8F0),
-                                  fontSize: 10.0,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-
-                        const SizedBox(width: 12),
-
-                        // Action: Toggle Name Tags
-                        IconButton(
-                          key: const Key('theater_toggle_name_tags'),
-                          icon: Icon(
-                            _showNameTags
-                                ? Icons.label_rounded
-                                : Icons.label_off_rounded,
-                            color: _showNameTags
-                                ? const Color(0xFF00E5FF)
-                                : Colors.grey,
-                            size: 18,
-                          ),
-                          tooltip: _showNameTags
-                              ? 'Hide Anatomical Name Tags'
-                              : 'Show Anatomical Name Tags',
-                          onPressed: () {
-                            setState(() => _showNameTags = !_showNameTags);
-                            _threeBridge?.setShowLabels(_showNameTags);
-                          },
-                        ),
-
-                        // Action: Reset Camera
-                        IconButton(
-                          key: const Key('theater_reset_camera'),
-                          icon: const Icon(Icons.refresh_rounded,
-                              color: Colors.white70, size: 18),
-                          tooltip: 'Reset 3D Camera Orbit',
-                          onPressed: _resetCamera,
-                        ),
-
-                        // Action: Exit Theater
-                        IconButton(
-                          key: const Key('theater_close_button'),
-                          icon: const Icon(Icons.fullscreen_exit_rounded,
-                              color: Color(0xFFFF5252), size: 22),
-                          tooltip: 'Exit Full-Screen Theater (Esc)',
-                          onPressed: () => Navigator.of(context).pop(),
-                        ),
+                        ],
                       ],
                     ),
                   ),
@@ -694,7 +668,7 @@ class _CardiacFullScreenHeartTheaterState
               left: 16,
               right: 16,
               bottom: 16,
-              child: _buildControlDock(palette),
+              child: _buildControlDock(palette, isMobile),
             ),
           ],
         ),
@@ -702,9 +676,11 @@ class _CardiacFullScreenHeartTheaterState
     );
   }
 
-  Widget _buildStructureDetailCard(CardiacLandmarkDefinition landmark) {
+  Widget _buildStructureDetailCard(
+      CardiacLandmarkDefinition landmark, Size size, bool isMobile) {
+    final cardWidth = math.min(360.0, size.width - 32);
     return Container(
-      width: 360,
+      width: cardWidth,
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: const Color(0xFF0A1124).withValues(alpha: 0.94),
@@ -864,9 +840,198 @@ class _CardiacFullScreenHeartTheaterState
     );
   }
 
-  Widget _buildControlDock(dynamic palette) {
+  Widget _buildTelemetryBadge({
+    required double bpm,
+    required double sbp,
+    required double dbp,
+    required double lvef,
+    required double spo2,
+    required String rhythm,
+  }) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: const Color(0xFF040711).withValues(alpha: 0.75),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: const Color(0xFF1E293B)),
+      ),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _vitalsItem(
+              label: 'HR',
+              value: '${bpm.round()}',
+              unit: 'bpm',
+              color: const Color(0xFF00E676),
+            ),
+            _vitalsDivider(),
+            _vitalsItem(
+              label: 'BP',
+              value: '${sbp.round()}/${dbp.round()}',
+              unit: 'mmHg',
+              color: const Color(0xFF00E5FF),
+            ),
+            _vitalsDivider(),
+            _vitalsItem(
+              label: 'LVEF',
+              value: '${lvef.round()}%',
+              unit: '',
+              color: const Color(0xFFFF5252),
+            ),
+            _vitalsDivider(),
+            _vitalsItem(
+              label: 'SpO₂',
+              value: '${spo2.round()}%',
+              unit: '',
+              color: const Color(0xFF7C4DFF),
+            ),
+            _vitalsDivider(),
+            Text(
+              rhythm,
+              style: const TextStyle(
+                color: Color(0xFFE2E8F0),
+                fontSize: 10.0,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCutawayControl() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: const Color(0xFF040711).withValues(alpha: 0.6),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: const Color(0xFF1E293B)),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.content_cut_rounded,
+              size: 14, color: Color(0xFF00E5FF)),
+          const SizedBox(width: 6),
+          Text(
+            'Cutaway: ${(_cutawayFraction * 100).round()}%',
+            style: const TextStyle(
+              color: Color(0xFF00E5FF),
+              fontSize: 9.5,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          Expanded(
+            child: SliderTheme(
+              data: const SliderThemeData(
+                trackHeight: 2,
+                thumbShape: RoundSliderThumbShape(enabledThumbRadius: 5),
+                overlayShape: RoundSliderOverlayShape(overlayRadius: 10),
+                activeTrackColor: Color(0xFF00E5FF),
+                inactiveTrackColor: Color(0xFF1E293B),
+                thumbColor: Color(0xFF00E5FF),
+              ),
+              child: Slider(
+                key: const Key('theater_cutaway_slider'),
+                value: _cutawayFraction,
+                min: 0.0,
+                max: 1.0,
+                onChanged: _onCutawayChanged,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSlowMotionControl() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+      decoration: BoxDecoration(
+        color: const Color(0xFF040711).withValues(alpha: 0.6),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: const Color(0xFF1E293B)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          IconButton(
+            key: const Key('theater_play_pause'),
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(),
+            icon: Icon(
+              _isPaused
+                  ? Icons.play_arrow_rounded
+                  : Icons.pause_rounded,
+              color: _isPaused
+                  ? const Color(0xFF00E676)
+                  : const Color(0xFFFFB300),
+              size: 18,
+            ),
+            tooltip: _isPaused ? 'Resume Motion' : 'Pause Phase',
+            onPressed: _togglePlayPause,
+          ),
+          const SizedBox(width: 6),
+          _speedPill(0.1, '0.1x', 'theater_speed_0.1'),
+          _speedPill(0.25, '0.25x', 'theater_speed_0.25'),
+          _speedPill(0.5, '0.5x', 'theater_speed_0.5'),
+          _speedPill(1.0, '1.0x', 'theater_speed_1.0'),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPhaseScrubberControl() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: const Color(0xFF040711).withValues(alpha: 0.6),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: const Color(0xFF1E293B)),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.timer_outlined,
+              size: 14, color: Color(0xFFEF4444)),
+          const SizedBox(width: 6),
+          Text(
+            _getCardiacPhaseLabel(_currentPhase),
+            style: const TextStyle(
+              color: Color(0xFFE2E8F0),
+              fontSize: 9.0,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          Expanded(
+            child: SliderTheme(
+              data: const SliderThemeData(
+                trackHeight: 2,
+                thumbShape: RoundSliderThumbShape(enabledThumbRadius: 5),
+                overlayShape: RoundSliderOverlayShape(overlayRadius: 10),
+                activeTrackColor: Color(0xFFEF4444),
+                inactiveTrackColor: Color(0xFF1E293B),
+                thumbColor: Color(0xFFEF4444),
+              ),
+              child: Slider(
+                key: const Key('theater_phase_slider'),
+                value: _currentPhase,
+                min: 0.0,
+                max: 1.0,
+                onChanged: _onScrubPhase,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildControlDock(dynamic palette, bool isMobile) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: isMobile ? 10 : 14, vertical: isMobile ? 8 : 10),
       decoration: BoxDecoration(
         color: const Color(0xFF0A1124).withValues(alpha: 0.92),
         borderRadius: BorderRadius.circular(12),
@@ -905,148 +1070,45 @@ class _CardiacFullScreenHeartTheaterState
 
           const SizedBox(height: 8),
 
-          // Row 2: Sliders & Slow-Motion dock
-          Row(
-            children: [
-              // 4-Chamber Coronal Cutaway Slider
-              Expanded(
-                flex: 4,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF040711).withValues(alpha: 0.6),
-                    borderRadius: BorderRadius.circular(6),
-                    border: Border.all(color: const Color(0xFF1E293B)),
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.content_cut_rounded,
-                          size: 14, color: Color(0xFF00E5FF)),
-                      const SizedBox(width: 6),
-                      Text(
-                        'Cutaway: ${(_cutawayFraction * 100).round()}%',
-                        style: const TextStyle(
-                          color: Color(0xFF00E5FF),
-                          fontSize: 9.5,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      Expanded(
-                        child: SliderTheme(
-                          data: SliderThemeData(
-                            trackHeight: 2,
-                            thumbShape: const RoundSliderThumbShape(
-                                enabledThumbRadius: 5),
-                            overlayShape: const RoundSliderOverlayShape(
-                                overlayRadius: 10),
-                            activeTrackColor: const Color(0xFF00E5FF),
-                            inactiveTrackColor: const Color(0xFF1E293B),
-                            thumbColor: const Color(0xFF00E5FF),
-                          ),
-                          child: Slider(
-                            key: const Key('theater_cutaway_slider'),
-                            value: _cutawayFraction,
-                            min: 0.0,
-                            max: 1.0,
-                            onChanged: _onCutawayChanged,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+          // Row 2: Sliders & Slow-Motion dock (Responsive desktop vs mobile)
+          if (!isMobile)
+            Row(
+              children: [
+                // 4-Chamber Coronal Cutaway Slider
+                Expanded(
+                  flex: 4,
+                  child: _buildCutawayControl(),
                 ),
-              ),
 
-              const SizedBox(width: 8),
+                const SizedBox(width: 8),
 
-              // Slow-Motion Speed & Play/Pause Controls
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF040711).withValues(alpha: 0.6),
-                  borderRadius: BorderRadius.circular(6),
-                  border: Border.all(color: const Color(0xFF1E293B)),
+                // Slow-Motion Speed & Play/Pause Controls
+                _buildSlowMotionControl(),
+
+                const SizedBox(width: 8),
+
+                // Phase Scrubber Slider
+                Expanded(
+                  flex: 5,
+                  child: _buildPhaseScrubberControl(),
                 ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
+              ],
+            )
+          else
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
                   children: [
-                    IconButton(
-                      key: const Key('theater_play_pause'),
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
-                      icon: Icon(
-                        _isPaused
-                            ? Icons.play_arrow_rounded
-                            : Icons.pause_rounded,
-                        color: _isPaused
-                            ? const Color(0xFF00E676)
-                            : const Color(0xFFFFB300),
-                        size: 18,
-                      ),
-                      tooltip: _isPaused ? 'Resume Motion' : 'Pause Phase',
-                      onPressed: _togglePlayPause,
-                    ),
+                    Expanded(child: _buildCutawayControl()),
                     const SizedBox(width: 6),
-                    _speedPill(0.1, '0.1x', 'theater_speed_0.1'),
-                    _speedPill(0.25, '0.25x', 'theater_speed_0.25'),
-                    _speedPill(0.5, '0.5x', 'theater_speed_0.5'),
-                    _speedPill(1.0, '1.0x', 'theater_speed_1.0'),
+                    _buildSlowMotionControl(),
                   ],
                 ),
-              ),
-
-              const SizedBox(width: 8),
-
-              // Phase Scrubber Slider
-              Expanded(
-                flex: 5,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF040711).withValues(alpha: 0.6),
-                    borderRadius: BorderRadius.circular(6),
-                    border: Border.all(color: const Color(0xFF1E293B)),
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.timer_outlined,
-                          size: 14, color: Color(0xFFEF4444)),
-                      const SizedBox(width: 6),
-                      Text(
-                        _getCardiacPhaseLabel(_currentPhase),
-                        style: const TextStyle(
-                          color: Color(0xFFE2E8F0),
-                          fontSize: 9.0,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      Expanded(
-                        child: SliderTheme(
-                          data: SliderThemeData(
-                            trackHeight: 2,
-                            thumbShape: const RoundSliderThumbShape(
-                                enabledThumbRadius: 5),
-                            overlayShape: const RoundSliderOverlayShape(
-                                overlayRadius: 10),
-                            activeTrackColor: const Color(0xFFEF4444),
-                            inactiveTrackColor: const Color(0xFF1E293B),
-                            thumbColor: const Color(0xFFEF4444),
-                          ),
-                          child: Slider(
-                            key: const Key('theater_phase_slider'),
-                            value: _currentPhase,
-                            min: 0.0,
-                            max: 1.0,
-                            onChanged: _onScrubPhase,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
+                const SizedBox(height: 6),
+                _buildPhaseScrubberControl(),
+              ],
+            ),
         ],
       ),
     );

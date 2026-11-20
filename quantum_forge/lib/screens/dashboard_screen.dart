@@ -2202,23 +2202,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
             children: [
               const Icon(Icons.file_present_rounded, size: 16, color: Color(0xFF38BDF8)),
               const SizedBox(width: 8),
-              Expanded(
-                child: Builder(
-                  builder: (context) {
-                    final isMobile = MediaQuery.of(context).size.width < 450;
-                    return Text(
-                      isMobile
-                          ? 'Supported Formats'
-                          : 'Supported File Formats & Chemical Inputs',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 0.2,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                    );
-                  },
+              const Expanded(
+                child: Text(
+                  'Supported File Formats & Chemical Inputs',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.2,
+                  ),
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
               InkWell(

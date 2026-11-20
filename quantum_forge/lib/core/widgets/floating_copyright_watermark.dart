@@ -31,66 +31,72 @@ class FloatingCopyrightWatermark extends StatelessWidget {
     return Positioned(
       bottom: bottomOffset,
       right: isMobile ? 8 : 16,
-      left: isMobile ? null : 16,
+      left: isMobile ? 8 : 16,
       child: IgnorePointer(
         ignoring: true,
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final width = constraints.maxWidth;
+        child: Align(
+          alignment: Alignment.bottomRight,
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final width = constraints.maxWidth;
 
-            final String textContent;
-            if (width >= 620) {
-              textContent =
-                  '$appTitle © $ownerName · $ownerEmail · All Rights Reserved · DMCA Protected';
-            } else if (width >= 400) {
-              textContent = '$appTitle © $ownerName · $ownerEmail';
-            } else {
-              textContent = '© $ownerName · $ownerEmail';
-            }
+              final String textContent;
+              if (width >= 620 && !isMobile) {
+                textContent =
+                    '$appTitle © $ownerName · $ownerEmail · All Rights Reserved · DMCA Protected';
+              } else if (width >= 400 || !isMobile) {
+                textContent = '$appTitle © $ownerName · $ownerEmail';
+              } else {
+                textContent = '© $ownerName · $ownerEmail';
+              }
 
-            return Container(
-              padding: EdgeInsets.symmetric(
-                horizontal: isMobile ? 7 : 12,
-                vertical: isMobile ? 2.5 : 5,
-              ),
-              decoration: BoxDecoration(
-                color: Colors.black.withValues(alpha: isMobile ? 0.60 : 0.75),
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(
-                  color: const Color(0xFF00BFA5).withValues(alpha: 0.35),
-                  width: 0.8,
+              return Container(
+                padding: EdgeInsets.symmetric(
+                  horizontal: isMobile ? 7 : 12,
+                  vertical: isMobile ? 2.5 : 5,
                 ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.35),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: isMobile ? 0.60 : 0.75),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: const Color(0xFF00BFA5).withValues(alpha: 0.35),
+                    width: 0.8,
                   ),
-                ],
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(
-                    Icons.verified_user_rounded,
-                    size: 9.5,
-                    color: Color(0xFF00BFA5),
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    isMobile ? '© Ali Asghar · DMCA Protected' : textContent,
-                    style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.8),
-                      fontSize: isMobile ? 8.5 : 10.5,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: 0.2,
-                      decoration: TextDecoration.none,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.35),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
                     ),
-                  ),
-                ],
-              ),
-            );
-          },
+                  ],
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.verified_user_rounded,
+                      size: 9.5,
+                      color: Color(0xFF00BFA5),
+                    ),
+                    const SizedBox(width: 4),
+                    Flexible(
+                      child: Text(
+                        textContent,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.8),
+                          fontSize: isMobile ? 8.5 : 10.5,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 0.2,
+                          decoration: TextDecoration.none,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
         ),
       ),
     );
