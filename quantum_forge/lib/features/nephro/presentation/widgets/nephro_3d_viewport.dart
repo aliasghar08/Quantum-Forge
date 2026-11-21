@@ -3,11 +3,13 @@
 // ----------------------------------------------------------------------------
 // Mounts hardware-accelerated WebGL Three.js NephroLabThreeViewer on Flutter Web,
 // paired with custom mathematical vector CustomPainter fallback for tests & mobile.
+// Synchronized with 120-frame physiological renal cycle and multi-species particles.
 // ============================================================================
 
 import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import '../../../../core/theme/theme_provider.dart';
 import '../../../clinical_core/data/multi_organ_patient_state.dart';
 import 'nephro_three_engine.dart';
@@ -42,12 +44,14 @@ class Nephro3DViewport extends StatefulWidget {
   State<Nephro3DViewport> createState() => _Nephro3DViewportState();
 }
 
-class _Nephro3DViewportState extends State<Nephro3DViewport> {
+class _Nephro3DViewportState extends State<Nephro3DViewport> with SingleTickerProviderStateMixin {
   NephroLabThreeBridge? _threeBridge;
   double _rotationY = 0.35;
   double _rotationX = 0.25;
   double _zoom = 1.0;
   Offset? _lastPanPos;
+  Ticker? _ticker;
+  Duration _lastTick = Duration.zero;
 
   @override
   void initState() {
@@ -55,6 +59,27 @@ class _Nephro3DViewportState extends State<Nephro3DViewport> {
     if (kIsWeb) {
       NephroLabThreeBridge.ensureViewFactories();
     }
+
+    _ticker = createTicker((elapsed) {
+      if (_lastTick == Duration.zero) {
+        _lastTick = elapsed;
+        return;
+      }
+      final dt = (elapsed - _lastTick).inMicroseconds / 1000000.0;
+      _lastTick = elapsed;
+
+      final v = widget.vitals;
+      if (v != null && v.isPlaying) {
+        v.advanceFrame(dt);
+        _threeBridge?.setFrame(v.currentFrame, v.currentPhase.shortLabel);
+      }
+    })..start();
+  }
+
+  @override
+  void dispose() {
+    _ticker?.dispose();
+    super.dispose();
   }
 
   @override
@@ -65,6 +90,20 @@ class _Nephro3DViewportState extends State<Nephro3DViewport> {
     }
     if (widget.activeDrugTarget != oldWidget.activeDrugTarget && widget.activeDrugTarget != null) {
       _threeBridge?.highlightDrugTarget(widget.activeDrugTarget!);
+      _applyDrugVasomotorTone(widget.activeDrugTarget!);
+    }
+  }
+
+  void _applyDrugVasomotorTone(String drugId) {
+    if (drugId == 'dapagliflozin' || drugId == 'nsaid') {
+      widget.vitals?.setVasomotorTone(afferentTone: 0.78, efferentTone: 1.0);
+      _threeBridge?.setVasomotorTone(0.78, 1.0);
+    } else if (drugId == 'lisinopril' || drugId == 'acei') {
+      widget.vitals?.setVasomotorTone(afferentTone: 1.0, efferentTone: 1.28);
+      _threeBridge?.setVasomotorTone(1.0, 1.28);
+    } else {
+      widget.vitals?.setVasomotorTone(afferentTone: 1.0, efferentTone: 1.0);
+      _threeBridge?.setVasomotorTone(1.0, 1.0);
     }
   }
 
@@ -75,6 +114,11 @@ class _Nephro3DViewportState extends State<Nephro3DViewport> {
       _zoom = 1.0;
     });
     _threeBridge?.resetCamera();
+  }
+
+  void _injectGfrTracer() {
+    widget.vitals?.injectGfrTracer();
+    _threeBridge?.injectGfrTracer();
   }
 
   void _openFullScreenTheater() {
@@ -99,6 +143,7 @@ class _Nephro3DViewportState extends State<Nephro3DViewport> {
   @override
   Widget build(BuildContext context) {
     final palette = ThemeNotifier.paletteOf(context);
+    final vitals = widget.vitals;
 
     if (kIsWeb && _threeBridge == null) {
       _threeBridge = NephroLabThreeBridge.latestNephronBridge;
@@ -125,6 +170,11 @@ class _Nephro3DViewportState extends State<Nephro3DViewport> {
                       onPlatformViewCreated: (int id) {
                         _threeBridge = NephroLabThreeBridge.forNephronView(id);
                         _threeBridge?.setViewMode(widget.viewMode.name);
+                        if (vitals != null) {
+                          _threeBridge?.setFrame(vitals.currentFrame, vitals.currentPhase.shortLabel);
+                          _threeBridge?.setPlaybackSpeed(vitals.playbackSpeed);
+                          _threeBridge?.setLayerMode(vitals.layerMode.id);
+                        }
                       },
                     )
                   : GestureDetector(
@@ -185,6 +235,51 @@ class _Nephro3DViewportState extends State<Nephro3DViewport> {
                       ],
                     ),
                   ),
+                  const SizedBox(width: 8),
+
+                  // Tracer Bolus Injection Button
+                  InkWell(
+                    key: const Key('nephro_inject_tracer_mini'),
+                    onTap: _injectGfrTracer,
+                    borderRadius: BorderRadius.circular(6),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: vitals?.isTracerActive ?? false
+                            ? const Color(0xFF00FF66).withValues(alpha: 0.25)
+                            : Colors.black.withValues(alpha: 0.5),
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(
+                          color: vitals?.isTracerActive ?? false
+                              ? const Color(0xFF00FF66)
+                              : const Color(0xFF00FF66).withValues(alpha: 0.4),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.science_rounded,
+                            size: 11,
+                            color: vitals?.isTracerActive ?? false
+                                ? const Color(0xFF00FF66)
+                                : const Color(0xFF00FF66).withValues(alpha: 0.8),
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            vitals?.isTracerActive ?? false ? 'TRACER ACTIVE' : 'INJECT TRACER',
+                            style: const TextStyle(
+                              color: Color(0xFF00FF66),
+                              fontSize: 8.5,
+                              fontWeight: FontWeight.bold,
+                              fontFamily: 'monospace',
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
                   const Spacer(),
                   IconButton(
                     key: const Key('nephro_reset_camera'),
@@ -203,50 +298,76 @@ class _Nephro3DViewportState extends State<Nephro3DViewport> {
               ),
             ),
 
-            // ── View Mode Filter Chips ──────────────────────────────────────
+            // ── View Mode Filter Chips & Phase Badge ────────────────────────
             Positioned(
               bottom: 10,
               left: 12,
               right: 12,
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: NephronViewMode.values.map((mode) {
-                    final isSel = mode == widget.viewMode;
-                    return Padding(
-                      padding: const EdgeInsets.only(right: 6),
-                      child: InkWell(
-                        key: Key('nephron_mode_${mode.name}'),
-                        onTap: () {
-                          widget.onViewModeChanged?.call(mode);
-                          _threeBridge?.setViewMode(mode.name);
-                        },
-                        borderRadius: BorderRadius.circular(6),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: isSel
-                                ? const Color(0xFF00E5FF).withValues(alpha: 0.25)
-                                : const Color(0xFF0A1124).withValues(alpha: 0.8),
-                            borderRadius: BorderRadius.circular(6),
-                            border: Border.all(
-                              color: isSel ? const Color(0xFF00E5FF) : const Color(0xFF1E293B),
-                              width: isSel ? 1.2 : 0.8,
-                            ),
-                          ),
-                          child: Text(
-                            mode.label,
-                            style: TextStyle(
-                              color: isSel ? const Color(0xFF00E5FF) : const Color(0xFF94A3B8),
-                              fontSize: 9.5,
-                              fontWeight: isSel ? FontWeight.bold : FontWeight.w500,
-                            ),
-                          ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (vitals != null) ...[
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2.5),
+                      decoration: BoxDecoration(
+                        color: vitals.currentPhase.accentColor.withValues(alpha: 0.18),
+                        borderRadius: BorderRadius.circular(4),
+                        border: Border.all(color: vitals.currentPhase.accentColor.withValues(alpha: 0.6)),
+                      ),
+                      child: Text(
+                        'Frame ${vitals.currentFrame}/120 • ${vitals.currentPhase.shortLabel}',
+                        style: TextStyle(
+                          color: vitals.currentPhase.accentColor,
+                          fontSize: 9.0,
+                          fontWeight: FontWeight.bold,
+                          fontFamily: 'monospace',
                         ),
                       ),
-                    );
-                  }).toList(),
-                ),
+                    ),
+                    const SizedBox(height: 6),
+                  ],
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: NephronViewMode.values.map((mode) {
+                        final isSel = mode == widget.viewMode;
+                        return Padding(
+                          padding: const EdgeInsets.only(right: 6),
+                          child: InkWell(
+                            key: Key('nephron_mode_${mode.name}'),
+                            onTap: () {
+                              widget.onViewModeChanged?.call(mode);
+                              _threeBridge?.setViewMode(mode.name);
+                            },
+                            borderRadius: BorderRadius.circular(6),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: isSel
+                                    ? const Color(0xFF00E5FF).withValues(alpha: 0.25)
+                                    : const Color(0xFF0A1124).withValues(alpha: 0.8),
+                                borderRadius: BorderRadius.circular(6),
+                                border: Border.all(
+                                  color: isSel ? const Color(0xFF00E5FF) : const Color(0xFF1E293B),
+                                  width: isSel ? 1.2 : 0.8,
+                                ),
+                              ),
+                              child: Text(
+                                mode.label,
+                                style: TextStyle(
+                                  color: isSel ? const Color(0xFF00E5FF) : const Color(0xFF94A3B8),
+                                  fontSize: 9.5,
+                                  fontWeight: isSel ? FontWeight.bold : FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                ],
               ),
             ),
           ],

@@ -7,13 +7,106 @@
 //    - Uncorrected & Albumin-Corrected Anion Gap (AGcorr = AG + 2.5 * (4 - Alb))
 //    - Winter's Formula for respiratory compensation (Expected PaCO2 = 1.5 * HCO3 + 8 ± 2)
 //    - Delta-Delta (Δ/Δ) Ratio: (AGcorr - 12) / (24 - HCO3)
-// 3. 8 Classic Nephrology ICU Situations: Normal, Cardiorenal AKI, DKA, Uremic AKI,
+// 3. 120-Frame Physiological Renal Cycle & Multi-Species Particle Trajectories:
+//    - Phase 1 (0–24): Systolic Pulse Arrival & Afferent Myogenic Stretch
+//    - Phase 2 (25–54): Glomerular Ultrafiltration Burst & Podocyte Slit Flux
+//    - Phase 3 (55–79): Proximal & Loop Countercurrent Peristalsis
+//    - Phase 4 (80–99): Macula Densa NaCl Sensing & Tubuloglomerular Feedback (TGF)
+//    - Phase 5 (100–119): Collecting Duct Fine-Tuning & Ureteral Outflow
+// 4. 8 Classic Nephrology ICU Situations: Normal, Cardiorenal AKI, DKA, Uremic AKI,
 //    Salicylate Toxicity, Diarrhea NAGMA, COPD Retention, Contraction Alkalosis.
 //
 // Strictly Educational In-Silico Simulation — SaMD 7-Pillar Legal Shield.
 // ============================================================================
 
 import 'package:flutter/material.dart';
+
+/// 5-Phase 120-Frame Renal Physiological Cycle
+enum RenalCyclePhase {
+  afferentMyogenicStretch(
+    startFrame: 0,
+    endFrame: 24,
+    title: 'Phase 1: Systolic Pulse Arrival & Afferent Stretch',
+    shortLabel: 'Afferent Stretch',
+    accentColor: Color(0xFFEF4444),
+    description: 'Renal arterial pulse wave expands afferent arteriole; myogenic vascular response rapidly increases vascular resistance to buffer glomerular capillary pressure.',
+  ),
+  glomerularUltrafiltrationBurst(
+    startFrame: 25,
+    endFrame: 54,
+    title: 'Phase 2: Glomerular Ultrafiltration Burst',
+    shortLabel: 'Ultrafiltration Burst',
+    accentColor: Color(0xFF00E5FF),
+    description: 'Peak capillary hydrostatic pressure (P_gc ~48-52 mmHg) drives net ultrafiltration across fenestrated endothelium, GBM, and podocyte slit diaphragms into Bowman space.',
+  ),
+  countercurrentPeristalsis(
+    startFrame: 55,
+    endFrame: 79,
+    title: 'Phase 3: Proximal & Loop Countercurrent Peristalsis',
+    shortLabel: 'Loop Peristalsis',
+    accentColor: Color(0xFFFFB300),
+    description: 'Bulk reabsorption of 65% Na+/water in PCT (SGLT2/NHE3); medullary countercurrent multiplier establishes 300->1200 mOsm/kg hyperosmolar interstitial gradient.',
+  ),
+  maculaDensaTubuloglomerularFeedback(
+    startFrame: 80,
+    endFrame: 99,
+    title: 'Phase 4: Macula Densa NaCl Sensing & TGF',
+    shortLabel: 'Macula Densa / TGF',
+    accentColor: Color(0xFFBA68C8),
+    description: 'Early DCT macula densa cells sense luminal NaCl delivery via NKCC2; elevated salt triggers paracrine adenosine release, constricting afferent arteriole to protect GFR.',
+  ),
+  collectingDuctFineTuning(
+    startFrame: 100,
+    endFrame: 119,
+    title: 'Phase 5: Collecting Duct Fine-Tuning & Ureteral Outflow',
+    shortLabel: 'CD Fine-Tuning',
+    accentColor: Color(0xFF00E676),
+    description: 'Aldosterone/ENaC modulates distal Na+/K+ exchange; ADH mobilizes AQP2 aquaporins to concentrate urine; final filtrate propelled by ureteral peristalsis.',
+  );
+
+  final int startFrame;
+  final int endFrame;
+  final String title;
+  final String shortLabel;
+  final Color accentColor;
+  final String description;
+
+  const RenalCyclePhase({
+    required this.startFrame,
+    required this.endFrame,
+    required this.title,
+    required this.shortLabel,
+    required this.accentColor,
+    required this.description,
+  });
+
+  static RenalCyclePhase fromFrame(int frame) {
+    final clamped = frame.clamp(0, 119);
+    for (final phase in RenalCyclePhase.values) {
+      if (clamped >= phase.startFrame && clamped <= phase.endFrame) {
+        return phase;
+      }
+    }
+    return RenalCyclePhase.afferentMyogenicStretch;
+  }
+}
+
+/// 7 Synchronized Animation Layer Modes
+enum NephroAnimationLayerMode {
+  allInOne('all_in_one', 'All In One', 'Full micro-vascular, tubular & transporter architecture'),
+  glomerularFiltration('filtration', 'Glomerular Filtration', 'Filtration barrier, podocyte slit pores, and ultrafiltrate stream'),
+  tubularTransport('tubular', 'Tubular Transport', 'Active ion counters, solute reabsorption, and brush border'),
+  hemodynamicsVasaRecta('vasculature', 'Hemodynamics & Vasa Recta', 'Capillary countercurrent vascular loops and RBC transition'),
+  jgaRaasSignaling('jga_raas', 'JGA & RAAS Signaling', 'Macula densa NaCl sensor, renin granule exocytosis, and TGF feedback'),
+  podocyteUltrastructure('podocyte', 'Podocyte Ultrastructure', 'Slit diaphragm pedicel interdigitations and nephrin integrity'),
+  drugPathologyAction('drug_action', 'Drug / Pathology Action', 'Pharmacological binding gates and lesion visualizations');
+
+  final String id;
+  final String label;
+  final String description;
+
+  const NephroAnimationLayerMode(this.id, this.label, this.description);
+}
 
 /// Nephrology and Acid-Base Clinical Situation Presets.
 enum NephroClinicalSituation {
@@ -242,6 +335,18 @@ class NephroMasterVitalsState extends ChangeNotifier {
   double _chlorideMeqL = 102.0;
   double _albuminGDl = 4.0;
 
+  // 120-Frame Physiological Kinematics & Multi-Species Particle Trajectories
+  int _currentFrame = 0;
+  bool _isPlaying = true;
+  double _playbackSpeed = 1.0;
+  double _heartRate = 72.0;
+  bool _isTracerActive = false;
+  double _tracerProgress = 0.0;
+  NephroAnimationLayerMode _layerMode = NephroAnimationLayerMode.allInOne;
+  double _afferentTone = 1.0; // 1.0 normal, <1.0 constricted (SGLT2i/NSAIDs), >1.0 dilated
+  double _efferentTone = 1.0; // 1.0 normal, >1.0 dilated (ACEi/ARBs)
+  double _accumulatedSeconds = 0.0;
+
   NephroClinicalSituation get activeSituation => _activeSituation;
   NephroClinicalSituation get currentSituation => _activeSituation;
   bool get isAutoPilot => _isAutoPilot;
@@ -445,5 +550,96 @@ class NephroMasterVitalsState extends ChangeNotifier {
 
   void resetToAutoPilot() {
     applySituation(_activeSituation);
+  }
+
+  // ── 120-Frame Physiological Kinematics & Particle Trajectory Controls ────────
+
+  int get currentFrame => _currentFrame;
+  bool get isPlaying => _isPlaying;
+  double get playbackSpeed => _playbackSpeed;
+  double get heartRate => _heartRate;
+  bool get isTracerActive => _isTracerActive;
+  double get tracerProgress => _tracerProgress;
+  NephroAnimationLayerMode get layerMode => _layerMode;
+  double get afferentTone => _afferentTone;
+  double get efferentTone => _efferentTone;
+  RenalCyclePhase get currentPhase => RenalCyclePhase.fromFrame(_currentFrame);
+
+  void setFrame(int frame) {
+    _currentFrame = frame.clamp(0, 119);
+    notifyListeners();
+  }
+
+  void togglePlayPause() {
+    _isPlaying = !_isPlaying;
+    notifyListeners();
+  }
+
+  void setIsPlaying(bool playing) {
+    if (_isPlaying != playing) {
+      _isPlaying = playing;
+      notifyListeners();
+    }
+  }
+
+  void setPlaybackSpeed(double speed) {
+    _playbackSpeed = speed.clamp(0.05, 3.0);
+    notifyListeners();
+  }
+
+  void setHeartRate(double bpm) {
+    _heartRate = bpm.clamp(30.0, 220.0);
+    notifyListeners();
+  }
+
+  void injectGfrTracer() {
+    _isTracerActive = true;
+    _tracerProgress = 0.0;
+    notifyListeners();
+  }
+
+  void setAnimationLayerMode(NephroAnimationLayerMode mode) {
+    _layerMode = mode;
+    notifyListeners();
+  }
+
+  void setVasomotorTone({double? afferentTone, double? efferentTone}) {
+    bool changed = false;
+    if (afferentTone != null && afferentTone != _afferentTone) {
+      _afferentTone = afferentTone.clamp(0.5, 1.8);
+      changed = true;
+    }
+    if (efferentTone != null && efferentTone != _efferentTone) {
+      _efferentTone = efferentTone.clamp(0.5, 1.8);
+      changed = true;
+    }
+    if (changed) notifyListeners();
+  }
+
+  /// Advances physiological cycle by [dt] seconds.
+  /// 1 full 120-frame cycle corresponds to 1 cardiac stroke (60.0 / heartRate seconds).
+  void advanceFrame(double dt) {
+    if (!_isPlaying) return;
+
+    final cycleDurationSec = 60.0 / _heartRate;
+    final framesPerSecond = (120.0 / cycleDurationSec) * _playbackSpeed;
+
+    _accumulatedSeconds += dt;
+    final int framesToAdvance = (_accumulatedSeconds * framesPerSecond).floor();
+    if (framesToAdvance > 0) {
+      _currentFrame = (_currentFrame + framesToAdvance) % 120;
+      _accumulatedSeconds -= framesToAdvance / framesPerSecond;
+
+      if (_isTracerActive) {
+        // FITC-inulin bolus transit takes ~4 complete cycles to clear
+        _tracerProgress += (dt / (cycleDurationSec * 4.0)) * _playbackSpeed;
+        if (_tracerProgress >= 1.0) {
+          _tracerProgress = 1.0;
+          _isTracerActive = false;
+        }
+      }
+
+      notifyListeners();
+    }
   }
 }

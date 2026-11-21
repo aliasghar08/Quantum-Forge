@@ -180,4 +180,89 @@ void main() {
       expect(find.text('5-CHANNEL RENAL-ICU & CRRT CRT OSCILLOSCOPE (500 Hz)'), findsOneWidget);
     });
   });
+
+  group('120-Frame Physiological Cycle & Particle Kinematics Tests', () {
+    test('RenalCyclePhase maps 120 frames across 5 clinical phases accurately', () {
+      expect(RenalCyclePhase.fromFrame(0), RenalCyclePhase.afferentMyogenicStretch);
+      expect(RenalCyclePhase.fromFrame(24), RenalCyclePhase.afferentMyogenicStretch);
+      expect(RenalCyclePhase.fromFrame(25), RenalCyclePhase.glomerularUltrafiltrationBurst);
+      expect(RenalCyclePhase.fromFrame(54), RenalCyclePhase.glomerularUltrafiltrationBurst);
+      expect(RenalCyclePhase.fromFrame(55), RenalCyclePhase.countercurrentPeristalsis);
+      expect(RenalCyclePhase.fromFrame(79), RenalCyclePhase.countercurrentPeristalsis);
+      expect(RenalCyclePhase.fromFrame(80), RenalCyclePhase.maculaDensaTubuloglomerularFeedback);
+      expect(RenalCyclePhase.fromFrame(99), RenalCyclePhase.maculaDensaTubuloglomerularFeedback);
+      expect(RenalCyclePhase.fromFrame(100), RenalCyclePhase.collectingDuctFineTuning);
+      expect(RenalCyclePhase.fromFrame(119), RenalCyclePhase.collectingDuctFineTuning);
+    });
+
+    test('NephroMasterVitalsState advances 120-frame cycle and manages tracer bolus', () {
+      final v = NephroMasterVitalsState();
+      expect(v.currentFrame, 0);
+      expect(v.isPlaying, isTrue);
+
+      // Advance by 0.5s at 72 bpm (cycle = 60/72 = 0.833s -> ~72 frames)
+      v.advanceFrame(0.5);
+      expect(v.currentFrame, greaterThan(0));
+
+      // Inject FITC-inulin tracer
+      expect(v.isTracerActive, isFalse);
+      v.injectGfrTracer();
+      expect(v.isTracerActive, isTrue);
+      expect(v.tracerProgress, 0.0);
+
+      // Advance tracer
+      v.advanceFrame(0.5);
+      expect(v.tracerProgress, greaterThan(0.0));
+
+      // Layer modes
+      expect(v.layerMode, NephroAnimationLayerMode.allInOne);
+      v.setAnimationLayerMode(NephroAnimationLayerMode.glomerularFiltration);
+      expect(v.layerMode, NephroAnimationLayerMode.glomerularFiltration);
+
+      // Vasomotor tones
+      v.setVasomotorTone(afferentTone: 0.78, efferentTone: 1.28);
+      expect(v.afferentTone, 0.78);
+      expect(v.efferentTone, 1.28);
+    });
+
+    testWidgets('NephroFullScreenNephronTheater renders 120-frame playback bar and tracer trigger', (tester) async {
+      tester.view.physicalSize = const Size(1400, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+
+      final vitals = NephroMasterVitalsState();
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: NephroFullScreenNephronTheater(vitals: vitals),
+          ),
+        ),
+      );
+      await tester.pump(const Duration(milliseconds: 100));
+
+      // Playback bar components
+      expect(find.byKey(const Key('nephro_play_pause_button')), findsOneWidget);
+      expect(find.textContaining('Frame '), findsWidgets);
+      expect(find.byKey(const Key('nephro_inject_tracer_button')), findsOneWidget);
+
+      // Speed chips
+      expect(find.byKey(const Key('nephro_speed_1.0x')), findsOneWidget);
+      expect(find.byKey(const Key('nephro_speed_0.5x')), findsOneWidget);
+
+      // Layer mode chips
+      expect(find.byKey(const Key('nephro_layer_all_in_one')), findsOneWidget);
+      expect(find.byKey(const Key('nephro_layer_filtration')), findsOneWidget);
+
+      // Tap Inject Tracer button
+      await tester.tap(find.byKey(const Key('nephro_inject_tracer_button')));
+      await tester.pump(const Duration(milliseconds: 50));
+      expect(vitals.isTracerActive, isTrue);
+
+      // Tap Play/Pause toggle
+      await tester.tap(find.byKey(const Key('nephro_play_pause_button')));
+      await tester.pump(const Duration(milliseconds: 50));
+      expect(vitals.isPlaying, isFalse);
+    });
+  });
 }
