@@ -1,9 +1,18 @@
 """Unit tests for the standalone CardioNephroGNN pipeline."""
 
+import os
+import sys
 import unittest
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
 import torch
-from models.cardio_nephro_gnn.network import CardioNephroGNN, MolecularFeaturizer
-from models.cardio_nephro_gnn.predict import predict_compound
+try:
+    from ai_models.cardiovascular_electrophysiology.cardiorenal_crosstalk_interaction_gnn.cardiorenal_interaction_gnn_network import CardioNephroGNN, MolecularFeaturizer
+    from ai_models.cardiovascular_electrophysiology.cardiorenal_crosstalk_interaction_gnn.cardiorenal_toxicity_gnn_predictor import predict_compound
+except ImportError:
+    from models.cardio_nephro_gnn.network import CardioNephroGNN, MolecularFeaturizer
+    from models.cardio_nephro_gnn.predict import predict_compound
 
 
 class TestCardioNephroGNN(unittest.TestCase):

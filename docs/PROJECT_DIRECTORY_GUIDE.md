@@ -15,7 +15,8 @@ Quantum-Forge/
 ├── neurolab-backend/            # NeuroLab 3D Whole-Nervous-System Backend
 ├── nephrolab-backend/           # NephroLab 3D Renal Acid-Base & Nephron Backend
 ├── seeder-backend/              # 24/7 Cloud Run Streamer for 2.85M+ Firestore Library
-├── ml_models/                   # Master Machine Learning Model Directory (21 Checkpoints)
+├── ai_models/                   # Master AI & Neural Network Directory with Self-Explanatory Names
+├── ml_models/                   # Mirror/backward-compatibility directory for existing pipelines
 ├── scripts/                     # Automation, Seeding, Harvesting & Auditing Suites
 ├── data/                        # Research Datasets, Trajectories, Ledgers & Replay Buffers
 ├── configs/                     # Environment Configurations (Production, Dev, Testing)
@@ -43,20 +44,29 @@ Quantum-Forge/
 
 ---
 
-## 2. Machine Learning Checkpoints (`ml_models/`)
+## 2. Centralized AI Models Directory (`ai_models/`)
 
-All machine learning models across Quantum Forge are cataloged in `ml_models/` and documented in detail within [docs/ML_MODELS_INVENTORY.md](file:///Users/aliasghar08/development/Quantum%20Forge%20Repo/Quantum-Forge/docs/ML_MODELS_INVENTORY.md):
+All neural networks and machine learning models across Quantum Forge are organized into dedicated, self-explanatory directories with human-readable file names:
 
-| Subdirectory | Model Family & Architecture | What It Does in Plain English |
+| Subdirectory & Model | Self-Explanatory File Names | What It Does in Plain English |
 | --- | --- | --- |
-| `ml_models/tx1_painn_ensemble/` | `TX1PaiNN` (5-member deep ensemble) | Predicts quantum mechanical potential energies ($E$), atomic forces ($F$), and epistemic uncertainty ($\sigma$). Trained on Transition1x. |
-| `ml_models/pharma_bionet/` | `PharmaBioNet` Multi-Task GNN | Evaluates molecular graphs to predict Mechanism of Action (MoA), target species, and therapeutic classification. |
-| `ml_models/continual_learning/` | Continual Learning Checkpoints | Checkpoints produced automatically by the 24/7 background MPS trainer as new papers are ingested. |
-| `ml_models/cardio_electrophysiology/` | `CardioElectrophysNet`, `CardioNephroGNN`, `CardioPINN` | Predicts hERG potassium channel blockade, CiPA cardiac safety, QT prolongation, and arterial hemodynamics. |
-| `ml_models/neurology_ai/` | `NeuroElectrophysGNN`, `NeuroBBBPenetrationGNN`, `NeuroPlasticityPINN` | Simulates Hodgkin-Huxley ionic channel conductances, Blood-Brain Barrier (BBB) penetration, and synaptic plasticity. |
-| `ml_models/nephrology_ai/` | `NephroTransportGNN`, `NephroAcidBasePINN`, `RenalClearanceGNN` | Solves Stewart-Hamilton acid-base balance, proximal/distal tubule solute fluxes, and glomerular filtration rate (GFR). |
-| `ml_models/external_mlips/` | MACE, CHGNet, ANI-2x, GFN2-xTB | External foundation potentials wrapped for comparative benchmarking against TX1. |
-| `ml_models/client_algorithms/` | Client-Side Classical Solvers | Numerical algorithms running directly in the browser (4th-order Runge-Kutta, Nelder-Mead simplex, Pade approximants). |
+| **`ai_models/cardiovascular_electrophysiology/cardiac_action_potential_model/`** | `cardiac_action_potential_network.py`<br>`cardiac_action_potential_predictor.py`<br>`train_action_potential_on_gpu.py` | Predicts cardiac action potential duration ($APD_{90}$) and hERG potassium channel blockade risk. |
+| **`ai_models/cardiovascular_electrophysiology/cardiac_3d_myocardial_strain_fno/`** | `myocardial_strain_fourier_neural_operator_network.py`<br>`myocardial_strain_fno_predictor.py`<br>`train_myocardial_strain_fno_on_gpu.py` | 3D Fourier Neural Operator (FNO) predicting myocardial strain tensor fields during the cardiac cycle. |
+| **`ai_models/cardiovascular_electrophysiology/cardiorenal_crosstalk_interaction_gnn/`** | `cardiorenal_interaction_gnn_network.py`<br>`cardiorenal_toxicity_gnn_predictor.py`<br>`train_cardiorenal_gnn_on_gpu.py` | Molecular graph neural network predicting multi-organ cardiorenal crosstalk and combined toxicity. |
+| **`ai_models/cardiovascular_electrophysiology/cardiac_physics_informed_neural_net/`** | `aliev_panfilov_pinn_network.py`<br>`cardiac_action_potential_pinn_predictor.py`<br>`train_cardiac_pinn_on_gpu.py` | Physics-informed neural network enforcing Aliev-Panfilov ventricular excitation differential equations. |
+| **`ai_models/cardiovascular_electrophysiology/cardiac_3d_rotor_spiral_wave_model/`** | `ventricular_rotor_spiral_wave_network.py`<br>`rotor_spiral_wave_predictor.py`<br>`train_rotor_model_on_gpu.py` | Neural network predicting spiral wave reentry rotor cores and phase singularities during arrhythmia. |
+| **`ai_models/nephrology_renal_ai/dialysis_urea_clearance_kinetics_net/`** | `dialysis_solute_clearance_kinetics_network.py`<br>`dialysis_clearance_predictor.py`<br>`train_dialysis_model_on_gpu.py` | Multi-compartment kinetic model predicting urea clearance ($Kt/V$), rebound, and solute flux during dialysis. |
+| **`ai_models/nephrology_renal_ai/glomerular_filtration_physics_informed_net/`** | `glomerular_filtration_pinn_network.py`<br>`glomerular_filtration_predictor.py`<br>`train_glomerular_pinn_on_gpu.py` | Physics-informed neural network modeling Starling forces across glomerular slit diaphragms. |
+| **`ai_models/nephrology_renal_ai/drug_induced_nephrotoxicity_gnn/`** | `renal_tubular_toxicity_gnn_network.py`<br>`nephrotoxicity_predictor.py`<br>`train_nephrotoxicity_gnn_on_gpu.py` | Molecular graph neural network predicting drug-induced acute tubular necrosis and crystalluria. |
+| **`ai_models/neurology_brain_ai/blood_brain_barrier_permeability_gnn/`** | `blood_brain_barrier_gnn_network.py`<br>`blood_brain_barrier_predictor.py`<br>`train_bbb_gnn_on_gpu.py` | Molecular graph neural network predicting central nervous system (CNS) blood-brain barrier penetration. |
+| **`ai_models/neurology_brain_ai/cerebral_perfusion_fourier_neural_operator/`** | `cerebral_hemodynamics_fno_network.py`<br>`cerebral_perfusion_predictor.py`<br>`train_cerebral_perfusion_fno_on_gpu.py` | 3D Fourier Neural Operator simulating intracranial pressure, cerebral blood flow, and stroke penumbra. |
+| **`ai_models/neurology_brain_ai/cortical_spiking_neural_network/`** | `izhikevich_cortical_spiking_network.py`<br>`cortical_spike_train_predictor.py`<br>`train_spiking_network_on_gpu.py` | Izhikevich cortical spiking model simulating physiological neural spike trains and phase-locking. |
+| **`ai_models/neurology_brain_ai/synaptic_transmission_axon_propagation_net/`** | `synaptic_cleft_axon_conduction_network.py`<br>`synaptic_axon_transmission_predictor.py`<br>`train_synaptic_axon_net_on_gpu.py` | Spatio-temporal model simulating vesicle release across the synaptic cleft and myelinated axon conduction. |
+| **`ai_models/neurology_brain_ai/whole_nervous_system_connectome_model/`** | `whole_connectome_graph_network.py`<br>`connectome_tractography_predictor.py`<br>`train_connectome_model_on_gpu.py` | Graph neural network modeling structural and functional connectivity across 84 brain parcels. |
+| **`ai_models/quantum_chemistry_potentials/equivariant_painn_transition_state_ensemble/`** | `painn_rotation_equivariant_potential_network.py`<br>`train_painn_on_apple_silicon_gpu.py` | 5-member rotation-equivariant PaiNN potential ensemble predicting transition state barriers and atomic forces. |
+| **`ai_models/pharmacology_intelligence_bionet/`** | `pharmacology_intelligence_bionet_network.py`<br>`train_pharmacology_intelligence_model.py` | Multi-task neural network predicting Mechanism of Action (MoA), target species, and bioavailability. |
+| **`ai_models/continual_learning_replay_engine/`** | `checkpoints/`<br>`pipelines/` | Replay buffers and continuous fine-tuning checkpoints from 24/7 background literature harvesting. |
+| **`ai_models/client_on_device_algorithms/`** | `neural_reaction_trajectory_compressor.dart` | Browser-native Dart algorithms for neural trajectory compression and multi-head attention. |
 
 ---
 
