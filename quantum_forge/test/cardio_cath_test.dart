@@ -1543,7 +1543,16 @@ void main() {
       await tester.tap(speed01);
       await tester.pump(const Duration(milliseconds: 100));
 
-      // 8. Test Exit Theater Button
+      // 8. Test Visual Render Mode Switcher in Top HUD & Bottom Dock
+      expect(find.byKey(const Key('theater_render_mode_photorealistic')), findsOneWidget);
+      expect(find.byKey(const Key('theater_render_mode_translucent')), findsOneWidget);
+      expect(find.byKey(const Key('theater_render_mode_schematic')), findsOneWidget);
+      await tester.tap(find.byKey(const Key('theater_render_mode_translucent')));
+      await tester.pump(const Duration(milliseconds: 100));
+      await tester.tap(find.byKey(const Key('dock_render_mode_photorealistic')));
+      await tester.pump(const Duration(milliseconds: 100));
+
+      // 9. Test Exit Theater Button
       final exitBtn = find.byKey(const Key('theater_close_button'));
       expect(exitBtn, findsOneWidget);
       await tester.tap(exitBtn);
@@ -1553,6 +1562,21 @@ void main() {
       // Verify back to Cath lab screen
       expect(find.byType(CardiacFullScreenHeartTheater), findsNothing);
       expect(find.byType(Cardiac3DAnatomicalHeartViewport), findsOneWidget);
+
+      // Verify visual render mode switcher in 3D Anatomical Heart Viewport
+      final vpTissue = find.byKey(const Key('cardiac_viewport_render_mode_photorealistic'));
+      final vpGlass = find.byKey(const Key('cardiac_viewport_render_mode_translucent'));
+      final vpSchematic = find.byKey(const Key('cardiac_viewport_render_mode_schematic'));
+      expect(vpTissue, findsOneWidget);
+      expect(vpGlass, findsOneWidget);
+      expect(vpSchematic, findsOneWidget);
+
+      await tester.tap(vpGlass);
+      await tester.pump(const Duration(milliseconds: 100));
+      await tester.tap(vpSchematic);
+      await tester.pump(const Duration(milliseconds: 100));
+      await tester.tap(vpTissue);
+      await tester.pump(const Duration(milliseconds: 100));
     });
 
     testWidgets(

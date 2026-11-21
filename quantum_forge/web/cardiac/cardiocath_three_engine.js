@@ -120,6 +120,13 @@
       return this.heartViewers.get(id) || this.fluoroViewers.get(id);
     }
 
+    setVisualRenderMode(id, mode) {
+      const viewer = this.getViewer(id);
+      if (viewer && viewer.setVisualRenderMode) {
+        viewer.setVisualRenderMode(mode);
+      }
+    }
+
     disposeViewer(id) {
       const h = this.heartViewers.get(id);
       if (h) {
@@ -136,6 +143,163 @@
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
+  // Procedural PBR Maps Generator (Helical Myofibers, Adipose Lobules, Normal Maps)
+  // ─────────────────────────────────────────────────────────────────────────────
+  function createProceduralCardiacPBRMaps() {
+    if (typeof document === 'undefined' || !document.createElement) return null;
+
+    try {
+      const size = 1024;
+
+      // 1. Helical Myofiber Albedo Map
+      const albedoCanvas = document.createElement('canvas');
+      albedoCanvas.width = size;
+      albedoCanvas.height = size;
+      const ctxA = albedoCanvas.getContext('2d');
+      if (!ctxA) return null;
+
+      // Base rich crimson-mahogany background (#7A181E to #9E242B)
+      const grad = ctxA.createLinearGradient(0, 0, size, size);
+      grad.addColorStop(0.0, '#7a181e');
+      grad.addColorStop(0.5, '#9e242b');
+      grad.addColorStop(1.0, '#821920');
+      ctxA.fillStyle = grad;
+      ctxA.fillRect(0, 0, size, size);
+
+      // Anisotropic helical myofiber striations (helical spiral lines across myocardial wall)
+      ctxA.lineWidth = 1.6;
+      for (let y = -size; y < size * 2; y += 4) {
+        const alpha = 0.16 + (Math.sin(y * 0.05) * 0.08);
+        ctxA.strokeStyle = (y % 8 === 0) ? `rgba(185, 42, 52, ${alpha})` : `rgba(88, 14, 20, ${alpha})`;
+        ctxA.beginPath();
+        // Swirling curve imitating helical epicardial spiral fibers
+        ctxA.moveTo(0, y);
+        ctxA.bezierCurveTo(size * 0.35, y + 80, size * 0.65, y - 60, size, y + 40);
+        ctxA.stroke();
+      }
+
+      // Micro-capillary branching network (fine arterial and venous plexus)
+      ctxA.lineWidth = 0.85;
+      for (let i = 0; i < 45; i++) {
+        let px = (Math.sin(i * 12.3) * 0.5 + 0.5) * size;
+        let py = (Math.cos(i * 7.7) * 0.5 + 0.5) * size;
+        ctxA.strokeStyle = (i % 3 === 0) ? 'rgba(255, 60, 60, 0.28)' : 'rgba(125, 22, 42, 0.22)';
+        ctxA.beginPath();
+        ctxA.moveTo(px, py);
+        for (let step = 0; step < 5; step++) {
+          px += (Math.sin(step * 2.1 + i) * 35);
+          py += (Math.cos(step * 1.8 + i) * 35);
+          ctxA.lineTo(px, py);
+        }
+        ctxA.stroke();
+      }
+
+      // Organic serous cellular micro-texture noise
+      const imgData = ctxA.getImageData(0, 0, size, size);
+      const data = imgData.data;
+      for (let p = 0; p < data.length; p += 4) {
+        const n = (Math.random() - 0.5) * 14;
+        data[p] = Math.min(255, Math.max(0, data[p] + n));
+        data[p + 1] = Math.min(255, Math.max(0, data[p + 1] + n * 0.5));
+        data[p + 2] = Math.min(255, Math.max(0, data[p + 2] + n * 0.5));
+      }
+      ctxA.putImageData(imgData, 0, 0);
+
+      // 2. Helical Myofiber Normal Map (Tangent space derived from striation ridges)
+      const normCanvas = document.createElement('canvas');
+      normCanvas.width = size;
+      normCanvas.height = size;
+      const ctxN = normCanvas.getContext('2d');
+      const normImgData = ctxN.createImageData(size, size);
+      const nData = normImgData.data;
+
+      for (let y = 0; y < size; y++) {
+        for (let x = 0; x < size; x++) {
+          const idx = (y * size + x) * 4;
+          const fiberPhase = (x * 0.7 + y * 0.4) * 0.12;
+          const dx = Math.sin(fiberPhase) * 26;
+          const dy = Math.cos(fiberPhase) * 16;
+          nData[idx] = Math.min(255, Math.max(0, 128 + dx));     // Red = X normal
+          nData[idx + 1] = Math.min(255, Math.max(0, 128 + dy)); // Green = Y normal
+          nData[idx + 2] = 238;                                 // Blue = Z normal (perpendicular)
+          nData[idx + 3] = 255;
+        }
+      }
+      ctxN.putImageData(normImgData, 0, 0);
+
+      // 3. Myofiber Roughness Map (Specular wet serous epicardium 0.12 - 0.26)
+      const roughCanvas = document.createElement('canvas');
+      roughCanvas.width = size;
+      roughCanvas.height = size;
+      const ctxR = roughCanvas.getContext('2d');
+      const roughImgData = ctxR.createImageData(size, size);
+      const rData = roughImgData.data;
+      for (let i = 0; i < rData.length; i += 4) {
+        const val = 36 + Math.floor(Math.random() * 28);
+        rData[i] = val;
+        rData[i + 1] = val;
+        rData[i + 2] = val;
+        rData[i + 3] = 255;
+      }
+      ctxR.putImageData(roughImgData, 0, 0);
+
+      // 4. Subepicardial Adipose (Fat) Albedo & Bump Map
+      const fatCanvas = document.createElement('canvas');
+      fatCanvas.width = 512;
+      fatCanvas.height = 512;
+      const ctxF = fatCanvas.getContext('2d');
+      ctxF.fillStyle = '#e2b454';
+      ctxF.fillRect(0, 0, 512, 512);
+
+      // Lobular adipose globules packed along sulci
+      for (let i = 0; i < 300; i++) {
+        const fx = Math.random() * 512;
+        const fy = Math.random() * 512;
+        const rad = 7 + Math.random() * 16;
+        const fGrad = ctxF.createRadialGradient(fx, fy, 1, fx, fy, rad);
+        fGrad.addColorStop(0.0, '#f8d682');
+        fGrad.addColorStop(0.7, '#e5b85c');
+        fGrad.addColorStop(1.0, '#b88628');
+        ctxF.fillStyle = fGrad;
+        ctxF.beginPath();
+        ctxF.arc(fx, fy, rad, 0, Math.PI * 2);
+        ctxF.fill();
+      }
+
+      // Three.js Textures with seamless anisotropic wrapping
+      const myofiberMap = new THREE.CanvasTexture(albedoCanvas);
+      myofiberMap.wrapS = THREE.RepeatWrapping;
+      myofiberMap.wrapT = THREE.RepeatWrapping;
+      myofiberMap.repeat.set(2, 2);
+
+      const myofiberNormalMap = new THREE.CanvasTexture(normCanvas);
+      myofiberNormalMap.wrapS = THREE.RepeatWrapping;
+      myofiberNormalMap.wrapT = THREE.RepeatWrapping;
+      myofiberNormalMap.repeat.set(2, 2);
+
+      const myofiberRoughnessMap = new THREE.CanvasTexture(roughCanvas);
+      myofiberRoughnessMap.wrapS = THREE.RepeatWrapping;
+      myofiberRoughnessMap.wrapT = THREE.RepeatWrapping;
+      myofiberRoughnessMap.repeat.set(2, 2);
+
+      const epicardialFatMap = new THREE.CanvasTexture(fatCanvas);
+      epicardialFatMap.wrapS = THREE.RepeatWrapping;
+      epicardialFatMap.wrapT = THREE.RepeatWrapping;
+      epicardialFatMap.repeat.set(2, 2);
+
+      return {
+        myofiberMap,
+        myofiberNormalMap,
+        myofiberRoughnessMap,
+        epicardialFatMap,
+      };
+    } catch (e) {
+      console.warn('CardioCath 3D: Failed to create procedural PBR maps:', e);
+      return null;
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
   // 1. 3D Heart Viewport with Organic Translucent Organ, Ribcage, and Active Activity
   // ─────────────────────────────────────────────────────────────────────────────
   class Heart3DViewer {
@@ -145,16 +309,20 @@
 
       this.options = Object.assign({
         viewMode: 'anatomy',
+        visualRenderMode: 'photorealistic',
         dominance: 'right',
         isRevascularized: false,
         contrastIntensity: 0.0,
       }, options);
 
       this.viewMode = this.options.viewMode;
+      this.visualRenderMode = this.options.visualRenderMode || 'photorealistic';
       this.dominance = this.options.dominance;
       this.isRevascularized = this.options.isRevascularized;
       this.contrastIntensity = this.options.contrastIntensity;
       this.currentFrameData = null;
+      this.pbrMaps = createProceduralCardiacPBRMaps();
+      this.fatGroup = null;
       this.flowParticles = [];
       this.conductionSparks = [];
       this.aorticFlowParticles = [];
@@ -1147,6 +1315,9 @@
       // ── 5. Epicardial Coronary Tree & Intervention ───────────────────────
       this._buildCoronaryTree();
 
+      // ── Subepicardial Adipose (Fat) Cushions along Sulci ─────────────────
+      this._buildEpicardialFatPads();
+
       // ── 6. Cardiac Conduction System ─────────────────────────────────────
       this._buildConductionSystem();
 
@@ -1160,6 +1331,7 @@
       this._buildColorDoppler();
 
       this.updateViewMode(this.viewMode);
+      this.setVisualRenderMode(this.visualRenderMode);
     }
 
     _buildCoronaryTree() {
@@ -1270,6 +1442,222 @@
       }
 
       this.heartGroup.add(this.coronaryGroup);
+    }
+
+    _buildEpicardialFatPads() {
+      if (this.fatGroup) {
+        this.heartGroup.remove(this.fatGroup);
+      }
+      this.fatGroup = new THREE.Group();
+
+      const fatMat = new THREE.MeshPhysicalMaterial({
+        color: 0xe5b85c,
+        map: this.pbrMaps ? this.pbrMaps.epicardialFatMap : null,
+        bumpMap: this.pbrMaps ? this.pbrMaps.epicardialFatMap : null,
+        bumpScale: 0.045,
+        roughness: 0.52,
+        metalness: 0.04,
+        clearcoat: 0.68,
+        clearcoatRoughness: 0.32,
+      });
+
+      // 1. Anterior Interventricular Fat Cushion (Flanking LAD down the sulcus)
+      const ladFatPointsLeft = [
+        new THREE.Vector3(-0.16, 0.24, 0.19),
+        new THREE.Vector3(-0.10, 0.01, 0.39),
+        new THREE.Vector3(-0.06, -0.25, 0.40),
+        new THREE.Vector3(-0.13, -0.55, 0.31),
+        new THREE.Vector3(-0.21, -0.77, 0.17),
+      ];
+      const ladFatPointsRight = [
+        new THREE.Vector3(-0.08, 0.25, 0.18),
+        new THREE.Vector3(-0.02, 0.02, 0.40),
+        new THREE.Vector3(0.02, -0.25, 0.41),
+        new THREE.Vector3(-0.06, -0.56, 0.31),
+        new THREE.Vector3(-0.17, -0.77, 0.17),
+      ];
+      const ladFatCurveL = new THREE.CatmullRomCurve3(ladFatPointsLeft);
+      const ladFatCurveR = new THREE.CatmullRomCurve3(ladFatPointsRight);
+      this.fatGroup.add(new THREE.Mesh(new THREE.TubeGeometry(ladFatCurveL, 24, 0.042, 10, false), fatMat));
+      this.fatGroup.add(new THREE.Mesh(new THREE.TubeGeometry(ladFatCurveR, 24, 0.038, 10, false), fatMat));
+
+      // 2. Right AV Sulcus Fat Pad (Adipose cushion wrapping RCA groove)
+      const rcaFatPoints = [
+        new THREE.Vector3(0.06, 0.30, 0.07),
+        new THREE.Vector3(0.33, 0.22, 0.21),
+        new THREE.Vector3(0.50, -0.01, 0.26),
+        new THREE.Vector3(0.46, -0.32, 0.17),
+        new THREE.Vector3(0.34, -0.55, -0.04),
+      ];
+      const rcaFatCurve = new THREE.CatmullRomCurve3(rcaFatPoints);
+      this.fatGroup.add(new THREE.Mesh(new THREE.TubeGeometry(rcaFatCurve, 28, 0.048, 10, false), fatMat));
+
+      // 3. Left AV Sulcus Fat Pad (Adipose cushion wrapping LCx groove)
+      const lcxFatPoints = [
+        new THREE.Vector3(-0.13, 0.24, 0.17),
+        new THREE.Vector3(-0.36, 0.18, 0.13),
+        new THREE.Vector3(-0.52, 0.10, -0.11),
+        new THREE.Vector3(-0.40, -0.11, -0.26),
+      ];
+      const lcxFatCurve = new THREE.CatmullRomCurve3(lcxFatPoints);
+      this.fatGroup.add(new THREE.Mesh(new THREE.TubeGeometry(lcxFatCurve, 20, 0.044, 10, false), fatMat));
+
+      // 4. Posterior Interventricular Fat Cushion (PDA sulcus)
+      const pdaFatPoints = this.dominance === 'left' ? [
+        new THREE.Vector3(-0.40, -0.11, -0.26),
+        new THREE.Vector3(-0.19, -0.34, -0.33),
+        new THREE.Vector3(-0.11, -0.66, -0.19),
+      ] : [
+        new THREE.Vector3(0.34, -0.55, -0.04),
+        new THREE.Vector3(0.13, -0.52, -0.24),
+        new THREE.Vector3(-0.09, -0.66, -0.19),
+      ];
+      const pdaFatCurve = new THREE.CatmullRomCurve3(pdaFatPoints);
+      this.fatGroup.add(new THREE.Mesh(new THREE.TubeGeometry(pdaFatCurve, 18, 0.038, 10, false), fatMat));
+
+      // 5. Apical Adipose Cap (Organic fat cluster nestled at vertex)
+      const apexFatGeom = new THREE.SphereGeometry(0.09, 14, 14);
+      apexFatGeom.scale(1.2, 0.7, 1.0);
+      const apexFatMesh = new THREE.Mesh(apexFatGeom, fatMat);
+      apexFatMesh.position.set(-0.18, -0.80, 0.15);
+      this.fatGroup.add(apexFatMesh);
+
+      // Visibility gated by visual render mode & view mode
+      this.fatGroup.visible = (this.visualRenderMode === 'photorealistic' && this.viewMode === 'anatomy');
+      this.heartGroup.add(this.fatGroup);
+    }
+
+    setVisualRenderMode(mode) {
+      this.visualRenderMode = mode || 'photorealistic';
+
+      if (!this.myoMaterial) return;
+
+      if (this.visualRenderMode === 'photorealistic') {
+        // Photorealistic Wet Living Muscle & Serous Epicardium
+        this.myoMaterial.color.setHex(0x821920); // Deep crimson-mahogany
+        this.myoMaterial.map = this.pbrMaps ? this.pbrMaps.myofiberMap : null;
+        this.myoMaterial.normalMap = this.pbrMaps ? this.pbrMaps.myofiberNormalMap : null;
+        if (this.myoMaterial.normalScale) {
+          this.myoMaterial.normalScale.set(0.65, 0.65);
+        }
+        this.myoMaterial.roughnessMap = this.pbrMaps ? this.pbrMaps.myofiberRoughnessMap : null;
+        this.myoMaterial.roughness = 0.16;
+        this.myoMaterial.metalness = 0.04;
+        this.myoMaterial.clearcoat = 0.90;
+        this.myoMaterial.clearcoatRoughness = 0.14;
+        this.myoMaterial.sheen = 0.65;
+        this.myoMaterial.sheenColor = new THREE.Color(0xb91c1c); // warm subsurface red-orange rim glow
+        this.myoMaterial.transmission = 0.05;
+        this.myoMaterial.opacity = 0.98;
+        this.myoMaterial.transparent = false;
+        this.myoMaterial.depthWrite = true;
+
+        // Pearly wet collagen valve leaflets
+        if (this.valveMaterial) {
+          this.valveMaterial.color.setHex(0xf3e4dc);
+          this.valveMaterial.roughness = 0.18;
+          this.valveMaterial.clearcoat = 0.95;
+          this.valveMaterial.transmission = 0.15;
+          this.valveMaterial.opacity = 0.92;
+          this.valveMaterial.transparent = true;
+        }
+
+        // Great vessels: arterial scarlet vs deep venous blue
+        if (this.aortaMaterial) {
+          this.aortaMaterial.color.setHex(0xc8141e);
+          this.aortaMaterial.roughness = 0.22;
+          this.aortaMaterial.transmission = 0.12;
+          this.aortaMaterial.opacity = 0.94;
+          this.aortaMaterial.clearcoat = 0.90;
+        }
+        if (this.pulmonaryMaterial) {
+          this.pulmonaryMaterial.color.setHex(0x1d4ed8);
+          this.pulmonaryMaterial.roughness = 0.25;
+          this.pulmonaryMaterial.transmission = 0.15;
+          this.pulmonaryMaterial.opacity = 0.92;
+          this.pulmonaryMaterial.clearcoat = 0.85;
+        }
+
+        if (this.fatGroup) {
+          this.fatGroup.visible = (this.viewMode === 'anatomy');
+        }
+      } else if (this.visualRenderMode === 'translucent') {
+        // Glassmorphic Optical Translucency
+        this.myoMaterial.color.setHex(0xa3162a);
+        this.myoMaterial.map = null;
+        this.myoMaterial.normalMap = null;
+        this.myoMaterial.roughnessMap = null;
+        this.myoMaterial.roughness = 0.15;
+        this.myoMaterial.metalness = 0.06;
+        this.myoMaterial.transmission = 0.82;
+        this.myoMaterial.transparent = true;
+        this.myoMaterial.opacity = 0.35;
+        this.myoMaterial.clearcoat = 1.0;
+        this.myoMaterial.clearcoatRoughness = 0.08;
+        this.myoMaterial.sheen = 0.0;
+        this.myoMaterial.depthWrite = false;
+
+        if (this.valveMaterial) {
+          this.valveMaterial.color.setHex(0xffffff);
+          this.valveMaterial.roughness = 0.25;
+          this.valveMaterial.transmission = 0.70;
+          this.valveMaterial.opacity = 0.75;
+          this.valveMaterial.transparent = true;
+        }
+        if (this.aortaMaterial) {
+          this.aortaMaterial.color.setHex(0xe11d48);
+          this.aortaMaterial.transmission = 0.74;
+          this.aortaMaterial.opacity = 0.36;
+        }
+        if (this.pulmonaryMaterial) {
+          this.pulmonaryMaterial.color.setHex(0x2563eb);
+          this.pulmonaryMaterial.transmission = 0.72;
+          this.pulmonaryMaterial.opacity = 0.36;
+        }
+
+        if (this.fatGroup) {
+          this.fatGroup.visible = false;
+        }
+      } else if (this.visualRenderMode === 'schematic') {
+        // High-Contrast Anatomical Solid Red
+        this.myoMaterial.color.setHex(0xbe123c);
+        this.myoMaterial.map = null;
+        this.myoMaterial.normalMap = null;
+        this.myoMaterial.roughnessMap = null;
+        this.myoMaterial.roughness = 0.40;
+        this.myoMaterial.metalness = 0.0;
+        this.myoMaterial.transmission = 0.0;
+        this.myoMaterial.transparent = false;
+        this.myoMaterial.opacity = 1.0;
+        this.myoMaterial.clearcoat = 0.20;
+        this.myoMaterial.clearcoatRoughness = 0.40;
+        this.myoMaterial.sheen = 0.0;
+        this.myoMaterial.depthWrite = true;
+
+        if (this.valveMaterial) {
+          this.valveMaterial.color.setHex(0xffffff);
+          this.valveMaterial.roughness = 0.40;
+          this.valveMaterial.transmission = 0.0;
+          this.valveMaterial.opacity = 1.0;
+          this.valveMaterial.transparent = false;
+        }
+        if (this.aortaMaterial) {
+          this.aortaMaterial.color.setHex(0xe11d48);
+          this.aortaMaterial.transmission = 0.0;
+          this.aortaMaterial.opacity = 1.0;
+        }
+        if (this.pulmonaryMaterial) {
+          this.pulmonaryMaterial.color.setHex(0x2563eb);
+          this.pulmonaryMaterial.transmission = 0.0;
+          this.pulmonaryMaterial.opacity = 1.0;
+        }
+
+        if (this.fatGroup) {
+          this.fatGroup.visible = false;
+        }
+      }
+
+      this.myoMaterial.needsUpdate = true;
     }
 
     _buildConductionSystem() {
@@ -1687,46 +2075,43 @@
       this.myoMaterial.depthWrite = isAnat;
 
       if (isAnat) {
-        // Wet Living Tissue: Rich glistening crimson
-        this.myoMaterial.opacity = 0.88;
-        this.myoMaterial.transmission = 0.12;
-        this.myoMaterial.roughness = 0.22;
-        this.myoMaterial.metalness = 0.12;
-        this.myoMaterial.clearcoat = 1.0;
-        this.myoMaterial.color.setHex(0x991b1b);
-      } else if (isChambers) {
-        // Ultra-clear diagnostic cutaway window exposing valves & chambers
-        this.myoMaterial.opacity = 0.08;
-        this.myoMaterial.transmission = 0.94;
-        this.myoMaterial.roughness = 0.04;
-        this.myoMaterial.clearcoat = 0.6;
-        this.myoMaterial.color.setHex(0x3b0764);
-      } else if (isFlow) {
-        // Dark translucent glass shell to accentuate luminous dual blood flow
-        this.myoMaterial.opacity = 0.10;
-        this.myoMaterial.transmission = 0.90;
-        this.myoMaterial.roughness = 0.08;
-        this.myoMaterial.color.setHex(0x0a1128);
-      } else if (isCond) {
-        // Midnight navy bioelectric syncytium
-        this.myoMaterial.opacity = 0.10;
-        this.myoMaterial.transmission = 0.90;
-        this.myoMaterial.color.setHex(0x030712);
-      } else if (isCoronaries) {
-        // Soft neutral contrast for angiographic clarity
-        this.myoMaterial.opacity = 0.14;
-        this.myoMaterial.transmission = 0.86;
-        this.myoMaterial.color.setHex(0x1e293b);
-      } else if (isIschemia) {
-        // Darkened canvas to highlight 17-segment AHA Bullseye perfusion map
-        this.myoMaterial.opacity = 0.15;
-        this.myoMaterial.transmission = 0.85;
-        this.myoMaterial.color.setHex(0x0f172a);
-      } else if (isDoppler) {
-        // Acoustic dark background for echocardiographic color flow mapping
-        this.myoMaterial.opacity = 0.08;
-        this.myoMaterial.transmission = 0.95;
-        this.myoMaterial.color.setHex(0x030712);
+        this.setVisualRenderMode(this.visualRenderMode);
+      } else {
+        if (this.fatGroup) this.fatGroup.visible = false;
+        if (isChambers) {
+          // Ultra-clear diagnostic cutaway window exposing valves & chambers
+          this.myoMaterial.opacity = 0.08;
+          this.myoMaterial.transmission = 0.94;
+          this.myoMaterial.roughness = 0.04;
+          this.myoMaterial.clearcoat = 0.6;
+          this.myoMaterial.color.setHex(0x3b0764);
+        } else if (isFlow) {
+          // Dark translucent glass shell to accentuate luminous dual blood flow
+          this.myoMaterial.opacity = 0.10;
+          this.myoMaterial.transmission = 0.90;
+          this.myoMaterial.roughness = 0.08;
+          this.myoMaterial.color.setHex(0x0a1128);
+        } else if (isCond) {
+          // Midnight navy bioelectric syncytium
+          this.myoMaterial.opacity = 0.10;
+          this.myoMaterial.transmission = 0.90;
+          this.myoMaterial.color.setHex(0x030712);
+        } else if (isCoronaries) {
+          // Soft neutral contrast for angiographic clarity
+          this.myoMaterial.opacity = 0.14;
+          this.myoMaterial.transmission = 0.86;
+          this.myoMaterial.color.setHex(0x1e293b);
+        } else if (isIschemia) {
+          // Darkened canvas to highlight 17-segment AHA Bullseye perfusion map
+          this.myoMaterial.opacity = 0.15;
+          this.myoMaterial.transmission = 0.85;
+          this.myoMaterial.color.setHex(0x0f172a);
+        } else if (isDoppler) {
+          // Acoustic dark background for echocardiographic color flow mapping
+          this.myoMaterial.opacity = 0.08;
+          this.myoMaterial.transmission = 0.95;
+          this.myoMaterial.color.setHex(0x030712);
+        }
       }
 
       // 2. Component Group Visibility Gating
@@ -1811,6 +2196,28 @@
 
       this.ventriclesMesh.scale.set(scaleX, scaleY, scaleZ);
       this.ventriclesMesh.rotation.y = torsion * akinesis * 0.45;
+
+      // Synchronize Subepicardial Fat Pads with Ventricular Wringing & Torsion
+      if (this.fatGroup) {
+        this.fatGroup.scale.set(scaleX, scaleY, scaleZ);
+        this.fatGroup.rotation.y = this.ventriclesMesh.rotation.y;
+      }
+
+      // Dynamic Blanching & Cyanosis in STEMI / Ischemia (Photorealistic Mode)
+      if (this.visualRenderMode === 'photorealistic' && this.myoMaterial && this.viewMode === 'anatomy') {
+        const anteriorMotion = wallMotion.anterior !== undefined ? wallMotion.anterior : 1.0;
+        const inferiorMotion = wallMotion.inferior !== undefined ? wallMotion.inferior : 1.0;
+        const apexMotion = wallMotion.apex !== undefined ? wallMotion.apex : 1.0;
+        const minMotion = Math.min(anteriorMotion, inferiorMotion, apexMotion);
+
+        if (!this.isRevascularized && minMotion < 0.78) {
+          // Dusky purple-grey hypoxic myocardium (#472233)
+          const ischemicBlend = Math.min(1.0, (0.78 - minMotion) / 0.50);
+          this.myoMaterial.color.lerpColors(new THREE.Color(0x821920), new THREE.Color(0x472233), ischemicBlend);
+        } else if (!this.isRevascularized) {
+          this.myoMaterial.color.setHex(0x821920);
+        }
+      }
 
       // Dynamic Valves: Systole opens Aortic (0.33 - 0.56), closes Mitral; Diastole opens Mitral (>0.58), closes Aortic
       const vAortic = frame.valveAortic !== undefined ? frame.valveAortic : ((phi >= 0.33 && phi <= 0.56) ? 1.0 : 0.0);

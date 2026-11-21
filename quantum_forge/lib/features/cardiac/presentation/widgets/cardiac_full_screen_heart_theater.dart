@@ -68,6 +68,7 @@ class _CardiacFullScreenHeartTheaterState
 
   // Theater modes & micro-anatomy controls
   HeartViewMode _viewMode = HeartViewMode.anatomy;
+  CardiacVisualRenderMode _visualMode = CardiacVisualRenderMode.photorealistic;
   LandmarkCategory _selectedCategory = LandmarkCategory.all;
   bool _showNameTags = true;
   double _cutawayFraction = 0.0;
@@ -137,6 +138,7 @@ class _CardiacFullScreenHeartTheaterState
   void _syncBridge() {
     if (_threeBridge == null) return;
     _threeBridge!.setViewMode(_viewMode.name);
+    _threeBridge!.setVisualRenderMode(_visualMode);
     _threeBridge!.setDominance(widget.dominance);
     _threeBridge!.setRevascularized(widget.isRevascularized);
     _threeBridge!.setCutawayDepth(_cutawayFraction);
@@ -338,6 +340,7 @@ class _CardiacFullScreenHeartTheaterState
                           dominance: widget.dominance,
                           isRevascularized: widget.isRevascularized,
                           viewMode: _viewMode,
+                          visualMode: _visualMode,
                           showLabels: false, // Handled by projected overlay
                           lvefPct: effectiveLvef,
                         ),
@@ -552,6 +555,71 @@ class _CardiacFullScreenHeartTheaterState
                             ],
 
                             const SizedBox(width: 8),
+
+                            // Visual Render Mode Switcher: 🥩 Tissue | 💎 Glass | 📐 Schematic
+                            Container(
+                              padding: const EdgeInsets.all(2),
+                              decoration: BoxDecoration(
+                                color: Colors.black.withValues(alpha: 0.5),
+                                borderRadius: BorderRadius.circular(6),
+                                border: Border.all(
+                                    color: const Color(0xFF00E5FF).withValues(alpha: 0.25)),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: CardiacVisualRenderMode.values.map((vMode) {
+                                  final isSel = vMode == _visualMode;
+                                  return Tooltip(
+                                    message: '${vMode.label} Mode: ${vMode.description}',
+                                    child: GestureDetector(
+                                      key: Key('theater_render_mode_${vMode.name}'),
+                                      behavior: HitTestBehavior.opaque,
+                                      onTap: () {
+                                        setState(() => _visualMode = vMode);
+                                        _threeBridge?.setVisualRenderMode(vMode);
+                                      },
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 6, vertical: 3),
+                                        decoration: BoxDecoration(
+                                          color: isSel
+                                              ? const Color(0xFFEF4444).withValues(alpha: 0.35)
+                                              : Colors.transparent,
+                                          borderRadius: BorderRadius.circular(4),
+                                          border: isSel
+                                              ? Border.all(
+                                                  color: const Color(0xFFEF4444)
+                                                      .withValues(alpha: 0.8),
+                                                  width: 1,
+                                                )
+                                              : null,
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Text(vMode.icon,
+                                                style: const TextStyle(fontSize: 11)),
+                                            const SizedBox(width: 3),
+                                            Text(
+                                              vMode.label,
+                                              style: TextStyle(
+                                                color: isSel ? Colors.white : Colors.white70,
+                                                fontSize: 10.0,
+                                                fontWeight: isSel
+                                                    ? FontWeight.bold
+                                                    : FontWeight.normal,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                }).toList(),
+                              ),
+                            ),
+
+                            const SizedBox(width: 6),
 
                             // Action: Toggle Name Tags
                             IconButton(
@@ -1048,11 +1116,77 @@ class _CardiacFullScreenHeartTheaterState
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Row 1: Mode selector pills
+          // Row 1: Mode selector pills + Visual Render Mode switcher
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
               children: [
+                // Visual Render Mode Switcher
+                Container(
+                  padding: const EdgeInsets.all(2),
+                  margin: const EdgeInsets.only(right: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.5),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                        color: const Color(0xFF00E5FF).withValues(alpha: 0.3)),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: CardiacVisualRenderMode.values.map((vMode) {
+                      final isSel = vMode == _visualMode;
+                      return Tooltip(
+                        message: '${vMode.label} Mode: ${vMode.description}',
+                        child: GestureDetector(
+                          key: Key('dock_render_mode_${vMode.name}'),
+                          behavior: HitTestBehavior.opaque,
+                          onTap: () {
+                            setState(() => _visualMode = vMode);
+                            _threeBridge?.setVisualRenderMode(vMode);
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 7, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: isSel
+                                  ? const Color(0xFFEF4444).withValues(alpha: 0.4)
+                                  : Colors.transparent,
+                              borderRadius: BorderRadius.circular(6),
+                              border: isSel
+                                  ? Border.all(
+                                      color: const Color(0xFFEF4444), width: 1)
+                                  : null,
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(vMode.icon,
+                                    style: const TextStyle(fontSize: 11)),
+                                const SizedBox(width: 4),
+                                Text(
+                                  vMode.label,
+                                  style: TextStyle(
+                                    color: isSel ? Colors.white : Colors.white70,
+                                    fontSize: 11.0,
+                                    fontWeight: isSel
+                                        ? FontWeight.bold
+                                        : FontWeight.normal,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ),
+                Container(
+                  width: 1,
+                  height: 20,
+                  margin: const EdgeInsets.only(right: 8),
+                  color: Colors.white24,
+                ),
                 _modePill(HeartViewMode.anatomy, 'Anatomy (Whole Heart)', 'theater_mode_anatomy'),
                 _modePill(HeartViewMode.chambers, '4-Chamber Cutaway', 'theater_mode_cutaway',
                     onSelect: () {

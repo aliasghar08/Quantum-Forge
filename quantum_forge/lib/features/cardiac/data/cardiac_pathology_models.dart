@@ -536,3 +536,29 @@ const List<CardiacPathologyScenario> kCardiacScenarios = [
     ],
   ),
 ];
+
+/// Visual Render Modes for CardioCath 3D Anatomical Heart
+enum CardiacVisualRenderMode {
+  photorealistic(
+    'Tissue',
+    '🥩',
+    'Photorealistic wet living tissue with striated helical myofibers, subepicardial fat pads, and dynamic ischemic blanching/cyanosis',
+  ),
+  translucent(
+    'Glass',
+    '💎',
+    'Glassmorphic optical translucency highlighting internal flow streams and cardiac conduction',
+  ),
+  schematic(
+    'Schematic',
+    '📐',
+    'High-contrast anatomical vector solid model',
+  );
+
+  final String label;
+  final String icon;
+  final String description;
+
+  const CardiacVisualRenderMode(this.label, this.icon, this.description);
+}
+

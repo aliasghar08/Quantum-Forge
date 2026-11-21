@@ -78,6 +78,7 @@ class _Cardiac3DAnatomicalHeartViewportState
   Offset? _lastPanPos;
 
   HeartViewMode _viewMode = HeartViewMode.anatomy;
+  CardiacVisualRenderMode _visualMode = CardiacVisualRenderMode.photorealistic;
   bool _showLabels = true;
 
   CardioCathThreeBridge? _threeBridge;
@@ -104,6 +105,7 @@ class _Cardiac3DAnatomicalHeartViewportState
   void _syncBridge() {
     if (_threeBridge == null) return;
     _threeBridge!.setViewMode(_viewMode.name);
+    _threeBridge!.setVisualRenderMode(_visualMode);
     _threeBridge!.setDominance(widget.dominance);
     _threeBridge!.setRevascularized(widget.isRevascularized);
     if (widget.contrastIntensity > 0.05) {
@@ -237,6 +239,7 @@ class _Cardiac3DAnatomicalHeartViewportState
                           dominance: widget.dominance,
                           isRevascularized: widget.isRevascularized,
                           viewMode: _viewMode,
+                          visualMode: _visualMode,
                           showLabels: _showLabels,
                           lvefPct: widget.lvefPct,
                         ),
@@ -253,7 +256,7 @@ class _Cardiac3DAnatomicalHeartViewportState
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Row 1: Header Badge + Mode Info `i` Button + Quick Actions
+                  // Row 1: Header Badge + Visual Mode Switcher + Mode Info `i` Button + Quick Actions
                   Row(
                     children: [
                       Flexible(
@@ -341,11 +344,69 @@ class _Cardiac3DAnatomicalHeartViewportState
                   ),
                   const SizedBox(height: 6),
 
-                  // Row 2: Mode Selector Chips (Wrap layout so ALL 7 modes are always visible without clipping)
+                  // Row 2: Mode Selector Chips & Visual Render Switcher (Wrap layout so ALL items wrap cleanly)
                   Wrap(
                     spacing: 4,
                     runSpacing: 4,
-                    children: HeartViewMode.values.map((mode) {
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      // Visual Render Mode Switcher: 🥩 Tissue | 💎 Glass | 📐 Schematic
+                      Container(
+                        padding: const EdgeInsets.all(2),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.5),
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(color: palette.border),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: CardiacVisualRenderMode.values.map((vMode) {
+                            final isSel = vMode == _visualMode;
+                            return Tooltip(
+                              message: '${vMode.label} Mode: ${vMode.description}',
+                              child: GestureDetector(
+                                key: Key('cardiac_viewport_render_mode_${vMode.name}'),
+                                behavior: HitTestBehavior.opaque,
+                                onTap: () {
+                                  setState(() => _visualMode = vMode);
+                                  _threeBridge?.setVisualRenderMode(vMode);
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: isSel
+                                        ? const Color(0xFFEF4444).withValues(alpha: 0.35)
+                                        : Colors.transparent,
+                                    borderRadius: BorderRadius.circular(4),
+                                    border: isSel
+                                        ? Border.all(
+                                            color: const Color(0xFFEF4444).withValues(alpha: 0.8),
+                                            width: 1,
+                                          )
+                                        : null,
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(vMode.icon, style: const TextStyle(fontSize: 10)),
+                                      const SizedBox(width: 3),
+                                      Text(
+                                        vMode.label,
+                                        style: TextStyle(
+                                          color: isSel ? Colors.white : Colors.white70,
+                                          fontSize: 9.0,
+                                          fontWeight: isSel ? FontWeight.bold : FontWeight.normal,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                      ...HeartViewMode.values.map((mode) {
                       final isSel = mode == _viewMode;
                       final topic = kCardiacInfoTopics['mode_${mode.name}'];
                       return Tooltip(
@@ -388,11 +449,12 @@ class _Cardiac3DAnatomicalHeartViewportState
                           ),
                         ),
                       );
-                    }).toList(),
-                  ),
-                ],
-              ),
+                    }),
+                  ],
+                ),
+              ],
             ),
+          ),
 
             // ── Bottom Dual-Circulation Structure Info Bar & Dynamic Legend ─
             Positioned(
@@ -683,6 +745,7 @@ class AnatomicalHeart3DPainter extends CustomPainter {
   final CoronaryDominance dominance;
   final bool isRevascularized;
   final HeartViewMode viewMode;
+  final CardiacVisualRenderMode visualMode;
   final bool showLabels;
   final double lvefPct;
 
@@ -698,6 +761,7 @@ class AnatomicalHeart3DPainter extends CustomPainter {
     required this.dominance,
     required this.isRevascularized,
     required this.viewMode,
+    this.visualMode = CardiacVisualRenderMode.photorealistic,
     required this.showLabels,
     this.lvefPct = 60.0,
   });
@@ -1138,20 +1202,24 @@ class AnatomicalHeart3DPainter extends CustomPainter {
       // We allow semi-transparent backfaces or draw front faces boldly
       final isFrontFace = area >= -1.0;
 
-      // Base Myocardial Color
-      Color baseColor = const Color(0xFFDC2626); // Rich Cardiac Crimson
+      // Base Myocardial Color based on Visual Render Mode
+      Color baseColor = switch (visualMode) {
+        CardiacVisualRenderMode.photorealistic => const Color(0xFF821920), // Deep crimson-mahogany
+        CardiacVisualRenderMode.translucent => const Color(0xFFA3162A),    // Ruby translucent
+        CardiacVisualRenderMode.schematic => const Color(0xFFBE123C),      // Solid crisp crimson
+      };
 
       // Ischemic myocardium coloration
       final isAnteriorArea = quad.angleIndex >= 3 && quad.angleIndex <= 9;
       final isInferiorArea = quad.angleIndex >= 14 && quad.angleIndex <= 18;
 
       if (isAnteriorIschemic && !isRevascularized && isAnteriorArea && quad.ringIndex >= 1 && quad.ringIndex <= 4) {
-        baseColor = const Color(0xFF701A75); // Dusky Cyanotic Ischemic Muscle
+        baseColor = const Color(0xFF472233); // Dusky Cyanotic Ischemic Muscle
       } else if (isInferiorIschemic && !isRevascularized && isInferiorArea && quad.ringIndex <= 3) {
-        baseColor = const Color(0xFF4C0519); // Hypokinetic Ischemic Tissue
+        baseColor = const Color(0xFF472233); // Hypokinetic Ischemic Tissue
       } else if (quad.angleIndex == 6 || quad.angleIndex == 7) {
         // Anterior Interventricular Sulcus: Adipose fat pad embedding LAD
-        baseColor = const Color(0xFFCA8A04);
+        baseColor = const Color(0xFFE5B85C); // Golden-yellow epicardial fat
       }
 
       // Directional Lighting Calculation
@@ -1168,7 +1236,11 @@ class AnatomicalHeart3DPainter extends CustomPainter {
       final r = (baseColor.r * totalLight + spec * 255).clamp(0.0, 255.0).toInt();
       final g = (baseColor.g * totalLight + spec * 255).clamp(0.0, 255.0).toInt();
       final b = (baseColor.b * totalLight + spec * 255).clamp(0.0, 255.0).toInt();
-      final alpha = isFrontFace ? 0.34 : 0.16;
+      final alpha = switch (visualMode) {
+        CardiacVisualRenderMode.photorealistic => isFrontFace ? 0.94 : 0.45,
+        CardiacVisualRenderMode.translucent => isFrontFace ? 0.34 : 0.16,
+        CardiacVisualRenderMode.schematic => isFrontFace ? 1.0 : 0.50,
+      };
 
       final quadPaint = Paint()
         ..color = Color.fromARGB((alpha * 255).toInt(), r, g, b)
