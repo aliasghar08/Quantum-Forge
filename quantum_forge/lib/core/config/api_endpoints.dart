@@ -62,6 +62,36 @@ class ApiEndpoints {
     defaultValue: 'https://neurolab-backend-227207155336.us-central1.run.app',
   );
 
+  /// Dedicated Google Cloud Run Nephrology & Glomerular Hemodynamics Backend
+  static const String nephrolabBackendUrl = String.fromEnvironment(
+    'NEPHROLAB_API_BASE_URL',
+    defaultValue: 'https://nephrolab-backend-227207155336.us-central1.run.app',
+  );
+
+  /// NephroLab Glomerular Hemodynamics & Starling Filtration URL
+  static String get nephroHemodynamicsUrl =>
+      '${sanitize(nephrolabBackendUrl)}/api/nephro/hemodynamics';
+
+  /// NephroLab Renal Color Doppler & Resistive Index URL
+  static String get nephroRenalDopplerUrl =>
+      '${sanitize(nephrolabBackendUrl)}/api/nephro/renal-doppler';
+
+  /// NephroLab 500 Hz Multi-Channel CRT Oscilloscope Telemetry URL
+  static String get nephroOscilloscopeUrl =>
+      '${sanitize(nephrolabBackendUrl)}/api/nephro/oscilloscope-telemetry';
+
+  /// NephroLab Dialysis Kinetics (IHD / CVVHDF) URL
+  static String get nephroDialysisKineticsUrl =>
+      '${sanitize(nephrolabBackendUrl)}/api/nephro/dialysis-kinetics';
+
+  /// NephroLab NephroTox-GNN Drug Screening URL
+  static String get nephroNephrotoxUrl =>
+      '${sanitize(nephrolabBackendUrl)}/api/nephro/nephrotox-predict';
+
+  /// NephroLab In-Silico Virtual AKI/CKD Research Cohort URL
+  static String get nephroResearchCohortUrl =>
+      '${sanitize(nephrolabBackendUrl)}/api/nephro/research-cohort';
+
   /// NeuroLab Hemodynamics & Circle of Willis Autoregulation URL
   static String get neuroHemodynamicsUrl =>
       '${sanitize(neurolabBackendUrl)}/api/neuro/hemodynamics';

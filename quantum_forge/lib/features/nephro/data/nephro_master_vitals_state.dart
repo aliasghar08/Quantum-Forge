@@ -197,6 +197,8 @@ enum NephroClinicalSituation {
   final String description;
   final Color accentColor;
 
+  String get label => shortLabel;
+
   const NephroClinicalSituation({
     required this.id,
     required this.title,
@@ -241,22 +243,81 @@ class NephroMasterVitalsState extends ChangeNotifier {
   double _albuminGDl = 4.0;
 
   NephroClinicalSituation get activeSituation => _activeSituation;
+  NephroClinicalSituation get currentSituation => _activeSituation;
   bool get isAutoPilot => _isAutoPilot;
 
   double get egfrMlMin => _egfrMlMin;
+  double get egfr => _egfrMlMin;
+  set egfr(double v) {
+    _egfrMlMin = v;
+    notifyListeners();
+  }
+
   double get rppMmHg => _rppMmHg;
+  double get rpp => _rppMmHg;
+  set rpp(double v) {
+    _rppMmHg = v;
+    notifyListeners();
+  }
+
+  double get map => _rppMmHg + 6.0;
+
   double get urineOutputMlKgH => _urineOutputMlKgH;
+  double get urineOutput => _urineOutputMlKgH * 70.0;
+  set urineOutput(double v) {
+    _urineOutputMlKgH = v / 70.0;
+    notifyListeners();
+  }
+
   double get serumCreatinineMgDl => _serumCreatinineMgDl;
   double get bunMgDl => _bunMgDl;
   double get potassiumMeqL => _potassiumMeqL;
+  double get potassium => _potassiumMeqL;
+  set potassium(double v) {
+    _potassiumMeqL = v;
+    notifyListeners();
+  }
+
   double get clearanceRatio => _clearanceRatio;
 
   double get ph => _ph;
+  set ph(double v) {
+    _ph = v;
+    notifyListeners();
+  }
+
   double get paco2MmHg => _paco2MmHg;
+  double get paco2 => _paco2MmHg;
+  set paco2(double v) {
+    _paco2MmHg = v;
+    notifyListeners();
+  }
+
   double get hco3MeqL => _hco3MeqL;
+  double get bicarb => _hco3MeqL;
+  set bicarb(double v) {
+    _hco3MeqL = v;
+    notifyListeners();
+  }
+
   double get sodiumMeqL => _sodiumMeqL;
+  double get sodium => _sodiumMeqL;
+  set sodium(double v) {
+    _sodiumMeqL = v;
+    notifyListeners();
+  }
+
   double get chlorideMeqL => _chlorideMeqL;
+  double get chloride => _chlorideMeqL;
+  set chloride(double v) {
+    _chlorideMeqL = v;
+    notifyListeners();
+  }
+
   double get albuminGDl => _albuminGDl;
+
+  bool get isRenalArteryStenosis => _rppMmHg < 65.0 && _activeSituation == NephroClinicalSituation.cardiorenalAki;
+  bool get isAkiActive => _egfrMlMin < 40.0;
 
   // ── Derived Acid-Base Calculations ──────────────────────────────────────────
 
