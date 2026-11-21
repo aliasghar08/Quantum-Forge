@@ -20,7 +20,7 @@
 📖 **Repository Directory Guide**: [docs/PROJECT_DIRECTORY_GUIDE.md](docs/PROJECT_DIRECTORY_GUIDE.md)  
 🧠 **Centralized AI Models Guide**: [ai_models/README.md](ai_models/README.md)  
 🔒 **Security Policy**: [SECURITY.md](SECURITY.md)  
-⚖️ **License & Intellectual Property**: [LICENSE](LICENSE) · [COPYRIGHT.md](COPYRIGHT.md)  
+⚖️ **License & Intellectual Property**: [LICENSE.md](LICENSE.md) · [COPYRIGHT.md](COPYRIGHT.md)  
 
 ---
 
@@ -206,4 +206,4 @@ Quantum-Forge/
 
 Developed and maintained by **Ali Asghar** ([aliasgharinnocent@yahoo.com](mailto:aliasgharinnocent@yahoo.com)) · **Dart Nexus Lab**.
 
-This project is licensed under the **MIT License** with proprietary trademark, brand reservation, and SaMD educational addenda — see the [LICENSE](LICENSE) and [COPYRIGHT.md](COPYRIGHT.md) files for complete terms. Third-party software components and attributions are detailed in [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md).
+This project is licensed under the **MIT License** with proprietary trademark, brand reservation, and SaMD educational addenda — see the [LICENSE.md](LICENSE.md) and [COPYRIGHT.md](COPYRIGHT.md) files for complete terms. Third-party software components and attributions are detailed in [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md).

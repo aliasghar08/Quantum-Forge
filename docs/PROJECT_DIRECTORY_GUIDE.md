@@ -32,7 +32,7 @@ Quantum-Forge/
 | File / Folder | Purpose in Plain English |
 | --- | --- |
 | `README.md` | The main project homepage with badges, architecture overview, web app links, and quick-start instructions. |
-| `LICENSE` | Open-source project license terms. |
+| `LICENSE.md` | Open-source project license terms (MIT with SaMD & Brand protection). |
 | `COPYRIGHT.md` | Comprehensive IP, trademark, and copyright declarations for Quantum Forge assets. |
 | `SECURITY.md` | Security disclosure guidelines and vulnerability reporting policies. |
 | `THIRD_PARTY_LICENSES.md` | Attributions for external scientific libraries (RDKit, ASE, PyTorch, NGL Viewer, Three.js). |
