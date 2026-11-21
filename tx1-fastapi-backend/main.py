@@ -1241,7 +1241,9 @@ if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
 
 _PHARMA_MODEL = None
-_PHARMA_CHECKPOINT = _REPO_ROOT / "models" / "pharma_intelligence" / "pharma_bionet_v1.pt"
+_PHARMA_CHECKPOINT = _REPO_ROOT / "ml_models" / "pharma_bionet" / "checkpoints" / "pharma_bionet_v1.pt"
+if not _PHARMA_CHECKPOINT.is_file():
+    _PHARMA_CHECKPOINT = _REPO_ROOT / "models" / "pharma_intelligence" / "pharma_bionet_v1.pt"
 _PHARMA_DATASET = _REPO_ROOT / "quantum_forge" / "assets" / "clinical_pharmacopeia.json"
 
 class PharmaQueryRequest(BaseModel):
@@ -1260,7 +1262,10 @@ def get_pharma_model():
     if not _PHARMA_CHECKPOINT.exists():
         return None
     try:
-        from scripts.autonomous_trainer.pharma_intelligence_model import PharmaBioNet, MOA_CLASSES, SPECIES_LIST, DISCIPLINE_LIST
+        try:
+            from ml_models.pharma_bionet.architecture.pharma_intelligence_model import PharmaBioNet, MOA_CLASSES, SPECIES_LIST, DISCIPLINE_LIST
+        except ImportError:
+            from scripts.autonomous_trainer.pharma_intelligence_model import PharmaBioNet, MOA_CLASSES, SPECIES_LIST, DISCIPLINE_LIST
         ckpt = torch.load(str(_PHARMA_CHECKPOINT), map_location=DEVICE, weights_only=True)
         m = PharmaBioNet().to(DEVICE)
         m.load_state_dict(ckpt["model_state_dict"])
@@ -1326,7 +1331,10 @@ def predict_pharma_intelligence(req: PharmaQueryRequest):
             try:
                 import sys
                 sys.path.append(str(Path(__file__).resolve().parent.parent))
-                from scripts.autonomous_trainer.train_pharma_model import compute_molecular_feature_vector
+                try:
+                    from ml_models.pharma_bionet.training.train_pharma_model import compute_molecular_feature_vector
+                except ImportError:
+                    from scripts.autonomous_trainer.train_pharma_model import compute_molecular_feature_vector
                 vec = compute_molecular_feature_vector(matched, perturbation=0.0)
                 feats_tensor = torch.tensor([vec], dtype=torch.float32).to(DEVICE)
                 preds = m.predict_profile(feats_tensor)

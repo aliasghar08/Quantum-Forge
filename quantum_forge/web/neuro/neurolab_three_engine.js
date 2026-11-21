@@ -139,6 +139,10 @@
       this.spineGroup = new THREE.Group();
       this.nervesGroup = new THREE.Group();
       this.penumbraGroup = new THREE.Group();
+      this.pnsGroup = new THREE.Group();
+      this.ansGroup = new THREE.Group();
+      this.sensoryGroup = new THREE.Group();
+      this.synapseGroup = new THREE.Group();
       this.csfParticles = null;
 
       this.init();
@@ -180,6 +184,10 @@
       this.rootGroup.add(this.spineGroup);
       this.rootGroup.add(this.nervesGroup);
       this.rootGroup.add(this.penumbraGroup);
+      this.rootGroup.add(this.pnsGroup);
+      this.rootGroup.add(this.ansGroup);
+      this.rootGroup.add(this.sensoryGroup);
+      this.rootGroup.add(this.synapseGroup);
 
       this._onResize = this._onResize.bind(this);
       window.addEventListener('resize', this._onResize);
@@ -213,6 +221,10 @@
       this._buildSpinalCordAndTracts();
       this._buildCranialNerves();
       this._buildPenumbraMap();
+      this._buildWholeBodyPns();
+      this._buildAutonomicAnsAndEnteric();
+      this._buildVisualAndVestibularPathways();
+      this._buildMicroscopicSynapseAndNmj();
     }
 
     // ── 1. Cortical Hemispheres ───────────────────────────────────────────────
@@ -658,6 +670,342 @@
       this.penumbraGroup.add(this.penumbraMesh);
     }
 
+    // ── 8. Whole-Body Peripheral Nervous System (PNS) ────────────────────────
+    _buildWholeBodyPns() {
+      // Translucent anatomical full-body silhouette contour
+      const bodyMat = new THREE.MeshPhysicalMaterial({
+        color: 0x1e293b,
+        emissive: 0x0f172a,
+        roughness: 0.6,
+        transmission: 0.88,
+        transparent: true,
+        opacity: 0.22,
+        side: THREE.DoubleSide,
+      });
+
+      // Torso & Pelvis volume
+      const torsoGeo = new THREE.CylinderGeometry(8.5, 7.0, 36.0, 32);
+      const torso = new THREE.Mesh(torsoGeo, bodyMat);
+      torso.position.set(0, -26.0, 0);
+      this.pnsGroup.add(torso);
+
+      // Nerve Material - Glowing Emerald / Neon Green
+      const nerveMat = new THREE.MeshStandardMaterial({
+        color: 0x10b981,
+        emissive: 0x059669,
+        emissiveIntensity: 0.75,
+        roughness: 0.3,
+      });
+
+      // 31 Pairs of Spinal Nerve Roots (C1-C8, T1-T12, L1-L5, S1-S5, Co1)
+      for (let i = 0; i < 31; i++) {
+        const y = -10.0 - (i * 1.05);
+        [-1, 1].forEach(side => {
+          const rootCurve = new THREE.CubicBezierCurve3(
+            new THREE.Vector3(side * 0.8, y, 0),
+            new THREE.Vector3(side * 2.2, y - 0.2, 0.5),
+            new THREE.Vector3(side * 4.0, y - 0.6, 0.2),
+            new THREE.Vector3(side * (5.5 + (i >= 8 && i <= 19 ? 3.0 : 1.5)), y - 1.2, 0)
+          );
+          const rootGeo = new THREE.TubeGeometry(rootCurve, 12, 0.16, 6, false);
+          const rootMesh = new THREE.Mesh(rootGeo, nerveMat);
+          this.pnsGroup.add(rootMesh);
+        });
+      }
+
+      // Brachial Plexus (C5-T1) -> Musculocutaneous, Axillary, Radial, Median, Ulnar
+      [-1, 1].forEach(side => {
+        // Upper trunk to lateral arm
+        const brachialCurve = new THREE.CubicBezierCurve3(
+          new THREE.Vector3(side * 3.5, -13.5, 0),
+          new THREE.Vector3(side * 9.0, -15.0, 1.0),
+          new THREE.Vector3(side * 16.0, -22.0, 0),
+          new THREE.Vector3(side * 24.0, -38.0, -1.0)
+        );
+        const brachialGeo = new THREE.TubeGeometry(brachialCurve, 20, 0.32, 8, false);
+        this.pnsGroup.add(new THREE.Mesh(brachialGeo, nerveMat));
+
+        // Radial Nerve (spiral groove around humerus)
+        const radialCurve = new THREE.CubicBezierCurve3(
+          new THREE.Vector3(side * 11.0, -17.0, 0),
+          new THREE.Vector3(side * 14.5, -20.0, -1.5),
+          new THREE.Vector3(side * 18.0, -26.0, 0.5),
+          new THREE.Vector3(side * 23.0, -37.0, 1.2)
+        );
+        const radialGeo = new THREE.TubeGeometry(radialCurve, 18, 0.24, 6, false);
+        this.pnsGroup.add(new THREE.Mesh(radialGeo, nerveMat));
+
+        // Lumbosacral Plexus (L1-S4) -> Femoral, Sciatic, Common Fibular, Tibial
+        const sciaticCurve = new THREE.CubicBezierCurve3(
+          new THREE.Vector3(side * 2.5, -34.0, -0.5),
+          new THREE.Vector3(side * 5.5, -42.0, -2.0),
+          new THREE.Vector3(side * 6.5, -54.0, -1.2),
+          new THREE.Vector3(side * 7.0, -72.0, 0.0)
+        );
+        const sciaticGeo = new THREE.TubeGeometry(sciaticCurve, 24, 0.42, 8, false);
+        this.pnsGroup.add(new THREE.Mesh(sciaticGeo, nerveMat));
+
+        // Common Fibular / Peroneal Nerve (wrapping fibular head)
+        const peronealCurve = new THREE.CubicBezierCurve3(
+          new THREE.Vector3(side * 6.5, -54.0, -1.2),
+          new THREE.Vector3(side * 8.2, -58.0, 0.8),
+          new THREE.Vector3(side * 7.8, -66.0, 1.5),
+          new THREE.Vector3(side * 6.8, -74.0, 2.0)
+        );
+        const peronealGeo = new THREE.TubeGeometry(peronealCurve, 18, 0.24, 6, false);
+        this.pnsGroup.add(new THREE.Mesh(peronealGeo, nerveMat));
+      });
+    }
+
+    // ── 9. Autonomic Nervous System (ANS & Enteric) ───────────────────────────
+    _buildAutonomicAnsAndEnteric() {
+      // Sympathetic Chain: Amber/Gold glowing paravertebral beads (T1-L2)
+      const sympMat = new THREE.MeshStandardMaterial({
+        color: 0xf59e0b,
+        emissive: 0xd97706,
+        emissiveIntensity: 0.85,
+        roughness: 0.3,
+      });
+
+      [-1, 1].forEach(side => {
+        const chainCurve = new THREE.CatmullRomCurve3([
+          new THREE.Vector3(side * 1.8, -14.0, 1.2),
+          new THREE.Vector3(side * 1.9, -20.0, 1.4),
+          new THREE.Vector3(side * 1.9, -26.0, 1.3),
+          new THREE.Vector3(side * 1.7, -33.0, 1.1),
+        ]);
+        const chainGeo = new THREE.TubeGeometry(chainCurve, 24, 0.22, 8, false);
+        this.ansGroup.add(new THREE.Mesh(chainGeo, sympMat));
+
+        // Paravertebral Ganglia Beads
+        for (let i = 0; i < 14; i++) {
+          const beadGeo = new THREE.SphereGeometry(0.38, 12, 10);
+          const bead = new THREE.Mesh(beadGeo, sympMat);
+          bead.position.set(side * 1.85, -14.0 - (i * 1.35), 1.3);
+          this.ansGroup.add(bead);
+        }
+      });
+
+      // Celiac & Superior Mesenteric Ganglia (Midline plexus)
+      const celiacGeo = new THREE.SphereGeometry(0.75, 14, 12);
+      const celiac = new THREE.Mesh(celiacGeo, sympMat);
+      celiac.position.set(0, -24.5, 2.5);
+      this.ansGroup.add(celiac);
+
+      // Parasympathetic: Cyan glowing Craniosacral System (CN X Vagus + S2-S4)
+      const paraMat = new THREE.MeshStandardMaterial({
+        color: 0x06b6d4,
+        emissive: 0x0891b2,
+        emissiveIntensity: 0.85,
+        roughness: 0.3,
+      });
+
+      // Bilateral Vagus Nerves (CN X descending neck to thorax and abdomen)
+      [-1, 1].forEach(side => {
+        const vagusCurve = new THREE.CatmullRomCurve3([
+          new THREE.Vector3(side * 2.8, -4.5, 0.5),
+          new THREE.Vector3(side * 2.4, -10.0, 1.8),
+          new THREE.Vector3(side * 2.0, -18.0, 2.0),
+          new THREE.Vector3(side * 1.2, -26.0, 2.8),
+          new THREE.Vector3(0, -30.0, 2.5),
+        ]);
+        const vagusGeo = new THREE.TubeGeometry(vagusCurve, 24, 0.24, 8, false);
+        this.ansGroup.add(new THREE.Mesh(vagusGeo, paraMat));
+      });
+
+      // Enteric Nervous System: Delicate coils representing Auerbach & Meissner gut plexuses
+      const entericMat = new THREE.MeshStandardMaterial({
+        color: 0xec4899,
+        emissive: 0xbe185d,
+        emissiveIntensity: 0.65,
+        roughness: 0.4,
+      });
+      for (let k = 0; k < 6; k++) {
+        const gutCurve = new THREE.CatmullRomCurve3([
+          new THREE.Vector3(-3.5 + k * 1.2, -26.0 - (k % 3) * 1.8, 3.2),
+          new THREE.Vector3(-1.0, -28.0 - k * 0.8, 4.0),
+          new THREE.Vector3(2.5, -27.0 - (k % 2) * 2.0, 3.5),
+        ]);
+        const gutGeo = new THREE.TubeGeometry(gutCurve, 16, 0.14, 6, false);
+        this.ansGroup.add(new THREE.Mesh(gutGeo, entericMat));
+      }
+    }
+
+    // ── 10. Visual & Vestibulo-Auditory Pathways ──────────────────────────────
+    _buildVisualAndVestibularPathways() {
+      const visualMat = new THREE.MeshStandardMaterial({
+        color: 0x38bdf8,
+        emissive: 0x0284c7,
+        emissiveIntensity: 0.9,
+        roughness: 0.2,
+      });
+
+      // Left and Right Globes / Retinas
+      [-1, 1].forEach(side => {
+        const globeGeo = new THREE.SphereGeometry(1.6, 20, 16);
+        const globe = new THREE.Mesh(globeGeo, visualMat);
+        globe.position.set(side * 3.8, 5.5, 13.0);
+        this.sensoryGroup.add(globe);
+
+        // Optic Nerves converging to Chiasm
+        const opticNerveCurve = new THREE.LineCurve3(
+          new THREE.Vector3(side * 3.8, 5.5, 12.0),
+          new THREE.Vector3(0, 3.2, 5.0)
+        );
+        const opticNerveGeo = new THREE.TubeGeometry(opticNerveCurve, 12, 0.28, 8, false);
+        this.sensoryGroup.add(new THREE.Mesh(opticNerveGeo, visualMat));
+
+        // Optic Tract diverging to Lateral Geniculate Nucleus (LGN)
+        const opticTractCurve = new THREE.CatmullRomCurve3([
+          new THREE.Vector3(0, 3.2, 5.0),
+          new THREE.Vector3(side * 2.2, 2.5, 2.2),
+          new THREE.Vector3(side * 3.4, 2.0, 0.2), // LGN
+        ]);
+        const opticTractGeo = new THREE.TubeGeometry(opticTractCurve, 16, 0.24, 8, false);
+        this.sensoryGroup.add(new THREE.Mesh(opticTractGeo, visualMat));
+
+        // Meyer's Loop (Temporal radiation sweeping forward and curving back to V1)
+        const meyerCurve = new THREE.CatmullRomCurve3([
+          new THREE.Vector3(side * 3.4, 2.0, 0.2),
+          new THREE.Vector3(side * 6.5, 1.0, 1.5), // Anterior temporal sweep
+          new THREE.Vector3(side * 4.8, 2.2, -6.0),
+          new THREE.Vector3(side * 1.5, 3.5, -14.0), // Calcarine sulcus / V1
+        ]);
+        const meyerGeo = new THREE.TubeGeometry(meyerCurve, 24, 0.22, 8, false);
+        this.sensoryGroup.add(new THREE.Mesh(meyerGeo, visualMat));
+      });
+
+      // 3D Inner Ear Semicircular Canals & Cochlea
+      const vestibularMat = new THREE.MeshStandardMaterial({
+        color: 0xa855f7,
+        emissive: 0x7e22ce,
+        emissiveIntensity: 0.8,
+        roughness: 0.3,
+      });
+
+      [-1, 1].forEach(side => {
+        const vX = side * 8.2;
+        const vY = 2.8;
+        const vZ = 0.5;
+
+        // Anterior Canal (Vertical-sagittal)
+        const antCanalGeo = new THREE.TorusGeometry(1.1, 0.15, 12, 24, Math.PI * 1.7);
+        const antCanal = new THREE.Mesh(antCanalGeo, vestibularMat);
+        antCanal.position.set(vX, vY + 0.9, vZ);
+        antCanal.rotation.y = Math.PI / 4;
+        this.sensoryGroup.add(antCanal);
+
+        // Posterior Canal (Vertical-coronal)
+        const postCanalGeo = new THREE.TorusGeometry(1.0, 0.15, 12, 24, Math.PI * 1.7);
+        const postCanal = new THREE.Mesh(postCanalGeo, vestibularMat);
+        postCanal.position.set(vX - side * 0.4, vY, vZ - 0.8);
+        postCanal.rotation.x = Math.PI / 2;
+        this.sensoryGroup.add(postCanal);
+
+        // Horizontal / Lateral Canal
+        const latCanalGeo = new THREE.TorusGeometry(0.9, 0.15, 12, 24, Math.PI * 1.7);
+        const latCanal = new THREE.Mesh(latCanalGeo, vestibularMat);
+        latCanal.position.set(vX, vY - 0.2, vZ);
+        this.sensoryGroup.add(latCanal);
+
+        // Cochlea (Spiral tube)
+        const cochleaGeo = new THREE.CylinderGeometry(0.7, 0.2, 1.4, 16);
+        const cochlea = new THREE.Mesh(cochleaGeo, vestibularMat);
+        cochlea.position.set(vX, vY - 1.2, vZ + 0.8);
+        this.sensoryGroup.add(cochlea);
+      });
+    }
+
+    // ── 11. Microscopic Node of Ranvier & NMJ ─────────────────────────────────
+    _buildMicroscopicSynapseAndNmj() {
+      // Myelinated Axon with Node of Ranvier
+      const axonCoreMat = new THREE.MeshStandardMaterial({
+        color: 0x60a5fa,
+        emissive: 0x1d4ed8,
+        emissiveIntensity: 0.6,
+        roughness: 0.3,
+      });
+
+      const myelinSheathMat = new THREE.MeshPhysicalMaterial({
+        color: 0xf1f5f9,
+        emissive: 0x94a3b8,
+        roughness: 0.25,
+        transmission: 0.45,
+        transparent: true,
+        opacity: 0.9,
+      });
+
+      // Central Axoplasm Core
+      const axoplasmGeo = new THREE.CylinderGeometry(0.6, 0.6, 28.0, 24);
+      axoplasmGeo.rotateZ(Math.PI / 2);
+      const axoplasm = new THREE.Mesh(axoplasmGeo, axonCoreMat);
+      axoplasm.position.set(0, 0, 0);
+      this.synapseGroup.add(axoplasm);
+
+      // Schwann Cell Myelin Internodes (with bare Node of Ranvier in between)
+      [-7.5, 7.5].forEach(xPos => {
+        const sheathGeo = new THREE.CylinderGeometry(1.4, 1.4, 10.5, 24);
+        sheathGeo.rotateZ(Math.PI / 2);
+        const sheath = new THREE.Mesh(sheathGeo, myelinSheathMat);
+        sheath.position.set(xPos, 0, 0);
+        this.synapseGroup.add(sheath);
+      });
+
+      // Node of Ranvier Ring (Na_v 1.6 clusters - Glowing Gold)
+      const ranvierMat = new THREE.MeshStandardMaterial({
+        color: 0xfbbf24,
+        emissive: 0xd97706,
+        emissiveIntensity: 1.0,
+      });
+      const nodeRingGeo = new THREE.TorusGeometry(0.72, 0.12, 12, 24);
+      nodeRingGeo.rotateY(Math.PI / 2);
+      const nodeRing = new THREE.Mesh(nodeRingGeo, ranvierMat);
+      nodeRing.position.set(0, 0, 0);
+      this.synapseGroup.add(nodeRing);
+
+      // Presynaptic Axon Terminal Bouton (Bulb)
+      const boutonGeo = new THREE.SphereGeometry(3.2, 24, 20);
+      boutonGeo.scale(1.2, 0.9, 1.0);
+      const boutonMat = new THREE.MeshPhysicalMaterial({
+        color: 0x818cf8,
+        emissive: 0x3730a3,
+        roughness: 0.4,
+        transmission: 0.75,
+        transparent: true,
+        opacity: 0.8,
+      });
+      const bouton = new THREE.Mesh(boutonGeo, boutonMat);
+      bouton.position.set(0, -9.0, 0);
+      this.synapseGroup.add(bouton);
+
+      // Synaptic Vesicles (ACh / Glutamate - Glowing Emerald beads)
+      const vesicleMat = new THREE.MeshStandardMaterial({
+        color: 0x34d399,
+        emissive: 0x059669,
+        emissiveIntensity: 0.9,
+      });
+      for (let v = 0; v < 18; v++) {
+        const vGeo = new THREE.SphereGeometry(0.28, 10, 8);
+        const vesicle = new THREE.Mesh(vGeo, vesicleMat);
+        const theta = Math.random() * Math.PI * 2;
+        const r = Math.random() * 2.0;
+        const yOff = -8.0 - Math.random() * 2.8;
+        vesicle.position.set(Math.cos(theta) * r, yOff, Math.sin(theta) * r);
+        this.synapseGroup.add(vesicle);
+      }
+
+      // Postsynaptic Junctional Folds & Muscle Membrane
+      const postMat = new THREE.MeshStandardMaterial({
+        color: 0xf43f5e,
+        emissive: 0x9f1239,
+        roughness: 0.5,
+      });
+      const foldGeo = new THREE.BoxGeometry(9.0, 1.4, 5.0);
+      const postFolds = new THREE.Mesh(foldGeo, postMat);
+      postFolds.position.set(0, -13.0, 0);
+      this.synapseGroup.add(postFolds);
+    }
+
     // ── Interactive API Methods ──────────────────────────────────────────────
     setLayer(layer) {
       this.currentLayer = layer;
@@ -667,10 +1015,26 @@
       this.spineGroup.visible = (layer === 'all' || layer === 'spine');
       this.nervesGroup.visible = (layer === 'all' || layer === 'nerves');
       this.penumbraGroup.visible = (layer === 'all' || layer === 'penumbra');
+      this.pnsGroup.visible = (layer === 'all' || layer === 'pns');
+      this.ansGroup.visible = (layer === 'all' || layer === 'ans');
+      this.sensoryGroup.visible = (layer === 'all' || layer === 'sensory');
+      this.synapseGroup.visible = (layer === 'all' || layer === 'synapse');
 
       if (layer === 'spine') {
         this.camera.position.set(0, -18, 50);
         if (this.controls) this.controls.target.set(0, -20, 0);
+      } else if (layer === 'pns') {
+        this.camera.position.set(0, -28, 85);
+        if (this.controls) this.controls.target.set(0, -28, 0);
+      } else if (layer === 'ans') {
+        this.camera.position.set(0, -18, 65);
+        if (this.controls) this.controls.target.set(0, -18, 0);
+      } else if (layer === 'sensory') {
+        this.camera.position.set(0, 6, 36);
+        if (this.controls) this.controls.target.set(0, 4, 0);
+      } else if (layer === 'synapse') {
+        this.camera.position.set(0, -6, 26);
+        if (this.controls) this.controls.target.set(0, -6, 0);
       } else {
         this.camera.position.set(0, 15, 55);
         if (this.controls) this.controls.target.set(0, 2, 0);

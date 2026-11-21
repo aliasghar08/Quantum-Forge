@@ -18,3 +18,4 @@ export 'presentation/widgets/neuro_brain_theater_painter.dart';
 export 'presentation/widgets/neuro_dsa_painters.dart';
 export 'presentation/widgets/neuro_master_vitals_state.dart';
 export 'presentation/widgets/neuro_master_vitals_bar.dart';
+export 'presentation/widgets/neuro_whole_system_panel.dart';

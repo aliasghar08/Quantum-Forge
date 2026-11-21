@@ -21,6 +21,8 @@ import 'package:quantum_forge/features/neuro/presentation/widgets/neuro_osce_exa
 import 'package:quantum_forge/features/neuro/presentation/widgets/neuro_frontier_neurosurgery_panel.dart';
 import 'package:quantum_forge/features/neuro/presentation/widgets/neuro_full_screen_brain_theater.dart';
 import 'package:quantum_forge/features/neuro/presentation/widgets/neuro_full_screen_dsa_theater.dart';
+import 'package:quantum_forge/features/neuro/presentation/widgets/neuro_whole_system_panel.dart';
+import 'package:quantum_forge/features/neuro/presentation/widgets/neuro_master_vitals_state.dart';
 
 void main() {
   group('NeuroLab 3D: Workstation & Physiology Engine Tests', () {
@@ -375,7 +377,7 @@ void main() {
     });
 
     testWidgets('switches to Clinical Diagnostics mode and renders 6-module diagnostic suite', (tester) async {
-      tester.view.physicalSize = const Size(1300, 900);
+      tester.view.physicalSize = const Size(1600, 950);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
@@ -401,7 +403,7 @@ void main() {
     });
 
     testWidgets('switches to Research & FNO mode and renders 4-module computational suite', (tester) async {
-      tester.view.physicalSize = const Size(1300, 900);
+      tester.view.physicalSize = const Size(1600, 950);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
@@ -623,6 +625,66 @@ void main() {
       // Verify back to neuro lab
       expect(find.byType(NeuroFullScreenDsaTheater), findsNothing);
       expect(find.byType(NeuroDsaViewport), findsOneWidget);
+    });
+
+    testWidgets('Whole Nervous System: verifies 45+ landmark tags and anatomical layers', (tester) async {
+      // 1. Verify 45+ landmarks
+      expect(kNeuroTags.length, greaterThanOrEqualTo(45));
+
+      // 2. Verify all new categories are populated
+      expect(kNeuroTags.any((t) => t.category == NeuroTagCategory.pnsPlexuses), isTrue);
+      expect(kNeuroTags.any((t) => t.category == NeuroTagCategory.autonomicEnteric), isTrue);
+      expect(kNeuroTags.any((t) => t.category == NeuroTagCategory.visualVestibular), isTrue);
+      expect(kNeuroTags.any((t) => t.category == NeuroTagCategory.synapseMyelin), isTrue);
+
+      // 3. Verify new anatomical layers exist
+      expect(NeuroAnatomicalLayer.values.any((l) => l.id == 'pns'), isTrue);
+      expect(NeuroAnatomicalLayer.values.any((l) => l.id == 'ans'), isTrue);
+      expect(NeuroAnatomicalLayer.values.any((l) => l.id == 'sensory'), isTrue);
+      expect(NeuroAnatomicalLayer.values.any((l) => l.id == 'synapse'), isTrue);
+    });
+
+    testWidgets('Whole Nervous System: renders NeuroWholeSystemPanel and toggles tabs', (tester) async {
+      tester.view.physicalSize = const Size(1600, 950);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      final vitals = NeuroMasterVitalsState();
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: NeuroWholeSystemPanel(vitals: vitals),
+          ),
+        ),
+      );
+      await tester.pump();
+
+      // Verify header and tab 0 (PNS & Plexuses)
+      expect(find.text('WHOLE NERVOUS SYSTEM WORKSTATION'), findsOneWidget);
+      expect(find.text('Cutaneous Sensory Loss:'), findsOneWidget);
+      expect(find.text('Connectome Confidence'), findsOneWidget);
+
+      // Switch to Tab 1: Autonomic & Enteric
+      await tester.tap(find.text('Autonomic & Enteric'));
+      await tester.pump();
+      expect(find.text('Sympathetic Tone'), findsOneWidget);
+      expect(find.text('Parasympathetic'), findsOneWidget);
+      expect(find.text('Ptosis Present:'), findsOneWidget);
+
+      // Switch to Tab 2: Visual & Vestibular
+      await tester.tap(find.text('Visual & Vestibular'));
+      await tester.pump();
+      expect(find.text('GOLDMANN / HUMPHREY VISUAL FIELD DEFECT:'), findsOneWidget);
+      expect(find.text('BPPV Canal'), findsOneWidget);
+
+      // Switch to Tab 3: Synapse & NMJ
+      await tester.tap(find.text('Synapse & NMJ'));
+      await tester.pump();
+      expect(find.text('Conduction Velocity'), findsOneWidget);
+      expect(find.text('Safety Factor'), findsOneWidget);
+      expect(find.text('EPP Amplitude'), findsOneWidget);
     });
   });
 }

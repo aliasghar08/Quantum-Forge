@@ -103,6 +103,13 @@
         }
       },
       {
+        "source": "/api/neuro/**",
+        "run": {
+          "serviceId": "neurolab-backend",
+          "region": "us-central1"
+        }
+      },
+      {
         "source": "**",
         "destination": "/index.html"
       }

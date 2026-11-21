@@ -217,8 +217,10 @@ logging.basicConfig(
 )
 logger = logging.getLogger("MPSTrainer")
 
-CHECKPOINT_DIR = Path("models/continual_learning")
+CHECKPOINT_DIR = Path("ml_models/continual_learning/checkpoints")
 CHECKPOINT_DIR.mkdir(parents=True, exist_ok=True)
+FALLBACK_CHECKPOINT_DIR = Path("models/continual_learning")
+FALLBACK_CHECKPOINT_DIR.mkdir(parents=True, exist_ok=True)
 
 
 def get_device() -> torch.device | str:
@@ -325,6 +327,8 @@ class ContinualTrainer:
         candidates = [
             checkpoint_path,
             CHECKPOINT_DIR / "model_continual_latest.pt",
+            FALLBACK_CHECKPOINT_DIR / "model_continual_latest.pt",
+            Path("ml_models/tx1_painn_ensemble/checkpoints/member_0.pt"),
             BACKEND_DIR / "models/ensemble_v2/member_0.pt",
             BACKEND_DIR / "t1x_model_checkpoint_v2b.pt",
             BACKEND_DIR / "t1x_model_checkpoint.pt",

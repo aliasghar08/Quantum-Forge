@@ -29,12 +29,14 @@ import '../features/neuro/presentation/widgets/neuro_master_vitals_bar.dart';
 import '../features/neuro/presentation/widgets/neuro_diagnostic_workstation_panel.dart';
 import '../features/neuro/presentation/widgets/neuro_research_workstation_panel.dart';
 import '../features/neuro/presentation/widgets/neuro_frontier_neurosurgery_panel.dart';
+import '../features/neuro/presentation/widgets/neuro_whole_system_panel.dart';
 import '../features/clinical_core/presentation/widgets/multi_organ_coupling_pill.dart';
 import '../features/clinical_core/presentation/widgets/clinical_safety_proctor_banner.dart';
 import '../features/clinical_core/data/multi_organ_patient_state.dart';
 
 enum NeuroWorkstationView {
   viewports,
+  wholeSystem,
   diagnostics,
   research,
   frontier,
@@ -262,6 +264,12 @@ class _NeuroLabScreenState extends State<NeuroLabScreen> {
                     ),
                     const SizedBox(width: 6),
                     _buildViewSelectorButton(
+                      title: 'Whole Nervous System',
+                      icon: Icons.hub_outlined,
+                      view: NeuroWorkstationView.wholeSystem,
+                    ),
+                    const SizedBox(width: 6),
+                    _buildViewSelectorButton(
                       title: 'Clinical Diagnostics',
                       icon: Icons.health_and_safety_outlined,
                       view: NeuroWorkstationView.diagnostics,
@@ -395,6 +403,12 @@ class _NeuroLabScreenState extends State<NeuroLabScreen> {
 
   Widget _buildActiveWorkstationBody() {
     switch (_activeView) {
+      case NeuroWorkstationView.wholeSystem:
+        return Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: NeuroWholeSystemPanel(vitals: _vitals),
+        );
+
       case NeuroWorkstationView.diagnostics:
         return Padding(
           padding: const EdgeInsets.all(8.0),

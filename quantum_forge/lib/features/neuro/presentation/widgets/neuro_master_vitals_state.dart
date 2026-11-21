@@ -136,6 +136,9 @@ class NeuroMasterVitalsState extends ChangeNotifier {
   bool get isAutoPilot => _isAutoPilot;
 
   double get mapMmHg => _mapMmHg;
+  double get map => _mapMmHg;
+  set map(double value) => setManualMap(value);
+  set mapMmHg(double value) => setManualMap(value);
   double get icpMmHg => _icpMmHg;
   double get cppMmHg => (_mapMmHg - _icpMmHg).clamp(0.0, 180.0);
   double get paco2MmHg => _paco2MmHg;

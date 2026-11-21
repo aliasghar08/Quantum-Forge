@@ -15,7 +15,11 @@ enum NeuroAnatomicalLayer {
   ventricles('ventricles', 'CSF & Ventricles', 'Lateral ventricles (anterior/body/atrium/posterior/temporal horns), 3rd/4th ventricles and CSF particles.'),
   spine('spine', 'Full Spinal Cord (C1–L5)', 'Cervical & lumbar enlargements, conus medullaris, cauda equina and color-coded internal tracts.'),
   nerves('nerves', 'Cranial Nerves (I–XII)', 'Optic chiasm (CN II), Trigeminal (CN V), and major cranial nerve root exits.'),
-  penumbra('penumbra', 'Ischemic Penumbra Map', 'Irreversible ischemic infarct core (crimson) vs. salvageable hypoxic penumbra (amber).');
+  penumbra('penumbra', 'Ischemic Penumbra Map', 'Irreversible ischemic infarct core (crimson) vs. salvageable hypoxic penumbra (amber).'),
+  pns('pns', 'Whole-Body PNS & Plexuses', '31 spinal nerve pairs C1-Co1, cervical/brachial/lumbar/sacral plexuses, and peripheral nerves.'),
+  ans('ans', 'Autonomic (ANS) & Enteric', 'Thoracolumbar sympathetic chain T1-L2, craniosacral parasympathetic, and Auerbach/Meissner gut plexuses.'),
+  sensory('sensory', 'Visual & Vestibular Pathways', 'Optic pathway (retina to V1 calcarine) and 3D inner ear semicircular canals/cochlea.'),
+  synapse('synapse', 'Node of Ranvier & Synapse NMJ', 'Myelinated axon, Schwann internode, bare Node of Ranvier Na_v1.6, and synaptic cleft NMJ bouton.');
 
   final String id;
   final String label;

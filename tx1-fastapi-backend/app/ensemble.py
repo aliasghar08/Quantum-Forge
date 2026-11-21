@@ -46,7 +46,9 @@ class EnsemblePredictor:
                 pass
 
         if checkpoint_paths is None:
-            models_dir = BASE_DIR / "models" / "ensemble_v2"
+            models_dir = BASE_DIR.parent / "ml_models" / "tx1_painn_ensemble" / "checkpoints"
+            if not models_dir.is_dir() or not (models_dir / "member_0.pt").is_file():
+                models_dir = BASE_DIR / "models" / "ensemble_v2"
             checkpoint_paths = [
                 models_dir / f"member_{i}.pt"
                 for i in range(5)

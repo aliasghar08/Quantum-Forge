@@ -1359,3 +1359,305 @@ class NeuroComputationalSolver:
             fit_r_squared=0.94,
             inverse_model_summary=summary,
         )
+
+    # ========================================================================
+    # Whole-Nervous-System Solvers (CNS, PNS, ANS, Sensory, Synaptic)
+    # ========================================================================
+    @staticmethod
+    def solve_whole_system_localize(req: "WholeSystemLocalizeRequest") -> "WholeSystemLocalizeResponse":
+        vec = req.deficit_vector
+        while len(vec) < 16:
+            vec.append(0.0)
+        vec = vec[:16]
+
+        locations = [
+            "Cerebral Cortex (Hemispheric)",
+            "Subcortical Internal Capsule / Basal Ganglia",
+            "Brainstem (Midbrain / Pons / Medulla)",
+            "Spinal Cord (Cervical / Thoracic / Conus)",
+            "Anterior Horn Cells (Motor Neuron)",
+            "Spinal Nerve Roots (Radiculopathy)",
+            "Brachial / Lumbosacral Plexus",
+            "Named Peripheral Nerve (Mononeuropathy)",
+            "Neuromuscular Junction (NMJ)",
+            "Autonomic Ganglia & Sympathetic Chain",
+        ]
+
+        # PyTorch or deterministic neural rule surrogate
+        probs = [0.05] * 10
+        # Check deficit rules
+        if vec[10] > 0.5:  # Aphasia / cortical signs
+            probs[0] += 0.75
+        elif vec[0] == 1.0 and vec[1] > 0.7 and vec[10] == 0.0 and vec[4] == 3.0:  # Pure motor internal capsule
+            probs[1] += 0.70
+        elif vec[4] in (1.0, 2.0, 5.0) or vec[6] == 1.0:  # CN signs / crossed hemiparesis
+            probs[2] += 0.65
+        elif vec[0] in (2.0, 3.0) and vec[3] in (2.0, 3.0):  # Paraparesis with sensory level
+            probs[3] += 0.75
+        elif vec[11] > 0.5 and vec[2] == 0.0:  # Fasciculations, no sensory loss
+            probs[4] += 0.80
+        elif vec[14] > 0.5:  # Specific dermatome
+            probs[5] += 0.70
+        elif vec[13] in (1.0, 2.0) and vec[8] < -1.0:  # Erb / Klumpke
+            probs[6] += 0.65
+        elif vec[0] == 4.0 and vec[1] < -0.5:  # Focal drop
+            probs[7] += 0.65
+        elif vec[12] > 0.5 and vec[2] == 0.0:  # RNS decrement / fatigability
+            probs[8] += 0.85
+        elif vec[7] > 0.5 or vec[6] == 1.0:  # Autonomic / Horner
+            probs[9] += 0.60
+        else:
+            probs[0] += 0.30
+
+        # Normalize
+        total = sum(probs)
+        probs = [p / total for p in probs]
+        top_idx = int(np.argmax(probs))
+
+        diag_tests = [
+            "Brain MRI with Diffusion (DWI/FLAIR)",
+            "Spine MRI (Cervical / Thoracic / Lumbar)",
+            "Nerve Conduction Studies & Electromyography (NCS/EMG)",
+            "AChR Antibodies / Repetitive Nerve Stimulation / Tensilon",
+            "Autonomic Tilt Table & Sudomotor Axon Reflex (QSART)",
+        ]
+        test_idx = 0 if top_idx in (0, 1, 2) else (1 if top_idx in (3, 5) else (2 if top_idx in (4, 6, 7) else (3 if top_idx == 8 else 4)))
+
+        rankings = [{"location": locations[i], "probability": round(float(probs[i]), 3)} for i in range(10)]
+        rankings.sort(key=lambda item: item["probability"], reverse=True)
+
+        return WholeSystemLocalizeResponse(
+            top_location=locations[top_idx],
+            confidence_percent=round(float(probs[top_idx]) * 100.0, 1),
+            severity_score=round(float(abs(vec[0]) * 15.0 + abs(vec[1]) * 20.0 + abs(vec[8]) * 12.0 + 20.0), 1),
+            recommended_investigation=diag_tests[test_idx],
+            all_rankings=rankings,
+        )
+
+    @staticmethod
+    def solve_synapse_axon(req: "SynapseAxonRequest") -> "SynapseAxonResponse":
+        m = req.myelin_integrity
+        nav = req.nav_conductance
+        cav = req.cav_conductance
+        snare = req.snare_competence
+        ache = req.ache_activity
+        nachr = req.nachr_density
+        nmb = req.nmb_blocker_level
+        rev = req.reversal_agent
+
+        effective_blocker = max(0.0, nmb - (0.85 if rev == 1.0 else 0.0))
+        effective_nachr = nachr * (1.0 - 0.9 * effective_blocker)
+
+        cv = 5.0 + 58.0 * (m ** 1.5) * (nav ** 0.5)
+        safety_factor = 2.4 * m * (nav ** 0.8)
+        quanta = 45.0 * (cav ** 2.0) * snare
+        cleft_ach = 800.0 * (quanta / 45.0) / (0.3 + 0.7 * ache)
+        epp = 35.0 * (effective_nachr ** 1.2) * (quanta / 45.0)
+        ap_success = epp > 14.0 and safety_factor > 0.95
+
+        if effective_nachr < 0.4:
+            rns_dec = 38.5
+            pattern = "Myasthenia Gravis (Post-synaptic nAChR blockade with RNS decrement)"
+        elif cav < 0.4:
+            rns_dec = -32.0
+            pattern = "Lambert-Eaton Myasthenic Syndrome (Pre-synaptic P/Q Ca_v block with facilitation)"
+        elif snare < 0.25:
+            rns_dec = 5.0
+            pattern = "Botulinum Toxin Flaccid Paralysis (SNARE cleavage blocking exocytosis)"
+        elif m < 0.4:
+            rns_dec = 0.0
+            pattern = "Demyelinating Conduction Slowing / Block (Multiple Sclerosis / Guillain-Barré)"
+        elif nmb > 0.4 and rev == 0.0:
+            rns_dec = 45.0
+            pattern = "Neuromuscular Blockade (Non-depolarizing Paralytic)"
+        elif nmb > 0.4 and rev == 1.0:
+            rns_dec = 2.0
+            pattern = "Reversed Neuromuscular Blockade (Sugammadex / Neostigmine)"
+        else:
+            rns_dec = 1.0
+            pattern = "Physiologically Normal Saltatory Conduction & NMJ Transmission"
+
+        return SynapseAxonResponse(
+            conduction_velocity_m_s=round(cv, 1),
+            saltatory_safety_factor=round(safety_factor, 2),
+            vesicle_quantal_release=round(quanta, 1),
+            cleft_transmitter_peak_um=round(cleft_ach, 1),
+            epp_amplitude_mv=round(epp, 1),
+            action_potential_success=bool(ap_success),
+            rns_decrement_percent=round(rns_dec, 1),
+            diagnostic_pattern=pattern,
+        )
+
+    @staticmethod
+    def solve_visual_vestibular(req: "VisualVestibularRequest") -> "VisualVestibularResponse":
+        site = req.lesion_site.lower()
+        if "chiasm" in site:
+            l_defect = "Temporal Hemianopia"
+            r_defect = "Temporal Hemianopia"
+            pattern = "Bitemporal Hemianopia (Pituitary Adenoma / Craniopharyngioma)"
+            pearl = "Compression of crossing nasal retinal fibers at the optic chiasm."
+        elif "meyer" in site:
+            l_defect = "Superior Quadrantanopia (Right)"
+            r_defect = "Superior Quadrantanopia (Right)"
+            pattern = "Contralateral Superior Quadrantanopia ('Pie in the Sky')"
+            pearl = "Temporal lobe Meyer's loop lesion involving inferior optic radiation fibers."
+        elif "parietal" in site:
+            l_defect = "Inferior Quadrantanopia (Right)"
+            r_defect = "Inferior Quadrantanopia (Right)"
+            pattern = "Contralateral Inferior Quadrantanopia ('Pie on the Floor')"
+            pearl = "Parietal lobe optic radiation lesion involving superior retinal fibers."
+        elif "calcarine" in site or "v1" in site or "cortex" in site:
+            l_defect = "Homonymous Hemianopia with Macular Sparing"
+            r_defect = "Homonymous Hemianopia with Macular Sparing"
+            pattern = "Contralateral Homonymous Hemianopia (Macular Sparing PCA Infarct)"
+            pearl = "PCA stroke with collateral MCA blood supply preserving occipital pole macular representation."
+        else: # optic nerve
+            l_defect = "Total Monocular Blindness (Left)"
+            r_defect = "Normal Visual Field"
+            pattern = "Ipsilateral Monocular Blindness (Optic Neuritis / Anterior Ischemic Optic Neuropathy)"
+            pearl = "Pre-chiasmatic optic nerve transection or severe demyelination."
+
+        nystagmus = "Upbeating & Torsional towards affected ear" if req.canal_affected == "posterior" else "Horizontal geotropic"
+        vor_gain = 0.55 if not req.dix_hallpike_performed else 0.92
+        epley_prob = 0.88 if req.canal_affected == "posterior" else 0.65
+
+        return VisualVestibularResponse(
+            lesion_site=req.lesion_site,
+            left_eye_defect=l_defect,
+            right_eye_defect=r_defect,
+            perimetry_pattern=pattern,
+            nystagmus_direction=nystagmus,
+            vor_gain=vor_gain,
+            epley_maneuver_success_prob=epley_prob,
+            diagnostic_pearl=pearl,
+        )
+
+    @staticmethod
+    def solve_autonomic_reflex(req: "AutonomicReflexRequest") -> "AutonomicReflexResponse":
+        sci = req.sci_level.upper()
+        horner = req.horner_order
+        tilt = req.tilt_angle_deg
+        toxi = req.toxidrome.lower()
+
+        symp = 50.0
+        para = 50.0
+        map_val = 90.0
+        hr = 72.0
+        pupil = 3.5
+        ptosis = False
+        anhidrosis = False
+        ad_active = False
+        syndrome = "Normal Baseline Autonomic Homeostasis"
+
+        if "T4" in sci or "T6" in sci or "C5" in sci:
+            ad_active = True
+            symp = 95.0
+            para = 85.0  # Vagal bradycardia baroreflex response above level
+            map_val = 165.0
+            hr = 46.0  # Reflex bradycardia
+            syndrome = "Autonomic Dysreflexia (Life-Threatening Sympathetic Surge below T6 with compensatory Vagal Bradycardia)"
+        elif horner > 0:
+            ptosis = True
+            pupil = 2.0
+            anhidrosis = horner in (1, 2)
+            syndrome = f"Horner's Syndrome (Order {horner}: Oculosympathetic disruption - ptosis, miosis, {'anhidrosis' if anhidrosis else 'spared sweating'})"
+        elif tilt >= 60.0:
+            map_val = 68.0
+            hr = 104.0
+            symp = 75.0
+            para = 25.0
+            syndrome = "Orthostatic Stress Response (Splanchnic Pooling with Compensatory Tachycardia)"
+        elif "cholinergic" in toxi:
+            para = 98.0
+            symp = 20.0
+            pupil = 1.5
+            hr = 48.0
+            map_val = 75.0
+            syndrome = "Acute Cholinergic Crisis / Organophosphate Toxicity (SLUDGEM Toxidrome: Salivation, Lacrimation, Bradycardia, Miosis)"
+        elif "anticholinergic" in toxi:
+            para = 10.0
+            symp = 85.0
+            pupil = 6.5
+            hr = 118.0
+            map_val = 110.0
+            syndrome = "Anticholinergic Toxidrome (Blind as a bat, Mad as a hatter, Red as a beet, Hot as a hare, Dry as a bone)"
+
+        return AutonomicReflexResponse(
+            sympathetic_tone_percent=round(symp, 1),
+            parasympathetic_tone_percent=round(para, 1),
+            mean_arterial_pressure_mmhg=round(map_val, 1),
+            heart_rate_bpm=round(hr, 1),
+            pupil_diameter_mm=round(pupil, 1),
+            ptosis_present=ptosis,
+            anhidrosis_present=anhidrosis,
+            autonomic_dysreflexia_active=ad_active,
+            clinical_syndrome=syndrome,
+        )
+
+
+# ============================================================================
+# Whole-Nervous-System Schemas (Appended for Export)
+# ============================================================================
+class WholeSystemLocalizeRequest(BaseModel):
+    deficit_vector: List[float] = Field(default_factory=lambda: [0.0] * 16)
+    clinical_notes: Optional[str] = "Acute focal weakness"
+
+class WholeSystemLocalizeResponse(BaseModel):
+    top_location: str
+    confidence_percent: float
+    severity_score: float
+    recommended_investigation: str
+    all_rankings: List[Dict[str, Any]]
+
+class SynapseAxonRequest(BaseModel):
+    myelin_integrity: float = Field(1.0, ge=0.0, le=1.0)
+    nav_conductance: float = Field(1.0, ge=0.0, le=1.0)
+    cav_conductance: float = Field(1.0, ge=0.0, le=1.0)
+    snare_competence: float = Field(1.0, ge=0.0, le=1.0)
+    ache_activity: float = Field(1.0, ge=0.0, le=1.0)
+    nachr_density: float = Field(1.0, ge=0.0, le=1.0)
+    nmb_blocker_level: float = Field(0.0, ge=0.0, le=1.0)
+    reversal_agent: float = Field(0.0, ge=0.0, le=1.0)
+
+class SynapseAxonResponse(BaseModel):
+    conduction_velocity_m_s: float
+    saltatory_safety_factor: float
+    vesicle_quantal_release: float
+    cleft_transmitter_peak_um: float
+    epp_amplitude_mv: float
+    action_potential_success: bool
+    rns_decrement_percent: float
+    diagnostic_pattern: str
+
+class VisualVestibularRequest(BaseModel):
+    lesion_site: str = "optic_chiasm"
+    canal_affected: str = "posterior"
+    dix_hallpike_performed: bool = True
+
+class VisualVestibularResponse(BaseModel):
+    lesion_site: str
+    left_eye_defect: str
+    right_eye_defect: str
+    perimetry_pattern: str
+    nystagmus_direction: str
+    vor_gain: float
+    epley_maneuver_success_prob: float
+    diagnostic_pearl: str
+
+class AutonomicReflexRequest(BaseModel):
+    sci_level: str = "none"
+    horner_order: int = Field(0, ge=0, le=3)
+    tilt_angle_deg: float = Field(0.0, ge=0.0, le=90.0)
+    toxidrome: str = "none"
+
+class AutonomicReflexResponse(BaseModel):
+    sympathetic_tone_percent: float
+    parasympathetic_tone_percent: float
+    mean_arterial_pressure_mmhg: float
+    heart_rate_bpm: float
+    pupil_diameter_mm: float
+    ptosis_present: bool
+    anhidrosis_present: bool
+    autonomic_dysreflexia_active: bool
+    clinical_syndrome: str
+

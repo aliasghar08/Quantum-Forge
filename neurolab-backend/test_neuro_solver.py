@@ -354,3 +354,52 @@ def test_waveform_inverse_fit():
     assert data["pressure_reactivity_index_prx"] == 0.12
     assert "Intact Autoregulation" in data["autoregulation_state"]
 
+
+def test_whole_system_localize():
+    # Cortical Aphasia
+    vec = [0.0] * 16
+    vec[0] = 1.0
+    vec[1] = 0.8
+    vec[10] = 1.0  # Broca
+    res = client.post("/api/neuro/whole-system-localize", json={"deficit_vector": vec})
+    assert res.status_code == 200
+    data = res.json()
+    assert "Cortex" in data["top_location"]
+    assert data["confidence_percent"] > 40.0
+    assert "Brain MRI" in data["recommended_investigation"]
+
+
+def test_synapse_axon():
+    # Normal saltatory
+    res_normal = client.post("/api/neuro/synapse-axon", json={"myelin_integrity": 1.0, "nav_conductance": 1.0})
+    assert res_normal.status_code == 200
+    assert res_normal.json()["conduction_velocity_m_s"] > 45.0
+    assert res_normal.json()["action_potential_success"] is True
+
+    # Myasthenia Gravis
+    res_mg = client.post("/api/neuro/synapse-axon", json={"nachr_density": 0.25})
+    assert res_mg.status_code == 200
+    assert "Myasthenia Gravis" in res_mg.json()["diagnostic_pattern"]
+    assert res_mg.json()["rns_decrement_percent"] > 10.0
+
+
+def test_visual_vestibular():
+    res_chiasm = client.post("/api/neuro/visual-vestibular", json={"lesion_site": "optic_chiasm"})
+    assert res_chiasm.status_code == 200
+    assert "Bitemporal Hemianopia" in res_chiasm.json()["perimetry_pattern"]
+
+    res_meyer = client.post("/api/neuro/visual-vestibular", json={"lesion_site": "meyers_loop"})
+    assert res_meyer.status_code == 200
+    assert "Pie in the Sky" in res_meyer.json()["perimetry_pattern"]
+
+
+def test_autonomic_reflex():
+    # T6+ Autonomic Dysreflexia
+    res_ad = client.post("/api/neuro/autonomic-reflex", json={"sci_level": "T4"})
+    assert res_ad.status_code == 200
+    data = res_ad.json()
+    assert data["autonomic_dysreflexia_active"] is True
+    assert data["mean_arterial_pressure_mmhg"] > 140.0
+    assert data["heart_rate_bpm"] < 55.0  # Reflex bradycardia
+
+

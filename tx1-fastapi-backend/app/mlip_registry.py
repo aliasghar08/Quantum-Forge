@@ -143,7 +143,9 @@ class ModelRegistry:
             "tx1-v2a": _file_digest(base_dir / "t1x_model_checkpoint_v2a.pt"),
             "tx1-v2b": _file_digest(base_dir / "t1x_model_checkpoint_v2b.pt"),
         }
-        ens_dir = base_dir / "models" / "ensemble_v2"
+        ens_dir = base_dir.parent / "ml_models" / "tx1_painn_ensemble" / "checkpoints"
+        if not ens_dir.is_dir() or not list(ens_dir.glob("member_*.pt")):
+            ens_dir = base_dir / "models" / "ensemble_v2"
         if ens_dir.is_dir() and list(ens_dir.glob("member_*.pt")):
             members = sorted(ens_dir.glob("member_*.pt"))
             digests["tx1-v2"] = f"ensemble_{len(members)}_members"

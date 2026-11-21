@@ -10,3 +10,4 @@ tests/
 *.pt
 !t1x_model_checkpoint*.pt
 !models/ensemble_v2/*.pt
+!ml_models/tx1_painn_ensemble/checkpoints/*.pt

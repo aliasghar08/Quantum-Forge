@@ -36,6 +36,14 @@ from neuro_solver import (
     DcsMappingResponse,
     WaveformInverseFitRequest,
     WaveformInverseFitResponse,
+    WholeSystemLocalizeRequest,
+    WholeSystemLocalizeResponse,
+    SynapseAxonRequest,
+    SynapseAxonResponse,
+    VisualVestibularRequest,
+    VisualVestibularResponse,
+    AutonomicReflexRequest,
+    AutonomicReflexResponse,
     NeuroComputationalSolver,
 )
 
@@ -211,4 +219,53 @@ def solve_waveform_inverse_fit(request: WaveformInverseFitRequest):
     except Exception as e:
         logger.error(f"Error solving waveform inverse fit: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/neuro/whole-system-localize", response_model=WholeSystemLocalizeResponse)
+def solve_whole_system_localize(request: WholeSystemLocalizeRequest):
+    """
+    WholeNeuro-Connectome Lesion Localization Solver across 10 anatomical neuro-axes.
+    """
+    try:
+        return NeuroComputationalSolver.solve_whole_system_localize(request)
+    except Exception as e:
+        logger.error(f"Error solving whole system localize: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/neuro/synapse-axon", response_model=SynapseAxonResponse)
+def solve_synapse_axon(request: SynapseAxonRequest):
+    """
+    SynapseNet-Axon Biophysical Saltatory Conduction & NMJ Kinetics Solver.
+    """
+    try:
+        return NeuroComputationalSolver.solve_synapse_axon(request)
+    except Exception as e:
+        logger.error(f"Error solving synapse axon: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/neuro/visual-vestibular", response_model=VisualVestibularResponse)
+def solve_visual_vestibular(request: VisualVestibularRequest):
+    """
+    Visual Pathway Perimetry Loss & Semicircular Canal VOR Nystagmus Solver.
+    """
+    try:
+        return NeuroComputationalSolver.solve_visual_vestibular(request)
+    except Exception as e:
+        logger.error(f"Error solving visual vestibular: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/neuro/autonomic-reflex", response_model=AutonomicReflexResponse)
+def solve_autonomic_reflex(request: AutonomicReflexRequest):
+    """
+    Autonomic Sympathetic vs. Parasympathetic Reflex, Horner's & T6+ Dysreflexia Solver.
+    """
+    try:
+        return NeuroComputationalSolver.solve_autonomic_reflex(request)
+    except Exception as e:
+        logger.error(f"Error solving autonomic reflex: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 
