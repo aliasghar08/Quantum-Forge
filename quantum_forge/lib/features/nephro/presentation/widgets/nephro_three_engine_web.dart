@@ -50,6 +50,18 @@ class NephroLabThreeBridge {
   bool _disposed = false;
   bool hasFailed = false;
 
+  NephroVisualRenderMode _currentVisualMode = NephroVisualRenderMode.photorealistic;
+  double _currentCutaway = 0.0;
+  String _currentViewMode = 'all';
+  String _currentLayerMode = 'all_in_one';
+  int _currentFrame = 0;
+  String _currentPhase = 'S1';
+  double _currentSpeed = 1.0;
+  bool _currentPlaying = true;
+  double _currentAffTone = 1.0;
+  double _currentEffTone = 1.0;
+  String? _currentDrug;
+
   bool get hasActiveViewer => _viewer != null;
   bool get isFullScreen => _isFullScreen;
 
@@ -137,16 +149,45 @@ class NephroLabThreeBridge {
       }
 
       final opts = JSObject();
-      _viewer = viewerModule.callMethod('mount'.toJS, _element.id.toJS, opts) as JSObject?;
+      _viewer = viewerModule.callMethod('mount'.toJS, _element, opts) as JSObject?;
       hasFailed = (_viewer == null);
+      if (_viewer != null) {
+        _replayState();
+      }
     } catch (e) {
       hasFailed = true;
     }
   }
 
+  void _replayState() {
+    if (_viewer == null || _disposed) return;
+    try {
+      final modeStr = switch (_currentVisualMode) {
+        NephroVisualRenderMode.photorealistic => 'photorealistic',
+        NephroVisualRenderMode.translucent => 'translucent',
+        NephroVisualRenderMode.schematic => 'schematic',
+      };
+      _viewer!.callMethod('setVisualRenderMode'.toJS, modeStr.toJS);
+      _viewer!.callMethod('setCutawayDepth'.toJS, _currentCutaway.toJS);
+      _viewer!.callMethod('setViewMode'.toJS, _currentViewMode.toJS);
+      _viewer!.callMethod('setLayerMode'.toJS, _currentLayerMode.toJS);
+      _viewer!.callMethod('setFrame'.toJS, _currentFrame.toJS, _currentPhase.toJS);
+      _viewer!.callMethod('setPlaybackSpeed'.toJS, _currentSpeed.toJS);
+      _viewer!.callMethod('setIsPlaying'.toJS, _currentPlaying.toJS);
+      _viewer!.callMethod('setVasomotorTone'.toJS, _currentAffTone.toJS, _currentEffTone.toJS);
+      if (_currentDrug != null) {
+        _viewer!.callMethod('highlightDrugTarget'.toJS, _currentDrug!.toJS);
+      }
+    } catch (_) {}
+  }
+
   void setViewMode(String mode) {
     if (_disposed) return;
+    _currentViewMode = mode;
     try {
+      if (_viewer != null) {
+        _viewer!.callMethod('setViewMode'.toJS, mode.toJS);
+      }
       final global = web.window as JSObject;
       final viewerModule = global.getProperty('NephroLabThreeViewer'.toJS) as JSObject?;
       viewerModule?.callMethod('setViewMode'.toJS, _element.id.toJS, mode.toJS);
@@ -155,12 +196,16 @@ class NephroLabThreeBridge {
 
   void setVisualRenderMode(NephroVisualRenderMode mode) {
     if (_disposed) return;
+    _currentVisualMode = mode;
+    final modeStr = switch (mode) {
+      NephroVisualRenderMode.photorealistic => 'photorealistic',
+      NephroVisualRenderMode.translucent => 'translucent',
+      NephroVisualRenderMode.schematic => 'schematic',
+    };
     try {
-      final modeStr = switch (mode) {
-        NephroVisualRenderMode.photorealistic => 'photorealistic',
-        NephroVisualRenderMode.translucent => 'translucent',
-        NephroVisualRenderMode.schematic => 'schematic',
-      };
+      if (_viewer != null) {
+        _viewer!.callMethod('setVisualRenderMode'.toJS, modeStr.toJS);
+      }
       final global = web.window as JSObject;
       final viewerModule = global.getProperty('NephroLabThreeViewer'.toJS) as JSObject?;
       viewerModule?.callMethod('setVisualRenderMode'.toJS, _element.id.toJS, modeStr.toJS);
@@ -169,7 +214,11 @@ class NephroLabThreeBridge {
 
   void setCutawayDepth(double fraction) {
     if (_disposed) return;
+    _currentCutaway = fraction;
     try {
+      if (_viewer != null) {
+        _viewer!.callMethod('setCutawayDepth'.toJS, fraction.toJS);
+      }
       final global = web.window as JSObject;
       final viewerModule = global.getProperty('NephroLabThreeViewer'.toJS) as JSObject?;
       viewerModule?.callMethod('setCutawayDepth'.toJS, _element.id.toJS, fraction.toJS);
@@ -178,7 +227,11 @@ class NephroLabThreeBridge {
 
   void setLayerMode(String mode) {
     if (_disposed) return;
+    _currentLayerMode = mode;
     try {
+      if (_viewer != null) {
+        _viewer!.callMethod('setLayerMode'.toJS, mode.toJS);
+      }
       final global = web.window as JSObject;
       final viewerModule = global.getProperty('NephroLabThreeViewer'.toJS) as JSObject?;
       viewerModule?.callMethod('setLayerMode'.toJS, _element.id.toJS, mode.toJS);
@@ -187,7 +240,12 @@ class NephroLabThreeBridge {
 
   void setFrame(int frame, String phaseName) {
     if (_disposed) return;
+    _currentFrame = frame;
+    _currentPhase = phaseName;
     try {
+      if (_viewer != null) {
+        _viewer!.callMethod('setFrame'.toJS, frame.toJS, phaseName.toJS);
+      }
       final global = web.window as JSObject;
       final viewerModule = global.getProperty('NephroLabThreeViewer'.toJS) as JSObject?;
       viewerModule?.callMethod('setFrame'.toJS, _element.id.toJS, frame.toJS, phaseName.toJS);
@@ -196,7 +254,11 @@ class NephroLabThreeBridge {
 
   void setPlaybackSpeed(double speed) {
     if (_disposed) return;
+    _currentSpeed = speed;
     try {
+      if (_viewer != null) {
+        _viewer!.callMethod('setPlaybackSpeed'.toJS, speed.toJS);
+      }
       final global = web.window as JSObject;
       final viewerModule = global.getProperty('NephroLabThreeViewer'.toJS) as JSObject?;
       viewerModule?.callMethod('setPlaybackSpeed'.toJS, _element.id.toJS, speed.toJS);
@@ -205,7 +267,11 @@ class NephroLabThreeBridge {
 
   void setIsPlaying(bool isPlaying) {
     if (_disposed) return;
+    _currentPlaying = isPlaying;
     try {
+      if (_viewer != null) {
+        _viewer!.callMethod('setIsPlaying'.toJS, isPlaying.toJS);
+      }
       final global = web.window as JSObject;
       final viewerModule = global.getProperty('NephroLabThreeViewer'.toJS) as JSObject?;
       viewerModule?.callMethod('setIsPlaying'.toJS, _element.id.toJS, isPlaying.toJS);
@@ -215,6 +281,9 @@ class NephroLabThreeBridge {
   void injectGfrTracer() {
     if (_disposed) return;
     try {
+      if (_viewer != null) {
+        _viewer!.callMethod('injectGfrTracer'.toJS);
+      }
       final global = web.window as JSObject;
       final viewerModule = global.getProperty('NephroLabThreeViewer'.toJS) as JSObject?;
       viewerModule?.callMethod('injectGfrTracer'.toJS, _element.id.toJS);
@@ -223,7 +292,12 @@ class NephroLabThreeBridge {
 
   void setVasomotorTone(double afferentTone, double efferentTone) {
     if (_disposed) return;
+    _currentAffTone = afferentTone;
+    _currentEffTone = efferentTone;
     try {
+      if (_viewer != null) {
+        _viewer!.callMethod('setVasomotorTone'.toJS, afferentTone.toJS, efferentTone.toJS);
+      }
       final global = web.window as JSObject;
       final viewerModule = global.getProperty('NephroLabThreeViewer'.toJS) as JSObject?;
       viewerModule?.callMethod('setVasomotorTone'.toJS, _element.id.toJS, afferentTone.toJS, efferentTone.toJS);
@@ -232,7 +306,11 @@ class NephroLabThreeBridge {
 
   void highlightDrugTarget(String targetId) {
     if (_disposed) return;
+    _currentDrug = targetId;
     try {
+      if (_viewer != null) {
+        _viewer!.callMethod('highlightDrugTarget'.toJS, targetId.toJS);
+      }
       final global = web.window as JSObject;
       final viewerModule = global.getProperty('NephroLabThreeViewer'.toJS) as JSObject?;
       viewerModule?.callMethod('highlightDrugTarget'.toJS, _element.id.toJS, targetId.toJS);
@@ -242,6 +320,9 @@ class NephroLabThreeBridge {
   void resetCamera() {
     if (_disposed) return;
     try {
+      if (_viewer != null) {
+        _viewer!.callMethod('resetCamera'.toJS);
+      }
       final global = web.window as JSObject;
       final viewerModule = global.getProperty('NephroLabThreeViewer'.toJS) as JSObject?;
       viewerModule?.callMethod('resetCamera'.toJS, _element.id.toJS);
@@ -251,6 +332,9 @@ class NephroLabThreeBridge {
   void handleResize() {
     if (_disposed) return;
     try {
+      if (_viewer != null) {
+        _viewer!.callMethod('handleResize'.toJS);
+      }
       final global = web.window as JSObject;
       final viewerModule = global.getProperty('NephroLabThreeViewer'.toJS) as JSObject?;
       viewerModule?.callMethod('handleResize'.toJS, _element.id.toJS);
@@ -261,6 +345,9 @@ class NephroLabThreeBridge {
     if (_disposed) return;
     _disposed = true;
     try {
+      if (_viewer != null) {
+        _viewer!.callMethod('dispose'.toJS);
+      }
       final global = web.window as JSObject;
       final viewerModule = global.getProperty('NephroLabThreeViewer'.toJS) as JSObject?;
       viewerModule?.callMethod('unmount'.toJS, _element.id.toJS);

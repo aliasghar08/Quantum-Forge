@@ -212,7 +212,7 @@
       this.layerMode = this.options.layerMode;
       this.activeDrugTarget = this.options.activeDrugTarget;
       this.cutawayDepth = 0.0;
-      this.cutawayPlane = new THREE.Plane(new THREE.Vector3(0, 0, -1), 3.0);
+      this.cutawayPlane = new THREE.Plane(new THREE.Vector3(0, 0, -1), 0.15);
       this.pbrMaps = createProceduralRenalPBRMaps();
 
       // 120-frame physiological trajectory state
@@ -356,14 +356,12 @@
 
       this.parenchymaMat = new THREE.MeshPhysicalMaterial({
         color: 0x8a2b2f,
-        roughness: 0.22,
-        metalness: 0.08,
-        clearcoat: 0.88,
-        clearcoatRoughness: 0.16,
-        sheen: 0.65,
-        sheenColor: 0xff5a4d,
+        roughness: 0.20,
+        metalness: 0.05,
+        clearcoat: 0.90,
+        clearcoatRoughness: 0.14,
         transmission: 0.0,
-        opacity: 0.92,
+        opacity: 0.82,
         transparent: true,
         side: THREE.DoubleSide,
         clippingPlanes: [this.cutawayPlane],
@@ -1291,13 +1289,13 @@
 
     setCutawayDepth(fraction) {
       this.cutawayDepth = Math.max(0.0, Math.min(1.0, Number(fraction) || 0.0));
-      this.cutawayPlane.constant = 2.4 - this.cutawayDepth * 3.2;
+      this.cutawayPlane.constant = 0.25 - this.cutawayDepth * 1.75;
 
       if (this.parenchymaMesh && this.parenchymaMesh.material) {
         if (this.cutawayDepth >= 0.95) {
-          this.parenchymaMesh.material.opacity = 0.15;
+          this.parenchymaMesh.material.opacity = 0.12;
         } else {
-          this.parenchymaMesh.material.opacity = 0.92 - this.cutawayDepth * 0.45;
+          this.parenchymaMesh.material.opacity = Math.max(0.12, 0.82 - this.cutawayDepth * 0.60);
         }
       }
     }
@@ -1590,97 +1588,106 @@
   window.NephroLabThreeViewer = {
     _instances: {},
 
-    mount(elementId, options) {
-      const container = document.getElementById(elementId);
-      if (!container) return null;
+    _resolve(target) {
+      if (!target) return null;
+      if (typeof target === 'object' && target.setVisualRenderMode) {
+        return target;
+      }
+      return this._instances[target] || null;
+    },
+
+    mount(containerOrId, options = {}) {
+      const container = (typeof containerOrId === 'string')
+        ? document.getElementById(containerOrId)
+        : containerOrId;
+      if (!container) {
+        console.warn('[NephroLab3D] Container element not found:', containerOrId);
+        return null;
+      }
       const engine = new NephroLabEngineInstance(container, options);
-      this._instances[elementId] = engine;
+      const key = (container && container.id) ? container.id : ('nephro_' + Math.random());
+      this._instances[key] = engine;
+      if (options && options.id) {
+        this._instances[options.id] = engine;
+      }
       return engine;
     },
 
-    setFrame(elementId, frame, phaseName) {
-      if (this._instances[elementId]) {
-        this._instances[elementId].setFrame(frame, phaseName);
-      }
+    setFrame(target, frame, phaseName) {
+      const inst = this._resolve(target);
+      if (inst) inst.setFrame(frame, phaseName);
     },
 
-    setPlaybackSpeed(elementId, speed) {
-      if (this._instances[elementId]) {
-        this._instances[elementId].setPlaybackSpeed(speed);
-      }
+    setPlaybackSpeed(target, speed) {
+      const inst = this._resolve(target);
+      if (inst) inst.setPlaybackSpeed(speed);
     },
 
-    setIsPlaying(elementId, isPlaying) {
-      if (this._instances[elementId]) {
-        this._instances[elementId].setIsPlaying(isPlaying);
-      }
+    setIsPlaying(target, isPlaying) {
+      const inst = this._resolve(target);
+      if (inst) inst.setIsPlaying(isPlaying);
     },
 
-    setLayerMode(elementId, mode) {
-      if (this._instances[elementId]) {
-        this._instances[elementId].setLayerMode(mode);
-      }
+    setLayerMode(target, mode) {
+      const inst = this._resolve(target);
+      if (inst) inst.setLayerMode(mode);
     },
 
-    injectGfrTracer(elementId) {
-      if (this._instances[elementId]) {
-        this._instances[elementId].injectGfrTracer();
-      }
+    injectGfrTracer(target) {
+      const inst = this._resolve(target);
+      if (inst) inst.injectGfrTracer();
     },
 
-    setVasomotorTone(elementId, afferentTone, efferentTone) {
-      if (this._instances[elementId]) {
-        this._instances[elementId].setVasomotorTone(afferentTone, efferentTone);
-      }
+    setVasomotorTone(target, afferentTone, efferentTone) {
+      const inst = this._resolve(target);
+      if (inst) inst.setVasomotorTone(afferentTone, efferentTone);
     },
 
-    setViewMode(elementId, mode) {
-      if (this._instances[elementId]) {
-        this._instances[elementId].setViewMode(mode);
-      }
+    setViewMode(target, mode) {
+      const inst = this._resolve(target);
+      if (inst) inst.setViewMode(mode);
     },
 
-    setVisualRenderMode(elementId, mode) {
-      if (this._instances[elementId]) {
-        this._instances[elementId].setVisualRenderMode(mode);
-      }
+    setVisualRenderMode(target, mode) {
+      const inst = this._resolve(target);
+      if (inst) inst.setVisualRenderMode(mode);
     },
 
-    setCutawayDepth(elementId, fraction) {
-      if (this._instances[elementId]) {
-        this._instances[elementId].setCutawayDepth(fraction);
-      }
+    setCutawayDepth(target, fraction) {
+      const inst = this._resolve(target);
+      if (inst) inst.setCutawayDepth(fraction);
     },
 
-    highlightDrugTarget(elementId, targetId) {
-      if (this._instances[elementId]) {
-        this._instances[elementId].highlightDrugTarget(targetId);
-      }
+    highlightDrugTarget(target, targetId) {
+      const inst = this._resolve(target);
+      if (inst) inst.highlightDrugTarget(targetId);
     },
 
-    getProjectedLandmarks(elementId, category) {
-      if (this._instances[elementId]) {
-        return this._instances[elementId].getProjectedLandmarks(category);
-      }
+    getProjectedLandmarks(target, category) {
+      const inst = this._resolve(target);
+      if (inst) return inst.getProjectedLandmarks(category);
       return [];
     },
 
-    resetCamera(elementId) {
-      if (this._instances[elementId]) {
-        this._instances[elementId].resetCamera();
-      }
+    resetCamera(target) {
+      const inst = this._resolve(target);
+      if (inst) inst.resetCamera();
     },
 
-    handleResize(elementId) {
-      if (this._instances[elementId]) {
-        this._instances[elementId].handleResize();
-      }
+    handleResize(target) {
+      const inst = this._resolve(target);
+      if (inst) inst.handleResize();
     },
 
-    unmount(elementId) {
-      if (this._instances[elementId]) {
-        this._instances[elementId].dispose();
-        delete this._instances[elementId];
+    unmount(target) {
+      const inst = this._resolve(target);
+      if (inst) {
+        inst.dispose();
+        for (const k in this._instances) {
+          if (this._instances[k] === inst) {
+            delete this._instances[k];
+          }
+        }
       }
     }
   };
