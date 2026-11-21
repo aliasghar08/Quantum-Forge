@@ -1600,6 +1600,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     // ── PATHWAY 1: Active Template Reaction ──────────────────────────────────
     if (template != null) {
+      // Direct embedded pharmacology profile from Firestore document (e.g. rx_med_*)
+      if (template.pharmacologyProfile != null) {
+        return template.pharmacologyProfile;
+      }
+
       // Must qualify as medicine via template tags or category
       if (!_isMedicineTemplate(template)) {
         return null;

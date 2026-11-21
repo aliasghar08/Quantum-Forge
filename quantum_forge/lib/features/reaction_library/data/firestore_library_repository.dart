@@ -148,42 +148,78 @@ class FirestoreLibraryRepository {
       return page.items;
     }
     final q = query.trim();
+    final cleanQ = q.toLowerCase().replaceAll(' ', '_').replaceAll('-', '_');
     try {
       final results = <ReactionTemplate>[];
       final seen = <String>{};
 
-      // 1. Prefix match on name
-      Query<Object?> nameQ = _col
-          .where('name', isGreaterThanOrEqualTo: q)
-          .where('name', isLessThanOrEqualTo: '$q\uf8ff')
-          .limit(limit);
-      if (category != null) {
-        nameQ = nameQ.where('category', isEqualTo: category.name);
-      }
-      final nameSnap = await nameQ.get();
-      for (final d in nameSnap.docs) {
-        if (seen.add(d.id)) {
-          results.add(ReactionTemplate.fromJson(
-              d.data() as Map<String, dynamic>, d.id));
-        }
+      // 0. Direct lookup for clinical medicine document IDs (rx_med_*)
+      final candidateIds = [
+        if (!cleanQ.startsWith('rx_med_')) 'rx_med_$cleanQ',
+        cleanQ,
+        q,
+      ];
+      for (final cid in candidateIds) {
+        try {
+          final directDoc = await _col.doc(cid).get();
+          if (directDoc.exists && directDoc.data() != null) {
+            if (seen.add(directDoc.id)) {
+              results.add(ReactionTemplate.fromJson(
+                  directDoc.data() as Map<String, dynamic>, directDoc.id));
+            }
+          }
+        } catch (_) {}
       }
 
-      // 2. Tag array-contains (runs in parallel conceptually, but sequentially
-      //    here to avoid blowing the Firestore read quota on every keystroke)
-      if (results.length < limit) {
-        Query<Object?> tagQ =
-            _col.where('tags', arrayContains: q.toLowerCase()).limit(limit);
+      // 1. Prefix match on name (original casing and title casing)
+      final titleCaseQ = q.isNotEmpty ? (q[0].toUpperCase() + q.substring(1)) : q;
+      final searchQueries = {q, titleCaseQ};
+
+      for (final sq in searchQueries) {
+        if (results.length >= limit) break;
+        Query<Object?> nameQ = _col
+            .where('name', isGreaterThanOrEqualTo: sq)
+            .where('name', isLessThanOrEqualTo: '$sq\uf8ff')
+            .limit(limit);
         if (category != null) {
-          tagQ = tagQ.where('category', isEqualTo: category.name);
+          nameQ = nameQ.where('category', isEqualTo: category.name);
         }
-        final tagSnap = await tagQ.get();
-        for (final d in tagSnap.docs) {
+        final nameSnap = await nameQ.get();
+        for (final d in nameSnap.docs) {
           if (seen.add(d.id)) {
             results.add(ReactionTemplate.fromJson(
                 d.data() as Map<String, dynamic>, d.id));
           }
         }
       }
+
+      // 2. Tag array-contains (checking lowercase and title-case tags)
+      if (results.length < limit) {
+        for (final tq in {q.toLowerCase(), titleCaseQ}) {
+          if (results.length >= limit) break;
+          Query<Object?> tagQ =
+              _col.where('tags', arrayContains: tq).limit(limit);
+          if (category != null) {
+            tagQ = tagQ.where('category', isEqualTo: category.name);
+          }
+          final tagSnap = await tagQ.get();
+          for (final d in tagSnap.docs) {
+            if (seen.add(d.id)) {
+              results.add(ReactionTemplate.fromJson(
+                  d.data() as Map<String, dynamic>, d.id));
+            }
+          }
+        }
+      }
+
+      // Prioritize clinical medicine documents (rx_med_*) at the top
+      results.sort((a, b) {
+        final aIsRx = a.id.startsWith('rx_med_');
+        final bIsRx = b.id.startsWith('rx_med_');
+        if (aIsRx && !bIsRx) return -1;
+        if (!aIsRx && bIsRx) return 1;
+        return 0;
+      });
 
       return results;
     } catch (e) {

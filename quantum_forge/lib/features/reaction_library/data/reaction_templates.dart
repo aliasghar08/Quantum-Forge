@@ -5,6 +5,7 @@
 // ============================================================================
 
 import 'package:flutter/material.dart';
+import 'package:quantum_forge/features/pharmacopeia/data/medicine_pharmacology_profile.dart';
 import 'package:quantum_forge/features/reaction_library/data/medical_reaction_templates.dart';
 import 'package:quantum_forge/features/reaction_library/data/polymer_reaction_templates.dart';
 import 'package:quantum_forge/features/reaction_library/data/veterinary_reaction_templates.dart';
@@ -100,6 +101,9 @@ class ReactionTemplate {
   /// High-impact DOI for the catalyzed pathway when distinct from the gas-phase reference [doi].
   final String? literatureDoi;
 
+  /// Optional clinical & veterinary pharmacology profile (7-tab monograph + verified sources).
+  final MedicinePharmacologyProfile? pharmacologyProfile;
+
   const ReactionTemplate({
     required this.id,
     required this.name,
@@ -120,6 +124,7 @@ class ReactionTemplate {
     this.literatureBarrierKcalMol,
     bool? hasLiteratureCatalyst,
     this.literatureDoi,
+    this.pharmacologyProfile,
   }) : hasLiteratureCatalyst = hasLiteratureCatalyst ??
             (defaultCatalystName != null && defaultCatalystName != '');
 
@@ -419,6 +424,13 @@ class ReactionTemplate {
           (json['literatureBarrierKcalMol'] as num?)?.toDouble(),
       hasLiteratureCatalyst: json['hasLiteratureCatalyst'] as bool?,
       literatureDoi: json['literatureDoi'] as String?,
+      pharmacologyProfile: json['pharmacology_profile'] != null
+          ? MedicinePharmacologyProfile.fromJson(
+              Map<String, dynamic>.from(json['pharmacology_profile'] as Map))
+          : (json['pharmacologyProfile'] != null
+              ? MedicinePharmacologyProfile.fromJson(
+                  Map<String, dynamic>.from(json['pharmacologyProfile'] as Map))
+              : null),
     );
   }
 
@@ -444,6 +456,8 @@ class ReactionTemplate {
         'literatureBarrierKcalMol': literatureBarrierKcalMol,
       'hasLiteratureCatalyst': hasLiteratureCatalyst,
       if (literatureDoi != null) 'literatureDoi': literatureDoi,
+      if (pharmacologyProfile != null)
+        'pharmacology_profile': pharmacologyProfile!.toJson(),
     };
   }
 }

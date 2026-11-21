@@ -226,6 +226,19 @@ class _LibraryScreenState extends State<LibraryScreen> {
         if (seen.add(m.id)) combined.add(m);
       }
 
+      // Prioritize clinical medicines (rx_med_*) and exact name matches
+      combined.sort((a, b) {
+        final aRx = a.id.startsWith('rx_med_');
+        final bRx = b.id.startsWith('rx_med_');
+        if (aRx && !bRx) return -1;
+        if (!aRx && bRx) return 1;
+        final aExact = a.name.toLowerCase().contains(qLower) || a.id.toLowerCase().contains(qLower);
+        final bExact = b.name.toLowerCase().contains(qLower) || b.id.toLowerCase().contains(qLower);
+        if (aExact && !bExact) return -1;
+        if (!aExact && bExact) return 1;
+        return 0;
+      });
+
       setState(() {
         _items = combined;
         _nextCursor = null;
@@ -1131,7 +1144,10 @@ class _LibraryScreenState extends State<LibraryScreen> {
     } else if (_provenanceFilter == ProvenanceFilter.verifiedDoiOnly) {
       list = list
           .where((t) =>
-              !t.isDerived && t.effectiveLiteratureDoi.trim().isNotEmpty)
+              !t.isDerived &&
+              (t.effectiveLiteratureDoi.trim().isNotEmpty ||
+                  t.doi.trim().isNotEmpty ||
+                  t.id.startsWith('rx_med_')))
           .toList();
     }
 
