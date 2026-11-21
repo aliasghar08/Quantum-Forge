@@ -12,7 +12,9 @@
 
 **Quantum Forge** is an AI-assisted quantum chemistry, computational pharmacology, and interventional cardiology simulation workstation built **for the web** with Flutter. It gives researchers, pharmacologists, cardiologists, and students a single high-performance browser dashboard for building molecules, modelling transition states, predicting cardiorenal toxicology, and simulating full interventional cath-lab hemodynamics — with a two-way bridge to desktop **Avogadro 2**.
 
-🌐 **Live Deployment**: [https://quantom-forge.web.app](https://quantom-forge.web.app)
+🌐 **Live Deployment**: [https://quantom-forge.web.app](https://quantom-forge.web.app)  
+📖 **Repository Directory Guide**: [docs/PROJECT_DIRECTORY_GUIDE.md](docs/PROJECT_DIRECTORY_GUIDE.md)  
+🧠 **ML Models Inventory**: [docs/ML_MODELS_INVENTORY.md](docs/ML_MODELS_INVENTORY.md)  
 
 ## 🌐 Web-first platform
 

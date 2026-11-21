@@ -4,12 +4,18 @@
 import sys
 import tempfile
 import unittest
+import uuid
 from pathlib import Path
 import torch
 
-SCRIPTS_DIR = Path("scripts/autonomous_trainer").resolve()
+SCRIPTS_DIR = Path("scripts/autonomous_research_pipeline").resolve()
+if not SCRIPTS_DIR.exists():
+    SCRIPTS_DIR = Path("scripts/autonomous_trainer").resolve()
 if str(SCRIPTS_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPTS_DIR))
+LEGACY_DIR = Path("scripts/autonomous_trainer").resolve()
+if str(LEGACY_DIR) not in sys.path:
+    sys.path.insert(0, str(LEGACY_DIR))
 
 from literature_harvester import LiteratureHarvester, get_db
 from data_ingester import DataIngester, validate_physical_invariants
@@ -85,9 +91,10 @@ class TestAutonomousTrainer(unittest.TestCase):
         db_file = self.tmp_path / "multi_train.sqlite"
         harvester = LiteratureHarvester(db_path=db_file)
         
-        # Register two diverse reactions: one Sulfur, one Halogen SN2
-        harvester.register_doi("10.1021/sulfur_test", title="Glutathione Thiol Disulfide Exchange")
-        harvester.register_doi("10.1021/sn2_test", title="Alkyl Halide SN2 Nucleophilic Substitution")
+        # Register two diverse reactions: one Sulfur, one Halogen SN2 with isolated test DOIs
+        uid = uuid.uuid4().hex[:8]
+        harvester.register_doi(f"10.1021/sulfur_test_{uid}", title="Glutathione Thiol Disulfide Exchange")
+        harvester.register_doi(f"10.1021/sn2_test_{uid}", title="Alkyl Halide SN2 Nucleophilic Substitution")
 
         ingester = DataIngester(db_path=db_file)
         extxyz_list = []
