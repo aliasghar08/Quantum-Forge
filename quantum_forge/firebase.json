@@ -96,6 +96,13 @@
         }
       },
       {
+        "source": "/api/nephro/**",
+        "run": {
+          "serviceId": "nephrolab-backend",
+          "region": "us-central1"
+        }
+      },
+      {
         "source": "**",
         "destination": "/index.html"
       }
