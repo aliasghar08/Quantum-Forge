@@ -110,6 +110,13 @@
         }
       },
       {
+        "source": "/api/seeder/**",
+        "run": {
+          "serviceId": "quantum-forge-seeder",
+          "region": "us-central1"
+        }
+      },
+      {
         "source": "**",
         "destination": "/index.html"
       }
