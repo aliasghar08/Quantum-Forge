@@ -22,6 +22,7 @@ import 'package:quantum_forge/screens/cardio_cath_screen.dart';
 import 'package:quantum_forge/screens/neuro_lab_screen.dart';
 import 'package:quantum_forge/screens/nephro_lab_screen.dart';
 import 'package:quantum_forge/screens/pulmo_vent_screen.dart';
+import 'package:quantum_forge/screens/dental_screen.dart';
 import 'package:quantum_forge/screens/ward_rounds_screen.dart';
 import 'package:quantum_forge/core/widgets/quantum_forge_logo.dart';
 import 'package:quantum_forge/core/services/url_service.dart';
@@ -237,6 +238,14 @@ class ProfessionalDrawer extends StatelessWidget {
               () => Navigator.of(context).push(PulmoVentScreen.route()),
               showTooltips,
               '3D bronchial tree, Weibel Gen 0-16, mechanical ventilation CRT sweep, P-V loops, and ECMO twin.',
+            ),
+            _routeItem(
+              context,
+              Icons.healing_rounded,
+              'DentoLab 3D (Dental & Maxillofacial)',
+              () => Navigator.of(context).push(DentalScreen.route()),
+              showTooltips,
+              'Procedural 3D dentition & TMJ, digital radiography / CBCT, endodontic RCT & implant suite, chairside monitor.',
             ),
 
             SizedBox(height: gap(12)),

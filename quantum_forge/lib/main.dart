@@ -29,6 +29,7 @@ import 'package:quantum_forge/screens/cardio_cath_screen.dart';
 import 'package:quantum_forge/screens/neuro_lab_screen.dart';
 import 'package:quantum_forge/screens/nephro_lab_screen.dart';
 import 'package:quantum_forge/screens/pulmo_vent_screen.dart';
+import 'package:quantum_forge/screens/dental_screen.dart';
 import 'package:quantum_forge/screens/ward_rounds_screen.dart';
 import 'package:quantum_forge/screens/pharmacogenomics_screen.dart';
 import 'package:quantum_forge/screens/osce_sandbox_screen.dart';
@@ -341,6 +342,11 @@ class _QuantumForgeAppState extends State<QuantumForgeApp> {
                 if (path == '/pulmo' || path == 'pulmo' || path == '/pulmovent' || path == 'pulmovent' || path == '/pulmo-vent' || path == 'pulmo-vent') {
                   return PulmoVentScreen.route(
                     initialSituationId: uri?.queryParameters['situation'],
+                  );
+                }
+                if (path == '/dental' || path == 'dental' || path == '/dentolab' || path == 'dentolab' || path == '/dentolab-3d' || path == 'dentolab-3d') {
+                  return DentalScreen.route(
+                    initialCaseId: uri?.queryParameters['case'],
                   );
                 }
                 if (path == '/pharmacogenomics' || path == 'pharmacogenomics') {
