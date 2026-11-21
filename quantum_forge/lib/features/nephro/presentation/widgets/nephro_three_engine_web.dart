@@ -9,6 +9,7 @@ import 'dart:js_interop';
 import 'dart:js_interop_unsafe';
 import 'dart:ui_web' as ui_web;
 import 'package:web/web.dart' as web;
+import '../../data/nephro_landmark_models.dart';
 
 class NephroProjectedLandmark {
   final String id;
@@ -149,6 +150,29 @@ class NephroLabThreeBridge {
       final global = web.window as JSObject;
       final viewerModule = global.getProperty('NephroLabThreeViewer'.toJS) as JSObject?;
       viewerModule?.callMethod('setViewMode'.toJS, _element.id.toJS, mode.toJS);
+    } catch (_) {}
+  }
+
+  void setVisualRenderMode(NephroVisualRenderMode mode) {
+    if (_disposed) return;
+    try {
+      final modeStr = switch (mode) {
+        NephroVisualRenderMode.photorealistic => 'photorealistic',
+        NephroVisualRenderMode.translucent => 'translucent',
+        NephroVisualRenderMode.schematic => 'schematic',
+      };
+      final global = web.window as JSObject;
+      final viewerModule = global.getProperty('NephroLabThreeViewer'.toJS) as JSObject?;
+      viewerModule?.callMethod('setVisualRenderMode'.toJS, _element.id.toJS, modeStr.toJS);
+    } catch (_) {}
+  }
+
+  void setCutawayDepth(double fraction) {
+    if (_disposed) return;
+    try {
+      final global = web.window as JSObject;
+      final viewerModule = global.getProperty('NephroLabThreeViewer'.toJS) as JSObject?;
+      viewerModule?.callMethod('setCutawayDepth'.toJS, _element.id.toJS, fraction.toJS);
     } catch (_) {}
   }
 

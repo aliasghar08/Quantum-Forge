@@ -46,6 +46,7 @@ class Nephro3DViewport extends StatefulWidget {
 
 class _Nephro3DViewportState extends State<Nephro3DViewport> with SingleTickerProviderStateMixin {
   NephroLabThreeBridge? _threeBridge;
+  NephroVisualRenderMode _visualMode = NephroVisualRenderMode.photorealistic;
   double _rotationY = 0.35;
   double _rotationX = 0.25;
   double _zoom = 1.0;
@@ -170,6 +171,7 @@ class _Nephro3DViewportState extends State<Nephro3DViewport> with SingleTickerPr
                       onPlatformViewCreated: (int id) {
                         _threeBridge = NephroLabThreeBridge.forNephronView(id);
                         _threeBridge?.setViewMode(widget.viewMode.name);
+                        _threeBridge?.setVisualRenderMode(_visualMode);
                         if (vitals != null) {
                           _threeBridge?.setFrame(vitals.currentFrame, vitals.currentPhase.shortLabel);
                           _threeBridge?.setPlaybackSpeed(vitals.playbackSpeed);
@@ -195,6 +197,7 @@ class _Nephro3DViewportState extends State<Nephro3DViewport> with SingleTickerPr
                       child: CustomPaint(
                         painter: _NephronFallbackPainter(
                           viewMode: widget.viewMode,
+                          visualMode: _visualMode,
                           rotationY: _rotationY,
                           rotationX: _rotationX,
                           zoom: _zoom,
@@ -209,92 +212,153 @@ class _Nephro3DViewportState extends State<Nephro3DViewport> with SingleTickerPr
               top: 10,
               left: 12,
               right: 12,
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3.5),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF00E5FF).withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(6),
-                      border: Border.all(color: const Color(0xFF00E5FF).withValues(alpha: 0.5)),
-                    ),
-                    child: const Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.biotech_rounded, size: 12, color: Color(0xFF00E5FF)),
-                        SizedBox(width: 4),
-                        Text(
-                          'NEPHRON 3D | PROCEDURAL',
-                          style: TextStyle(
-                            color: Color(0xFF00E5FF),
-                            fontSize: 9.0,
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: 0.4,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-
-                  // Tracer Bolus Injection Button
-                  InkWell(
-                    key: const Key('nephro_inject_tracer_mini'),
-                    onTap: _injectGfrTracer,
-                    borderRadius: BorderRadius.circular(6),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3.5),
                       decoration: BoxDecoration(
-                        color: vitals?.isTracerActive ?? false
-                            ? const Color(0xFF00FF66).withValues(alpha: 0.25)
-                            : Colors.black.withValues(alpha: 0.5),
+                        color: const Color(0xFF00E5FF).withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(6),
-                        border: Border.all(
-                          color: vitals?.isTracerActive ?? false
-                              ? const Color(0xFF00FF66)
-                              : const Color(0xFF00FF66).withValues(alpha: 0.4),
-                        ),
+                        border: Border.all(color: const Color(0xFF00E5FF).withValues(alpha: 0.5)),
                       ),
-                      child: Row(
+                      child: const Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(
-                            Icons.science_rounded,
-                            size: 11,
-                            color: vitals?.isTracerActive ?? false
-                                ? const Color(0xFF00FF66)
-                                : const Color(0xFF00FF66).withValues(alpha: 0.8),
-                          ),
-                          const SizedBox(width: 4),
+                          Icon(Icons.biotech_rounded, size: 12, color: Color(0xFF00E5FF)),
+                          SizedBox(width: 4),
                           Text(
-                            vitals?.isTracerActive ?? false ? 'TRACER ACTIVE' : 'INJECT TRACER',
-                            style: const TextStyle(
-                              color: Color(0xFF00FF66),
-                              fontSize: 8.5,
+                            'NEPHRON 3D | PROCEDURAL',
+                            style: TextStyle(
+                              color: Color(0xFF00E5FF),
+                              fontSize: 9.0,
                               fontWeight: FontWeight.bold,
-                              fontFamily: 'monospace',
+                              letterSpacing: 0.4,
                             ),
                           ),
                         ],
                       ),
                     ),
-                  ),
+                    const SizedBox(width: 8),
 
-                  const Spacer(),
-                  IconButton(
-                    key: const Key('nephro_reset_camera'),
-                    icon: const Icon(Icons.refresh_rounded, color: Colors.white70, size: 18),
-                    tooltip: 'Reset 3D Camera',
-                    onPressed: _resetCamera,
-                  ),
-                  const SizedBox(width: 6),
-                  IconButton(
-                    key: const Key('launch_fullscreen_nephron_theater'),
-                    icon: const Icon(Icons.fullscreen_rounded, color: Color(0xFF00E5FF), size: 18),
-                    tooltip: 'Full-Screen Nephron Theater',
-                    onPressed: _openFullScreenTheater,
-                  ),
-                ],
+                    // Tracer Bolus Injection Button
+                    InkWell(
+                      key: const Key('nephro_inject_tracer_mini'),
+                      onTap: _injectGfrTracer,
+                      borderRadius: BorderRadius.circular(6),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: vitals?.isTracerActive ?? false
+                              ? const Color(0xFF00FF66).withValues(alpha: 0.25)
+                              : Colors.black.withValues(alpha: 0.5),
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(
+                            color: vitals?.isTracerActive ?? false
+                                ? const Color(0xFF00FF66)
+                                : const Color(0xFF00FF66).withValues(alpha: 0.4),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.science_rounded,
+                              size: 11,
+                              color: vitals?.isTracerActive ?? false
+                                  ? const Color(0xFF00FF66)
+                                  : const Color(0xFF00FF66).withValues(alpha: 0.8),
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              vitals?.isTracerActive ?? false ? 'TRACER ACTIVE' : 'INJECT TRACER',
+                              style: const TextStyle(
+                                color: Color(0xFF00FF66),
+                                fontSize: 8.5,
+                                fontWeight: FontWeight.bold,
+                                fontFamily: 'monospace',
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+
+                    // Segmented Render Mode Switcher (Tissue | Glass | Schematic)
+                    Container(
+                      padding: const EdgeInsets.all(2),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.5),
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(color: palette.border),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: NephroVisualRenderMode.values.map((vMode) {
+                          final isSel = vMode == _visualMode;
+                          return Tooltip(
+                            message: '${vMode.label} Mode: ${vMode.description}',
+                            child: GestureDetector(
+                              key: Key('nephro_viewport_render_mode_${vMode.name}'),
+                              behavior: HitTestBehavior.opaque,
+                              onTap: () {
+                                setState(() => _visualMode = vMode);
+                                _threeBridge?.setVisualRenderMode(vMode);
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: isSel
+                                      ? const Color(0xFFEF4444).withValues(alpha: 0.35)
+                                      : Colors.transparent,
+                                  borderRadius: BorderRadius.circular(4),
+                                  border: isSel
+                                      ? Border.all(
+                                          color: const Color(0xFFEF4444).withValues(alpha: 0.8),
+                                          width: 1,
+                                        )
+                                      : null,
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(vMode.icon, style: const TextStyle(fontSize: 10)),
+                                    const SizedBox(width: 3),
+                                    Text(
+                                      vMode.label,
+                                      style: TextStyle(
+                                        color: isSel ? Colors.white : Colors.white60,
+                                        fontSize: 9,
+                                        fontWeight: isSel ? FontWeight.bold : FontWeight.normal,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+
+                    IconButton(
+                      key: const Key('nephro_reset_camera'),
+                      icon: const Icon(Icons.refresh_rounded, color: Colors.white70, size: 18),
+                      tooltip: 'Reset 3D Camera',
+                      onPressed: _resetCamera,
+                    ),
+                    const SizedBox(width: 6),
+                    IconButton(
+                      key: const Key('launch_fullscreen_nephron_theater'),
+                      icon: const Icon(Icons.fullscreen_rounded, color: Color(0xFF00E5FF), size: 18),
+                      tooltip: 'Full-Screen Nephron Theater',
+                      onPressed: _openFullScreenTheater,
+                    ),
+                  ],
+                ),
               ),
             ),
 
@@ -379,6 +443,7 @@ class _Nephro3DViewportState extends State<Nephro3DViewport> with SingleTickerPr
 
 class _NephronFallbackPainter extends CustomPainter {
   final NephronViewMode viewMode;
+  final NephroVisualRenderMode visualMode;
   final double rotationY;
   final double rotationX;
   final double zoom;
@@ -386,6 +451,7 @@ class _NephronFallbackPainter extends CustomPainter {
 
   _NephronFallbackPainter({
     required this.viewMode,
+    this.visualMode = NephroVisualRenderMode.photorealistic,
     required this.rotationY,
     required this.rotationX,
     required this.zoom,
@@ -400,20 +466,36 @@ class _NephronFallbackPainter extends CustomPainter {
 
     // Draw Bowman's Capsule & Glomerular Tuft
     if (viewMode == NephronViewMode.all || viewMode == NephronViewMode.glomerulus) {
+      final capsuleColor = switch (visualMode) {
+        NephroVisualRenderMode.photorealistic => const Color(0xFFE8B4B8),
+        NephroVisualRenderMode.translucent => const Color(0xFF38BDF8),
+        NephroVisualRenderMode.schematic => const Color(0xFF0284C7),
+      };
       final capsulePaint = Paint()
-        ..color = const Color(0xFF38BDF8).withValues(alpha: 0.3)
+        ..color = capsuleColor.withValues(alpha: visualMode == NephroVisualRenderMode.photorealistic ? 0.35 : 0.30)
         ..style = PaintingStyle.fill;
       canvas.drawCircle(Offset(cx - scale * 0.4, cy - scale * 0.4), scale * 0.28, capsulePaint);
 
+      final tuftColor = switch (visualMode) {
+        NephroVisualRenderMode.photorealistic => const Color(0xFF9E212B),
+        NephroVisualRenderMode.translucent => const Color(0xFFEF4444),
+        NephroVisualRenderMode.schematic => const Color(0xFFFF1744),
+      };
       final tuftPaint = Paint()
-        ..color = const Color(0xFFEF4444)
+        ..color = tuftColor
         ..style = PaintingStyle.stroke
         ..strokeWidth = 3.5;
       canvas.drawCircle(Offset(cx - scale * 0.4, cy - scale * 0.4), scale * 0.16, tuftPaint);
 
       // Afferent & Efferent
+      final affColor = visualMode == NephroVisualRenderMode.photorealistic
+          ? const Color(0xFFD32F2F)
+          : const Color(0xFFEF4444);
+      final effColor = visualMode == NephroVisualRenderMode.photorealistic
+          ? const Color(0xFFFF7043)
+          : const Color(0xFFF97316);
       final artPaint = Paint()
-        ..color = const Color(0xFFD32F2F)
+        ..color = affColor
         ..style = PaintingStyle.stroke
         ..strokeWidth = 4.0;
       canvas.drawLine(
@@ -424,13 +506,18 @@ class _NephronFallbackPainter extends CustomPainter {
       canvas.drawLine(
         Offset(cx - scale * 0.4, cy - scale * 0.4),
         Offset(cx - scale * 0.15, cy - scale * 0.6),
-        artPaint..color = const Color(0xFFFF7043),
+        artPaint..color = effColor,
       );
     }
 
     // Draw Tubules & Loop of Henle
     if (viewMode == NephronViewMode.all || viewMode == NephronViewMode.tubules) {
-      // PCT (Gold)
+      // PCT
+      final pctColor = switch (visualMode) {
+        NephroVisualRenderMode.photorealistic => const Color(0xFFD97736),
+        NephroVisualRenderMode.translucent => const Color(0xFFFFB300),
+        NephroVisualRenderMode.schematic => const Color(0xFFF59E0B),
+      };
       final pctPath = Path()
         ..moveTo(cx - scale * 0.3, cy - scale * 0.2)
         ..cubicTo(
@@ -441,13 +528,18 @@ class _NephronFallbackPainter extends CustomPainter {
       canvas.drawPath(
         pctPath,
         Paint()
-          ..color = const Color(0xFFFFB300)
+          ..color = pctColor
           ..style = PaintingStyle.stroke
           ..strokeWidth = 4.0
           ..strokeCap = StrokeCap.round,
       );
 
-      // Loop of Henle (Cyan hairpin)
+      // Loop of Henle
+      final henleColor = switch (visualMode) {
+        NephroVisualRenderMode.photorealistic => const Color(0xFF4DD0E1),
+        NephroVisualRenderMode.translucent => const Color(0xFF00E5FF),
+        NephroVisualRenderMode.schematic => const Color(0xFF0288D1),
+      };
       final henlePath = Path()
         ..moveTo(cx + scale * 0.2, cy)
         ..lineTo(cx + scale * 0.25, cy + scale * 0.7)
@@ -456,18 +548,23 @@ class _NephronFallbackPainter extends CustomPainter {
       canvas.drawPath(
         henlePath,
         Paint()
-          ..color = const Color(0xFF00E5FF)
+          ..color = henleColor
           ..style = PaintingStyle.stroke
           ..strokeWidth = 3.5
           ..strokeCap = StrokeCap.round,
       );
 
-      // Collecting Duct (Green)
+      // Collecting Duct
+      final cdColor = switch (visualMode) {
+        NephroVisualRenderMode.photorealistic => const Color(0xFF43A047),
+        NephroVisualRenderMode.translucent => const Color(0xFF00E676),
+        NephroVisualRenderMode.schematic => const Color(0xFF16A34A),
+      };
       canvas.drawLine(
         Offset(cx + scale * 0.65, cy - scale * 0.6),
         Offset(cx + scale * 0.65, cy + scale * 0.8),
         Paint()
-          ..color = const Color(0xFF00E676)
+          ..color = cdColor
           ..style = PaintingStyle.stroke
           ..strokeWidth = 5.0
           ..strokeCap = StrokeCap.round,
@@ -477,5 +574,9 @@ class _NephronFallbackPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _NephronFallbackPainter old) =>
-      old.viewMode != viewMode || old.rotationY != rotationY || old.rotationX != rotationX || old.zoom != zoom;
+      old.viewMode != viewMode ||
+      old.visualMode != visualMode ||
+      old.rotationY != rotationY ||
+      old.rotationX != rotationX ||
+      old.zoom != zoom;
 }

@@ -264,5 +264,64 @@ void main() {
       await tester.pump(const Duration(milliseconds: 50));
       expect(vitals.isPlaying, isFalse);
     });
+
+    testWidgets('Nephro3DViewport and Theater support Photorealistic, Glass and Schematic render modes', (tester) async {
+      tester.view.physicalSize = const Size(1400, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+
+      final vitals = NephroMasterVitalsState();
+
+      // 1. Test Nephro3DViewport mode switching
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SizedBox(
+              width: 850,
+              height: 500,
+              child: Nephro3DViewport(vitals: vitals),
+            ),
+          ),
+        ),
+      );
+      await tester.pump(const Duration(milliseconds: 100));
+
+      expect(find.byKey(const Key('nephro_viewport_render_mode_photorealistic')), findsOneWidget);
+      expect(find.byKey(const Key('nephro_viewport_render_mode_translucent')), findsOneWidget);
+      expect(find.byKey(const Key('nephro_viewport_render_mode_schematic')), findsOneWidget);
+
+      await tester.tap(find.byKey(const Key('nephro_viewport_render_mode_translucent')));
+      await tester.pump(const Duration(milliseconds: 50));
+
+      await tester.tap(find.byKey(const Key('nephro_viewport_render_mode_schematic')));
+      await tester.pump(const Duration(milliseconds: 50));
+
+      await tester.tap(find.byKey(const Key('nephro_viewport_render_mode_photorealistic')));
+      await tester.pump(const Duration(milliseconds: 50));
+
+      // 2. Test NephroFullScreenNephronTheater HUD & Dock mode switching
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: NephroFullScreenNephronTheater(vitals: vitals),
+          ),
+        ),
+      );
+      await tester.pump(const Duration(milliseconds: 100));
+
+      expect(find.byKey(const Key('nephro_theater_render_mode_photorealistic')), findsOneWidget);
+      expect(find.byKey(const Key('nephro_theater_render_mode_translucent')), findsOneWidget);
+      expect(find.byKey(const Key('nephro_theater_render_mode_schematic')), findsOneWidget);
+
+      expect(find.byKey(const Key('nephro_dock_render_mode_photorealistic')), findsOneWidget);
+      expect(find.byKey(const Key('nephro_dock_render_mode_translucent')), findsOneWidget);
+      expect(find.byKey(const Key('nephro_dock_render_mode_schematic')), findsOneWidget);
+
+      await tester.tap(find.byKey(const Key('nephro_theater_render_mode_translucent')));
+      await tester.pump(const Duration(milliseconds: 50));
+
+      await tester.tap(find.byKey(const Key('nephro_dock_render_mode_schematic')));
+      await tester.pump(const Duration(milliseconds: 50));
+    });
   });
 }

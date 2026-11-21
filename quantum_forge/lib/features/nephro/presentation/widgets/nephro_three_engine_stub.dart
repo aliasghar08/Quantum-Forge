@@ -5,6 +5,8 @@
 // Exposes the exact same API surface as nephro_three_engine_web.dart as no-ops.
 // ============================================================================
 
+import '../../data/nephro_landmark_models.dart';
+
 class NephroProjectedLandmark {
   final String id;
   final double x;
@@ -41,6 +43,8 @@ class NephroLabThreeBridge {
   bool get hasFailed => false;
 
   void setViewMode(String mode) {}
+  void setVisualRenderMode(NephroVisualRenderMode mode) {}
+  void setCutawayDepth(double fraction) {}
   void setLayerMode(String mode) {}
   void setFrame(int frame, String phaseName) {}
   void setPlaybackSpeed(double speed) {}

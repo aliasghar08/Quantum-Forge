@@ -459,3 +459,28 @@ const List<NephronLandmarkTag> kNephronTags = [
 ];
 
 const List<NephronLandmarkTag> kDefaultNephronTags = kNephronTags;
+
+/// Visual Render Modes for NephroLab 3D
+enum NephroVisualRenderMode {
+  photorealistic(
+    'Tissue',
+    '🥩',
+    'Photorealistic wet living tissue with striated tubular epithelium, perirenal/sinus fat pads, and arterial/venous blood shading',
+  ),
+  translucent(
+    'Glass',
+    '💎',
+    'Glassmorphic optical translucency highlighting internal ion-flux, RBCs, and tracer streams',
+  ),
+  schematic(
+    'Schematic',
+    '📐',
+    'High-contrast solid vector model for anatomical clarity',
+  );
+
+  final String label;
+  final String icon;
+  final String description;
+
+  const NephroVisualRenderMode(this.label, this.icon, this.description);
+}

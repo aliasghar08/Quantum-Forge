@@ -11,6 +11,7 @@
 
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import '../../data/nephro_landmark_models.dart';
 
 class NephronTheater3DPainter extends CustomPainter {
   final double rotationY;
@@ -19,6 +20,7 @@ class NephronTheater3DPainter extends CustomPainter {
   final double cutaway;
   final double ionFluxSpeed;
   final String? activeDrug;
+  final NephroVisualRenderMode visualMode;
 
   NephronTheater3DPainter({
     required this.rotationY,
@@ -27,6 +29,7 @@ class NephronTheater3DPainter extends CustomPainter {
     required this.cutaway,
     required this.ionFluxSpeed,
     required this.activeDrug,
+    this.visualMode = NephroVisualRenderMode.photorealistic,
   });
 
   Offset _project(double x, double y, double z, double cx, double cy, double s) {
@@ -74,11 +77,16 @@ class NephronTheater3DPainter extends CustomPainter {
 
   void _drawGlomerulusAndArterioles(Canvas canvas, double cx, double cy, double s) {
     // Bowman's Capsule Outer Cup
+    final cupColor = switch (visualMode) {
+      NephroVisualRenderMode.photorealistic => const Color(0xFFE8B4B8),
+      NephroVisualRenderMode.translucent => const Color(0xFF00E5FF),
+      NephroVisualRenderMode.schematic => const Color(0xFF0284C7),
+    };
     final cupPaint = Paint()
-      ..color = const Color(0xFF00E5FF).withValues(alpha: 0.18 * (1.0 - cutaway * 0.5))
+      ..color = cupColor.withValues(alpha: (visualMode == NephroVisualRenderMode.photorealistic ? 0.28 : (visualMode == NephroVisualRenderMode.schematic ? 0.35 : 0.18)) * (1.0 - cutaway * 0.5))
       ..style = PaintingStyle.fill;
     final cupRim = Paint()
-      ..color = const Color(0xFF00E5FF).withValues(alpha: 0.6)
+      ..color = cupColor.withValues(alpha: visualMode == NephroVisualRenderMode.schematic ? 0.9 : 0.6)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.6;
 
@@ -86,12 +94,17 @@ class NephronTheater3DPainter extends CustomPainter {
     canvas.drawCircle(center, 24.0 * s * zoom, cupPaint);
     canvas.drawCircle(center, 24.0 * s * zoom, cupRim);
 
-    // Glomerular Capillary Loops (Red tuft)
+    // Glomerular Capillary Loops (Red/crimson tuft)
+    final tuftColor = switch (visualMode) {
+      NephroVisualRenderMode.photorealistic => const Color(0xFF9E212B),
+      NephroVisualRenderMode.translucent => const Color(0xFFEF4444),
+      NephroVisualRenderMode.schematic => const Color(0xFFFF1744),
+    };
     final capillaryPaint = Paint()
-      ..color = const Color(0xFFEF4444).withValues(alpha: 0.8)
+      ..color = tuftColor.withValues(alpha: visualMode == NephroVisualRenderMode.schematic ? 1.0 : 0.85)
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round
-      ..strokeWidth = 2.8 * s * zoom;
+      ..strokeWidth = (visualMode == NephroVisualRenderMode.photorealistic ? 3.2 : 2.8) * s * zoom;
 
     final c1 = _project(-30, 22, -4, cx, cy, s);
     final c2 = _project(-22, 30, 4, cx, cy, s);
@@ -103,8 +116,11 @@ class NephronTheater3DPainter extends CustomPainter {
     canvas.drawLine(c3, c4, capillaryPaint);
 
     // Afferent Arteriole (red line leading in)
+    final affColor = visualMode == NephroVisualRenderMode.photorealistic
+        ? const Color(0xFFD32F2F)
+        : (visualMode == NephroVisualRenderMode.schematic ? const Color(0xFFEF4444) : const Color(0xFFEF4444));
     final affPaint = Paint()
-      ..color = const Color(0xFFEF4444)
+      ..color = affColor
       ..style = PaintingStyle.stroke
       ..strokeWidth = 3.6 * s * zoom;
     final affIn = _project(-50, 30, -15, cx, cy, s);
@@ -112,8 +128,11 @@ class NephronTheater3DPainter extends CustomPainter {
     canvas.drawLine(affIn, affEnd, affPaint);
 
     // Efferent Arteriole (smaller caliber leading out)
+    final effColor = visualMode == NephroVisualRenderMode.photorealistic
+        ? const Color(0xFFFF7043)
+        : const Color(0xFFF97316);
     final effPaint = Paint()
-      ..color = activeDrug == 'lisinopril' ? const Color(0xFFFFD600) : const Color(0xFFF97316)
+      ..color = activeDrug == 'lisinopril' ? const Color(0xFFFFD600) : effColor
       ..style = PaintingStyle.stroke
       ..strokeWidth = (activeDrug == 'lisinopril' ? 3.4 : 2.2) * s * zoom;
     final effStart = _project(-30, 34, 5, cx, cy, s);
@@ -122,10 +141,15 @@ class NephronTheater3DPainter extends CustomPainter {
   }
 
   void _drawProximalTubule(Canvas canvas, double cx, double cy, double s) {
+    final pctColor = switch (visualMode) {
+      NephroVisualRenderMode.photorealistic => const Color(0xFFD97736),
+      NephroVisualRenderMode.translucent => const Color(0xFF10B981),
+      NephroVisualRenderMode.schematic => const Color(0xFFFFB300),
+    };
     final pctPaint = Paint()
       ..color = activeDrug == 'dapagliflozin'
           ? const Color(0xFFFFD600)
-          : const Color(0xFF10B981).withValues(alpha: 0.85)
+          : pctColor.withValues(alpha: visualMode == NephroVisualRenderMode.schematic ? 1.0 : 0.88)
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round
       ..strokeWidth = 6.0 * s * zoom;
@@ -143,9 +167,14 @@ class NephronTheater3DPainter extends CustomPainter {
   }
 
   void _drawLoopOfHenle(Canvas canvas, double cx, double cy, double s) {
-    // Thin descending limb (water permeable, cyan)
+    // Thin descending limb (water permeable, cyan/aquamarine)
+    final descColor = switch (visualMode) {
+      NephroVisualRenderMode.photorealistic => const Color(0xFF4DD0E1),
+      NephroVisualRenderMode.translucent => const Color(0xFF06B6D4),
+      NephroVisualRenderMode.schematic => const Color(0xFF0288D1),
+    };
     final descPaint = Paint()
-      ..color = const Color(0xFF06B6D4)
+      ..color = descColor
       ..style = PaintingStyle.stroke
       ..strokeWidth = 3.2 * s * zoom;
 
@@ -157,11 +186,14 @@ class NephronTheater3DPainter extends CustomPainter {
     final pAsc = _project(20, -58, -8, cx, cy, s);
     canvas.drawLine(pTurn, pAsc, descPaint);
 
-    // Thick Ascending Limb (TAL - active NKCC2, thick magenta)
+    // Thick Ascending Limb (TAL - active NKCC2)
+    final talColor = switch (visualMode) {
+      NephroVisualRenderMode.photorealistic => const Color(0xFF0288D1),
+      NephroVisualRenderMode.translucent => const Color(0xFFEC4899),
+      NephroVisualRenderMode.schematic => const Color(0xFF7C3AED),
+    };
     final talPaint = Paint()
-      ..color = activeDrug == 'furosemide'
-          ? const Color(0xFFFFD600)
-          : const Color(0xFFEC4899)
+      ..color = activeDrug == 'furosemide' ? const Color(0xFFFFD600) : talColor
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round
       ..strokeWidth = 5.5 * s * zoom;
@@ -178,11 +210,14 @@ class NephronTheater3DPainter extends CustomPainter {
     final mdCenter = _project(-14, 18, -8, cx, cy, s);
     canvas.drawCircle(mdCenter, 5.0 * s * zoom, mdPaint);
 
-    // Distal Convoluted Tubule (yellow/amber)
+    // Distal Convoluted Tubule (violet-pink in photorealistic)
+    final dctColor = switch (visualMode) {
+      NephroVisualRenderMode.photorealistic => const Color(0xFFBA68C8),
+      NephroVisualRenderMode.translucent => const Color(0xFFEAB308),
+      NephroVisualRenderMode.schematic => const Color(0xFFAB47BC),
+    };
     final dctPaint = Paint()
-      ..color = activeDrug == 'hctz'
-          ? const Color(0xFFFFD600)
-          : const Color(0xFFEAB308)
+      ..color = activeDrug == 'hctz' ? const Color(0xFFFFD600) : dctColor
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round
       ..strokeWidth = 5.2 * s * zoom;
@@ -198,10 +233,15 @@ class NephronTheater3DPainter extends CustomPainter {
   }
 
   void _drawCollectingDuct(Canvas canvas, double cx, double cy, double s) {
+    final cdColor = switch (visualMode) {
+      NephroVisualRenderMode.photorealistic => const Color(0xFF43A047),
+      NephroVisualRenderMode.translucent => const Color(0xFF38BDF8),
+      NephroVisualRenderMode.schematic => const Color(0xFF16A34A),
+    };
     final cdPaint = Paint()
       ..color = (activeDrug == 'spironolactone' || activeDrug == 'tolvaptan')
           ? const Color(0xFFFFD600)
-          : const Color(0xFF38BDF8)
+          : cdColor
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round
       ..strokeWidth = 7.5 * s * zoom;
@@ -218,6 +258,7 @@ class NephronTheater3DPainter extends CustomPainter {
         old.zoom != zoom ||
         old.cutaway != cutaway ||
         old.ionFluxSpeed != ionFluxSpeed ||
-        old.activeDrug != activeDrug;
+        old.activeDrug != activeDrug ||
+        old.visualMode != visualMode;
   }
 }

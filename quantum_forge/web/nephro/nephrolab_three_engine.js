@@ -38,6 +38,161 @@
 
   const THREE = window.THREE;
 
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Procedural Renal PBR Maps (Parenchyma, Striated Medullary Rays, Adipose)
+  // ─────────────────────────────────────────────────────────────────────────────
+  function createProceduralRenalPBRMaps() {
+    if (typeof document === 'undefined' || !document.createElement) return null;
+    try {
+      const size = 1024;
+
+      // 1. Cortical-Medullary Parenchyma & Striated Tubular Basal Infoldings Map
+      const parenchymaCanvas = document.createElement('canvas');
+      parenchymaCanvas.width = size;
+      parenchymaCanvas.height = size;
+      const ctxP = parenchymaCanvas.getContext('2d');
+      if (!ctxP) return null;
+
+      // Reddish-brown cortical parenchyma background (#7C2326 to #9E3B3E)
+      const gradP = ctxP.createLinearGradient(0, 0, size, size);
+      gradP.addColorStop(0.0, '#7c2326');
+      gradP.addColorStop(0.35, '#8a2b2f');
+      gradP.addColorStop(0.7, '#9e3b3e');
+      gradP.addColorStop(1.0, '#661b1e');
+      ctxP.fillStyle = gradP;
+      ctxP.fillRect(0, 0, size, size);
+
+      // Striated medullary pyramid rays & radial columnar lines
+      ctxP.lineWidth = 1.8;
+      for (let x = -size; x < size * 2; x += 6) {
+        const alpha = 0.18 + Math.sin(x * 0.04) * 0.08;
+        ctxP.strokeStyle = (x % 12 === 0) ? `rgba(180, 68, 72, ${alpha})` : `rgba(88, 18, 22, ${alpha})`;
+        ctxP.beginPath();
+        ctxP.moveTo(x, 0);
+        ctxP.bezierCurveTo(x + 40, size * 0.35, x - 30, size * 0.7, x + 20, size);
+        ctxP.stroke();
+      }
+
+      // Micro-capillary glomerular stippling and peritubular capillary plexuses
+      ctxP.lineWidth = 0.85;
+      for (let i = 0; i < 60; i++) {
+        let px = (Math.sin(i * 15.3) * 0.5 + 0.5) * size;
+        let py = (Math.cos(i * 9.1) * 0.5 + 0.5) * size;
+        ctxP.strokeStyle = (i % 2 === 0) ? 'rgba(239, 68, 68, 0.32)' : 'rgba(124, 35, 38, 0.25)';
+        ctxP.beginPath();
+        ctxP.moveTo(px, py);
+        for (let s = 0; s < 4; s++) {
+          px += (Math.sin(s * 2.3 + i) * 30);
+          py += (Math.cos(s * 1.7 + i) * 30);
+          ctxP.lineTo(px, py);
+        }
+        ctxP.stroke();
+      }
+
+      // Organic granular cellular noise
+      const imgDataP = ctxP.getImageData(0, 0, size, size);
+      const dataP = imgDataP.data;
+      for (let p = 0; p < dataP.length; p += 4) {
+        const n = (Math.random() - 0.5) * 16;
+        dataP[p] = Math.min(255, Math.max(0, dataP[p] + n));
+        dataP[p + 1] = Math.min(255, Math.max(0, dataP[p + 1] + n * 0.5));
+        dataP[p + 2] = Math.min(255, Math.max(0, dataP[p + 2] + n * 0.5));
+      }
+      ctxP.putImageData(imgDataP, 0, 0);
+
+      // 2. Parenchyma & Tubular Tangent-Space Normal Map
+      const normCanvas = document.createElement('canvas');
+      normCanvas.width = size;
+      normCanvas.height = size;
+      const ctxN = normCanvas.getContext('2d');
+      const normImgData = ctxN.createImageData(size, size);
+      const nData = normImgData.data;
+
+      for (let y = 0; y < size; y++) {
+        for (let x = 0; x < size; x++) {
+          const idx = (y * size + x) * 4;
+          const phase = (x * 0.6 + y * 0.8) * 0.15;
+          const dx = Math.sin(phase) * 24;
+          const dy = Math.cos(phase) * 18;
+          nData[idx] = Math.min(255, Math.max(0, 128 + dx));
+          nData[idx + 1] = Math.min(255, Math.max(0, 128 + dy));
+          nData[idx + 2] = 238;
+          nData[idx + 3] = 255;
+        }
+      }
+      ctxN.putImageData(normImgData, 0, 0);
+
+      // 3. Serous Wet Roughness Map (Specular wet parenchyma 0.12 - 0.28)
+      const roughCanvas = document.createElement('canvas');
+      roughCanvas.width = size;
+      roughCanvas.height = size;
+      const ctxR = roughCanvas.getContext('2d');
+      const roughImgData = ctxR.createImageData(size, size);
+      const rData = roughImgData.data;
+      for (let i = 0; i < rData.length; i += 4) {
+        const val = 34 + Math.floor(Math.random() * 32);
+        rData[i] = val;
+        rData[i + 1] = val;
+        rData[i + 2] = val;
+        rData[i + 3] = 255;
+      }
+      ctxR.putImageData(roughImgData, 0, 0);
+
+      // 4. Perirenal & Renal Sinus Adipose (Fat) Lobule Map
+      const fatCanvas = document.createElement('canvas');
+      fatCanvas.width = 512;
+      fatCanvas.height = 512;
+      const ctxF = fatCanvas.getContext('2d');
+      ctxF.fillStyle = '#e2b454';
+      ctxF.fillRect(0, 0, 512, 512);
+
+      for (let i = 0; i < 280; i++) {
+        const fx = Math.random() * 512;
+        const fy = Math.random() * 512;
+        const rad = 8 + Math.random() * 18;
+        const fGrad = ctxF.createRadialGradient(fx, fy, 1, fx, fy, rad);
+        fGrad.addColorStop(0.0, '#f8d682');
+        fGrad.addColorStop(0.7, '#e5b85c');
+        fGrad.addColorStop(1.0, '#b88628');
+        ctxF.fillStyle = fGrad;
+        ctxF.beginPath();
+        ctxF.arc(fx, fy, rad, 0, Math.PI * 2);
+        ctxF.fill();
+      }
+
+      // Textures with RepeatWrapping
+      const parenchymaMap = new THREE.CanvasTexture(parenchymaCanvas);
+      parenchymaMap.wrapS = THREE.RepeatWrapping;
+      parenchymaMap.wrapT = THREE.RepeatWrapping;
+      parenchymaMap.repeat.set(2, 2);
+
+      const parenchymaNormalMap = new THREE.CanvasTexture(normCanvas);
+      parenchymaNormalMap.wrapS = THREE.RepeatWrapping;
+      parenchymaNormalMap.wrapT = THREE.RepeatWrapping;
+      parenchymaNormalMap.repeat.set(2, 2);
+
+      const parenchymaRoughnessMap = new THREE.CanvasTexture(roughCanvas);
+      parenchymaRoughnessMap.wrapS = THREE.RepeatWrapping;
+      parenchymaRoughnessMap.wrapT = THREE.RepeatWrapping;
+      parenchymaRoughnessMap.repeat.set(2, 2);
+
+      const adiposeMap = new THREE.CanvasTexture(fatCanvas);
+      adiposeMap.wrapS = THREE.RepeatWrapping;
+      adiposeMap.wrapT = THREE.RepeatWrapping;
+      adiposeMap.repeat.set(2, 2);
+
+      return {
+        parenchymaMap,
+        parenchymaNormalMap,
+        parenchymaRoughnessMap,
+        adiposeMap,
+      };
+    } catch (e) {
+      console.warn('[NephroLab3D] Failed to create procedural renal PBR maps:', e);
+      return null;
+    }
+  }
+
   class NephroLabEngineInstance {
     constructor(containerElement, options = {}) {
       this.container = typeof containerElement === 'string'
@@ -47,13 +202,18 @@
 
       this.options = Object.assign({
         viewMode: 'all',
+        visualRenderMode: 'photorealistic',
         layerMode: 'all_in_one',
         activeDrugTarget: null,
       }, options);
 
       this.viewMode = this.options.viewMode;
+      this.visualRenderMode = this.options.visualRenderMode || 'photorealistic';
       this.layerMode = this.options.layerMode;
       this.activeDrugTarget = this.options.activeDrugTarget;
+      this.cutawayDepth = 0.0;
+      this.cutawayPlane = new THREE.Plane(new THREE.Vector3(0, 0, -1), 3.0);
+      this.pbrMaps = createProceduralRenalPBRMaps();
 
       // 120-frame physiological trajectory state
       this.currentFrame = 0;
@@ -78,6 +238,8 @@
 
       // Hierarchy groups
       this.rootGroup = null;
+      this.parenchymaGroup = null;
+      this.sinusFatGroup = null;
       this.glomerulusGroup = null;
       this.podocyteGroup = null;
       this.tubulesGroup = null;
@@ -123,7 +285,7 @@
       this.camera = new THREE.PerspectiveCamera(42, width / height, 0.1, 100);
       this.camera.position.set(0, 0, this.currentZoom);
 
-      // 3. Renderer with wet-tissue physical lighting
+      // 3. Renderer with wet-tissue physical lighting & local clipping
       this.renderer = new THREE.WebGLRenderer({
         antialias: true,
         alpha: true,
@@ -133,30 +295,35 @@
       this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
       this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
       this.renderer.toneMappingExposure = 1.25;
+      this.renderer.localClippingEnabled = true;
 
       this.container.innerHTML = '';
       this.container.appendChild(this.renderer.domElement);
 
-      // 4. Lighting Rig
-      const ambientLight = new THREE.AmbientLight(0xffffff, 0.75);
+      // 4. Studio Operating-Room Three-Point Lighting Rig
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.70);
       this.scene.add(ambientLight);
 
-      const mainLight = new THREE.DirectionalLight(0x00e5ff, 1.2);
-      mainLight.position.set(5, 8, 6);
-      this.scene.add(mainLight);
+      this.hemiLight = new THREE.HemisphereLight(0xfff4e6, 0x7c2326, 0.65);
+      this.scene.add(this.hemiLight);
 
-      const rimLight = new THREE.DirectionalLight(0xff2a4b, 0.85);
-      rimLight.position.set(-6, -5, -4);
-      this.scene.add(rimLight);
+      this.mainLight = new THREE.DirectionalLight(0xfff4e6, 1.25);
+      this.mainLight.position.set(5, 8, 6);
+      this.scene.add(this.mainLight);
 
-      const topLight = new THREE.PointLight(0xffb300, 0.9, 15);
-      topLight.position.set(0, 4, 3);
-      this.scene.add(topLight);
+      this.rimLight = new THREE.DirectionalLight(0x60a5fa, 0.90);
+      this.rimLight.position.set(-6, -5, -4);
+      this.scene.add(this.rimLight);
+
+      this.topLight = new THREE.PointLight(0xffb300, 0.9, 15);
+      this.topLight.position.set(0, 4, 3);
+      this.scene.add(this.topLight);
 
       // 5. Build Procedural Architecture
       this.rootGroup = new THREE.Group();
       this.scene.add(this.rootGroup);
 
+      this.buildRenalParenchymaAndSinusFat();
       this.buildGlomerulusAndBowmans();
       this.buildTubularSystem();
       this.buildPodocyteUltrastructure();
@@ -164,6 +331,8 @@
       this.buildVasaRectaAndHemodynamics();
       this.buildTransportersAndDrugSites();
       this.buildMultiSpeciesParticlePipelines();
+
+      this.setVisualRenderMode(this.visualRenderMode);
 
       // 6. Bind Events
       this.bindEvents();
@@ -176,6 +345,113 @@
     // ─────────────────────────────────────────────────────────────────────────
     // Micro-Anatomical Architecture Procedural Builders
     // ─────────────────────────────────────────────────────────────────────────
+
+    buildRenalParenchymaAndSinusFat() {
+      this.parenchymaGroup = new THREE.Group();
+      this.sinusFatGroup = new THREE.Group();
+
+      // 1. Whole Kidney Parenchymal Outer Shell (Renal cortex & fibrous capsule)
+      const parenGeo = new THREE.SphereGeometry(2.35, 36, 32);
+      parenGeo.scale(0.88, 1.35, 0.72);
+
+      this.parenchymaMat = new THREE.MeshPhysicalMaterial({
+        color: 0x8a2b2f,
+        roughness: 0.22,
+        metalness: 0.08,
+        clearcoat: 0.88,
+        clearcoatRoughness: 0.16,
+        sheen: 0.65,
+        sheenColor: 0xff5a4d,
+        transmission: 0.0,
+        opacity: 0.92,
+        transparent: true,
+        side: THREE.DoubleSide,
+        clippingPlanes: [this.cutawayPlane],
+        clipShadows: true,
+      });
+
+      if (this.pbrMaps) {
+        this.parenchymaMat.map = this.pbrMaps.parenchymaMap;
+        this.parenchymaMat.normalMap = this.pbrMaps.parenchymaNormalMap;
+        this.parenchymaMat.normalScale = new THREE.Vector2(0.5, 0.5);
+        this.parenchymaMat.roughnessMap = this.pbrMaps.parenchymaRoughnessMap;
+      }
+
+      this.parenchymaMesh = new THREE.Mesh(parenGeo, this.parenchymaMat);
+      this.parenchymaMesh.position.set(0.2, -0.15, -0.1);
+      this.parenchymaGroup.add(this.parenchymaMesh);
+
+      // 2. Striated Medullary Pyramids (Deep red striated triangular wedges pointing toward calyces)
+      this.pyramidsGroup = new THREE.Group();
+      const pyramidMat = new THREE.MeshPhysicalMaterial({
+        color: 0x9e3b3e,
+        roughness: 0.28,
+        metalness: 0.05,
+        clearcoat: 0.6,
+        clippingPlanes: [this.cutawayPlane],
+      });
+
+      const pyramidAngles = [-0.6, -0.2, 0.2, 0.6];
+      for (let i = 0; i < pyramidAngles.length; i++) {
+        const pyrGeo = new THREE.ConeGeometry(0.55, 1.25, 16);
+        pyrGeo.rotateZ(Math.PI / 2 + pyramidAngles[i] * 0.4);
+        const pyrMesh = new THREE.Mesh(pyrGeo, pyramidMat);
+        pyrMesh.position.set(0.55 + Math.cos(pyramidAngles[i]) * 0.4, pyramidAngles[i] * 1.3 - 0.2, 0);
+        this.pyramidsGroup.add(pyrMesh);
+      }
+      this.parenchymaGroup.add(this.pyramidsGroup);
+
+      // 3. Calyceal Urothelium & Renal Pelvis (Glistening ivory-pink funnel)
+      const pelvisCurve = new THREE.CatmullRomCurve3([
+        new THREE.Vector3(1.15, 0.4, 0),
+        new THREE.Vector3(1.4, -0.3, 0),
+        new THREE.Vector3(1.5, -1.2, 0),
+        new THREE.Vector3(1.55, -2.2, 0),
+      ]);
+      const pelvisGeo = new THREE.TubeGeometry(pelvisCurve, 24, 0.16, 12, false);
+      const pelvisMat = new THREE.MeshPhysicalMaterial({
+        color: 0xe8b4b8,
+        roughness: 0.16,
+        clearcoat: 0.92,
+        transmission: 0.2,
+        transparent: true,
+        opacity: 0.88,
+        clippingPlanes: [this.cutawayPlane],
+      });
+      this.pelvisMesh = new THREE.Mesh(pelvisGeo, pelvisMat);
+      this.parenchymaGroup.add(this.pelvisMesh);
+
+      // 4. Perirenal / Renal Sinus Adipose Fat Pads (Lobulated golden-yellow cushions)
+      const fatMat = new THREE.MeshStandardMaterial({
+        color: 0xe2b454,
+        roughness: 0.45,
+        metalness: 0.02,
+        clippingPlanes: [this.cutawayPlane],
+      });
+      if (this.pbrMaps && this.pbrMaps.adiposeMap) {
+        fatMat.map = this.pbrMaps.adiposeMap;
+      }
+
+      const fatPositions = [
+        [1.35, 0.2, 0.35],
+        [1.45, -0.4, 0.38],
+        [1.30, -0.9, 0.32],
+        [1.42, 0.5, -0.32],
+        [1.52, -0.3, -0.36],
+        [1.38, -0.85, -0.30],
+      ];
+      for (let i = 0; i < fatPositions.length; i++) {
+        const pos = fatPositions[i];
+        const fGeo = new THREE.SphereGeometry(0.24 + (i % 3) * 0.06, 12, 10);
+        fGeo.scale(1.2, 0.8, 1.1);
+        const fMesh = new THREE.Mesh(fGeo, fatMat);
+        fMesh.position.set(pos[0], pos[1], pos[2]);
+        this.sinusFatGroup.add(fMesh);
+      }
+
+      this.rootGroup.add(this.parenchymaGroup);
+      this.rootGroup.add(this.sinusFatGroup);
+    }
 
     buildGlomerulusAndBowmans() {
       this.glomerulusGroup = new THREE.Group();
@@ -701,6 +977,25 @@
       if (this.effMesh) {
         this.effMesh.scale.set(this.efferentTone, this.efferentTone, 1.0);
       }
+
+      // Dynamic Ischemic Blanching & Dusky Cyanosis during cardiorenal shock or vasoconstriction
+      if (this.visualRenderMode === 'photorealistic') {
+        if (this.afferentTone < 0.85) {
+          if (this.parenchymaMesh && this.parenchymaMesh.material) {
+            this.parenchymaMesh.material.color.setHex(0x4a2536); // Dusky purple-grey ischemic cortex
+          }
+          if (this.tuftMat) {
+            this.tuftMat.color.setHex(0x5e2b3e); // Dusky ischemic capillary tuft
+          }
+        } else {
+          if (this.parenchymaMesh && this.parenchymaMesh.material) {
+            this.parenchymaMesh.material.color.setHex(0x8a2b2f); // Oxygenated healthy red-brown
+          }
+          if (this.tuftMat) {
+            this.tuftMat.color.setHex(0x9e212b); // Crimson-terracotta
+          }
+        }
+      }
     }
 
     setPlaybackSpeed(speed) {
@@ -783,6 +1078,227 @@
         this.glomerulusGroup.visible = true;
         this.tubulesGroup.visible = true;
         this.transportersGroup.visible = true;
+      }
+    }
+
+    setVisualRenderMode(mode) {
+      this.visualRenderMode = mode || 'photorealistic';
+
+      if (this.visualRenderMode === 'photorealistic') {
+        if (this.parenchymaGroup) this.parenchymaGroup.visible = true;
+        if (this.sinusFatGroup) this.sinusFatGroup.visible = true;
+
+        // Capsule: serous translucent parietal layer
+        if (this.capsuleMesh && this.capsuleMesh.material) {
+          this.capsuleMesh.material.color.setHex(0xfae8e0);
+          this.capsuleMesh.material.transmission = 0.82;
+          this.capsuleMesh.material.opacity = 0.28;
+          this.capsuleMesh.material.roughness = 0.12;
+          this.capsuleMesh.material.clearcoat = 1.0;
+        }
+
+        // Tuft: Fleshy crimson-terracotta capillary loops
+        if (this.tuftMat) {
+          this.tuftMat.color.setHex(0x9e212b);
+          this.tuftMat.roughness = 0.16;
+          this.tuftMat.clearcoat = 0.88;
+          this.tuftMat.transmission = 0.0;
+          this.tuftMat.opacity = 1.0;
+        }
+
+        // Pedicels: Pearly-ivory podocyte foot processes & slit diaphragms
+        this.pedicelMeshes.forEach(mesh => {
+          if (mesh.material) {
+            mesh.material.color.setHex(0xf2e2d9);
+            mesh.material.roughness = 0.22;
+            mesh.material.clearcoat = 0.85;
+            mesh.material.transmission = 0.15;
+            mesh.material.opacity = 0.92;
+          }
+        });
+
+        // PCT: Dense amber-pink with microvilli brush border
+        if (this.pctMat) {
+          this.pctMat.color.setHex(0xd97736);
+          this.pctMat.roughness = 0.26;
+          this.pctMat.clearcoat = 0.70;
+          this.pctMat.transmission = 0.22;
+          this.pctMat.opacity = 0.88;
+        }
+        this.microvilliMeshes.forEach(m => {
+          if (m.material) m.material.color.setHex(0xff8a80);
+        });
+
+        // Henle: Glistening cyan-aquamarine thin descending & TAL
+        if (this.henleMat) {
+          this.henleMat.color.setHex(0x4dd0e1);
+          this.henleMat.roughness = 0.18;
+          this.henleMat.clearcoat = 0.85;
+          this.henleMat.transmission = 0.35;
+          this.henleMat.opacity = 0.75;
+        }
+
+        // DCT: Violet-pink
+        if (this.dctMat) {
+          this.dctMat.color.setHex(0xba68c8);
+          this.dctMat.roughness = 0.22;
+          this.dctMat.clearcoat = 0.80;
+          this.dctMat.transmission = 0.30;
+          this.dctMat.opacity = 0.80;
+        }
+
+        // Collecting Duct: Deep emerald trunk
+        if (this.cdMat) {
+          this.cdMat.color.setHex(0x43a047);
+          this.cdMat.roughness = 0.22;
+          this.cdMat.clearcoat = 0.85;
+          this.cdMat.transmission = 0.25;
+          this.cdMat.opacity = 0.85;
+        }
+
+        // Afferent: Scarlet
+        if (this.affMat) {
+          this.affMat.color.setHex(0xd32f2f);
+          this.affMat.roughness = 0.24;
+          this.affMat.clearcoat = 0.85;
+        }
+
+        // Efferent: Coral-red
+        if (this.effMat) {
+          this.effMat.color.setHex(0xff7043);
+          this.effMat.roughness = 0.25;
+          this.effMat.clearcoat = 0.85;
+        }
+
+        // Vasa Recta: Deep venous blue-purple
+        if (this.vasaRectaMesh && this.vasaRectaMesh.material) {
+          this.vasaRectaMesh.material.color.setHex(0x4a148c);
+          this.vasaRectaMesh.material.roughness = 0.25;
+          this.vasaRectaMesh.material.clearcoat = 0.85;
+          this.vasaRectaMesh.material.transmission = 0.20;
+          this.vasaRectaMesh.material.opacity = 0.80;
+        }
+
+        // Studio Lighting
+        if (this.hemiLight) this.hemiLight.intensity = 0.75;
+        if (this.mainLight) this.mainLight.intensity = 1.35;
+      } else if (this.visualRenderMode === 'translucent') {
+        if (this.parenchymaGroup) this.parenchymaGroup.visible = false;
+        if (this.sinusFatGroup) this.sinusFatGroup.visible = false;
+
+        if (this.capsuleMesh && this.capsuleMesh.material) {
+          this.capsuleMesh.material.color.setHex(0x38bdf8);
+          this.capsuleMesh.material.transmission = 0.82;
+          this.capsuleMesh.material.opacity = 0.32;
+        }
+        if (this.tuftMat) {
+          this.tuftMat.color.setHex(0xef4444);
+          this.tuftMat.transmission = 0.0;
+          this.tuftMat.opacity = 1.0;
+        }
+        this.pedicelMeshes.forEach(mesh => {
+          if (mesh.material) {
+            mesh.material.color.setHex(0x06b6d4);
+            mesh.material.transmission = 0.55;
+            mesh.material.opacity = 0.75;
+          }
+        });
+        if (this.pctMat) {
+          this.pctMat.color.setHex(0xffb300);
+          this.pctMat.transmission = 0.65;
+          this.pctMat.opacity = 0.48;
+        }
+        this.microvilliMeshes.forEach(m => {
+          if (m.material) m.material.color.setHex(0xffca28);
+        });
+        if (this.henleMat) {
+          this.henleMat.color.setHex(0x00e5ff);
+          this.henleMat.transmission = 0.72;
+          this.henleMat.opacity = 0.42;
+        }
+        if (this.dctMat) {
+          this.dctMat.color.setHex(0xba68c8);
+          this.dctMat.transmission = 0.68;
+          this.dctMat.opacity = 0.45;
+        }
+        if (this.cdMat) {
+          this.cdMat.color.setHex(0x00e676);
+          this.cdMat.transmission = 0.62;
+          this.cdMat.opacity = 0.50;
+        }
+        if (this.affMat) this.affMat.color.setHex(0xd32f2f);
+        if (this.effMat) this.effMat.color.setHex(0xff7043);
+        if (this.vasaRectaMesh && this.vasaRectaMesh.material) {
+          this.vasaRectaMesh.material.color.setHex(0xc026d3);
+          this.vasaRectaMesh.material.transmission = 0.40;
+          this.vasaRectaMesh.material.opacity = 0.65;
+        }
+      } else if (this.visualRenderMode === 'schematic') {
+        if (this.parenchymaGroup) this.parenchymaGroup.visible = false;
+        if (this.sinusFatGroup) this.sinusFatGroup.visible = false;
+
+        if (this.capsuleMesh && this.capsuleMesh.material) {
+          this.capsuleMesh.material.color.setHex(0x0284c7);
+          this.capsuleMesh.material.transmission = 0.0;
+          this.capsuleMesh.material.opacity = 0.35;
+        }
+        if (this.tuftMat) {
+          this.tuftMat.color.setHex(0xff1744);
+          this.tuftMat.transmission = 0.0;
+          this.tuftMat.opacity = 1.0;
+          this.tuftMat.roughness = 0.4;
+          this.tuftMat.clearcoat = 0.0;
+        }
+        this.pedicelMeshes.forEach(mesh => {
+          if (mesh.material) {
+            mesh.material.color.setHex(0x00e5ff);
+            mesh.material.transmission = 0.0;
+            mesh.material.opacity = 1.0;
+          }
+        });
+        if (this.pctMat) {
+          this.pctMat.color.setHex(0xffb300);
+          this.pctMat.transmission = 0.0;
+          this.pctMat.opacity = 1.0;
+        }
+        this.microvilliMeshes.forEach(m => {
+          if (m.material) m.material.color.setHex(0xffca28);
+        });
+        if (this.henleMat) {
+          this.henleMat.color.setHex(0x0288d1);
+          this.henleMat.transmission = 0.0;
+          this.henleMat.opacity = 1.0;
+        }
+        if (this.dctMat) {
+          this.dctMat.color.setHex(0xab47bc);
+          this.dctMat.transmission = 0.0;
+          this.dctMat.opacity = 1.0;
+        }
+        if (this.cdMat) {
+          this.cdMat.color.setHex(0x43a047);
+          this.cdMat.transmission = 0.0;
+          this.cdMat.opacity = 1.0;
+        }
+        if (this.affMat) this.affMat.color.setHex(0xef4444);
+        if (this.effMat) this.effMat.color.setHex(0xf97316);
+        if (this.vasaRectaMesh && this.vasaRectaMesh.material) {
+          this.vasaRectaMesh.material.color.setHex(0x7b1fa2);
+          this.vasaRectaMesh.material.transmission = 0.0;
+          this.vasaRectaMesh.material.opacity = 1.0;
+        }
+      }
+    }
+
+    setCutawayDepth(fraction) {
+      this.cutawayDepth = Math.max(0.0, Math.min(1.0, Number(fraction) || 0.0));
+      this.cutawayPlane.constant = 2.4 - this.cutawayDepth * 3.2;
+
+      if (this.parenchymaMesh && this.parenchymaMesh.material) {
+        if (this.cutawayDepth >= 0.95) {
+          this.parenchymaMesh.material.opacity = 0.15;
+        } else {
+          this.parenchymaMesh.material.opacity = 0.92 - this.cutawayDepth * 0.45;
+        }
       }
     }
 
@@ -1121,6 +1637,18 @@
     setViewMode(elementId, mode) {
       if (this._instances[elementId]) {
         this._instances[elementId].setViewMode(mode);
+      }
+    },
+
+    setVisualRenderMode(elementId, mode) {
+      if (this._instances[elementId]) {
+        this._instances[elementId].setVisualRenderMode(mode);
+      }
+    },
+
+    setCutawayDepth(elementId, fraction) {
+      if (this._instances[elementId]) {
+        this._instances[elementId].setCutawayDepth(fraction);
       }
     },
 

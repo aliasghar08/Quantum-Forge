@@ -67,6 +67,7 @@ class _NephroFullScreenNephronTheaterState
 
   // WebGL Bridge
   NephroLabThreeBridge? _threeBridge;
+  NephroVisualRenderMode _visualMode = NephroVisualRenderMode.photorealistic;
 
   // Orbit camera
   double _rotationY = 0.52;
@@ -202,6 +203,8 @@ class _NephroFullScreenNephronTheaterState
         _threeBridge!.setFrame(vitals.currentFrame, vitals.currentPhase.shortLabel);
         _threeBridge!.setPlaybackSpeed(vitals.playbackSpeed);
         _threeBridge!.setLayerMode(vitals.layerMode.id);
+        _threeBridge!.setVisualRenderMode(_visualMode);
+        _threeBridge!.setCutawayDepth(_cutawayFraction);
       }
     }
 
@@ -232,6 +235,8 @@ class _NephroFullScreenNephronTheaterState
                       viewType: NephroLabThreeBridge.fullScreenNephronViewType,
                       onPlatformViewCreated: (int id) {
                         _threeBridge = NephroLabThreeBridge.forFullScreenView(id);
+                        _threeBridge?.setVisualRenderMode(_visualMode);
+                        _threeBridge?.setCutawayDepth(_cutawayFraction);
                         if (vitals != null) {
                           _threeBridge?.setFrame(vitals.currentFrame, vitals.currentPhase.shortLabel);
                           _threeBridge?.setPlaybackSpeed(vitals.playbackSpeed);
@@ -268,6 +273,7 @@ class _NephroFullScreenNephronTheaterState
                           cutaway: _cutawayFraction,
                           ionFluxSpeed: _ionFluxSpeed,
                           activeDrug: _activeDrug,
+                          visualMode: _visualMode,
                         ),
                       ),
                     ),
@@ -595,6 +601,64 @@ class _NephroFullScreenNephronTheaterState
                               onChanged: (val) {
                                 if (val != null) setState(() => _selectedCategory = val);
                               },
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+
+                          // Top HUD Segmented Render Mode Switcher (Tissue | Glass | Schematic)
+                          Container(
+                            padding: const EdgeInsets.all(2),
+                            decoration: BoxDecoration(
+                              color: Colors.black.withValues(alpha: 0.5),
+                              borderRadius: BorderRadius.circular(6),
+                              border: Border.all(color: Colors.white24),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: NephroVisualRenderMode.values.map((vMode) {
+                                final isSel = vMode == _visualMode;
+                                return Tooltip(
+                                  message: '${vMode.label} Mode: ${vMode.description}',
+                                  child: GestureDetector(
+                                    key: Key('nephro_theater_render_mode_${vMode.name}'),
+                                    behavior: HitTestBehavior.opaque,
+                                    onTap: () {
+                                      setState(() => _visualMode = vMode);
+                                      _threeBridge?.setVisualRenderMode(vMode);
+                                    },
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                                      decoration: BoxDecoration(
+                                        color: isSel
+                                            ? const Color(0xFFEF4444).withValues(alpha: 0.35)
+                                            : Colors.transparent,
+                                        borderRadius: BorderRadius.circular(4),
+                                        border: isSel
+                                            ? Border.all(
+                                                color: const Color(0xFFEF4444).withValues(alpha: 0.8),
+                                                width: 1,
+                                              )
+                                            : null,
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Text(vMode.icon, style: const TextStyle(fontSize: 10)),
+                                          const SizedBox(width: 3),
+                                          Text(
+                                            vMode.label,
+                                            style: TextStyle(
+                                              color: isSel ? Colors.white : Colors.white60,
+                                              fontSize: 9.5,
+                                              fontWeight: isSel ? FontWeight.bold : FontWeight.normal,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              }).toList(),
                             ),
                           ),
                           const SizedBox(width: 6),
@@ -939,6 +1003,64 @@ class _NephroFullScreenNephronTheaterState
                               ),
                             ),
                           ),
+                          const SizedBox(width: 8),
+
+                          // Bottom Dock Segmented Render Mode Switcher (Tissue | Glass | Schematic)
+                          Container(
+                            padding: const EdgeInsets.all(2),
+                            decoration: BoxDecoration(
+                              color: Colors.black.withValues(alpha: 0.6),
+                              borderRadius: BorderRadius.circular(6),
+                              border: Border.all(color: Colors.white24),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: NephroVisualRenderMode.values.map((vMode) {
+                                final isSel = vMode == _visualMode;
+                                return Tooltip(
+                                  message: '${vMode.label} Mode: ${vMode.description}',
+                                  child: GestureDetector(
+                                    key: Key('nephro_dock_render_mode_${vMode.name}'),
+                                    behavior: HitTestBehavior.opaque,
+                                    onTap: () {
+                                      setState(() => _visualMode = vMode);
+                                      _threeBridge?.setVisualRenderMode(vMode);
+                                    },
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                                      decoration: BoxDecoration(
+                                        color: isSel
+                                            ? const Color(0xFFEF4444).withValues(alpha: 0.35)
+                                            : Colors.transparent,
+                                        borderRadius: BorderRadius.circular(4),
+                                        border: isSel
+                                            ? Border.all(
+                                                color: const Color(0xFFEF4444).withValues(alpha: 0.8),
+                                                width: 1,
+                                              )
+                                            : null,
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Text(vMode.icon, style: const TextStyle(fontSize: 10)),
+                                          const SizedBox(width: 3),
+                                          Text(
+                                            vMode.label,
+                                            style: TextStyle(
+                                              color: isSel ? Colors.white : Colors.white60,
+                                              fontSize: 9,
+                                              fontWeight: isSel ? FontWeight.bold : FontWeight.normal,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              }).toList(),
+                            ),
+                          ),
                           const SizedBox(width: 10),
 
                           // Tubular Cutaway Slider
@@ -966,7 +1088,10 @@ class _NephroFullScreenNephronTheaterState
                                       max: 1.0,
                                       activeColor: const Color(0xFF38BDF8),
                                       inactiveColor: Colors.white12,
-                                      onChanged: (v) => setState(() => _cutawayFraction = v),
+                                      onChanged: (v) {
+                                        setState(() => _cutawayFraction = v);
+                                        _threeBridge?.setCutawayDepth(v);
+                                      },
                                     ),
                                   ),
                                 ),
