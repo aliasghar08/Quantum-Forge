@@ -77,7 +77,24 @@ Quantum Forge operates as an integrated web and cloud workstation. To respect co
 
 ---
 
-## 8. Web Frameworks & Client Libraries
+## 8. Three.js WebGL Engine
+- **Software**: Three.js JavaScript 3D Library
+- **License**: MIT License
+- **Copyright**: (c) 2010-2026 Three.js Authors (Ricardo Cabello / mrdoob)
+- **Source Code**: https://github.com/mrdoob/three.js
+- **Compliance Note**: Powers client-side procedural organ simulations (CardioCath 3D, NeuroLab 3D, NephroLab 3D, DentoLab 3D).
+
+---
+
+## 9. KaTeX & MathJax
+- **Software**: KaTeX Fast Mathematical Typesetting for the Web
+- **License**: MIT License
+- **Copyright**: (c) 2013-2026 Khan Academy and other contributors
+- **Source Code**: https://github.com/KaTeX/KaTeX
+
+---
+
+## 10. Web Frameworks & Client Libraries
 - **Flutter & Flutter Web**: BSD 3-Clause License (c) 2014 The Flutter Authors.
 - **Dart SDK**: BSD 3-Clause License (c) 2012 The Dart Authors.
 - **FastAPI / Starlette / Uvicorn**: MIT / BSD-3-Clause (c) Sebastián Ramírez and encode.
@@ -89,4 +106,3 @@ Quantum Forge operates as an integrated web and cloud workstation. To respect co
 ## Warranty Disclaimer
 
 ALL THIRD-PARTY COMPONENTS AND PACKAGES ARE PROVIDED "AS IS" AND WITH ALL FAULTS. THE AUTHORS AND COPYRIGHT HOLDERS DISCLAIM ALL EXPRESS OR IMPLIED WARRANTIES, INCLUDING BUT NOT LIMITED TO MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT.
-
