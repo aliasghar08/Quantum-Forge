@@ -406,34 +406,26 @@ class _CardiacFullScreenFluoTheaterState extends State<CardiacFullScreenFluoThea
         body: SafeArea(
           child: Stack(
             children: [
-              // ── Main Full-Screen 3D WebGL Angiography & Pre-Op Stage ─────────
+              // ── Main Full-Screen Cineangiography & Pre-Op Stage ───────────
               Positioned.fill(
-                child: kIsWeb && CardioCathThreeBridge.isSupported && !(_threeBridge?.hasFailed ?? false)
-                    ? HtmlElementView(
-                        viewType: CardioCathThreeBridge.fullScreenFluoroViewType,
-                        onPlatformViewCreated: (int id) {
-                          _threeBridge = CardioCathThreeBridge.forFullScreenFluoroView(id);
-                          _syncBridge();
-                        },
-                      )
-                    : CustomPaint(
-                        size: Size.infinite,
-                        painter: _FullScreenFluoAngioPainter(
-                          scenario: widget.scenario,
-                          laoRaoAngle: _laoRaoAngle,
-                          cranCaudAngle: _cranCaudAngle,
-                          contrastIntensity: widget.contrastIntensity,
-                          cardiacPhase: _cinePhase,
-                          dominance: widget.dominance,
-                          isRevascularized: widget.isRevascularized,
-                          isInjecting: widget.isInjecting,
-                          invertLut: _invertLut,
-                          showSternotomyWires: _showSternotomyWires,
-                          dsaRoadmap: _dsaRoadmapMode,
-                          myocardialBlushGrade: _myocardialBlushGrade,
-                          showVffrHeatmap: _showVffrHeatmap,
-                        ),
-                      ),
+                child: CustomPaint(
+                  size: Size.infinite,
+                  painter: _FullScreenFluoAngioPainter(
+                    scenario: widget.scenario,
+                    laoRaoAngle: _laoRaoAngle,
+                    cranCaudAngle: _cranCaudAngle,
+                    contrastIntensity: widget.contrastIntensity,
+                    cardiacPhase: _cinePhase,
+                    dominance: widget.dominance,
+                    isRevascularized: widget.isRevascularized,
+                    isInjecting: widget.isInjecting,
+                    invertLut: _invertLut,
+                    showSternotomyWires: _showSternotomyWires,
+                    dsaRoadmap: _dsaRoadmapMode,
+                    myocardialBlushGrade: _myocardialBlushGrade,
+                    showVffrHeatmap: _showVffrHeatmap,
+                  ),
+                ),
               ),
 
               // ── Interactive Draggable QCA Electronic Calipers Overlay ───────────
