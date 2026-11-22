@@ -405,16 +405,43 @@ class _Cardiac3DAnatomicalHeartViewportState
                                 onTap: _resetCamera,
                                 palette: palette,
                               ),
-                              const SizedBox(width: 4),
-
-                              // Full-Screen Micro-Anatomical Heart Theater Launcher
-                              _actionButton(
-                                key: const Key('launch_fullscreen_heart_theater'),
-                                icon: Icons.fullscreen_rounded,
-                                tooltip: 'Full-Screen Micro-Anatomical 3D Heart Theater',
-                                isActive: false,
-                                onTap: _openFullScreenTheater,
-                                palette: palette,
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      // Prominent Pinned Full-Screen Launcher Button
+                      InkWell(
+                        key: const Key('launch_fullscreen_heart_theater'),
+                        onTap: _openFullScreenTheater,
+                        borderRadius: BorderRadius.circular(6),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3.5),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF00E5FF).withValues(alpha: 0.16),
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(color: const Color(0xFF00E5FF), width: 1.2),
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(0xFF00E5FF).withValues(alpha: 0.22),
+                                blurRadius: 4,
+                                offset: const Offset(0, 1),
+                              ),
+                            ],
+                          ),
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.fullscreen_rounded, color: Color(0xFF00E5FF), size: 14),
+                              SizedBox(width: 3.5),
+                              Text(
+                                'Full Screen',
+                                style: TextStyle(
+                                  color: Color(0xFF00E5FF),
+                                  fontSize: 9.0,
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: 0.3,
+                                ),
                               ),
                             ],
                           ),
