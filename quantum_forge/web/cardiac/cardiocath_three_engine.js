@@ -55,7 +55,7 @@
 
       // Quantum mottle detector noise
       float noise = (rand(gl_FragCoord.xy + fract(uTime)) - 0.5) * 0.026;
-      float shutter = smoothstep(uCollimationRadius, uCollimationRadius - 0.03, dist);
+      float shutter = 1.0 - smoothstep(uCollimationRadius - 0.03, uCollimationRadius, dist);
 
       vec3 detectorColor;
       if (uInvertLut == 1) {
