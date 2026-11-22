@@ -18,18 +18,22 @@ class CardioCathThreeBridge {
   static const String heartViewType = 'cardiocath-heart-3d';
   static const String fullScreenHeartViewType = 'cardiocath-heart-fullscreen';
   static const String fluoroViewType = 'cardiocath-fluoro-xray';
+  static const String fullScreenFluoroViewType = 'cardiocath-fullscreen-fluoro';
 
   static bool _factoriesRegistered = false;
   static final Map<int, CardioCathThreeBridge> _heartBridges = {};
   static final Map<int, CardioCathThreeBridge> _fullScreenBridges = {};
   static final Map<int, CardioCathThreeBridge> _fluoroBridges = {};
+  static final Map<int, CardioCathThreeBridge> _fullScreenFluoroBridges = {};
   static CardioCathThreeBridge? _latestHeartBridge;
   static CardioCathThreeBridge? _latestFullScreenBridge;
   static CardioCathThreeBridge? _latestFluoroBridge;
+  static CardioCathThreeBridge? _latestFullScreenFluoroBridge;
 
   static CardioCathThreeBridge? get latestHeartBridge => _latestHeartBridge;
   static CardioCathThreeBridge? get latestFullScreenHeartBridge => _latestFullScreenBridge;
   static CardioCathThreeBridge? get latestFluoroBridge => _latestFluoroBridge;
+  static CardioCathThreeBridge? get latestFullScreenFluoroBridge => _latestFullScreenFluoroBridge;
 
   final int _viewId;
   final web.HTMLDivElement _element;
@@ -106,6 +110,23 @@ class CardioCathThreeBridge {
       bridge._scheduleInit();
       return element;
     });
+
+    // Full-Screen Fluoro X-Ray Platform View
+    ui_web.platformViewRegistry.registerViewFactory(fullScreenFluoroViewType, (int viewId) {
+      final element = web.HTMLDivElement()
+        ..id = 'cardiocath-fullscreen-fluoro-container-$viewId'
+        ..style.width = '100%'
+        ..style.height = '100%'
+        ..style.position = 'relative'
+        ..style.overflow = 'hidden'
+        ..style.backgroundColor = '#0a0d12';
+
+      final bridge = CardioCathThreeBridge._(viewId, element, true);
+      _fullScreenFluoroBridges[viewId] = bridge;
+      _latestFullScreenFluoroBridge = bridge;
+      bridge._scheduleInit();
+      return element;
+    });
   }
 
   static CardioCathThreeBridge? forHeartView(int viewId) {
@@ -122,6 +143,12 @@ class CardioCathThreeBridge {
 
   static CardioCathThreeBridge? forFluoroView(int viewId) {
     final bridge = _fluoroBridges[viewId];
+    bridge?._scheduleInit();
+    return bridge;
+  }
+
+  static CardioCathThreeBridge? forFullScreenFluoroView(int viewId) {
+    final bridge = _fullScreenFluoroBridges[viewId];
     bridge?._scheduleInit();
     return bridge;
   }
@@ -354,6 +381,27 @@ class CardioCathThreeBridge {
     if (_viewer == null || _disposed) return;
     try {
       _viewer!.callMethod('setInvertLut'.toJS, invert.toJS);
+    } catch (_) {}
+  }
+
+  void setDsaRoadmap(bool dsa) {
+    if (_viewer == null || _disposed) return;
+    try {
+      _viewer!.callMethod('setDsaRoadmap'.toJS, dsa.toJS);
+    } catch (_) {}
+  }
+
+  void setMyocardialBlushGrade(int grade) {
+    if (_viewer == null || _disposed) return;
+    try {
+      _viewer!.callMethod('setMyocardialBlushGrade'.toJS, grade.toJS);
+    } catch (_) {}
+  }
+
+  void setFps(double fps) {
+    if (_viewer == null || _disposed) return;
+    try {
+      _viewer!.callMethod('setFps'.toJS, fps.toJS);
     } catch (_) {}
   }
 

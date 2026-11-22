@@ -109,6 +109,8 @@ class _CardiacFullScreenFluoTheaterState extends State<CardiacFullScreenFluoThea
   bool _showTavrFrame = false;
   String _procedureStep = 'all';
   bool _showPipDetector = true;
+  bool _dsaRoadmapMode = false;
+  int _myocardialBlushGrade = 3;
 
   void _syncBridge() {
     if (_threeBridge == null) return;
@@ -119,6 +121,9 @@ class _CardiacFullScreenFluoTheaterState extends State<CardiacFullScreenFluoThea
     _threeBridge!.setShowTavrFrame(_showTavrFrame);
     _threeBridge!.setProcedureStep(_procedureStep);
     _threeBridge!.setInvertLut(_invertLut);
+    _threeBridge!.setDsaRoadmap(_dsaRoadmapMode);
+    _threeBridge!.setMyocardialBlushGrade(_myocardialBlushGrade);
+    _threeBridge!.setFps(_fps);
     _threeBridge!.setDominance(widget.dominance);
     _threeBridge!.setRevascularized(widget.isRevascularized);
     _threeBridge!.setCardiacPhase(_cinePhase);
@@ -129,7 +134,9 @@ class _CardiacFullScreenFluoTheaterState extends State<CardiacFullScreenFluoThea
   Offset _qcaRefPoint2 = const Offset(220, 240);
   Offset _qcaMldPoint1 = const Offset(200, 280);
   Offset _qcaMldPoint2 = const Offset(212, 280);
-  int? _activeCaliperDragIndex; // 0=Ref1, 1=Ref2, 2=Mld1, 3=Mld2
+  Offset _qcaLenPoint1 = const Offset(195, 230);
+  Offset _qcaLenPoint2 = const Offset(215, 310);
+  int? _activeCaliperDragIndex; // 0=Ref1, 1=Ref2, 2=Mld1, 3=Mld2, 4=Len1, 5=Len2
 
   // Active Selected Landmark Card
   AngiographicLandmarkTag? _selectedTag;
@@ -320,6 +327,7 @@ class _CardiacFullScreenFluoTheaterState extends State<CardiacFullScreenFluoThea
       _cineAnimController.duration =
           Duration(milliseconds: (1000.0 / _fps).round() * 10);
       if (_isPlaying) _cineAnimController.repeat();
+      _syncBridge();
     });
   }
 
@@ -351,10 +359,15 @@ class _CardiacFullScreenFluoTheaterState extends State<CardiacFullScreenFluoThea
     return ((1.0 - (mld / rvd)) * 100.0).clamp(0.0, 99.0);
   }
 
+  double get _measuredLengthMm {
+    final dist = (_qcaLenPoint1 - _qcaLenPoint2).distance;
+    return (dist * 0.12).clamp(4.0, 60.0);
+  }
+
   @override
   Widget build(BuildContext context) {
     if (kIsWeb && _threeBridge == null) {
-      _threeBridge = CardioCathThreeBridge.latestFluoroBridge;
+      _threeBridge = CardioCathThreeBridge.latestFullScreenFluoroBridge;
       if (_threeBridge != null) {
         _syncBridge();
       }
@@ -380,84 +393,96 @@ class _CardiacFullScreenFluoTheaterState extends State<CardiacFullScreenFluoThea
               Positioned.fill(
                 child: kIsWeb && CardioCathThreeBridge.isSupported && !(_threeBridge?.hasFailed ?? false)
                     ? HtmlElementView(
-                        viewType: CardioCathThreeBridge.fluoroViewType,
+                        viewType: CardioCathThreeBridge.fullScreenFluoroViewType,
                         onPlatformViewCreated: (int id) {
-                          _threeBridge = CardioCathThreeBridge.forFluoroView(id);
+                          _threeBridge = CardioCathThreeBridge.forFullScreenFluoroView(id);
                           _syncBridge();
                         },
                       )
-                    : GestureDetector(
-                        onPanUpdate: _showQcaCalipers
-                            ? (details) {
-                                if (_activeCaliperDragIndex != null) {
-                                  setState(() {
-                                    switch (_activeCaliperDragIndex) {
-                                      case 0:
-                                        _qcaRefPoint1 += details.delta;
-                                        break;
-                                      case 1:
-                                        _qcaRefPoint2 += details.delta;
-                                        break;
-                                      case 2:
-                                        _qcaMldPoint1 += details.delta;
-                                        break;
-                                      case 3:
-                                        _qcaMldPoint2 += details.delta;
-                                        break;
-                                    }
-                                  });
-                                }
-                              }
-                            : null,
-                        onPanStart: _showQcaCalipers
-                            ? (details) {
-                                final pos = details.localPosition;
-                                const hitDist = 24.0;
-                                if ((pos - _qcaRefPoint1).distance < hitDist) {
-                                  _activeCaliperDragIndex = 0;
-                                } else if ((pos - _qcaRefPoint2).distance < hitDist) {
-                                  _activeCaliperDragIndex = 1;
-                                } else if ((pos - _qcaMldPoint1).distance < hitDist) {
-                                  _activeCaliperDragIndex = 2;
-                                } else if ((pos - _qcaMldPoint2).distance < hitDist) {
-                                  _activeCaliperDragIndex = 3;
-                                } else {
-                                  _activeCaliperDragIndex = null;
-                                }
-                              }
-                            : null,
-                        onPanEnd: (_) => _activeCaliperDragIndex = null,
-                        child: CustomPaint(
-                          size: Size.infinite,
-                          painter: _FullScreenFluoAngioPainter(
-                            scenario: widget.scenario,
-                            laoRaoAngle: _laoRaoAngle,
-                            cranCaudAngle: _cranCaudAngle,
-                            contrastIntensity: widget.contrastIntensity,
-                            cardiacPhase: _cinePhase,
-                            dominance: widget.dominance,
-                            isRevascularized: widget.isRevascularized,
-                            isInjecting: widget.isInjecting,
-                            invertLut: _invertLut,
-                            showSternotomyWires: _showSternotomyWires,
-                          ),
+                    : CustomPaint(
+                        size: Size.infinite,
+                        painter: _FullScreenFluoAngioPainter(
+                          scenario: widget.scenario,
+                          laoRaoAngle: _laoRaoAngle,
+                          cranCaudAngle: _cranCaudAngle,
+                          contrastIntensity: widget.contrastIntensity,
+                          cardiacPhase: _cinePhase,
+                          dominance: widget.dominance,
+                          isRevascularized: widget.isRevascularized,
+                          isInjecting: widget.isInjecting,
+                          invertLut: _invertLut,
+                          showSternotomyWires: _showSternotomyWires,
+                          dsaRoadmap: _dsaRoadmapMode,
+                          myocardialBlushGrade: _myocardialBlushGrade,
+                          showVffrHeatmap: _showVffrHeatmap,
                         ),
                       ),
               ),
 
-              // ── QCA Electronic Calipers Overlay (Draggable Handles) ───────────
+              // ── Interactive Draggable QCA Electronic Calipers Overlay ───────────
               if (_showQcaCalipers)
                 Positioned.fill(
-                  child: IgnorePointer(
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.translucent,
+                    onPanStart: (details) {
+                      final pos = details.localPosition;
+                      const hitDist = 28.0;
+                      if ((pos - _qcaRefPoint1).distance < hitDist) {
+                        _activeCaliperDragIndex = 0;
+                      } else if ((pos - _qcaRefPoint2).distance < hitDist) {
+                        _activeCaliperDragIndex = 1;
+                      } else if ((pos - _qcaMldPoint1).distance < hitDist) {
+                        _activeCaliperDragIndex = 2;
+                      } else if ((pos - _qcaMldPoint2).distance < hitDist) {
+                        _activeCaliperDragIndex = 3;
+                      } else if ((pos - _qcaLenPoint1).distance < hitDist) {
+                        _activeCaliperDragIndex = 4;
+                      } else if ((pos - _qcaLenPoint2).distance < hitDist) {
+                        _activeCaliperDragIndex = 5;
+                      } else {
+                        _activeCaliperDragIndex = null;
+                      }
+                    },
+                    onPanUpdate: (details) {
+                      if (_activeCaliperDragIndex != null) {
+                        setState(() {
+                          switch (_activeCaliperDragIndex) {
+                            case 0:
+                              _qcaRefPoint1 += details.delta;
+                              break;
+                            case 1:
+                              _qcaRefPoint2 += details.delta;
+                              break;
+                            case 2:
+                              _qcaMldPoint1 += details.delta;
+                              break;
+                            case 3:
+                              _qcaMldPoint2 += details.delta;
+                              break;
+                            case 4:
+                              _qcaLenPoint1 += details.delta;
+                              break;
+                            case 5:
+                              _qcaLenPoint2 += details.delta;
+                              break;
+                          }
+                        });
+                      }
+                    },
+                    onPanEnd: (_) => _activeCaliperDragIndex = null,
                     child: CustomPaint(
                       painter: _QcaCalipersPainter(
                         ref1: _qcaRefPoint1,
                         ref2: _qcaRefPoint2,
                         mld1: _qcaMldPoint1,
                         mld2: _qcaMldPoint2,
+                        len1: _qcaLenPoint1,
+                        len2: _qcaLenPoint2,
                         rvdMm: _measuredRvdMm,
                         mldMm: _measuredMldMm,
                         percentStenosis: _measuredPercentStenosis,
+                        lesionLengthMm: _measuredLengthMm,
+                        activeDragIndex: _activeCaliperDragIndex,
                       ),
                     ),
                   ),
@@ -661,6 +686,69 @@ class _CardiacFullScreenFluoTheaterState extends State<CardiacFullScreenFluoThea
                                   fontSize: 10.0,
                                   fontWeight: FontWeight.bold,
                                   color: _freeOrbit ? Colors.black : Colors.white70,
+                                ),
+                              ),
+                              const SizedBox(width: 5),
+
+                              // Digital Subtraction Angiography (DSA) Roadmap Toggle
+                              FilterChip(
+                                key: const Key('fluo_theater_dsa_toggle'),
+                                avatar: Icon(
+                                  Icons.auto_fix_high_rounded,
+                                  size: 13,
+                                  color: _dsaRoadmapMode ? Colors.black : const Color(0xFFF472B6),
+                                ),
+                                label: Text(_dsaRoadmapMode ? 'DSA Roadmap ON' : 'DSA Roadmap'),
+                                selected: _dsaRoadmapMode,
+                                selectedColor: const Color(0xFFF472B6),
+                                onSelected: (val) {
+                                  setState(() {
+                                    _dsaRoadmapMode = val;
+                                    _syncBridge();
+                                  });
+                                },
+                                visualDensity: VisualDensity.compact,
+                                labelStyle: TextStyle(
+                                  fontSize: 10.0,
+                                  fontWeight: FontWeight.bold,
+                                  color: _dsaRoadmapMode ? Colors.black : Colors.white70,
+                                ),
+                              ),
+                              const SizedBox(width: 5),
+
+                              // Myocardial Blush Grade (MBG) Selector
+                              InkWell(
+                                key: const Key('fluo_theater_mbg_toggle'),
+                                onTap: () {
+                                  setState(() {
+                                    _myocardialBlushGrade = (_myocardialBlushGrade - 1);
+                                    if (_myocardialBlushGrade < 0) _myocardialBlushGrade = 3;
+                                    _syncBridge();
+                                  });
+                                },
+                                borderRadius: BorderRadius.circular(6),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFEC4899).withValues(alpha: 0.18),
+                                    borderRadius: BorderRadius.circular(6),
+                                    border: Border.all(color: const Color(0xFFEC4899)),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Icon(Icons.blur_on_rounded, color: Color(0xFFEC4899), size: 13),
+                                      const SizedBox(width: 3.5),
+                                      Text(
+                                        'MBG $_myocardialBlushGrade (${_myocardialBlushGrade == 3 ? "Brisk" : (_myocardialBlushGrade == 2 ? "Mod" : (_myocardialBlushGrade == 1 ? "Min" : "None"))})',
+                                        style: const TextStyle(
+                                          color: Color(0xFFF472B6),
+                                          fontSize: 9.5,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
                               const SizedBox(width: 5),
@@ -1054,6 +1142,26 @@ class _CardiacFullScreenFluoTheaterState extends State<CardiacFullScreenFluoThea
                             ),
                           ],
                         ),
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            const Expanded(
+                              child: Text(
+                                'Lesion Length:',
+                                style: TextStyle(color: Colors.white70, fontSize: 10.5),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            Text(
+                              '${_measuredLengthMm.toStringAsFixed(1)} mm',
+                              style: const TextStyle(
+                                color: Color(0xFFA78BFA),
+                                fontWeight: FontWeight.bold,
+                                fontSize: 10.5,
+                              ),
+                            ),
+                          ],
+                        ),
                         const Divider(color: Colors.white24, height: 12),
                         Row(
                           children: [
@@ -1123,6 +1231,9 @@ class _CardiacFullScreenFluoTheaterState extends State<CardiacFullScreenFluoThea
                               isInjecting: widget.isInjecting,
                               invertLut: _invertLut,
                               showSternotomyWires: _showSternotomyWires,
+                              dsaRoadmap: _dsaRoadmapMode,
+                              myocardialBlushGrade: _myocardialBlushGrade,
+                              showVffrHeatmap: _showVffrHeatmap,
                             ),
                           ),
                         ),
@@ -1398,6 +1509,9 @@ class _FullScreenFluoAngioPainter extends CustomPainter {
   final bool isInjecting;
   final bool invertLut;
   final bool showSternotomyWires;
+  final bool dsaRoadmap;
+  final int myocardialBlushGrade;
+  final bool showVffrHeatmap;
 
   _FullScreenFluoAngioPainter({
     required this.scenario,
@@ -1410,6 +1524,9 @@ class _FullScreenFluoAngioPainter extends CustomPainter {
     this.isInjecting = false,
     this.invertLut = false,
     this.showSternotomyWires = true,
+    this.dsaRoadmap = false,
+    this.myocardialBlushGrade = 3,
+    this.showVffrHeatmap = false,
   });
 
   @override
@@ -1451,6 +1568,11 @@ class _FullScreenFluoAngioPainter extends CustomPainter {
   }
 
   void _drawThoracicLandmarks(Canvas canvas, double cx, double cy, double s) {
+    if (dsaRoadmap) {
+      // In DSA Roadmap mode, static bony landmarks are digitally subtracted
+      return;
+    }
+
     final boneColor = invertLut
         ? Colors.white.withValues(alpha: 0.15)
         : Colors.black.withValues(alpha: 0.18);
@@ -1574,32 +1696,87 @@ class _FullScreenFluoAngioPainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round;
 
+    // Helper for vFFR color mapping
+    Color getVffrColor(double vffrValue, Color fallbackColor) {
+      if (!showVffrHeatmap) return fallbackColor;
+      if (vffrValue > 0.80) {
+        return const Color(0xFF10B981).withValues(alpha: dyeAlpha); // Green normal
+      } else if (vffrValue >= 0.75) {
+        return const Color(0xFFF59E0B).withValues(alpha: dyeAlpha); // Amber borderline
+      } else {
+        return const Color(0xFFEF4444).withValues(alpha: dyeAlpha); // Red severe ischemia
+      }
+    }
+
     // 1. LMCA
     final pLM1 = _project(-2, -75, -5, cx, cy, s, cosY, sinY, cosX, sinX);
     final pLM2 = _project(10, -70, -5, cx, cy, s, cosY, sinY, cosX, sinX);
-    canvas.drawLine(pLM1, pLM2, vesselPaint..strokeWidth = 5.0 * s);
+    final isLmcaSevere = scenario.ladStenosisFraction > 0.7 && scenario.lcxStenosisFraction > 0.7;
+    final lmcaColor = getVffrColor(isLmcaSevere ? 0.72 : 0.95, vesselColor);
+    canvas.drawLine(
+      pLM1,
+      pLM2,
+      Paint()
+        ..color = lmcaColor
+        ..style = PaintingStyle.stroke
+        ..strokeCap = StrokeCap.round
+        ..strokeWidth = 5.0 * s,
+    );
 
     // 2. Proximal LAD -> Mid LAD -> Distal LAD
     final pLAD1 = _project(22, -35, 10, cx, cy, s, cosY, sinY, cosX, sinX);
     final pLAD2 = _project(35, 10, 25, cx, cy, s, cosY, sinY, cosX, sinX);
     final pLAD3 = _project(45, 65, 35, cx, cy, s, cosY, sinY, cosX, sinX);
 
+    // Dynamic systolic milking calculation:
+    // Intramyocardial compression of LAD during ventricular ejection (phase 0.20 to 0.45)
+    final bool isSystolicPhase = cardiacPhase >= 0.20 && cardiacPhase <= 0.45;
+    final double milkingFactor = isSystolicPhase ? 0.45 : 1.0;
+
     // LAD Stenosis check
     final double ladWidth = scenario.ladStenosisFraction > 0.8 && !isRevascularized
         ? 0.8 * s
-        : 3.8 * s;
+        : 3.8 * s * milkingFactor;
+
+    final ladColor = getVffrColor(
+      isRevascularized ? 0.94 : (1.0 - scenario.ladStenosisFraction * 0.4),
+      vesselColor,
+    );
+    final ladPaint = Paint()
+      ..color = ladColor
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round
+      ..strokeWidth = ladWidth;
 
     final ladPath = Path()
       ..moveTo(pLM2.dx, pLM2.dy)
       ..quadraticBezierTo(pLAD1.dx, pLAD1.dy, pLAD2.dx, pLAD2.dy)
       ..quadraticBezierTo((pLAD2.dx + pLAD3.dx) / 2, (pLAD2.dy + pLAD3.dy) / 2, pLAD3.dx, pLAD3.dy);
-    canvas.drawPath(ladPath, vesselPaint..strokeWidth = ladWidth);
+    canvas.drawPath(ladPath, ladPaint);
 
     // 3. Diagonals (D1, D2)
     final pD1 = _project(55, -15, 20, cx, cy, s, cosY, sinY, cosX, sinX);
     final pD2 = _project(68, 25, 28, cx, cy, s, cosY, sinY, cosX, sinX);
-    canvas.drawLine(pLAD1, pD1, vesselPaint..strokeWidth = 2.4 * s);
-    canvas.drawLine(pLAD2, pD2, vesselPaint..strokeWidth = 1.8 * s);
+    final d1Color = getVffrColor(0.88, vesselColor);
+    final d2Color = getVffrColor(0.86, vesselColor);
+    canvas.drawLine(
+      pLAD1,
+      pD1,
+      Paint()
+        ..color = d1Color
+        ..style = PaintingStyle.stroke
+        ..strokeCap = StrokeCap.round
+        ..strokeWidth = 2.4 * s,
+    );
+    canvas.drawLine(
+      pLAD2,
+      pD2,
+      Paint()
+        ..color = d2Color
+        ..style = PaintingStyle.stroke
+        ..strokeCap = StrokeCap.round
+        ..strokeWidth = 1.8 * s,
+    );
 
     // 4. Septal Perforators (S1, S2)
     final pS1 = _project(-10, -25, 15, cx, cy, s, cosY, sinY, cosX, sinX);
@@ -1613,12 +1790,38 @@ class _FullScreenFluoAngioPainter extends CustomPainter {
     final pOM1 = _project(75, -40, -30, cx, cy, s, cosY, sinY, cosX, sinX);
     final pOM2 = _project(85, 5, -35, cx, cy, s, cosY, sinY, cosX, sinX);
 
+    final lcxColor = getVffrColor(
+      1.0 - scenario.lcxStenosisFraction * 0.35,
+      vesselColor,
+    );
+    final lcxPaint = Paint()
+      ..color = lcxColor
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round
+      ..strokeWidth = 3.2 * s;
+
     final lcxPath = Path()
       ..moveTo(pLM2.dx, pLM2.dy)
       ..quadraticBezierTo(pLCx1.dx, pLCx1.dy, pLCx2.dx, pLCx2.dy);
-    canvas.drawPath(lcxPath, vesselPaint..strokeWidth = 3.2 * s);
-    canvas.drawLine(pLCx1, pOM1, vesselPaint..strokeWidth = 2.2 * s);
-    canvas.drawLine(pLCx2, pOM2, vesselPaint..strokeWidth = 1.8 * s);
+    canvas.drawPath(lcxPath, lcxPaint);
+    canvas.drawLine(
+      pLCx1,
+      pOM1,
+      Paint()
+        ..color = lcxColor
+        ..style = PaintingStyle.stroke
+        ..strokeCap = StrokeCap.round
+        ..strokeWidth = 2.2 * s,
+    );
+    canvas.drawLine(
+      pLCx2,
+      pOM2,
+      Paint()
+        ..color = lcxColor
+        ..style = PaintingStyle.stroke
+        ..strokeCap = StrokeCap.round
+        ..strokeWidth = 1.8 * s,
+    );
 
     // 6. RCA Tree (Proximal, Mid, Distal, PDA, PLV)
     final pRCA1 = _project(-50, -60, -5, cx, cy, s, cosY, sinY, cosX, sinX);
@@ -1631,17 +1834,59 @@ class _FullScreenFluoAngioPainter extends CustomPainter {
         ? 0.7 * s
         : 3.6 * s;
 
+    final rcaColor = getVffrColor(
+      isRevascularized ? 0.95 : (1.0 - scenario.rcaStenosisFraction * 0.4),
+      vesselColor,
+    );
+    final rcaPaint = Paint()
+      ..color = rcaColor
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round
+      ..strokeWidth = rcaWidth;
+
     final rcaPath = Path()
       ..moveTo(pRCA1.dx, pRCA1.dy)
       ..quadraticBezierTo(pRCA2.dx, pRCA2.dy, pRCA3.dx, pRCA3.dy);
-    canvas.drawPath(rcaPath, vesselPaint..strokeWidth = rcaWidth);
+    canvas.drawPath(rcaPath, rcaPaint);
 
     if (dominance == CoronaryDominance.rightDominant) {
-      canvas.drawLine(pRCA3, pPDA, vesselPaint..strokeWidth = 2.4 * s);
-      canvas.drawLine(pRCA3, pPLV, vesselPaint..strokeWidth = 2.0 * s);
+      canvas.drawLine(
+        pRCA3,
+        pPDA,
+        Paint()
+          ..color = rcaColor
+          ..style = PaintingStyle.stroke
+          ..strokeCap = StrokeCap.round
+          ..strokeWidth = 2.4 * s,
+      );
+      canvas.drawLine(
+        pRCA3,
+        pPLV,
+        Paint()
+          ..color = rcaColor
+          ..style = PaintingStyle.stroke
+          ..strokeCap = StrokeCap.round
+          ..strokeWidth = 2.0 * s,
+      );
     }
 
-    // 7. Radiopaque Interventional Guidewire & Stent (If Active)
+    // 7. Myocardial Blush (Diffuse microvascular ground-glass parenchymal blush)
+    if (myocardialBlushGrade > 0 && (isInjecting || contrastIntensity > 0.15)) {
+      final blushCenter = _project(35, 30, 20, cx, cy, s, cosY, sinY, cosX, sinX);
+      final double blushAlpha = (0.06 * myocardialBlushGrade * (isInjecting ? 1.0 : contrastIntensity)).clamp(0.0, 0.38);
+      final blushTint = invertLut
+          ? const Color(0xFFF1F5F9).withValues(alpha: blushAlpha)
+          : const Color(0xFF0F172A).withValues(alpha: blushAlpha);
+
+      final blushPaint = Paint()
+        ..shader = RadialGradient(
+          colors: [blushTint, blushTint.withValues(alpha: 0.0)],
+          stops: const [0.25, 1.0],
+        ).createShader(Rect.fromCircle(center: blushCenter, radius: 55 * s));
+      canvas.drawCircle(blushCenter, 55 * s, blushPaint);
+    }
+
+    // 8. Radiopaque Interventional Guidewire & Stent (If Active)
     final wirePaint = Paint()
       ..color = invertLut ? const Color(0xFF00E5FF) : const Color(0xFF0D47A1)
       ..style = PaintingStyle.stroke
@@ -1694,7 +1939,10 @@ class _FullScreenFluoAngioPainter extends CustomPainter {
         oldDelegate.isRevascularized != isRevascularized ||
         oldDelegate.isInjecting != isInjecting ||
         oldDelegate.invertLut != invertLut ||
-        oldDelegate.showSternotomyWires != showSternotomyWires;
+        oldDelegate.showSternotomyWires != showSternotomyWires ||
+        oldDelegate.dsaRoadmap != dsaRoadmap ||
+        oldDelegate.myocardialBlushGrade != myocardialBlushGrade ||
+        oldDelegate.showVffrHeatmap != showVffrHeatmap;
   }
 }
 
@@ -1707,41 +1955,140 @@ class _QcaCalipersPainter extends CustomPainter {
   final Offset ref2;
   final Offset mld1;
   final Offset mld2;
+  final Offset len1;
+  final Offset len2;
   final double rvdMm;
   final double mldMm;
   final double percentStenosis;
+  final double lesionLengthMm;
+  final int? activeDragIndex;
 
   _QcaCalipersPainter({
     required this.ref1,
     required this.ref2,
     required this.mld1,
     required this.mld2,
+    required this.len1,
+    required this.len2,
     required this.rvdMm,
     required this.mldMm,
     required this.percentStenosis,
+    required this.lesionLengthMm,
+    this.activeDragIndex,
   });
+
+  void _drawCaliperHandle(
+    Canvas canvas,
+    Offset point,
+    Color color,
+    bool isActive,
+    String label,
+  ) {
+    final ringPaint = Paint()
+      ..color = isActive ? Colors.white : color
+      ..strokeWidth = isActive ? 2.5 : 1.5
+      ..style = PaintingStyle.stroke;
+    final fillPaint = Paint()
+      ..color = color.withValues(alpha: isActive ? 0.95 : 0.65)
+      ..style = PaintingStyle.fill;
+
+    // Glowing halo when actively dragged
+    if (isActive) {
+      final glowPaint = Paint()
+        ..color = color.withValues(alpha: 0.35)
+        ..style = PaintingStyle.fill;
+      canvas.drawCircle(point, 14, glowPaint);
+    }
+
+    canvas.drawCircle(point, isActive ? 7.5 : 5.5, fillPaint);
+    canvas.drawCircle(point, isActive ? 9.5 : 7.0, ringPaint);
+
+    // Crosshair ticks
+    canvas.drawLine(Offset(point.dx - 4, point.dy), Offset(point.dx + 4, point.dy), ringPaint);
+    canvas.drawLine(Offset(point.dx, point.dy - 4), Offset(point.dx, point.dy + 4), ringPaint);
+  }
+
+  void _drawCallout(
+    Canvas canvas,
+    Offset pos,
+    String text,
+    Color textColor,
+    Color bgColor,
+  ) {
+    final tp = TextPainter(
+      text: TextSpan(
+        text: text,
+        style: TextStyle(
+          color: textColor,
+          fontSize: 10,
+          fontWeight: FontWeight.bold,
+          fontFamily: 'monospace',
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+    )..layout();
+
+    final bgRect = RRect.fromRectAndRadius(
+      Rect.fromCenter(center: pos, width: tp.width + 10, height: tp.height + 6),
+      const Radius.circular(4),
+    );
+    canvas.drawRRect(
+      bgRect,
+      Paint()..color = bgColor.withValues(alpha: 0.85)..style = PaintingStyle.fill,
+    );
+    canvas.drawRRect(
+      bgRect,
+      Paint()
+        ..color = textColor.withValues(alpha: 0.5)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.0,
+    );
+    tp.paint(canvas, Offset(pos.dx - tp.width / 2, pos.dy - tp.height / 2));
+  }
 
   @override
   void paint(Canvas canvas, Size size) {
-    // 1. Reference Caliper (Green / Cyan)
-    final refPaint = Paint()
-      ..color = const Color(0xFF00E5FF)
+    // 1. Reference Vessel Caliper (Cyan Color)
+    const refColor = Color(0xFF00E5FF);
+    final refLinePaint = Paint()
+      ..color = refColor.withValues(alpha: 0.85)
       ..strokeWidth = 2.0
       ..style = PaintingStyle.stroke;
+    canvas.drawLine(ref1, ref2, refLinePaint);
 
-    canvas.drawLine(ref1, ref2, refPaint);
-    canvas.drawCircle(ref1, 5, refPaint..style = PaintingStyle.fill);
-    canvas.drawCircle(ref2, 5, refPaint);
+    _drawCaliperHandle(canvas, ref1, refColor, activeDragIndex == 0, 'R1');
+    _drawCaliperHandle(canvas, ref2, refColor, activeDragIndex == 1, 'R2');
 
-    // 2. MLD Stenosis Caliper (Amber / Red)
-    final mldPaint = Paint()
-      ..color = const Color(0xFFFF5252)
+    final refMid = Offset((ref1.dx + ref2.dx) / 2, (ref1.dy + ref2.dy) / 2 - 14);
+    _drawCallout(canvas, refMid, 'RVD: ${rvdMm.toStringAsFixed(2)} mm', refColor, const Color(0xFF0F172A));
+
+    // 2. Minimal Lumen Diameter (MLD) Caliper (Red Color)
+    const mldColor = Color(0xFFFF5252);
+    final mldLinePaint = Paint()
+      ..color = mldColor.withValues(alpha: 0.85)
       ..strokeWidth = 2.0
       ..style = PaintingStyle.stroke;
+    canvas.drawLine(mld1, mld2, mldLinePaint);
 
-    canvas.drawLine(mld1, mld2, mldPaint);
-    canvas.drawCircle(mld1, 5, mldPaint..style = PaintingStyle.fill);
-    canvas.drawCircle(mld2, 5, mldPaint);
+    _drawCaliperHandle(canvas, mld1, mldColor, activeDragIndex == 2, 'M1');
+    _drawCaliperHandle(canvas, mld2, mldColor, activeDragIndex == 3, 'M2');
+
+    final mldMid = Offset((mld1.dx + mld2.dx) / 2, (mld1.dy + mld2.dy) / 2 + 14);
+    _drawCallout(canvas, mldMid, 'MLD: ${mldMm.toStringAsFixed(2)} mm (${percentStenosis.toStringAsFixed(1)}% DS)', mldColor, const Color(0xFF0F172A));
+
+    // 3. Lesion Length Caliper (Purple Color)
+    const lenColor = Color(0xFFA78BFA);
+    final lenLinePaint = Paint()
+      ..color = lenColor.withValues(alpha: 0.85)
+      ..strokeWidth = 1.8
+      ..style = PaintingStyle.stroke;
+    canvas.drawLine(len1, len2, lenLinePaint);
+
+    _drawCaliperHandle(canvas, len1, lenColor, activeDragIndex == 4, 'L1');
+    _drawCaliperHandle(canvas, len2, lenColor, activeDragIndex == 5, 'L2');
+
+    final lenMid = Offset((len1.dx + len2.dx) / 2 + 20, (len1.dy + len2.dy) / 2);
+    _drawCallout(canvas, lenMid, 'Len: ${lesionLengthMm.toStringAsFixed(1)} mm', lenColor, const Color(0xFF0F172A));
   }
 
   @override
@@ -1749,6 +2096,13 @@ class _QcaCalipersPainter extends CustomPainter {
     return oldDelegate.ref1 != ref1 ||
         oldDelegate.ref2 != ref2 ||
         oldDelegate.mld1 != mld1 ||
-        oldDelegate.mld2 != mld2;
+        oldDelegate.mld2 != mld2 ||
+        oldDelegate.len1 != len1 ||
+        oldDelegate.len2 != len2 ||
+        oldDelegate.rvdMm != rvdMm ||
+        oldDelegate.mldMm != mldMm ||
+        oldDelegate.percentStenosis != percentStenosis ||
+        oldDelegate.lesionLengthMm != lesionLengthMm ||
+        oldDelegate.activeDragIndex != activeDragIndex;
   }
 }

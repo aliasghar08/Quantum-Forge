@@ -16,15 +16,18 @@ class CardioCathThreeBridge {
   static const String heartViewType = 'cardiocath-heart-3d';
   static const String fullScreenHeartViewType = 'cardiocath-heart-fullscreen';
   static const String fluoroViewType = 'cardiocath-fluoro-xray';
+  static const String fullScreenFluoroViewType = 'cardiocath-fullscreen-fluoro';
 
   static void ensureViewFactories() {}
 
   static CardioCathThreeBridge? forHeartView(int viewId) => null;
   static CardioCathThreeBridge? forFullScreenHeartView(int viewId) => null;
   static CardioCathThreeBridge? forFluoroView(int viewId) => null;
+  static CardioCathThreeBridge? forFullScreenFluoroView(int viewId) => null;
   static CardioCathThreeBridge? get latestHeartBridge => null;
   static CardioCathThreeBridge? get latestFullScreenHeartBridge => null;
   static CardioCathThreeBridge? get latestFluoroBridge => null;
+  static CardioCathThreeBridge? get latestFullScreenFluoroBridge => null;
   bool get hasActiveViewer => false;
   bool get hasFailed => false;
 
@@ -58,6 +61,9 @@ class CardioCathThreeBridge {
   void setShowVffrHeatmap(bool show) {}
   void setProcedureStep(String step) {}
   void setInvertLut(bool invert) {}
+  void setDsaRoadmap(bool dsa) {}
+  void setMyocardialBlushGrade(int grade) {}
+  void setFps(double fps) {}
 
   List<ProjectedLandmark> getProjectedLandmarks({String category = 'all'}) => const [];
 

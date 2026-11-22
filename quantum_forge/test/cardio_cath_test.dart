@@ -1609,7 +1609,22 @@ void main() {
       expect(find.textContaining('Reference Vessel (RVD):'), findsOneWidget);
       expect(find.textContaining('Minimal Lumen (MLD):'), findsOneWidget);
 
-      // 5. Test Toggle LUT Inversion
+      // 5. Test DSA Roadmap Toggle
+      final dsaToggle = find.byKey(const Key('fluo_theater_dsa_toggle'));
+      expect(dsaToggle, findsOneWidget);
+      await tester.ensureVisible(dsaToggle);
+      await tester.tap(dsaToggle);
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(find.text('DSA Roadmap ON'), findsOneWidget);
+
+      // 6. Test MBG Selector
+      final mbgToggle = find.byKey(const Key('fluo_theater_mbg_toggle'));
+      expect(mbgToggle, findsOneWidget);
+      await tester.ensureVisible(mbgToggle);
+      await tester.tap(mbgToggle);
+      await tester.pump(const Duration(milliseconds: 100));
+
+      // 7. Test Toggle LUT Inversion
       final lutBtn =
           find.byKey(const Key('fluo_theater_invert_lut_button'));
       expect(lutBtn, findsOneWidget);
@@ -1617,7 +1632,7 @@ void main() {
       await tester.tap(lutBtn);
       await tester.pump(const Duration(milliseconds: 100));
 
-      // 6. Test Exit Theater Button
+      // 8. Test Exit Theater Button
       final exitBtn = find.byKey(const Key('fluo_theater_exit_button'));
       expect(exitBtn, findsOneWidget);
       await tester.ensureVisible(exitBtn);
@@ -1867,12 +1882,16 @@ void main() {
 
       // Verify 3D Orbit, vFFR Heatmap, CABG, and TAVR toggles
       final orbitToggle = find.byKey(const Key('fluo_theater_free_orbit_toggle'));
+      final dsaToggle = find.byKey(const Key('fluo_theater_dsa_toggle'));
+      final mbgToggle = find.byKey(const Key('fluo_theater_mbg_toggle'));
       final heatmapToggle = find.byKey(const Key('fluo_theater_vffr_heatmap_toggle'));
       final cabgToggle = find.byKey(const Key('fluo_theater_cabg_toggle'));
       final tavrToggle = find.byKey(const Key('fluo_theater_tavr_toggle'));
       final pipToggle = find.byKey(const Key('fluo_theater_pip_toggle'));
 
       expect(orbitToggle, findsOneWidget);
+      expect(dsaToggle, findsOneWidget);
+      expect(mbgToggle, findsOneWidget);
       expect(heatmapToggle, findsOneWidget);
       expect(cabgToggle, findsOneWidget);
       expect(tavrToggle, findsOneWidget);
@@ -1883,6 +1902,17 @@ void main() {
       await tester.tap(orbitToggle);
       await tester.pump();
       expect(find.text('3D Orbit: Free'), findsOneWidget);
+
+      // Tap DSA Roadmap toggle
+      await tester.ensureVisible(dsaToggle);
+      await tester.tap(dsaToggle);
+      await tester.pump();
+      expect(find.text('DSA Roadmap ON'), findsOneWidget);
+
+      // Tap MBG toggle
+      await tester.ensureVisible(mbgToggle);
+      await tester.tap(mbgToggle);
+      await tester.pump();
 
       // Tap vFFR Heatmap
       await tester.ensureVisible(heatmapToggle);
@@ -1931,7 +1961,7 @@ void main() {
 
       // Exit theater
       final exitBtn = find.byKey(const Key('fluo_theater_exit_button'));
-      await tester.tap(exitBtn);
+      await tester.tap(exitBtn, warnIfMissed: false);
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 400));
     });

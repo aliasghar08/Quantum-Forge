@@ -32,12 +32,14 @@
     varying vec3 vNormal;
     varying vec3 vViewPosition;
     varying vec2 vUv;
+    varying vec3 vWorldPosition;
 
     void main() {
       vUv = uv;
       vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
       vNormal = normalize(normalMatrix * normal);
       vViewPosition = -mvPosition.xyz;
+      vWorldPosition = (modelMatrix * vec4(position, 1.0)).xyz;
       gl_Position = projectionMatrix * mvPosition;
     }
   `;
@@ -48,10 +50,17 @@
     uniform float uCollimationRadius;
     uniform float uTime;
     uniform int uIsBone;
+    uniform int uDsaMode;
+    uniform float uMyocardialBlush;
+    uniform int uVffrOverlay;
+    uniform vec2 uResolution;
+    uniform int uInvertLut;
+    uniform float uBolusFront;
 
     varying vec3 vNormal;
     varying vec3 vViewPosition;
     varying vec2 vUv;
+    varying vec3 vWorldPosition;
 
     float rand(vec2 co) {
       return fract(sin(dot(co.xy, vec2(12.9898, 78.233))) * 43758.5453);
@@ -62,23 +71,80 @@
       vec3 viewDir = normalize(vViewPosition);
 
       float thickness = clamp(1.0 - abs(dot(normal, viewDir)), 0.12, 1.0);
-      float mu = (uIsBone == 1) ? 1.2 : (0.2 + uContrastDensity * 4.2);
+
+      // Navier-Stokes Bolus Wavefront Advection along coronary tree height
+      float normY = clamp((0.45 - vWorldPosition.y) / 1.55, 0.0, 1.0);
+      float localContrast = uContrastDensity;
+      if (uIsBone == 0 && uBolusFront > 0.0) {
+        float bolusReach = smoothstep(uBolusFront + 0.18, uBolusFront - 0.05, normY);
+        localContrast = uContrastDensity * bolusReach;
+      }
+
+      // Linear X-ray attenuation coefficient mu
+      float mu = 0.0;
+      if (uDsaMode == 1) {
+        if (uIsBone == 1) {
+          mu = 0.0; // Bone and rib structures completely subtracted out in DSA Roadmap
+        } else {
+          mu = localContrast * 6.8;
+        }
+      } else {
+        mu = (uIsBone == 1) ? 1.35 : (0.20 + localContrast * 4.8);
+      }
+
       float attenuation = exp(-mu * thickness);
 
-      float noise = (rand(gl_FragCoord.xy + fract(uTime)) - 0.5) * 0.035;
+      // Quantum mottle detector noise
+      float noise = (rand(gl_FragCoord.xy + fract(uTime)) - 0.5) * 0.024;
       float radiodensity = clamp((1.0 - attenuation) * uIntensity + noise, 0.0, 1.0);
 
-      // Clinical inverted fluoroscopy: Base field is translucent gray (0.76), radiodense structures absorb down to dark (0.08)
-      float brightness = clamp(0.76 - radiodensity * 0.68, 0.08, 0.85);
-      vec3 xRayColor = vec3(brightness);
+      if (uDsaMode == 1 && uIsBone == 1) {
+        radiodensity = 0.0;
+      }
 
-      // Collimator circular vignette mask
-      vec2 center = vec2(0.5, 0.5);
-      vec2 screenUv = gl_FragCoord.xy / vec2(800.0, 600.0);
-      float dist = distance(screenUv, center);
+      // Inverted clinical fluoroscopy (radiodense absorbs to black) vs Direct X-Ray
+      vec3 xRayColor;
+      if (uInvertLut == 1) {
+        float brightness = clamp(0.08 + radiodensity * 0.86, 0.05, 0.95);
+        xRayColor = vec3(brightness);
+      } else {
+        float brightness = clamp(0.78 - radiodensity * 0.70, 0.06, 0.88);
+        xRayColor = vec3(brightness);
+      }
+
+      // Myocardial blush capillary glow
+      if (uMyocardialBlush > 0.01 && uIsBone == 0) {
+        float blushNoise = (rand(gl_FragCoord.xy * 0.5) - 0.5) * 0.04;
+        float blushVal = clamp(uMyocardialBlush * 0.22 + blushNoise, 0.0, 0.35);
+        if (uInvertLut == 1) {
+          xRayColor += vec3(0.12, 0.14, 0.18) * blushVal;
+        } else {
+          xRayColor -= vec3(0.18, 0.18, 0.18) * blushVal;
+        }
+      }
+
+      // Wire-free vFFR / QFR per-segment color coding overlay
+      if (uVffrOverlay == 1 && uIsBone == 0 && localContrast > 0.1) {
+        vec3 vffrColor;
+        if (normY < 0.28) {
+          vffrColor = vec3(0.06, 0.75, 0.45); // Proximal Green (vFFR >= 0.88)
+        } else if (normY < 0.55) {
+          vffrColor = vec3(0.95, 0.65, 0.08); // Stenosis Amber (vFFR 0.75-0.80)
+        } else {
+          vffrColor = vec3(0.92, 0.22, 0.25); // Ischemic Distal Red (vFFR < 0.75)
+        }
+        xRayColor = mix(xRayColor, vffrColor, 0.68);
+      }
+
+      // Aspect-ratio corrected circular collimator iris
+      vec2 res = (uResolution.x > 0.0 && uResolution.y > 0.0) ? uResolution : vec2(800.0, 600.0);
+      vec2 screenUv = gl_FragCoord.xy / res;
+      float aspect = res.x / res.y;
+      vec2 aspectUv = vec2((screenUv.x - 0.5) * aspect + 0.5, screenUv.y);
+      float dist = distance(aspectUv, vec2(0.5, 0.5));
       float shutter = smoothstep(uCollimationRadius, uCollimationRadius - 0.03, dist);
 
-      gl_FragColor = vec4(mix(vec3(0.04, 0.06, 0.09), xRayColor, shutter), 1.0);
+      gl_FragColor = vec4(mix(vec3(0.02, 0.04, 0.06), xRayColor, shutter), 1.0);
     }
   `;
 
@@ -2566,6 +2632,11 @@
       this.showVffrHeatmap = false;
       this.procedureStep = 'all';
       this.invertLut = false;
+      this.isDsaMode = false;
+      this.myocardialBlushGrade = 3;
+      this.fps = 15.0;
+      this.targetFrameDuration = 1000.0 / 15.0;
+      this.bolusFront = 0.0;
 
       this._initFluoroScene();
       this._buildFluoroAnatomy();
@@ -2632,6 +2703,12 @@
           uCollimationRadius: { value: 0.46 },
           uTime: { value: 0.0 },
           uIsBone: { value: 1 },
+          uDsaMode: { value: 0 },
+          uMyocardialBlush: { value: 0.0 },
+          uVffrOverlay: { value: 0 },
+          uResolution: { value: new THREE.Vector2(800, 600) },
+          uInvertLut: { value: 0 },
+          uBolusFront: { value: 0.0 },
         },
         transparent: true,
       });
@@ -2646,6 +2723,12 @@
           uCollimationRadius: { value: 0.46 },
           uTime: { value: 0.0 },
           uIsBone: { value: 0 },
+          uDsaMode: { value: 0 },
+          uMyocardialBlush: { value: 0.0 },
+          uVffrOverlay: { value: 0 },
+          uResolution: { value: new THREE.Vector2(800, 600) },
+          uInvertLut: { value: 0 },
+          uBolusFront: { value: 0.0 },
         },
         transparent: true,
       });
@@ -2663,11 +2746,13 @@
       this.anatomyGroup.add(this.ghostHeart);
 
       // Spine Vertebrae Column (Radiopaque shadow behind coronaries)
+      this.spineGroup = new THREE.Group();
       for (let s = -4; s <= 4; s++) {
         const spineVert = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.28, 0.35), this.boneMat);
         spineVert.position.set(0.18, s * 0.38, -0.65);
-        this.anatomyGroup.add(spineVert);
+        this.spineGroup.add(spineVert);
       }
+      this.anatomyGroup.add(this.spineGroup);
 
       // Thoracic Ribcage Shadows
       this.ribsGroup = new THREE.Group();
@@ -2687,6 +2772,13 @@
       }
       this.anatomyGroup.add(this.ribsGroup);
 
+      // Hemidiaphragm Dome (Moves with respiration)
+      const diaGeo = new THREE.CylinderGeometry(1.6, 1.9, 0.35, 24, 1, true, 0, Math.PI);
+      this.diaphragmMesh = new THREE.Mesh(diaGeo, this.boneMat);
+      this.diaphragmMesh.position.set(0.0, -1.25, 0.05);
+      this.diaphragmMesh.rotation.x = 0.28;
+      this.anatomyGroup.add(this.diaphragmMesh);
+
       // Catheter Silhouette (Always radiopaque)
       const cathCurve = new THREE.CatmullRomCurve3([
         new THREE.Vector3(-0.35, -1.8, -0.2),
@@ -2698,13 +2790,16 @@
       this.cathMesh = new THREE.Mesh(new THREE.TubeGeometry(cathCurve, 32, 0.045, 10, false), cathMat);
       this.anatomyGroup.add(this.cathMesh);
 
+      // Dynamic Coronary Group (Subject to cardiac torsion & systolic deformation)
+      this.coronaryGroup = new THREE.Group();
+
       // Complete Volumetric Coronary Tree (LM, LAD, D1, D2, S1, S2, LCx, OM1, OM2, RCA, PDA, PLV)
       // Left Main
       const lmCurve = new THREE.CatmullRomCurve3([
         new THREE.Vector3(0.0, 0.4, 0.1),
         new THREE.Vector3(-0.15, 0.35, 0.18),
       ]);
-      this.anatomyGroup.add(new THREE.Mesh(new THREE.TubeGeometry(lmCurve, 12, 0.042, 10, false), this.vesselMat));
+      this.coronaryGroup.add(new THREE.Mesh(new THREE.TubeGeometry(lmCurve, 12, 0.042, 10, false), this.vesselMat));
 
       // LAD
       const ladCurve = new THREE.CatmullRomCurve3([
@@ -2715,7 +2810,7 @@
         new THREE.Vector3(-0.22, -1.05, 0.18),
       ]);
       this.ladMesh = new THREE.Mesh(new THREE.TubeGeometry(ladCurve, 32, 0.034, 10, false), this.vesselMat);
-      this.anatomyGroup.add(this.ladMesh);
+      this.coronaryGroup.add(this.ladMesh);
 
       // D1
       const d1Curve = new THREE.CatmullRomCurve3([
@@ -2723,14 +2818,14 @@
         new THREE.Vector3(-0.42, -0.22, 0.45),
         new THREE.Vector3(-0.55, -0.55, 0.32),
       ]);
-      this.anatomyGroup.add(new THREE.Mesh(new THREE.TubeGeometry(d1Curve, 18, 0.024, 8, false), this.vesselMat));
+      this.coronaryGroup.add(new THREE.Mesh(new THREE.TubeGeometry(d1Curve, 18, 0.024, 8, false), this.vesselMat));
 
       // D2
       const d2Curve = new THREE.CatmullRomCurve3([
         new THREE.Vector3(-0.12, -0.75, 0.35),
         new THREE.Vector3(-0.38, -0.92, 0.28),
       ]);
-      this.anatomyGroup.add(new THREE.Mesh(new THREE.TubeGeometry(d2Curve, 12, 0.020, 8, false), this.vesselMat));
+      this.coronaryGroup.add(new THREE.Mesh(new THREE.TubeGeometry(d2Curve, 12, 0.020, 8, false), this.vesselMat));
 
       // S1 (First Septal Perforator diving deep)
       const s1Curve = new THREE.CatmullRomCurve3([
@@ -2738,7 +2833,7 @@
         new THREE.Vector3(-0.05, 0.02, 0.15),
         new THREE.Vector3(-0.02, -0.25, 0.05),
       ]);
-      this.anatomyGroup.add(new THREE.Mesh(new THREE.TubeGeometry(s1Curve, 14, 0.018, 8, false), this.vesselMat));
+      this.coronaryGroup.add(new THREE.Mesh(new THREE.TubeGeometry(s1Curve, 14, 0.018, 8, false), this.vesselMat));
 
       // LCx
       const lcxCurve = new THREE.CatmullRomCurve3([
@@ -2747,7 +2842,7 @@
         new THREE.Vector3(-0.65, 0.18, -0.15),
         new THREE.Vector3(-0.52, -0.15, -0.35),
       ]);
-      this.anatomyGroup.add(new THREE.Mesh(new THREE.TubeGeometry(lcxCurve, 24, 0.032, 10, false), this.vesselMat));
+      this.coronaryGroup.add(new THREE.Mesh(new THREE.TubeGeometry(lcxCurve, 24, 0.032, 10, false), this.vesselMat));
 
       // OM1
       const om1Curve = new THREE.CatmullRomCurve3([
@@ -2755,14 +2850,14 @@
         new THREE.Vector3(-0.68, -0.22, 0.05),
         new THREE.Vector3(-0.72, -0.55, -0.12),
       ]);
-      this.anatomyGroup.add(new THREE.Mesh(new THREE.TubeGeometry(om1Curve, 18, 0.024, 8, false), this.vesselMat));
+      this.coronaryGroup.add(new THREE.Mesh(new THREE.TubeGeometry(om1Curve, 18, 0.024, 8, false), this.vesselMat));
 
       // OM2
       const om2Curve = new THREE.CatmullRomCurve3([
         new THREE.Vector3(-0.65, 0.18, -0.15),
         new THREE.Vector3(-0.75, -0.25, -0.25),
       ]);
-      this.anatomyGroup.add(new THREE.Mesh(new THREE.TubeGeometry(om2Curve, 12, 0.020, 8, false), this.vesselMat));
+      this.coronaryGroup.add(new THREE.Mesh(new THREE.TubeGeometry(om2Curve, 12, 0.020, 8, false), this.vesselMat));
 
       // RCA
       const rcaCurve = new THREE.CatmullRomCurve3([
@@ -2772,7 +2867,7 @@
         new THREE.Vector3(0.58, -0.42, 0.22),
         new THREE.Vector3(0.45, -0.72, -0.05),
       ]);
-      this.anatomyGroup.add(new THREE.Mesh(new THREE.TubeGeometry(rcaCurve, 32, 0.034, 10, false), this.vesselMat));
+      this.coronaryGroup.add(new THREE.Mesh(new THREE.TubeGeometry(rcaCurve, 32, 0.034, 10, false), this.vesselMat));
 
       // PDA
       const pdaCurve = this.dominance === 'left'
@@ -2786,7 +2881,36 @@
             new THREE.Vector3(0.18, -0.68, -0.32),
             new THREE.Vector3(-0.12, -0.85, -0.25),
           ]);
-      this.anatomyGroup.add(new THREE.Mesh(new THREE.TubeGeometry(pdaCurve, 20, 0.026, 8, false), this.vesselMat));
+      this.coronaryGroup.add(new THREE.Mesh(new THREE.TubeGeometry(pdaCurve, 20, 0.026, 8, false), this.vesselMat));
+
+      this.anatomyGroup.add(this.coronaryGroup);
+
+      // Myocardial Capillary Blush Shell
+      const blushGeo = new THREE.SphereGeometry(0.85, 20, 16);
+      this.blushMat = new THREE.ShaderMaterial({
+        vertexShader: XRAY_VS,
+        fragmentShader: XRAY_FS,
+        uniforms: {
+          uIntensity: { value: 0.8 },
+          uContrastDensity: { value: 0.0 },
+          uCollimationRadius: { value: 0.46 },
+          uTime: { value: 0.0 },
+          uIsBone: { value: 0 },
+          uDsaMode: { value: 0 },
+          uMyocardialBlush: { value: 0.0 },
+          uVffrOverlay: { value: 0 },
+          uResolution: { value: new THREE.Vector2(800, 600) },
+          uInvertLut: { value: 0 },
+          uBolusFront: { value: 0.0 },
+        },
+        transparent: true,
+        depthWrite: false,
+      });
+      this.blushMesh = new THREE.Mesh(blushGeo, this.blushMat);
+      this.blushMesh.position.set(-0.15, -0.28, 0.22);
+      this.blushMesh.scale.set(0.75, 1.15, 0.70);
+      this.blushMesh.visible = false;
+      this.anatomyGroup.add(this.blushMesh);
 
       // ── 3D Bypass Grafts Group (CABG Revascularization) ────────────────────
       this.graftsGroup = new THREE.Group();
@@ -2935,6 +3059,25 @@
       }
     }
 
+    setDsaRoadmap(dsa) {
+      this.isDsaMode = !!dsa;
+      if (this.vesselMat) this.vesselMat.uniforms.uDsaMode.value = this.isDsaMode ? 1 : 0;
+      if (this.boneMat) this.boneMat.uniforms.uDsaMode.value = this.isDsaMode ? 1 : 0;
+      if (this.ribsGroup) this.ribsGroup.visible = !this.isDsaMode;
+      if (this.ghostHeart) this.ghostHeart.visible = !this.isDsaMode;
+      if (this.spineGroup) this.spineGroup.visible = !this.isDsaMode;
+      if (this.diaphragmMesh) this.diaphragmMesh.visible = !this.isDsaMode;
+    }
+
+    setMyocardialBlushGrade(grade) {
+      this.myocardialBlushGrade = Math.max(0, Math.min(3, parseInt(grade, 10) || 0));
+    }
+
+    setFps(fps) {
+      this.fps = Math.max(1.0, Math.min(60.0, parseFloat(fps) || 15.0));
+      this.targetFrameDuration = 1000.0 / this.fps;
+    }
+
     _updateCameraGantry() {
       // Map C-Arm LAO/RAO and Cranial/Caudal angles into 3D orbital space
       const phi = (90 - this.cranCaud) * (Math.PI / 180.0);
@@ -2964,6 +3107,7 @@
 
     injectContrast() {
       this.contrastIntensity = 1.0;
+      this.bolusFront = 0.05;
     }
 
     _setupResizeObserver() {
@@ -2982,42 +3126,116 @@
       this.camera.aspect = width / height;
       this.camera.updateProjectionMatrix();
       this.renderer.setSize(width, height);
+      if (this.vesselMat) this.vesselMat.uniforms.uResolution.value.set(width, height);
+      if (this.boneMat) this.boneMat.uniforms.uResolution.value.set(width, height);
+      if (this.blushMat) this.blushMat.uniforms.uResolution.value.set(width, height);
     }
 
     _startRenderLoop() {
+      let lastFrameTime = performance.now();
+
       const render = () => {
         if (this.isDisposed) return;
         requestAnimationFrame(render);
+
+        const now = performance.now();
+        const delta = now - lastFrameTime;
+        const targetDuration = this.targetFrameDuration || (1000.0 / (this.fps || 15.0));
+
+        // Cine Cadence: throttle rendering to target FPS (7.5, 15, or 30 FPS)
+        if (delta < targetDuration - 1.5) {
+          return;
+        }
+        lastFrameTime = now;
 
         if (this.controls && this.isFreeOrbit) {
           this.controls.update();
         }
 
+        const nowSec = now * 0.001;
+
+        // Navier-Stokes Bolus Propagation & Wash-Out
         if (this.contrastIntensity > 0.005) {
-          this.contrastIntensity *= 0.975;
-          if (this.vesselMat) {
-            this.vesselMat.uniforms.uContrastDensity.value = this.contrastIntensity;
-          }
+          this.bolusFront += 0.035 * ((this.fps || 15.0) / 15.0);
+          this.contrastIntensity *= 0.984;
         } else {
           this.contrastIntensity = 0.0;
-          if (this.vesselMat) {
-            this.vesselMat.uniforms.uContrastDensity.value = 0.0;
-          }
+          this.bolusFront = 0.0;
         }
 
-        const nowSec = performance.now() * 0.001;
-        if (this.boneMat) this.boneMat.uniforms.uTime.value = nowSec;
-        if (this.vesselMat) this.vesselMat.uniforms.uTime.value = nowSec;
+        // Resolution uniform updates
+        if (this.container && this.vesselMat) {
+          const w = this.container.clientWidth || 800;
+          const h = this.container.clientHeight || 600;
+          this.vesselMat.uniforms.uResolution.value.set(w, h);
+          this.boneMat.uniforms.uResolution.value.set(w, h);
+          if (this.blushMat) this.blushMat.uniforms.uResolution.value.set(w, h);
+        }
 
-        // Cardiac beating pulsation on ghost heart and coronaries
+        if (this.boneMat) {
+          this.boneMat.uniforms.uTime.value = nowSec;
+          this.boneMat.uniforms.uDsaMode.value = this.isDsaMode ? 1 : 0;
+          this.boneMat.uniforms.uInvertLut.value = this.invertLut ? 1 : 0;
+        }
+        if (this.vesselMat) {
+          this.vesselMat.uniforms.uTime.value = nowSec;
+          this.vesselMat.uniforms.uContrastDensity.value = this.contrastIntensity;
+          this.vesselMat.uniforms.uBolusFront.value = this.bolusFront;
+          this.vesselMat.uniforms.uDsaMode.value = this.isDsaMode ? 1 : 0;
+          this.vesselMat.uniforms.uInvertLut.value = this.invertLut ? 1 : 0;
+          this.vesselMat.uniforms.uVffrOverlay.value = this.showVffrHeatmap ? 1 : 0;
+        }
+
+        // Myocardial Blush Capillary Haze (MBG 0-3)
+        const blushIntensity = (this.bolusFront > 0.30 && this.contrastIntensity > 0.08)
+          ? ((this.myocardialBlushGrade != null ? this.myocardialBlushGrade : 3) / 3.0) * this.contrastIntensity
+          : 0.0;
+
+        if (this.vesselMat) {
+          this.vesselMat.uniforms.uMyocardialBlush.value = blushIntensity;
+        }
+        if (this.blushMat) {
+          this.blushMat.uniforms.uMyocardialBlush.value = blushIntensity;
+          this.blushMat.uniforms.uContrastDensity.value = blushIntensity * 0.45;
+          this.blushMat.uniforms.uDsaMode.value = this.isDsaMode ? 1 : 0;
+          this.blushMat.uniforms.uInvertLut.value = this.invertLut ? 1 : 0;
+          this.blushMesh.visible = (blushIntensity > 0.02) && !this.isDsaMode;
+        }
+
+        // Dynamic Cardiac Cycle Kinematics (Twist, Wringing & Systolic Milking)
         const phi = this.cardiacPhase || 0.0;
+        let sBeat = 0.0;
+        if (phi >= 0.20 && phi <= 0.45) {
+          sBeat = Math.sin(((phi - 0.20) / 0.25) * Math.PI);
+        }
+
+        // 1. Ghost myocardium beating & wall thickening
         if (this.ghostHeart) {
-          let sBeat = 1.0;
-          if (phi >= 0.24 && phi <= 0.44) {
-            const tau = (phi - 0.24) / 0.20;
-            sBeat = 1.0 - Math.sin(tau * Math.PI) * 0.08;
-          }
-          this.ghostHeart.scale.set(0.92 * sBeat, 1.25 * sBeat, 0.88 * sBeat);
+          const sScale = 1.0 - sBeat * 0.10;
+          this.ghostHeart.scale.set(0.92 * sScale, 1.25 * sScale, 0.88 * sScale);
+          this.ghostHeart.rotation.y = sBeat * 0.07;
+        }
+
+        // 2. Coronary epicardial tree dynamic dance
+        if (this.coronaryGroup) {
+          this.coronaryGroup.rotation.y = sBeat * 0.06;
+          this.coronaryGroup.rotation.z = -sBeat * 0.035;
+          this.coronaryGroup.position.x = -sBeat * 0.025;
+          this.coronaryGroup.position.y = sBeat * 0.035;
+        }
+        if (this.ladMesh) {
+          // Systolic Milking of LAD
+          const milk = 1.0 - sBeat * 0.35;
+          this.ladMesh.scale.set(milk, 1.0, milk);
+        }
+
+        // 3. Respiratory motion on ribs and diaphragm
+        const resp = Math.sin(nowSec * 0.55);
+        if (this.ribsGroup) {
+          this.ribsGroup.position.y = resp * 0.03;
+        }
+        if (this.diaphragmMesh) {
+          this.diaphragmMesh.position.y = -1.25 + resp * 0.05;
         }
 
         if (this.renderer && this.scene && this.camera) {
