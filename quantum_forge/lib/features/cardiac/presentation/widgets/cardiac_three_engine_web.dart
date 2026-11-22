@@ -169,18 +169,6 @@ class CardioCathThreeBridge {
     } catch (_) {}
   }
 
-  void setVisualRenderMode(CardiacVisualRenderMode mode) {
-    if (_viewer == null || _disposed) return;
-    try {
-      final modeStr = switch (mode) {
-        CardiacVisualRenderMode.photorealistic => 'photorealistic',
-        CardiacVisualRenderMode.translucent => 'translucent',
-        CardiacVisualRenderMode.schematic => 'schematic',
-      };
-      _viewer!.callMethod('setVisualRenderMode'.toJS, modeStr.toJS);
-    } catch (_) {}
-  }
-
   void setDominance(CoronaryDominance dominance) {
     if (_viewer == null || _disposed) return;
     try {

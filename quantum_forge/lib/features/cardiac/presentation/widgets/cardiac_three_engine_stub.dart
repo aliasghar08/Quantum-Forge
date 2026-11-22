@@ -37,7 +37,6 @@ class CardioCathThreeBridge {
   }) {}
 
   void setViewMode(String mode) {}
-  void setVisualRenderMode(CardiacVisualRenderMode mode) {}
   void setDominance(CoronaryDominance dominance) {}
   void setRevascularized(bool isRevascularized) {}
   void injectContrast() {}
