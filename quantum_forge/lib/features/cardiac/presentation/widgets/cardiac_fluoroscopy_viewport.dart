@@ -123,8 +123,7 @@ class _CardiacFluoroscopyViewportState extends State<CardiacFluoroscopyViewport>
   void _openFullScreenTheater() {
     Navigator.of(context).push(
       PageRouteBuilder(
-        opaque: false,
-        barrierColor: Colors.black.withValues(alpha: 0.88),
+        opaque: true,
         pageBuilder: (context, animation, secondaryAnimation) {
           return FadeTransition(
             opacity: animation,
