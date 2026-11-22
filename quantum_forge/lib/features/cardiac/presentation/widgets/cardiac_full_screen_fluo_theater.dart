@@ -927,76 +927,78 @@ class _CardiacFullScreenFluoTheaterState extends State<CardiacFullScreenFluoThea
                                   color: _showQcaCalipers ? Colors.black : Colors.white70,
                                 ),
                               ),
-                              const SizedBox(width: 5),
-
-                              // 2D C-Arm PiP Detector Toggle
-                              IconButton(
-                                key: const Key('fluo_theater_pip_toggle'),
-                                tooltip: _showPipDetector ? 'Hide 2D C-Arm PiP Detector' : 'Show 2D C-Arm PiP Detector',
-                                icon: Icon(
-                                  _showPipDetector ? Icons.picture_in_picture_alt_rounded : Icons.picture_in_picture_rounded,
-                                  size: 17,
-                                  color: _showPipDetector ? const Color(0xFF00E5FF) : Colors.white70,
-                                ),
-                                onPressed: () => setState(() => _showPipDetector = !_showPipDetector),
-                              ),
-
-                              // LUT Invert Toggle Pill (Standard Grayscale | Inverted Cine)
-                              Tooltip(
-                                message: _invertLut
-                                    ? 'Inverted Cine (Dark Mode) — Click for Standard X-Ray'
-                                    : 'Standard Hospital X-Ray (Silver Phosphor) — Click for Inverted Cine',
-                                child: InkWell(
-                                  key: const Key('fluo_theater_invert_lut_button'),
-                                  onTap: () {
-                                    setState(() {
-                                      _invertLut = !_invertLut;
-                                      _syncBridge();
-                                    });
-                                  },
-                                  borderRadius: BorderRadius.circular(8),
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3.5),
-                                    decoration: BoxDecoration(
-                                      color: _invertLut ? const Color(0xFF1E293B) : const Color(0xFFC4CCD4),
-                                      borderRadius: BorderRadius.circular(8),
-                                      border: Border.all(
-                                        color: _invertLut ? const Color(0xFF475569) : const Color(0xFF94A3B8),
-                                      ),
-                                    ),
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Icon(
-                                          _invertLut ? Icons.dark_mode_rounded : Icons.wb_sunny_rounded,
-                                          size: 13,
-                                          color: _invertLut ? const Color(0xFF38BDF8) : const Color(0xFF0F172A),
-                                        ),
-                                        const SizedBox(width: 4),
-                                        Text(
-                                          _invertLut ? 'Inverted Cine' : 'Standard X-Ray',
-                                          style: TextStyle(
-                                            color: _invertLut ? const Color(0xFFE2E8F0) : const Color(0xFF0F172A),
-                                            fontSize: 9.5,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ),
-
-                              // Exit Button
-                              IconButton(
-                                key: const Key('fluo_theater_exit_button'),
-                                tooltip: 'Exit Full-Screen Theater (Esc)',
-                                icon: const Icon(Icons.fullscreen_exit_rounded, color: Colors.white, size: 22),
-                                onPressed: () => Navigator.of(context).pop(),
-                              ),
                             ],
                           ),
                         ),
+                      ),
+                      const SizedBox(width: 6),
+
+                      // 2D C-Arm PiP Detector Toggle
+                      IconButton(
+                        key: const Key('fluo_theater_pip_toggle'),
+                        tooltip: _showPipDetector ? 'Hide 2D C-Arm PiP Detector' : 'Show 2D C-Arm PiP Detector',
+                        icon: Icon(
+                          _showPipDetector ? Icons.picture_in_picture_alt_rounded : Icons.picture_in_picture_rounded,
+                          size: 17,
+                          color: _showPipDetector ? const Color(0xFF00E5FF) : Colors.white70,
+                        ),
+                        onPressed: () => setState(() => _showPipDetector = !_showPipDetector),
+                      ),
+                      const SizedBox(width: 4),
+
+                      // LUT Invert Toggle Pill (Standard Grayscale | Inverted Cine)
+                      Tooltip(
+                        message: _invertLut
+                            ? 'Inverted Cine (Dark Mode) — Click for Standard X-Ray'
+                            : 'Standard Hospital X-Ray (Silver Phosphor) — Click for Inverted Cine',
+                        child: InkWell(
+                          key: const Key('fluo_theater_invert_lut_button'),
+                          onTap: () {
+                            setState(() {
+                              _invertLut = !_invertLut;
+                              _syncBridge();
+                            });
+                          },
+                          borderRadius: BorderRadius.circular(8),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3.5),
+                            decoration: BoxDecoration(
+                              color: _invertLut ? const Color(0xFF1E293B) : const Color(0xFFC4CCD4),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: _invertLut ? const Color(0xFF475569) : const Color(0xFF94A3B8),
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  _invertLut ? Icons.dark_mode_rounded : Icons.wb_sunny_rounded,
+                                  size: 13,
+                                  color: _invertLut ? const Color(0xFF38BDF8) : const Color(0xFF0F172A),
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  _invertLut ? 'Inverted Cine' : 'Standard X-Ray',
+                                  style: TextStyle(
+                                    color: _invertLut ? const Color(0xFFE2E8F0) : const Color(0xFF0F172A),
+                                    fontSize: 9.5,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+
+                      // Exit Button
+                      IconButton(
+                        key: const Key('fluo_theater_exit_button'),
+                        tooltip: 'Exit Full-Screen Theater (Esc)',
+                        icon: const Icon(Icons.fullscreen_exit_rounded, color: Colors.white, size: 22),
+                        onPressed: () => Navigator.of(context).pop(),
                       ),
                     ],
                   ),

@@ -2732,9 +2732,11 @@
         },
         depthWrite: false,
         depthTest: false,
+        side: THREE.DoubleSide,
       });
       const bgGeo = new THREE.PlaneGeometry(1, 1);
       this.bgDetectorMesh = new THREE.Mesh(bgGeo, this.bgDetectorMat);
+      this.bgDetectorMesh.frustumCulled = false;
       this.bgDetectorMesh.position.set(0, 0, -9.0);
       const fH = 2.0 * 9.0 * Math.tan((36.0 * Math.PI / 180.0) / 2.0);
       const fW = fH * (width / height);
