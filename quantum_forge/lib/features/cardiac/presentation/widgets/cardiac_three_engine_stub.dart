@@ -37,17 +37,20 @@ class CardioCathThreeBridge {
   }) {}
 
   void setViewMode(String mode) {}
+  void setElectromechanicalMode(String mode) {}
   void setDominance(CoronaryDominance dominance) {}
   void setRevascularized(bool isRevascularized) {}
   void injectContrast() {}
   void applyFsiFrame(CardiacFsiFrame frame) {}
   void setGantryAngles(double laoRao, double cranCaud) {}
   void resetCamera() {}
+  void setCameraPreset(String preset) {}
   void handleResize() {}
   void setCutawayDepth(double fraction) {}
   void focusLandmark(String id) {}
   void setTimeScale(double scale) {}
   void setCardiacPhase(double phase) {}
+  void setBeatPhase(double phase) {}
   void setShowLabels(bool show) {}
 
   List<ProjectedLandmark> getProjectedLandmarks({String category = 'all'}) => const [];

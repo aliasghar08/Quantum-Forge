@@ -839,6 +839,8 @@ void main() {
 
       // Deliver 200J Biphasic Shock to rescue
       final shockBtn = find.text('200J DEFIB (SHOCKABLE)');
+      await tester.ensureVisible(shockBtn);
+      await tester.pump();
       await tester.tap(shockBtn);
       await tester.pump(const Duration(milliseconds: 350));
       expect(find.textContaining('ROSC ACHIEVED'), findsOneWidget);
@@ -1706,6 +1708,138 @@ void main() {
       // Verify back to Cath lab screen
       expect(find.byType(CardiacFullScreenCarmTheater), findsNothing);
       expect(find.byType(CardiacCArmGantryTwin), findsOneWidget);
+    });
+
+    testWidgets('Phase-Locked 3D Electromechanical Heart Viewport: Cutaway EM, Conduction X-Ray, Camera Presets & Scrubber',
+        (tester) async {
+      tester.view.physicalSize = const Size(1400, 1000);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(buildTestScreen());
+      await tester.pump();
+
+      // Verify Heart Cutaway (cutawayEM) and Conduction X-Ray (conductionXray) chips exist
+      final cutawayChip = find.text('Heart Cutaway');
+      final conductionChip = find.text('Conduction X-Ray');
+      expect(cutawayChip, findsOneWidget);
+      expect(conductionChip, findsOneWidget);
+
+      // Select Heart Cutaway
+      await tester.tap(cutawayChip);
+      await tester.pump();
+      expect(find.text('Golden Depolarization Wavefront'), findsOneWidget);
+
+      // Select Conduction X-Ray
+      await tester.tap(conductionChip);
+      await tester.pump();
+      expect(find.text('SA / AV Nodes & Purkinje Tree'), findsOneWidget);
+
+      // Test Camera Presets
+      expect(find.byKey(const Key('camera_preset_front')), findsOneWidget);
+      expect(find.byKey(const Key('camera_preset_lao')), findsOneWidget);
+      expect(find.byKey(const Key('camera_preset_rao')), findsOneWidget);
+      expect(find.byKey(const Key('camera_preset_inf')), findsOneWidget);
+      expect(find.byKey(const Key('camera_preset_post')), findsOneWidget);
+
+      await tester.tap(find.byKey(const Key('camera_preset_lao')));
+      await tester.pump();
+
+      // Test Hexaxial Gizmo toggle
+      final gizmoToggle = find.byKey(const Key('toggle_hexaxial_gizmo'));
+      expect(gizmoToggle, findsOneWidget);
+      await tester.ensureVisible(gizmoToggle);
+      await tester.pump();
+      await tester.tap(gizmoToggle);
+      await tester.pump();
+
+      expect(find.byType(CardiacHexaxialGizmo), findsOneWidget);
+      expect(find.text('HEXAXIAL'), findsOneWidget);
+      expect(find.textContaining('Vector:'), findsOneWidget);
+      expect(find.textContaining('|D|:'), findsOneWidget);
+
+      // Test Scrubber Bar controls: play/pause, speed pills, track drag
+      final playPauseBtn = find.byKey(const Key('beat_scrubber_play_pause'));
+      expect(playPauseBtn, findsOneWidget);
+      await tester.tap(playPauseBtn);
+      await tester.pump();
+
+      final speedHalf = find.byKey(const Key('beat_scrubber_speed_05x'));
+      final speedQuarter = find.byKey(const Key('beat_scrubber_speed_025x'));
+      final speedOne = find.byKey(const Key('beat_scrubber_speed_1x'));
+      expect(speedHalf, findsOneWidget);
+      expect(speedQuarter, findsOneWidget);
+      expect(speedOne, findsOneWidget);
+
+      await tester.tap(speedHalf);
+      await tester.pump();
+
+      final trackFinder = find.byKey(const Key('beat_scrubber_track'));
+      expect(trackFinder, findsOneWidget);
+      await tester.tap(trackFinder, warnIfMissed: false);
+      await tester.pump();
+    });
+
+    testWidgets('12-Lead Diagnostic ECG Atlas: Mode Toggle, Wave Focus Chips, and Lead Vector Card',
+        (tester) async {
+      tester.view.physicalSize = const Size(1400, 1000);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(buildTestScreen());
+      await tester.pump();
+
+      // Toggle to 12-Lead ECG Atlas
+      final twelveLeadBtn = find.byKey(const Key('ecg_mode_twelve_lead'));
+      expect(twelveLeadBtn, findsOneWidget);
+      await tester.ensureVisible(twelveLeadBtn);
+      await tester.pump();
+      await tester.tap(twelveLeadBtn);
+      await tester.pump();
+
+      // Verify 12-Lead ECG Atlas elements render
+      expect(find.text('WAVE FOCUS:'), findsOneWidget);
+      expect(find.text('INSPECT LEAD:'), findsOneWidget);
+      expect(find.textContaining('Full 12-Lead Diagnostic Trace'), findsOneWidget);
+
+      // Test Wave Focus Chips: P Wave, PR Interval, QRS Complex, ST Segment, T Wave
+      final pWaveChip = find.byKey(const Key('ecg_wave_p'));
+      final qrsChip = find.byKey(const Key('ecg_wave_qrs'));
+      final stChip = find.byKey(const Key('ecg_wave_st'));
+      final tWaveChip = find.byKey(const Key('ecg_wave_t'));
+      expect(pWaveChip, findsOneWidget);
+      expect(qrsChip, findsOneWidget);
+      expect(stChip, findsOneWidget);
+      expect(tWaveChip, findsOneWidget);
+
+      await tester.tap(qrsChip);
+      await tester.pump();
+      expect(find.textContaining('Ventricular Depolarization'), findsWidgets);
+
+      // Test Lead Selection: V1, aVF
+      final leadV1 = find.byKey(const Key('ecg_atlas_lead_V1'));
+      expect(leadV1, findsOneWidget);
+      await tester.tap(leadV1);
+      await tester.pump();
+      expect(find.textContaining('Septal Territory (Proximal LAD)'), findsOneWidget);
+
+      final leadAvf = find.byKey(const Key('ecg_atlas_lead_aVF'));
+      expect(leadAvf, findsOneWidget);
+      await tester.tap(leadAvf);
+      await tester.pump();
+      expect(find.textContaining('Inferior Wall (RCA / PDA)'), findsOneWidget);
+
+      // Switch back to 5-Channel ICU Monitor
+      final fiveChannelBtn = find.byKey(const Key('ecg_mode_five_channel'));
+      expect(fiveChannelBtn, findsOneWidget);
+      await tester.ensureVisible(fiveChannelBtn);
+      await tester.pump();
+      await tester.tap(fiveChannelBtn);
+      await tester.pump();
+
+      expect(find.text('8 CLASSIC ECGs:'), findsOneWidget);
     });
   });
 }

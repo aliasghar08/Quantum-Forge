@@ -169,6 +169,20 @@ class CardioCathThreeBridge {
     } catch (_) {}
   }
 
+  void setElectromechanicalMode(String mode) {
+    if (_viewer == null || _disposed) return;
+    try {
+      _viewer!.callMethod('setElectromechanicalMode'.toJS, mode.toJS);
+    } catch (_) {}
+  }
+
+  void setCameraPreset(String preset) {
+    if (_viewer == null || _disposed) return;
+    try {
+      _viewer!.callMethod('setCameraPreset'.toJS, preset.toJS);
+    } catch (_) {}
+  }
+
   void setDominance(CoronaryDominance dominance) {
     if (_viewer == null || _disposed) return;
     try {
@@ -284,6 +298,13 @@ class CardioCathThreeBridge {
     if (_viewer == null || _disposed) return;
     try {
       _viewer!.callMethod('setCardiacPhase'.toJS, phase.toJS);
+    } catch (_) {}
+  }
+
+  void setBeatPhase(double phase) {
+    if (_viewer == null || _disposed) return;
+    try {
+      _viewer!.callMethod('setBeatPhase'.toJS, phase.toJS);
     } catch (_) {}
   }
 

@@ -120,6 +120,27 @@
       return this.heartViewers.get(id) || this.fluoroViewers.get(id);
     }
 
+    setBeatPhase(id, phase) {
+      const viewer = this.getViewer(id);
+      if (viewer && viewer.setBeatPhase) {
+        viewer.setBeatPhase(phase);
+      }
+    }
+
+    setCameraPreset(id, preset) {
+      const viewer = this.getViewer(id);
+      if (viewer && viewer.setCameraPreset) {
+        viewer.setCameraPreset(preset);
+      }
+    }
+
+    setElectromechanicalMode(id, mode) {
+      const viewer = this.getViewer(id);
+      if (viewer && viewer.setElectromechanicalMode) {
+        viewer.setElectromechanicalMode(mode);
+      }
+    }
+
     disposeViewer(id) {
       const h = this.heartViewers.get(id);
       if (h) {
@@ -193,6 +214,26 @@
           clinicalPearl: 'Sinus arrest and sick sinus syndrome commonly complicate acute proximal RCA occlusions.'
         },
         {
+          id: 'internodal_pathways',
+          name: 'Internodal Pathways (Ant/Mid/Post)',
+          category: 'conduction',
+          anchor: new THREE.Vector3(0.34, 0.36, 0.10),
+          normal: new THREE.Vector3(0.4, 0.5, 0.7).normalize(),
+          bloodSupply: 'RCA & LCx atrial branches',
+          description: 'Specialized internodal pathways conducting impulses rapidly across RA myocardium from SA node to AV node.',
+          clinicalPearl: 'Atrial enlargement produces P-wave widening and conduction delays predisposing to reentrant atrial arrhythmias.'
+        },
+        {
+          id: 'bachmanns_bundle',
+          name: "Bachmann's Bundle (Interatrial)",
+          category: 'conduction',
+          anchor: new THREE.Vector3(0.12, 0.52, 0.08),
+          normal: new THREE.Vector3(0.1, 0.8, 0.5).normalize(),
+          bloodSupply: 'Sinus nodal artery branch',
+          description: 'Muscular interatrial fascicle delivering fast-conducting depolarization from right to left atrium for synchronized bi-atrial systole.',
+          clinicalPearl: 'Interatrial block (P-wave duration >120 ms ± biphasic P in inferior leads) marks Bachmann block, strongly predicting stroke risk (Bayés syndrome).'
+        },
+        {
           id: 'av_node',
           name: 'AV Node (Triangle of Koch)',
           category: 'conduction',
@@ -213,8 +254,48 @@
           clinicalPearl: 'Anterior STEMI causing infranodal His bundle block carries a high mortality rate and mandates temporary pacing.'
         },
         {
+          id: 'rbb',
+          name: 'Right Bundle Branch (RBB)',
+          category: 'conduction',
+          anchor: new THREE.Vector3(0.18, -0.38, 0.14),
+          normal: new THREE.Vector3(0.5, -0.4, 0.7).normalize(),
+          bloodSupply: 'LAD 1st and 2nd septal perforators',
+          description: 'Thin, discrete conduction fascicle traversing the interventricular septum and moderator band to activate the right ventricular free wall.',
+          clinicalPearl: 'RBBB produces widened QRS (>120 ms) with rsR’ in V1 and broad S in I/V6, commonly from acute RV strain (pulmonary embolism) or septal ischemia.'
+        },
+        {
+          id: 'lbb',
+          name: 'Left Bundle Branch (LBB Main Trunk)',
+          category: 'conduction',
+          anchor: new THREE.Vector3(-0.10, -0.28, 0.10),
+          normal: new THREE.Vector3(-0.3, -0.2, 0.9).normalize(),
+          bloodSupply: 'LAD septal perforators + AV nodal artery',
+          description: 'Broad subendocardial sheet descending the left septal surface before bifurcating into anterior and posterior fascicles.',
+          clinicalPearl: 'New LBBB in the presence of acute chest pain is a STEMI-equivalent requiring emergency catheterization activation (Sgarbossa criteria).'
+        },
+        {
+          id: 'ant_fascicle',
+          name: 'Left Anterior Fascicle',
+          category: 'conduction',
+          anchor: new THREE.Vector3(-0.20, -0.38, 0.18),
+          normal: new THREE.Vector3(-0.6, -0.3, 0.7).normalize(),
+          bloodSupply: 'LAD septal perforators',
+          description: 'Long, slender fascicle activating the anterolateral LV wall and anterior papillary muscle; vulnerable to ischemia due to single-vessel supply.',
+          clinicalPearl: 'Left anterior fascicular block (LAFB) causes extreme left axis deviation (-45° to -90°) with qR in aVL and rS in II, III, aVF.'
+        },
+        {
+          id: 'post_fascicle',
+          name: 'Left Posterior Fascicle',
+          category: 'conduction',
+          anchor: new THREE.Vector3(-0.22, -0.46, -0.08),
+          normal: new THREE.Vector3(-0.5, -0.4, -0.7).normalize(),
+          bloodSupply: 'Dual supply: PDA (RCA) + LAD septal branches',
+          description: 'Broad, thick fascicle activating the inferoposterior LV wall and posteromedial papillary muscle; resistant to ischemia due to dual supply.',
+          clinicalPearl: 'Left posterior fascicular block (LPFB) produces right axis deviation (>+90°) with rS in I/aVL and qR in II/III/aVF (requires excluding RVH).'
+        },
+        {
           id: 'purkinje_network',
-          name: 'Purkinje Fiber Arborization',
+          name: 'Purkinje Network Arborization',
           category: 'conduction',
           anchor: new THREE.Vector3(-0.18, -0.78, 0.08),
           normal: new THREE.Vector3(-0.2, -0.8, 0.5).normalize(),
@@ -1150,6 +1231,11 @@
       // ── 6. Cardiac Conduction System ─────────────────────────────────────
       this._buildConductionSystem();
 
+      // ── 6b. Electromechanical Dipole Vector Arrow & Wavefront ───────────
+      this._buildDipoleVectorArrow();
+      this._buildDepolarizationWavefront();
+      this._buildChamberLabels();
+
       // ── 7. Active Blood Flow & Dye Particle Pipeline ─────────────────────
       this._initFlowParticlePipeline();
 
@@ -1275,67 +1361,212 @@
     _buildConductionSystem() {
       this.conductionGroup = new THREE.Group();
 
-      const nodeMat = new THREE.MeshBasicMaterial({ color: 0xfacc15 });
-      const tractMat = new THREE.LineBasicMaterial({ color: 0x38bdf8, linewidth: 2.5 });
+      const nodeMat = new THREE.MeshStandardMaterial({
+        color: 0xffb300,
+        emissive: 0xf59e0b,
+        emissiveIntensity: 0.9,
+        roughness: 0.2,
+      });
+      const tractMat = new THREE.MeshStandardMaterial({
+        color: 0xffd54f,
+        emissive: 0xffb300,
+        emissiveIntensity: 0.75,
+        roughness: 0.25,
+      });
+      const purkinjeMat = new THREE.MeshStandardMaterial({
+        color: 0x67e8f9,
+        emissive: 0x06b6d4,
+        emissiveIntensity: 0.8,
+        roughness: 0.2,
+      });
 
-      // SA Node (Pacemaker) at SVC / RA junction
-      this.saNode = new THREE.Mesh(new THREE.SphereGeometry(0.07, 12, 12), nodeMat);
+      // 1. SA Node (Pacemaker) at SVC / RA junction
+      this.saNode = new THREE.Mesh(new THREE.SphereGeometry(0.075, 16, 16), nodeMat);
       this.saNode.position.set(0.55, 0.58, 0.06);
       this.conductionGroup.add(this.saNode);
 
-      // AV Node at the Triangle of Koch
-      this.avNode = new THREE.Mesh(new THREE.SphereGeometry(0.06, 12, 12), nodeMat);
-      this.avNode.position.set(0.10, 0.15, 0.04);
-      this.conductionGroup.add(this.avNode);
-
-      // Internodal Tracts (SA -> AV)
+      // 2. Internodal Pathways (SA -> AV)
       this.internodalCurve = new THREE.CatmullRomCurve3([
         new THREE.Vector3(0.55, 0.58, 0.06),
         new THREE.Vector3(0.34, 0.36, 0.10),
         new THREE.Vector3(0.10, 0.15, 0.04),
       ]);
-      this.conductionGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(this.internodalCurve.getPoints(20)), tractMat));
+      this.conductionGroup.add(new THREE.Mesh(new THREE.TubeGeometry(this.internodalCurve, 20, 0.016, 8, false), tractMat));
 
-      // Bundle of His descending interventricular septum
+      // 3. Bachmann's Bundle (Interatrial tract: SA Node -> Left Atrium)
+      this.bachmannCurve = new THREE.CatmullRomCurve3([
+        new THREE.Vector3(0.55, 0.58, 0.06),
+        new THREE.Vector3(0.25, 0.55, 0.08),
+        new THREE.Vector3(0.04, 0.52, 0.07),
+        new THREE.Vector3(-0.15, 0.50, 0.05),
+      ]);
+      this.conductionGroup.add(new THREE.Mesh(new THREE.TubeGeometry(this.bachmannCurve, 18, 0.016, 8, false), tractMat));
+
+      // 4. AV Node at Triangle of Koch
+      this.avNode = new THREE.Mesh(new THREE.SphereGeometry(0.068, 16, 16), nodeMat);
+      this.avNode.position.set(0.10, 0.15, 0.04);
+      this.conductionGroup.add(this.avNode);
+
+      // 5. Bundle of His descending upper interventricular septum
       this.hisCurve = new THREE.CatmullRomCurve3([
         new THREE.Vector3(0.10, 0.15, 0.04),
+        new THREE.Vector3(0.08, 0.02, 0.05),
         new THREE.Vector3(0.06, -0.05, 0.06),
-        new THREE.Vector3(-0.04, -0.22, 0.08),
       ]);
-      this.conductionGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(this.hisCurve.getPoints(16)), tractMat));
+      this.conductionGroup.add(new THREE.Mesh(new THREE.TubeGeometry(this.hisCurve, 16, 0.018, 8, false), tractMat));
 
-      // Left Bundle Branch (LBB) & Right Bundle Branch (RBB)
-      const purkinjeMat = new THREE.LineBasicMaterial({ color: 0x67e8f9, linewidth: 2.0 });
-      this.lbbCurve = new THREE.CatmullRomCurve3([
-        new THREE.Vector3(-0.04, -0.22, 0.08),
-        new THREE.Vector3(-0.16, -0.38, 0.14),
-        new THREE.Vector3(-0.28, -0.55, 0.16),
-        new THREE.Vector3(-0.22, -0.78, 0.10),
-      ]);
-      this.conductionGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(this.lbbCurve.getPoints(20)), purkinjeMat));
-
+      // 6. Right Bundle Branch (RBB) down septum and through moderator band
       this.rbbCurve = new THREE.CatmullRomCurve3([
-        new THREE.Vector3(-0.04, -0.22, 0.08),
-        new THREE.Vector3(0.08, -0.35, 0.12),
-        new THREE.Vector3(0.24, -0.42, 0.18), // traverses moderator band
+        new THREE.Vector3(0.06, -0.05, 0.06),
+        new THREE.Vector3(0.10, -0.22, 0.08),
+        new THREE.Vector3(0.18, -0.38, 0.14),
+        new THREE.Vector3(0.24, -0.42, 0.18), // moderator band
         new THREE.Vector3(0.32, -0.62, 0.12),
       ]);
-      this.conductionGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(this.rbbCurve.getPoints(20)), purkinjeMat));
+      this.conductionGroup.add(new THREE.Mesh(new THREE.TubeGeometry(this.rbbCurve, 24, 0.016, 8, false), purkinjeMat));
 
-      // Subendocardial Purkinje terminal arborization network
+      // 7. Left Bundle Branch (LBB) main trunk
+      this.lbbCurve = new THREE.CatmullRomCurve3([
+        new THREE.Vector3(0.06, -0.05, 0.06),
+        new THREE.Vector3(-0.04, -0.16, 0.08),
+        new THREE.Vector3(-0.10, -0.28, 0.10),
+      ]);
+      this.conductionGroup.add(new THREE.Mesh(new THREE.TubeGeometry(this.lbbCurve, 16, 0.018, 8, false), purkinjeMat));
+
+      // 8. Left Anterior Fascicle (to anterolateral wall & papillary muscle)
+      this.antFascicleCurve = new THREE.CatmullRomCurve3([
+        new THREE.Vector3(-0.10, -0.28, 0.10),
+        new THREE.Vector3(-0.16, -0.32, 0.15),
+        new THREE.Vector3(-0.20, -0.38, 0.18),
+        new THREE.Vector3(-0.26, -0.32, 0.12),
+      ]);
+      this.conductionGroup.add(new THREE.Mesh(new THREE.TubeGeometry(this.antFascicleCurve, 16, 0.014, 8, false), purkinjeMat));
+
+      // 9. Left Posterior Fascicle (to inferoposterior wall & papillary muscle)
+      this.postFascicleCurve = new THREE.CatmullRomCurve3([
+        new THREE.Vector3(-0.10, -0.28, 0.10),
+        new THREE.Vector3(-0.16, -0.36, -0.02),
+        new THREE.Vector3(-0.22, -0.46, -0.08),
+        new THREE.Vector3(-0.28, -0.30, -0.15),
+      ]);
+      this.conductionGroup.add(new THREE.Mesh(new THREE.TubeGeometry(this.postFascicleCurve, 16, 0.015, 8, false), purkinjeMat));
+
+      // 10. Subendocardial Purkinje terminal arborization network
       const purkinjeTerminals = [
+        [new THREE.Vector3(-0.20, -0.38, 0.18), new THREE.Vector3(-0.26, -0.58, 0.16), new THREE.Vector3(-0.22, -0.78, 0.10)],
+        [new THREE.Vector3(-0.22, -0.46, -0.08), new THREE.Vector3(-0.28, -0.65, -0.04), new THREE.Vector3(-0.20, -0.80, 0.02)],
         [new THREE.Vector3(-0.22, -0.78, 0.10), new THREE.Vector3(-0.35, -0.72, 0.18), new THREE.Vector3(-0.45, -0.60, 0.14)],
         [new THREE.Vector3(-0.22, -0.78, 0.10), new THREE.Vector3(-0.18, -0.82, 0.04), new THREE.Vector3(-0.30, -0.75, -0.08)],
         [new THREE.Vector3(0.32, -0.62, 0.12), new THREE.Vector3(0.24, -0.72, 0.14), new THREE.Vector3(0.12, -0.76, 0.08)],
-        [new THREE.Vector3(-0.16, -0.38, 0.14), new THREE.Vector3(-0.26, -0.42, 0.22), new THREE.Vector3(-0.38, -0.48, 0.24)],
       ];
       purkinjeTerminals.forEach(pts => {
         const curve = new THREE.CatmullRomCurve3(pts);
-        this.conductionGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(curve.getPoints(12)), purkinjeMat));
+        this.conductionGroup.add(new THREE.Mesh(new THREE.TubeGeometry(curve, 14, 0.010, 6, false), purkinjeMat));
       });
+
+      // Action potential pulse sparks
+      this.actionPotentialSparks = [];
+      const sparkMat = new THREE.MeshBasicMaterial({ color: 0x00e676 });
+      for (let i = 0; i < 6; i++) {
+        const spark = new THREE.Mesh(new THREE.SphereGeometry(0.028, 8, 8), sparkMat);
+        spark.visible = false;
+        this.conductionGroup.add(spark);
+        this.actionPotentialSparks.push(spark);
+      }
 
       this.heartGroup.add(this.conductionGroup);
       this._buildVortexStreamlines();
+    }
+
+    _buildDipoleVectorArrow() {
+      this.dipoleGroup = new THREE.Group();
+      this.dipoleGroup.position.set(0.04, -0.22, 0.08); // Anchored inside IVS
+
+      const arrowMat = new THREE.MeshStandardMaterial({
+        color: 0xffb300,
+        emissive: 0xffb300,
+        emissiveIntensity: 0.95,
+        metalness: 0.3,
+        roughness: 0.2,
+      });
+
+      this.dipoleShaft = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.018, 0.45, 12), arrowMat);
+      this.dipoleShaft.position.set(0, 0.225, 0);
+
+      this.dipoleCone = new THREE.Mesh(new THREE.ConeGeometry(0.048, 0.14, 14), arrowMat);
+      this.dipoleCone.position.set(0, 0.52, 0);
+
+      this.dipoleMesh = new THREE.Group();
+      this.dipoleMesh.add(this.dipoleShaft);
+      this.dipoleMesh.add(this.dipoleCone);
+      this.dipoleGroup.add(this.dipoleMesh);
+
+      this.dipoleGroup.visible = false;
+      this.heartGroup.add(this.dipoleGroup);
+    }
+
+    _buildDepolarizationWavefront() {
+      this.wavefrontGroup = new THREE.Group();
+
+      const waveMat = new THREE.MeshBasicMaterial({
+        color: 0xffb300,
+        transparent: true,
+        opacity: 0.85,
+        blending: THREE.AdditiveBlending,
+        side: THREE.DoubleSide,
+      });
+
+      this.atrialWave = new THREE.Mesh(new THREE.TorusGeometry(0.48, 0.038, 8, 32), waveMat);
+      this.atrialWave.position.set(0.10, 0.35, 0.0);
+      this.atrialWave.rotation.x = Math.PI / 2;
+      this.wavefrontGroup.add(this.atrialWave);
+
+      this.ventricularWave = new THREE.Mesh(new THREE.TorusGeometry(0.55, 0.046, 8, 32), waveMat);
+      this.ventricularWave.position.set(0.0, -0.25, 0.0);
+      this.ventricularWave.rotation.x = Math.PI / 2;
+      this.wavefrontGroup.add(this.ventricularWave);
+
+      this.wavefrontGroup.visible = false;
+      this.heartGroup.add(this.wavefrontGroup);
+    }
+
+    _buildChamberLabels() {
+      this.chamberLabelsGroup = new THREE.Group();
+      const createBadge = (text, x, y, z) => {
+        const canvas = document.createElement('canvas');
+        canvas.width = 256; canvas.height = 64;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.fillStyle = 'rgba(15, 23, 42, 0.88)';
+          ctx.strokeStyle = '#00E5FF';
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          if (ctx.roundRect) ctx.roundRect(4, 4, 248, 56, 10);
+          else ctx.rect(4, 4, 248, 56);
+          ctx.fill();
+          ctx.stroke();
+          ctx.fillStyle = '#FFFFFF';
+          ctx.font = 'bold 22px -apple-system, sans-serif';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(text, 128, 32);
+        }
+
+        const tex = new THREE.CanvasTexture(canvas);
+        const spriteMat = new THREE.SpriteMaterial({ map: tex, transparent: true });
+        const sprite = new THREE.Sprite(spriteMat);
+        sprite.position.set(x, y, z);
+        sprite.scale.set(0.48, 0.12, 1.0);
+        return sprite;
+      };
+
+      this.chamberLabelsGroup.add(createBadge('Right Atrium', 0.52, 0.35, 0.15));
+      this.chamberLabelsGroup.add(createBadge('Left Atrium', -0.38, 0.35, 0.05));
+      this.chamberLabelsGroup.add(createBadge('Right Ventricle', 0.32, -0.35, 0.18));
+      this.chamberLabelsGroup.add(createBadge('Left Ventricle', -0.30, -0.35, 0.15));
+
+      this.chamberLabelsGroup.visible = false;
+      this.heartGroup.add(this.chamberLabelsGroup);
     }
 
     _buildVortexStreamlines() {
@@ -1671,20 +1902,22 @@
       this.heartGroup.add(this.colorDopplerGroup);
     }
 
-    // ── 7 Distinct High-Fidelity Clinical View Modes ─────────────────────────
+    // ── 7 Distinct High-Fidelity Clinical View Modes + EM Electromechanical Modes ──
     updateViewMode(mode) {
       this.viewMode = mode;
       const isAnat = mode === 'anatomy';
       const isChambers = mode === 'chambers';
       const isFlow = mode === 'bloodFlow';
-      const isCond = mode === 'conduction';
+      const isCond = (mode === 'conduction' || mode === 'conductionXray' || mode === 'conduction_xray');
       const isCoronaries = mode === 'coronaries';
       const isIschemia = mode === 'ischemiaMap';
       const isDoppler = mode === 'colorDoppler';
+      const isCutawayEM = (mode === 'cutawayEM' || mode === 'cutaway_em');
+      const isConductionXray = (mode === 'conductionXray' || mode === 'conduction_xray');
 
       // 1. Myocardium Material Tuning per mode
       this.myoMaterial.transparent = true;
-      this.myoMaterial.depthWrite = isAnat;
+      this.myoMaterial.depthWrite = (isAnat || isCutawayEM);
 
       if (isAnat) {
         // Wet Living Tissue: Rich glistening crimson
@@ -1694,6 +1927,15 @@
         this.myoMaterial.metalness = 0.12;
         this.myoMaterial.clearcoat = 1.0;
         this.myoMaterial.color.setHex(0x991b1b);
+      } else if (isCutawayEM) {
+        // Electromechanical Cutaway with rich muscle walls
+        this.myoMaterial.opacity = 0.88;
+        this.myoMaterial.transmission = 0.12;
+        this.myoMaterial.roughness = 0.22;
+        this.myoMaterial.metalness = 0.12;
+        this.myoMaterial.clearcoat = 1.0;
+        this.myoMaterial.color.setHex(0x991b1b);
+        this.setCutawayPlane(0.95);
       } else if (isChambers) {
         // Ultra-clear diagnostic cutaway window exposing valves & chambers
         this.myoMaterial.opacity = 0.08;
@@ -1707,10 +1949,11 @@
         this.myoMaterial.transmission = 0.90;
         this.myoMaterial.roughness = 0.08;
         this.myoMaterial.color.setHex(0x0a1128);
-      } else if (isCond) {
-        // Midnight navy bioelectric syncytium
-        this.myoMaterial.opacity = 0.10;
-        this.myoMaterial.transmission = 0.90;
+      } else if (isCond || isConductionXray) {
+        // Midnight navy bioelectric syncytium / Conduction X-Ray
+        this.myoMaterial.opacity = 0.12;
+        this.myoMaterial.transmission = 0.88;
+        this.myoMaterial.roughness = 0.10;
         this.myoMaterial.color.setHex(0x030712);
       } else if (isCoronaries) {
         // Soft neutral contrast for angiographic clarity
@@ -1730,15 +1973,21 @@
       }
 
       // 2. Component Group Visibility Gating
-      if (this.chambersGroup) this.chambersGroup.visible = isChambers || isDoppler;
-      if (this.valvesGroup) this.valvesGroup.visible = isChambers || isAnat || isFlow || isDoppler;
+      if (this.chambersGroup) this.chambersGroup.visible = isChambers || isDoppler || isCutawayEM;
+      if (this.valvesGroup) this.valvesGroup.visible = isChambers || isAnat || isFlow || isDoppler || isCutawayEM;
       if (this.ribcageGroup) this.ribcageGroup.visible = isAnat;
-      if (this.conductionGroup) this.conductionGroup.visible = isCond;
+      if (this.conductionGroup) this.conductionGroup.visible = isCond || isCutawayEM;
       if (this.flowParticlesGroup) this.flowParticlesGroup.visible = isFlow || isCond || isAnat || isCoronaries;
       if (this.coronaryGroup) this.coronaryGroup.visible = isCoronaries || isAnat || isFlow || isIschemia;
       if (this.vesselsGroup) this.vesselsGroup.visible = !isCond && !isIschemia;
       if (this.ischemiaGroup) this.ischemiaGroup.visible = isIschemia;
       if (this.colorDopplerGroup) this.colorDopplerGroup.visible = isDoppler;
+
+      // Electromechanical Cutaway Components
+      if (this.chordaeGroup) this.chordaeGroup.visible = isChambers || isCutawayEM;
+      if (this.chamberLabelsGroup) this.chamberLabelsGroup.visible = isCutawayEM;
+      if (this.dipoleGroup) this.dipoleGroup.visible = isCutawayEM || isChambers;
+      if (this.wavefrontGroup) this.wavefrontGroup.visible = isCutawayEM;
 
       // 3. Fine-tuned particle scale & visibility per mode
       if (this.flowParticles) {
@@ -2001,6 +2250,205 @@
       this.cardiacPhase = Math.max(0.0, Math.min(1.0, phase));
       if (this.currentFrameData) {
         this.currentFrameData.cardiacPhase = this.cardiacPhase;
+      }
+      this.setBeatPhase(this.cardiacPhase);
+    }
+
+    setBeatPhase(phase) {
+      this.cardiacPhase = Math.max(0.0, Math.min(1.0, phase));
+      const phi = this.cardiacPhase;
+
+      // 1. Mechanical Chamber Deformation (Calculated 1:1 with phase)
+      if (this.ventriclesMesh) {
+        let strainRad = 0.0;
+        let strainLong = 0.0;
+        let torsion = 0.0;
+
+        if (phi >= 0.24 && phi <= 0.44) {
+          // Ventricular Systole
+          const tau = (phi - 0.24) / 0.20;
+          const s = Math.sin(tau * Math.PI);
+          strainRad = s * 0.35;
+          strainLong = -s * 0.22;
+          torsion = s * 0.18;
+        } else if (phi > 0.44 && phi <= 0.62) {
+          // Early relaxation
+          const tau = (phi - 0.44) / 0.18;
+          const s = Math.cos(tau * Math.PI * 0.5);
+          strainRad = s * 0.20;
+          strainLong = -s * 0.10;
+        }
+
+        const scaleX = 1.0 - strainRad * 0.28;
+        const scaleY = 1.0 + strainLong * 0.22;
+        const scaleZ = 1.0 - strainRad * 0.26;
+        this.ventriclesMesh.scale.set(scaleX, scaleY, scaleZ);
+        this.ventriclesMesh.rotation.y = torsion;
+      }
+
+      // Atrial Systole during P-wave (0.08 - 0.18)
+      if (this.raMesh && this.laMesh) {
+        if (phi >= 0.08 && phi <= 0.18) {
+          const tau = (phi - 0.08) / 0.10;
+          const aSqueeze = 1.0 - Math.sin(tau * Math.PI) * 0.12;
+          this.raMesh.scale.setScalar(aSqueeze);
+          this.laMesh.scale.setScalar(aSqueeze);
+        } else {
+          this.raMesh.scale.setScalar(1.0);
+          this.laMesh.scale.setScalar(1.0);
+        }
+      }
+
+      // Dynamic Valves
+      const vAortic = (phi >= 0.28 && phi <= 0.56) ? 1.0 : 0.0;
+      const vMitral = (phi > 0.58 || (phi >= 0.08 && phi <= 0.24)) ? 1.0 : 0.0;
+      if (this.aorticCusps) {
+        this.aorticCusps.forEach(cusp => { cusp.rotation.x = (Math.PI / 2.6) + (vAortic * 0.45); });
+      }
+      if (this.mitralCusps) {
+        this.mitralCusps.forEach(mCusp => { mCusp.rotation.x = (Math.PI / 2.4) + (vMitral * 0.40); });
+      }
+
+      // 2. 3D Electrical Dipole Vector Arrow inside Septum
+      if (this.dipoleGroup && this.dipoleMesh) {
+        let axisAngle = Math.PI / 3; // +60° normal axis
+        let mag = 0.0;
+
+        if (phi >= 0.08 && phi <= 0.18) {
+          // P wave (Atrial depolarization down and left: +54°)
+          const tau = (phi - 0.08) / 0.10;
+          mag = Math.sin(tau * Math.PI) * 0.65;
+          axisAngle = 0.94; // ~54°
+        } else if (phi > 0.18 && phi < 0.24) {
+          // PR segment (AV node)
+          mag = 0.08;
+          axisAngle = 1.05;
+        } else if (phi >= 0.24 && phi <= 0.26) {
+          // Q wave (initial septal left-to-right: -120°)
+          const tau = (phi - 0.24) / 0.02;
+          mag = Math.sin(tau * Math.PI) * 0.35;
+          axisAngle = -2.09; // -120°
+        } else if (phi > 0.26 && phi <= 0.31) {
+          // R wave (peak ventricular depolarization: +60°)
+          const tau = (phi - 0.26) / 0.05;
+          mag = Math.sin(tau * Math.PI) * 1.55;
+          axisAngle = Math.PI / 3; // +60°
+        } else if (phi > 0.31 && phi <= 0.34) {
+          // S wave (terminal basal depolarization: -60°)
+          const tau = (phi - 0.31) / 0.03;
+          mag = Math.sin(tau * Math.PI) * 0.45;
+          axisAngle = -1.05; // -60°
+        } else if (phi >= 0.44 && phi <= 0.62) {
+          // T wave (ventricular repolarization: +55°)
+          const tau = (phi - 0.44) / 0.18;
+          mag = Math.sin(tau * Math.PI) * 0.75;
+          axisAngle = 0.96; // ~55°
+        }
+
+        const isEM = (this.viewMode === 'cutaway_em' || this.viewMode === 'cutawayEM' || this.viewMode === 'chambers');
+        if (mag > 0.02 && isEM) {
+          this.dipoleGroup.visible = true;
+          this.dipoleMesh.scale.set(1.0, mag, 1.0);
+          this.dipoleMesh.rotation.z = -(axisAngle - Math.PI / 2);
+        } else {
+          this.dipoleGroup.visible = false;
+        }
+      }
+
+      // 3. Depolarization Wavefront
+      if (this.wavefrontGroup) {
+        const isEM = (this.viewMode === 'cutaway_em' || this.viewMode === 'cutawayEM');
+        this.wavefrontGroup.visible = isEM;
+
+        if (isEM) {
+          // Atrial wavefront during P-wave (0.08 - 0.18)
+          if (phi >= 0.08 && phi <= 0.18) {
+            const tau = (phi - 0.08) / 0.10;
+            this.atrialWave.visible = true;
+            this.atrialWave.position.y = 0.45 - tau * 0.30;
+            this.atrialWave.scale.setScalar(0.7 + tau * 0.45);
+          } else {
+            this.atrialWave.visible = false;
+          }
+
+          // Ventricular wavefront during QRS (0.24 - 0.34)
+          if (phi >= 0.24 && phi <= 0.34) {
+            const tau = (phi - 0.24) / 0.10;
+            this.ventricularWave.visible = true;
+            if (tau <= 0.55) {
+              const u = tau / 0.55;
+              this.ventricularWave.position.y = 0.10 - u * 0.70;
+              this.ventricularWave.scale.setScalar(0.6 + u * 0.5);
+            } else {
+              const u = (tau - 0.55) / 0.45;
+              this.ventricularWave.position.y = -0.60 + u * 0.40;
+              this.ventricularWave.scale.setScalar(1.1 - u * 0.2);
+            }
+          } else {
+            this.ventricularWave.visible = false;
+          }
+        }
+      }
+
+      // 4. Action Potential Conduction Sparks (Conduction X-Ray)
+      if (this.actionPotentialSparks && this.actionPotentialSparks.length > 0) {
+        const isCondActive = (this.viewMode === 'conduction' || this.viewMode === 'conductionXray' || this.viewMode === 'conduction_xray');
+        if (isCondActive) {
+          // SA node spark
+          if (phi >= 0.08 && phi <= 0.18 && this.saNode) {
+            this.saNode.scale.setScalar(1.0 + Math.sin(((phi - 0.08) / 0.10) * Math.PI) * 0.8);
+          } else if (this.saNode) {
+            this.saNode.scale.setScalar(1.0);
+          }
+
+          // AV node hold
+          if (phi >= 0.18 && phi <= 0.24 && this.avNode) {
+            this.avNode.scale.setScalar(1.6);
+          } else if (this.avNode) {
+            this.avNode.scale.setScalar(1.0);
+          }
+
+          // Propagate sparks along His, RBB, LBB during QRS (0.24 - 0.34)
+          if (phi >= 0.24 && phi <= 0.34) {
+            const tau = (phi - 0.24) / 0.10;
+            if (this.hisCurve && this.actionPotentialSparks[0]) {
+              this.actionPotentialSparks[0].visible = true;
+              this.actionPotentialSparks[0].position.copy(this.hisCurve.getPointAt(Math.min(1.0, tau * 1.8)));
+            }
+            if (this.rbbCurve && this.actionPotentialSparks[1]) {
+              this.actionPotentialSparks[1].visible = true;
+              this.actionPotentialSparks[1].position.copy(this.rbbCurve.getPointAt(Math.min(1.0, Math.max(0.0, (tau - 0.2) * 1.4))));
+            }
+            if (this.lbbCurve && this.actionPotentialSparks[2]) {
+              this.actionPotentialSparks[2].visible = true;
+              this.actionPotentialSparks[2].position.copy(this.lbbCurve.getPointAt(Math.min(1.0, Math.max(0.0, (tau - 0.15) * 1.5))));
+            }
+          } else {
+            this.actionPotentialSparks.forEach(s => { s.visible = false; });
+          }
+        }
+      }
+    }
+
+    setElectromechanicalMode(mode) {
+      this.updateViewMode(mode);
+    }
+
+    setCameraPreset(preset) {
+      if (!this.camera || !this.controls) return;
+      const p = (preset || '').toLowerCase();
+      this.cameraTargetLookAt = new THREE.Vector3(0.0, 0.0, 0.0);
+
+      if (p === 'front' || p === 'anterior') {
+        this.cameraTargetPosition = new THREE.Vector3(0.0, 0.0, 4.2);
+      } else if (p === 'left' || p === 'lao') {
+        this.cameraTargetPosition = new THREE.Vector3(-3.2, 0.6, 2.8);
+      } else if (p === 'right' || p === 'rao') {
+        this.cameraTargetPosition = new THREE.Vector3(3.2, 0.6, 2.8);
+      } else if (p === 'inferior' || p === 'inf') {
+        this.cameraTargetPosition = new THREE.Vector3(0.0, -3.6, 2.2);
+      } else if (p === 'posterior' || p === 'post') {
+        this.cameraTargetPosition = new THREE.Vector3(0.0, 0.0, -4.2);
       }
     }
 
@@ -2399,6 +2847,205 @@
       this.cardiacPhase = Math.max(0.0, Math.min(1.0, phase));
       if (this.currentFrameData) {
         this.currentFrameData.cardiacPhase = this.cardiacPhase;
+      }
+      this.setBeatPhase(this.cardiacPhase);
+    }
+
+    setBeatPhase(phase) {
+      this.cardiacPhase = Math.max(0.0, Math.min(1.0, phase));
+      const phi = this.cardiacPhase;
+
+      // 1. Mechanical Chamber Deformation (Calculated 1:1 with phase)
+      if (this.ventriclesMesh) {
+        let strainRad = 0.0;
+        let strainLong = 0.0;
+        let torsion = 0.0;
+
+        if (phi >= 0.24 && phi <= 0.44) {
+          // Ventricular Systole
+          const tau = (phi - 0.24) / 0.20;
+          const s = Math.sin(tau * Math.PI);
+          strainRad = s * 0.35;
+          strainLong = -s * 0.22;
+          torsion = s * 0.18;
+        } else if (phi > 0.44 && phi <= 0.62) {
+          // Early relaxation
+          const tau = (phi - 0.44) / 0.18;
+          const s = Math.cos(tau * Math.PI * 0.5);
+          strainRad = s * 0.20;
+          strainLong = -s * 0.10;
+        }
+
+        const scaleX = 1.0 - strainRad * 0.28;
+        const scaleY = 1.0 + strainLong * 0.22;
+        const scaleZ = 1.0 - strainRad * 0.26;
+        this.ventriclesMesh.scale.set(scaleX, scaleY, scaleZ);
+        this.ventriclesMesh.rotation.y = torsion;
+      }
+
+      // Atrial Systole during P-wave (0.08 - 0.18)
+      if (this.raMesh && this.laMesh) {
+        if (phi >= 0.08 && phi <= 0.18) {
+          const tau = (phi - 0.08) / 0.10;
+          const aSqueeze = 1.0 - Math.sin(tau * Math.PI) * 0.12;
+          this.raMesh.scale.setScalar(aSqueeze);
+          this.laMesh.scale.setScalar(aSqueeze);
+        } else {
+          this.raMesh.scale.setScalar(1.0);
+          this.laMesh.scale.setScalar(1.0);
+        }
+      }
+
+      // Dynamic Valves
+      const vAortic = (phi >= 0.28 && phi <= 0.56) ? 1.0 : 0.0;
+      const vMitral = (phi > 0.58 || (phi >= 0.08 && phi <= 0.24)) ? 1.0 : 0.0;
+      if (this.aorticCusps) {
+        this.aorticCusps.forEach(cusp => { cusp.rotation.x = (Math.PI / 2.6) + (vAortic * 0.45); });
+      }
+      if (this.mitralCusps) {
+        this.mitralCusps.forEach(mCusp => { mCusp.rotation.x = (Math.PI / 2.4) + (vMitral * 0.40); });
+      }
+
+      // 2. 3D Electrical Dipole Vector Arrow inside Septum
+      if (this.dipoleGroup && this.dipoleMesh) {
+        let axisAngle = Math.PI / 3; // +60° normal axis
+        let mag = 0.0;
+
+        if (phi >= 0.08 && phi <= 0.18) {
+          // P wave (Atrial depolarization down and left: +54°)
+          const tau = (phi - 0.08) / 0.10;
+          mag = Math.sin(tau * Math.PI) * 0.65;
+          axisAngle = 0.94; // ~54°
+        } else if (phi > 0.18 && phi < 0.24) {
+          // PR segment (AV node)
+          mag = 0.08;
+          axisAngle = 1.05;
+        } else if (phi >= 0.24 && phi <= 0.26) {
+          // Q wave (initial septal left-to-right: -120°)
+          const tau = (phi - 0.24) / 0.02;
+          mag = Math.sin(tau * Math.PI) * 0.35;
+          axisAngle = -2.09; // -120°
+        } else if (phi > 0.26 && phi <= 0.31) {
+          // R wave (peak ventricular depolarization: +60°)
+          const tau = (phi - 0.26) / 0.05;
+          mag = Math.sin(tau * Math.PI) * 1.55;
+          axisAngle = Math.PI / 3; // +60°
+        } else if (phi > 0.31 && phi <= 0.34) {
+          // S wave (terminal basal depolarization: -60°)
+          const tau = (phi - 0.31) / 0.03;
+          mag = Math.sin(tau * Math.PI) * 0.45;
+          axisAngle = -1.05; // -60°
+        } else if (phi >= 0.44 && phi <= 0.62) {
+          // T wave (ventricular repolarization: +55°)
+          const tau = (phi - 0.44) / 0.18;
+          mag = Math.sin(tau * Math.PI) * 0.75;
+          axisAngle = 0.96; // ~55°
+        }
+
+        const isEM = (this.viewMode === 'cutaway_em' || this.viewMode === 'cutawayEM' || this.viewMode === 'chambers');
+        if (mag > 0.02 && isEM) {
+          this.dipoleGroup.visible = true;
+          this.dipoleMesh.scale.set(1.0, mag, 1.0);
+          this.dipoleMesh.rotation.z = -(axisAngle - Math.PI / 2);
+        } else {
+          this.dipoleGroup.visible = false;
+        }
+      }
+
+      // 3. Depolarization Wavefront
+      if (this.wavefrontGroup) {
+        const isEM = (this.viewMode === 'cutaway_em' || this.viewMode === 'cutawayEM');
+        this.wavefrontGroup.visible = isEM;
+
+        if (isEM) {
+          // Atrial wavefront during P-wave (0.08 - 0.18)
+          if (phi >= 0.08 && phi <= 0.18) {
+            const tau = (phi - 0.08) / 0.10;
+            this.atrialWave.visible = true;
+            this.atrialWave.position.y = 0.45 - tau * 0.30;
+            this.atrialWave.scale.setScalar(0.7 + tau * 0.45);
+          } else {
+            this.atrialWave.visible = false;
+          }
+
+          // Ventricular wavefront during QRS (0.24 - 0.34)
+          if (phi >= 0.24 && phi <= 0.34) {
+            const tau = (phi - 0.24) / 0.10;
+            this.ventricularWave.visible = true;
+            if (tau <= 0.55) {
+              const u = tau / 0.55;
+              this.ventricularWave.position.y = 0.10 - u * 0.70;
+              this.ventricularWave.scale.setScalar(0.6 + u * 0.5);
+            } else {
+              const u = (tau - 0.55) / 0.45;
+              this.ventricularWave.position.y = -0.60 + u * 0.40;
+              this.ventricularWave.scale.setScalar(1.1 - u * 0.2);
+            }
+          } else {
+            this.ventricularWave.visible = false;
+          }
+        }
+      }
+
+      // 4. Action Potential Conduction Sparks (Conduction X-Ray)
+      if (this.actionPotentialSparks && this.actionPotentialSparks.length > 0) {
+        const isCondActive = (this.viewMode === 'conduction' || this.viewMode === 'conductionXray' || this.viewMode === 'conduction_xray');
+        if (isCondActive) {
+          // SA node spark
+          if (phi >= 0.08 && phi <= 0.18 && this.saNode) {
+            this.saNode.scale.setScalar(1.0 + Math.sin(((phi - 0.08) / 0.10) * Math.PI) * 0.8);
+          } else if (this.saNode) {
+            this.saNode.scale.setScalar(1.0);
+          }
+
+          // AV node hold
+          if (phi >= 0.18 && phi <= 0.24 && this.avNode) {
+            this.avNode.scale.setScalar(1.6);
+          } else if (this.avNode) {
+            this.avNode.scale.setScalar(1.0);
+          }
+
+          // Propagate sparks along His, RBB, LBB during QRS (0.24 - 0.34)
+          if (phi >= 0.24 && phi <= 0.34) {
+            const tau = (phi - 0.24) / 0.10;
+            if (this.hisCurve && this.actionPotentialSparks[0]) {
+              this.actionPotentialSparks[0].visible = true;
+              this.actionPotentialSparks[0].position.copy(this.hisCurve.getPointAt(Math.min(1.0, tau * 1.8)));
+            }
+            if (this.rbbCurve && this.actionPotentialSparks[1]) {
+              this.actionPotentialSparks[1].visible = true;
+              this.actionPotentialSparks[1].position.copy(this.rbbCurve.getPointAt(Math.min(1.0, Math.max(0.0, (tau - 0.2) * 1.4))));
+            }
+            if (this.lbbCurve && this.actionPotentialSparks[2]) {
+              this.actionPotentialSparks[2].visible = true;
+              this.actionPotentialSparks[2].position.copy(this.lbbCurve.getPointAt(Math.min(1.0, Math.max(0.0, (tau - 0.15) * 1.5))));
+            }
+          } else {
+            this.actionPotentialSparks.forEach(s => { s.visible = false; });
+          }
+        }
+      }
+    }
+
+    setElectromechanicalMode(mode) {
+      this.updateViewMode(mode);
+    }
+
+    setCameraPreset(preset) {
+      if (!this.camera || !this.controls) return;
+      const p = (preset || '').toLowerCase();
+      this.cameraTargetLookAt = new THREE.Vector3(0.0, 0.0, 0.0);
+
+      if (p === 'front' || p === 'anterior') {
+        this.cameraTargetPosition = new THREE.Vector3(0.0, 0.0, 4.2);
+      } else if (p === 'left' || p === 'lao') {
+        this.cameraTargetPosition = new THREE.Vector3(-3.2, 0.6, 2.8);
+      } else if (p === 'right' || p === 'rao') {
+        this.cameraTargetPosition = new THREE.Vector3(3.2, 0.6, 2.8);
+      } else if (p === 'inferior' || p === 'inf') {
+        this.cameraTargetPosition = new THREE.Vector3(0.0, -3.6, 2.2);
+      } else if (p === 'posterior' || p === 'post') {
+        this.cameraTargetPosition = new THREE.Vector3(0.0, 0.0, -4.2);
       }
     }
 

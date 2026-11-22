@@ -53,6 +53,32 @@ enum OscilloscopeDisplayTheme {
   const OscilloscopeDisplayTheme(this.label, this.description);
 }
 
+/// Display mode: 5-Channel hospital oscilloscope vs 12-Lead ECG atlas
+enum EcgStripViewMode {
+  fiveChannelMonitor('5-Channel ICU Monitor'),
+  twelveLeadAtlas('12-Lead ECG Atlas');
+
+  final String label;
+  const EcgStripViewMode(this.label);
+}
+
+/// Wave focus intervals for interactive 12-lead ECG atlas examination
+enum EcgWaveFocus {
+  pWave('P Wave', 'Atrial Depolarization & Contraction (Normal: < 120 ms, < 2.5 mm in II)', Color(0xFF00E676), 0.08, 0.18),
+  prInterval('PR Interval', 'AV Nodal Conduction Delay (Normal: 120–200 ms; prolonged in 1° AVB, short in WPW)', Color(0xFFFFB300), 0.12, 0.24),
+  qrsComplex('QRS Complex', 'Ventricular Depolarization & Contraction (Normal: 80–120 ms; widened in BBB / VT)', Color(0xFFFF5252), 0.24, 0.34),
+  stSegment('ST Segment', 'Isoelectric Plateau / Early Repolarization (STEMI: contiguous elevation, NSTEMI: depression)', Color(0xFF94A3B8), 0.34, 0.44),
+  tWave('T Wave', 'Rapid Ventricular Repolarization (Normal: upright asymmetric; peaked in hyperkalemia, inverted in ischemia)', Color(0xFF00E5FF), 0.44, 0.62);
+
+  final String label;
+  final String clinicalSummary;
+  final Color color;
+  final double startPhase;
+  final double endPhase;
+
+  const EcgWaveFocus(this.label, this.clinicalSummary, this.color, this.startPhase, this.endPhase);
+}
+
 class CardiacHemodynamicEcgStrip extends StatefulWidget {
   final CardiacPathologyScenario scenario;
   final double cardiacPhase; // 0.0 to 1.0 (repeating cycle)
@@ -447,6 +473,102 @@ class CardiacHemodynamicEcgStrip extends StatefulWidget {
     return 0.0;
   }
 
+  /// Synthesizes sample for any of the 12 standard clinical diagnostic ECG leads.
+  static double computeLeadSample(
+    String lead,
+    double phase,
+    double stElevationMm,
+    CardiacPathologyScenario scenario, {
+    OscilloscopeRhythmType rhythm = OscilloscopeRhythmType.nsr,
+  }) {
+    final phi = phase % 1.0;
+    final base = computeSyntheticEcgSample(phi, stElevationMm, rhythm: rhythm);
+
+    // Lead-specific baseline amplitude scaling & inversion
+    double scale = 1.0;
+    switch (lead) {
+      case 'I': scale = 0.65; break;
+      case 'II': scale = 1.00; break;
+      case 'III': scale = 0.60; break;
+      case 'aVR': scale = -0.75; break; // Inverted
+      case 'aVL': scale = 0.45; break;
+      case 'aVF': scale = 0.85; break;
+      case 'V1':
+        if (phi >= 0.23 && phi <= 0.31) {
+          return computePrecordialV1Sample(phi, rhythm);
+        }
+        scale = 0.35;
+        break;
+      case 'V2':
+        scale = 0.55;
+        if (phi >= 0.23 && phi <= 0.31) {
+          final tau = (phi - 0.23) / 0.08;
+          return 0.45 * math.sin(tau * math.pi * 0.5) - 1.10 * math.pow(math.sin(tau * math.pi), 1.5);
+        }
+        break;
+      case 'V3': scale = 0.80; break;
+      case 'V4': scale = 1.15; break;
+      case 'V5': scale = 1.35; break;
+      case 'V6': scale = 1.10; break;
+    }
+
+    double sample = base * scale;
+
+    // Pathology ST-segment localized deviation
+    double leadStMm = 0.0;
+    final isAnterior = scenario.id.contains('anterior_mi');
+    final isInferior = scenario.id.contains('inferior_mi');
+    final isLm = scenario.id.contains('critical_lm');
+
+    if (isAnterior) {
+      if (lead == 'V1') {
+        leadStMm = 2.5;
+      } else if (lead == 'V2') {
+        leadStMm = 4.8;
+      } else if (lead == 'V3') {
+        leadStMm = 5.2;
+      } else if (lead == 'V4') {
+        leadStMm = 3.6;
+      } else if (lead == 'V5') {
+        leadStMm = 1.2;
+      } else if (lead == 'III') {
+        leadStMm = -1.8;
+      } else if (lead == 'aVF') {
+        leadStMm = -1.5;
+      } else if (lead == 'I' || lead == 'aVL') {
+        leadStMm = 0.8;
+      }
+    } else if (isInferior) {
+      if (lead == 'II') {
+        leadStMm = 3.2;
+      } else if (lead == 'III') {
+        leadStMm = 4.5;
+      } else if (lead == 'aVF') {
+        leadStMm = 3.8;
+      } else if (lead == 'I') {
+        leadStMm = -2.2;
+      } else if (lead == 'aVL') {
+        leadStMm = -2.5;
+      }
+    } else if (isLm) {
+      if (lead == 'aVR') {
+        leadStMm = 2.2;
+      } else if (lead == 'V1') {
+        leadStMm = 1.0;
+      } else {
+        leadStMm = -2.0;
+      }
+    }
+
+    if (phi > 0.310 && phi <= 0.560 && leadStMm != 0.0) {
+      final tau = (phi - 0.310) / 0.250;
+      final stDecay = math.exp(-3.5 * tau);
+      sample += (leadStMm / 10.0) * stDecay;
+    }
+
+    return sample;
+  }
+
   /// Synthesizes Photoplethysmogram SpO2 Pleth sample (0.0 to 1.0)
   static double computePlethSample(double phase, OscilloscopeRhythmType rhythm, double spo2Pct) {
     if (rhythm == OscilloscopeRhythmType.vfib || rhythm == OscilloscopeRhythmType.asystole) {
@@ -516,6 +638,9 @@ class _CardiacHemodynamicEcgStripState extends State<CardiacHemodynamicEcgStrip>
   late OscilloscopeDisplayTheme _displayTheme;
   late bool _mainsHum;
   bool _isFrozen = false;
+  EcgStripViewMode _viewMode = EcgStripViewMode.fiveChannelMonitor;
+  EcgWaveFocus? _selectedWaveFocus;
+  String _selectedAtlasLead = 'II';
   double _caliper1X = 0.30; // 0.0 to 1.0
   double _caliper2X = 0.55; // 0.0 to 1.0
   int _sweepSpeedMmS = 25;  // 25 mm/s vs 50 mm/s
@@ -1031,67 +1156,71 @@ class _CardiacHemodynamicEcgStripState extends State<CardiacHemodynamicEcgStrip>
             // ── IV Emergency Infusion Pump (Ward Simulator) ──────────────────
             if (_isIvDrawerOpen) _buildIvInfusionDrawer(),
 
-            // ── 14-Rhythm Hospital Selector Bar or Blind Exam Quiz ───────────
-            _isBlindMode ? _buildBlindExamBar() : _buildRhythmSelectorBar(),
+            if (_viewMode == EcgStripViewMode.twelveLeadAtlas)
+              _build12LeadAtlasSection(sys, dia, map, effectiveSt, isThermal, respRate)
+            else ...[
+              // ── 14-Rhythm Hospital Selector Bar or Blind Exam Quiz ───────────
+              _isBlindMode ? _buildBlindExamBar() : _buildRhythmSelectorBar(),
 
-            // ── 5-Channel Canvas + Right ICU Parameter Tiles ────────────────
-            SizedBox(
-              height: 230,
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  // Oscilloscope Waveforms Canvas with Draggable Calipers
-                  Expanded(
-                    child: Stack(
-                      children: [
-                        Positioned.fill(
-                          child: AnimatedBuilder(
-                            animation: _sweepController,
-                            builder: (context, _) {
-                              final sweepProgress = _isFrozen ? _caliper1X : _sweepController.value;
-                              return CustomPaint(
-                                painter: _FiveChannelHospitalOscilloscopePainter(
-                                  cardiacPhase: _isFrozen ? _lastPhase : widget.cardiacPhase,
-                                  sweepProgress: sweepProgress,
-                                  rhythm: _currentRhythm,
-                                  stElevationMm: effectiveSt,
-                                  isDamped: isDamped,
-                                  systolicBp: sys,
-                                  diastolicBp: dia,
-                                  spo2Pct: spo2,
-                                  etco2MmHg: etco2,
-                                  leadLabel: widget.activeTerritory.label,
-                                  wireType: widget.wireType,
-                                  iabpActive: widget.iabpActive,
-                                  ffrValue: widget.ffrValue,
-                                  sweepSpeedMmS: _sweepSpeedMmS,
-                                  gainMmMv: _ecgGainMmMv,
-                                  tcpActive: _tcpActive,
-                                  signalMode: _signalMode,
-                                  displayTheme: _displayTheme,
-                                  mainsHum: _mainsHum,
-                                  bpm: widget.masterVitals?.heartRateBpm ?? widget.bpm,
-                                  respRate: respRate,
-                                ),
-                              );
-                            },
-                          ),
-                        ),
-
-                        // Electronic Calipers Overlay in Freeze Mode
-                        if (_isFrozen)
+              // ── 5-Channel Canvas + Right ICU Parameter Tiles ────────────────
+              SizedBox(
+                height: 230,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // Oscilloscope Waveforms Canvas with Draggable Calipers
+                    Expanded(
+                      child: Stack(
+                        children: [
                           Positioned.fill(
-                            child: _buildCaliperOverlay(),
+                            child: AnimatedBuilder(
+                              animation: _sweepController,
+                              builder: (context, _) {
+                                final sweepProgress = _isFrozen ? _caliper1X : _sweepController.value;
+                                return CustomPaint(
+                                  painter: _FiveChannelHospitalOscilloscopePainter(
+                                    cardiacPhase: _isFrozen ? _lastPhase : widget.cardiacPhase,
+                                    sweepProgress: sweepProgress,
+                                    rhythm: _currentRhythm,
+                                    stElevationMm: effectiveSt,
+                                    isDamped: isDamped,
+                                    systolicBp: sys,
+                                    diastolicBp: dia,
+                                    spo2Pct: spo2,
+                                    etco2MmHg: etco2,
+                                    leadLabel: widget.activeTerritory.label,
+                                    wireType: widget.wireType,
+                                    iabpActive: widget.iabpActive,
+                                    ffrValue: widget.ffrValue,
+                                    sweepSpeedMmS: _sweepSpeedMmS,
+                                    gainMmMv: _ecgGainMmMv,
+                                    tcpActive: _tcpActive,
+                                    signalMode: _signalMode,
+                                    displayTheme: _displayTheme,
+                                    mainsHum: _mainsHum,
+                                    bpm: widget.masterVitals?.heartRateBpm ?? widget.bpm,
+                                    respRate: respRate,
+                                  ),
+                                );
+                              },
+                            ),
                           ),
-                      ],
-                    ),
-                  ),
 
-                  // Right-Hand ICU Numeric Parameter Tiles
-                  _buildRightIcuNumericTiles(sys, dia, map, spo2, etco2, isQrsActive),
-                ],
+                          // Electronic Calipers Overlay in Freeze Mode
+                          if (_isFrozen)
+                            Positioned.fill(
+                              child: _buildCaliperOverlay(),
+                            ),
+                        ],
+                      ),
+                    ),
+
+                    // Right-Hand ICU Numeric Parameter Tiles
+                    _buildRightIcuNumericTiles(sys, dia, map, spo2, etco2, isQrsActive),
+                  ],
+                ),
               ),
-            ),
+            ],
 
             // ── Bottom Telemetry Secondary Controls Bar ─────────────────────
             _buildBottomControlsBar(sys, dia),
@@ -1099,6 +1228,348 @@ class _CardiacHemodynamicEcgStripState extends State<CardiacHemodynamicEcgStrip>
         ),
       ),
     );
+  }
+
+  Widget _modeToggleButton({
+    required String label,
+    required EcgStripViewMode mode,
+    required Key key,
+  }) {
+    final isSel = _viewMode == mode;
+    return InkWell(
+      key: key,
+      onTap: () => setState(() => _viewMode = mode),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2.5),
+        decoration: BoxDecoration(
+          color: isSel ? const Color(0xFF00E5FF).withValues(alpha: 0.25) : Colors.transparent,
+          borderRadius: BorderRadius.circular(3),
+          border: Border.all(
+            color: isSel ? const Color(0xFF00E5FF) : Colors.transparent,
+            width: isSel ? 1.0 : 0.0,
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: isSel ? const Color(0xFF00E5FF) : Colors.white60,
+            fontSize: 8.5,
+            fontWeight: isSel ? FontWeight.bold : FontWeight.normal,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _build12LeadAtlasSection(
+    double sys,
+    double dia,
+    double map,
+    double effectiveSt,
+    bool isThermal,
+    double respRate,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // ── Atlas Callout Bar & Wave Chips ─────────────────────────────────
+        _buildAtlasCalloutBar(effectiveSt),
+
+        // ── 12-Lead Standard Grid Canvas ───────────────────────────────────
+        SizedBox(
+          height: 235,
+          child: CustomPaint(
+            painter: _TwelveLeadAtlasPainter(
+              cardiacPhase: widget.cardiacPhase,
+              stElevationMm: effectiveSt,
+              scenario: widget.scenario,
+              rhythm: _currentRhythm,
+              selectedWaveFocus: _selectedWaveFocus,
+              selectedLead: _selectedAtlasLead,
+              displayTheme: _displayTheme,
+              bpm: widget.masterVitals?.heartRateBpm ?? widget.bpm,
+            ),
+          ),
+        ),
+
+        // ── Diagnostic Vector Explanation Card ─────────────────────────────
+        _buildAtlasDiagnosticVectorCard(effectiveSt),
+      ],
+    );
+  }
+
+  Widget _buildAtlasCalloutBar(double effectiveSt) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      color: const Color(0xFF080D14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Row 1: Wave Focus Chips
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1E293B),
+                    borderRadius: BorderRadius.circular(4),
+                    border: Border.all(color: const Color(0xFF334155), width: 0.8),
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.waves_rounded, color: Color(0xFF00E5FF), size: 11),
+                      SizedBox(width: 4),
+                      Text(
+                        'WAVE FOCUS:',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 8.5,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 6),
+
+                // All Waves Chip (Resets Focus)
+                _waveFocusChip(
+                  label: 'All Waves',
+                  focus: null,
+                  key: const Key('ecg_wave_all'),
+                  chipColor: const Color(0xFF94A3B8),
+                ),
+                const SizedBox(width: 4),
+
+                // P Wave
+                _waveFocusChip(
+                  label: 'P Wave',
+                  focus: EcgWaveFocus.pWave,
+                  key: const Key('ecg_wave_p'),
+                  chipColor: const Color(0xFF00E676),
+                ),
+                const SizedBox(width: 4),
+
+                // PR Interval
+                _waveFocusChip(
+                  label: 'PR Interval',
+                  focus: EcgWaveFocus.prInterval,
+                  key: const Key('ecg_wave_pr'),
+                  chipColor: const Color(0xFFFFB300),
+                ),
+                const SizedBox(width: 4),
+
+                // QRS Complex
+                _waveFocusChip(
+                  label: 'QRS Complex',
+                  focus: EcgWaveFocus.qrsComplex,
+                  key: const Key('ecg_wave_qrs'),
+                  chipColor: const Color(0xFFFF5252),
+                ),
+                const SizedBox(width: 4),
+
+                // ST Segment
+                _waveFocusChip(
+                  label: 'ST Segment',
+                  focus: EcgWaveFocus.stSegment,
+                  key: const Key('ecg_wave_st'),
+                  chipColor: const Color(0xFF94A3B8),
+                ),
+                const SizedBox(width: 4),
+
+                // T Wave
+                _waveFocusChip(
+                  label: 'T Wave',
+                  focus: EcgWaveFocus.tWave,
+                  key: const Key('ecg_wave_t'),
+                  chipColor: const Color(0xFF00E5FF),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 4),
+
+          // Row 2: 12 Lead Focus Pills
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                const Text(
+                  'INSPECT LEAD:',
+                  style: TextStyle(color: Colors.white38, fontSize: 8.0, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(width: 6),
+                ...['I', 'II', 'III', 'aVR', 'aVL', 'aVF', 'V1', 'V2', 'V3', 'V4', 'V5', 'V6'].map((lead) {
+                  final isSel = lead == _selectedAtlasLead;
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 4),
+                    child: InkWell(
+                      key: Key('ecg_atlas_lead_$lead'),
+                      onTap: () => setState(() => _selectedAtlasLead = lead),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: isSel
+                              ? const Color(0xFFFFB300).withValues(alpha: 0.25)
+                              : Colors.white.withValues(alpha: 0.04),
+                          borderRadius: BorderRadius.circular(3),
+                          border: Border.all(
+                            color: isSel ? const Color(0xFFFFB300) : Colors.white24,
+                            width: isSel ? 1.2 : 0.6,
+                          ),
+                        ),
+                        child: Text(
+                          lead,
+                          style: TextStyle(
+                            color: isSel ? const Color(0xFFFFB300) : Colors.white70,
+                            fontSize: 8.5,
+                            fontWeight: isSel ? FontWeight.bold : FontWeight.normal,
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                }),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _waveFocusChip({
+    required String label,
+    required EcgWaveFocus? focus,
+    required Key key,
+    required Color chipColor,
+  }) {
+    final isSel = _selectedWaveFocus == focus;
+    return InkWell(
+      key: key,
+      onTap: () => setState(() => _selectedWaveFocus = focus),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2.5),
+        decoration: BoxDecoration(
+          color: isSel ? chipColor.withValues(alpha: 0.25) : Colors.white.withValues(alpha: 0.04),
+          borderRadius: BorderRadius.circular(4),
+          border: Border.all(
+            color: isSel ? chipColor : Colors.white24,
+            width: isSel ? 1.4 : 0.7,
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: isSel ? chipColor : Colors.white,
+            fontSize: 8.5,
+            fontWeight: isSel ? FontWeight.bold : FontWeight.w600,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAtlasDiagnosticVectorCard(double effectiveSt) {
+    final leadTerritory = _getLeadTerritory(_selectedAtlasLead);
+    final focusDesc = _selectedWaveFocus != null
+        ? '${_selectedWaveFocus!.label}: ${_selectedWaveFocus!.clinicalSummary}'
+        : 'Full 12-Lead Diagnostic Trace: 25 mm/s · 10 mm/mV · Synchronized 1:1 Phase Playhead';
+
+    String vectorPathology = 'Normal baseline vector: frontal plane axis +58° aligned with Lead II.';
+    if (widget.scenario.id.contains('anterior_mi')) {
+      vectorPathology = 'Anterior STEMI (LAD): ST elevation in V1–V4 with hyperacute T waves; reciprocal depression in III & aVF.';
+    } else if (widget.scenario.id.contains('inferior_mi')) {
+      vectorPathology = 'Inferior STEMI (RCA): ST elevation in II, III, aVF (III > II); reciprocal ST depression in I & aVL.';
+    } else if (widget.scenario.id.contains('critical_lm')) {
+      vectorPathology = 'Critical LM Occlusion: aVR ST elevation >= 1.5 mm with diffuse subendocardial ST depression (I, II, V4-V6).';
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: const BoxDecoration(
+        color: Color(0xFF070B13),
+        border: Border(top: BorderSide(color: Colors.white12)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFFB300).withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(4),
+              border: Border.all(color: const Color(0xFFFFB300), width: 0.8),
+            ),
+            child: Text(
+              'LEAD $_selectedAtlasLead · $leadTerritory',
+              style: const TextStyle(
+                color: Color(0xFFFFD54F),
+                fontSize: 8.5,
+                fontWeight: FontWeight.bold,
+                fontFamily: 'monospace',
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  focusDesc,
+                  style: const TextStyle(
+                    color: Color(0xFF00E5FF),
+                    fontSize: 8.5,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+                Text(
+                  vectorPathology,
+                  style: const TextStyle(
+                    color: Colors.white70,
+                    fontSize: 8.0,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _getLeadTerritory(String lead) {
+    switch (lead) {
+      case 'I':
+      case 'aVL':
+        return 'High Lateral (LCx / Diagonal)';
+      case 'II':
+      case 'III':
+      case 'aVF':
+        return 'Inferior Wall (RCA / PDA)';
+      case 'aVR':
+        return 'Right Ventricular Outflow / Basal Septum';
+      case 'V1':
+      case 'V2':
+        return 'Septal Territory (Proximal LAD)';
+      case 'V3':
+      case 'V4':
+        return 'Anterior Wall / Apex (Mid LAD)';
+      case 'V5':
+      case 'V6':
+        return 'Low Lateral Wall (Distal LAD / LCx)';
+      default:
+        return 'Standard 12-Lead';
+    }
   }
 
   Widget _vitalsBadge({
@@ -1212,6 +1683,33 @@ class _CardiacHemodynamicEcgStripState extends State<CardiacHemodynamicEcgStrip>
               topicId: 'viewport_telemetry',
               customLabel: 'Wiggers & ECG Info',
               size: 11,
+            ),
+            const SizedBox(width: 8),
+
+            // Mode Selector: 5-Channel ICU Monitor vs. 12-Lead ECG Atlas
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
+              decoration: BoxDecoration(
+                color: const Color(0xFF1E293B),
+                borderRadius: BorderRadius.circular(4),
+                border: Border.all(color: const Color(0xFF334155), width: 0.8),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _modeToggleButton(
+                    label: '5-CH ICU MONITOR',
+                    mode: EcgStripViewMode.fiveChannelMonitor,
+                    key: const Key('ecg_mode_five_channel'),
+                  ),
+                  const SizedBox(width: 2),
+                  _modeToggleButton(
+                    label: '12-LEAD ATLAS',
+                    mode: EcgStripViewMode.twelveLeadAtlas,
+                    key: const Key('ecg_mode_twelve_lead'),
+                  ),
+                ],
+              ),
             ),
             const SizedBox(width: 10),
 
@@ -3000,5 +3498,296 @@ class _FiveChannelHospitalOscilloscopePainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant _FiveChannelHospitalOscilloscopePainter old) {
     return true;
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CustomPainter: 12-Lead Diagnostic ECG Atlas & Rhythm Strip
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _TwelveLeadAtlasPainter extends CustomPainter {
+  final double cardiacPhase;
+  final double stElevationMm;
+  final CardiacPathologyScenario scenario;
+  final OscilloscopeRhythmType rhythm;
+  final EcgWaveFocus? selectedWaveFocus;
+  final String selectedLead;
+  final OscilloscopeDisplayTheme displayTheme;
+  final double bpm;
+
+  _TwelveLeadAtlasPainter({
+    required this.cardiacPhase,
+    required this.stElevationMm,
+    required this.scenario,
+    required this.rhythm,
+    this.selectedWaveFocus,
+    required this.selectedLead,
+    required this.displayTheme,
+    required this.bpm,
+  });
+
+  bool get _isThermal => displayTheme == OscilloscopeDisplayTheme.thermalPaper;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    // Background and Authentic ECG Grid
+    _drawGrid(canvas, size);
+
+    // 4 Columns x 3 Rows for standard 12 leads
+    // Bottom row for continuous rhythm strip (Lead II) + interval highlight bars
+    const cols = 4;
+    const rows = 3;
+    final gridHeight = size.height * 0.76;
+    final rhythmHeight = size.height - gridHeight;
+    final cellW = size.width / cols;
+    final cellH = gridHeight / rows;
+
+    // 12 Lead matrix arrangement:
+    // Col 0: I, II, III
+    // Col 1: aVR, aVL, aVF
+    // Col 2: V1, V2, V3
+    // Col 3: V4, V5, V6
+    final matrix = [
+      ['I', 'aVR', 'V1', 'V4'],
+      ['II', 'aVL', 'V2', 'V5'],
+      ['III', 'aVF', 'V3', 'V6'],
+    ];
+
+    for (int r = 0; r < rows; r++) {
+      for (int c = 0; c < cols; c++) {
+        final lead = matrix[r][c];
+        final rect = Rect.fromLTWH(c * cellW, r * cellH, cellW, cellH);
+        _drawLeadCell(canvas, rect, lead);
+      }
+    }
+
+    // Continuous Lead II Rhythm Strip at bottom
+    final rhythmRect = Rect.fromLTWH(0, gridHeight, size.width, rhythmHeight);
+    _drawRhythmStrip(canvas, rhythmRect);
+
+    // Synchronized Vertical Playhead Cursor across all rows
+    final cursorX = ((cardiacPhase % 1.0) * cellW).clamp(0.0, cellW);
+    final cursorPaint = Paint()
+      ..color = const Color(0xFFFFD54F)
+      ..strokeWidth = 1.5;
+    for (int c = 0; c < cols; c++) {
+      final x = c * cellW + cursorX;
+      canvas.drawLine(Offset(x, 0), Offset(x, gridHeight), cursorPaint);
+    }
+
+    // Rhythm strip playhead
+    final rhythmCursorX = ((cardiacPhase % 1.0) * size.width).clamp(0.0, size.width);
+    canvas.drawLine(Offset(rhythmCursorX, gridHeight), Offset(rhythmCursorX, size.height - 14), cursorPaint);
+  }
+
+  void _drawGrid(Canvas canvas, Size size) {
+    final bgPaint = Paint()..color = _isThermal ? const Color(0xFFFFF1F1) : const Color(0xFF040810);
+    canvas.drawRect(Offset.zero & size, bgPaint);
+
+    final minorPaint = Paint()
+      ..color = _isThermal ? const Color(0xFFEF9A9A).withValues(alpha: 0.35) : const Color(0xFF1E3A5F).withValues(alpha: 0.30)
+      ..strokeWidth = 0.5;
+    final majorPaint = Paint()
+      ..color = _isThermal ? const Color(0xFFE53935).withValues(alpha: 0.65) : const Color(0xFF00E5FF).withValues(alpha: 0.25)
+      ..strokeWidth = 0.8;
+
+    const minorStep = 4.0;
+    const majorStep = 20.0;
+
+    for (double x = 0; x < size.width; x += minorStep) {
+      if ((x % majorStep).abs() > 0.01) {
+        canvas.drawLine(Offset(x, 0), Offset(x, size.height), minorPaint);
+      }
+    }
+    for (double x = 0; x < size.width; x += majorStep) {
+      canvas.drawLine(Offset(x, 0), Offset(x, size.height), majorPaint);
+    }
+    for (double y = 0; y < size.height; y += minorStep) {
+      if ((y % majorStep).abs() > 0.01) {
+        canvas.drawLine(Offset(0, y), Offset(size.width, y), minorPaint);
+      }
+    }
+    for (double y = 0; y < size.height; y += majorStep) {
+      canvas.drawLine(Offset(0, y), Offset(size.width, y), majorPaint);
+    }
+  }
+
+  void _drawLeadCell(Canvas canvas, Rect rect, String lead) {
+    final isSelected = lead == selectedLead;
+
+    // Boundary subtle divider
+    canvas.drawRect(
+      rect,
+      Paint()
+        ..color = isSelected ? const Color(0xFFFFB300).withValues(alpha: 0.4) : Colors.white12
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = isSelected ? 1.0 : 0.5,
+    );
+
+    // Wave focus shading
+    if (selectedWaveFocus != null) {
+      final f = selectedWaveFocus!;
+      final shadeLeft = rect.left + f.startPhase * rect.width;
+      final shadeWidth = (f.endPhase - f.startPhase) * rect.width;
+      canvas.drawRect(
+        Rect.fromLTWH(shadeLeft, rect.top, shadeWidth, rect.height),
+        Paint()..color = f.color.withValues(alpha: 0.12),
+      );
+    }
+
+    // Lead Label
+    final tp = TextPainter(
+      text: TextSpan(
+        text: lead,
+        style: TextStyle(
+          color: isSelected ? const Color(0xFFFFD54F) : (_isThermal ? const Color(0xFFB71C1C) : const Color(0xFF00E676)),
+          fontSize: 9.0,
+          fontWeight: FontWeight.bold,
+          fontFamily: 'monospace',
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+    )..layout();
+    tp.paint(canvas, Offset(rect.left + 4, rect.top + 3));
+
+    // Calibration step pulse at the start of cell (first 10 px)
+    final baselineY = rect.top + rect.height * 0.55;
+    final traceColor = _isThermal ? const Color(0xFF0F172A) : const Color(0xFF00E676);
+    final tracePaint = Paint()
+      ..color = traceColor
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.3
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+
+    final calPath = Path();
+    calPath.moveTo(rect.left + 2, baselineY);
+    calPath.lineTo(rect.left + 4, baselineY);
+    calPath.lineTo(rect.left + 4, baselineY - 12); // 10 mm / 1 mV pulse
+    calPath.lineTo(rect.left + 9, baselineY - 12);
+    calPath.lineTo(rect.left + 9, baselineY);
+    calPath.lineTo(rect.left + 12, baselineY);
+    canvas.drawPath(calPath, tracePaint);
+
+    // Synthesize waveform
+    final wavePath = Path();
+    final waveStartX = rect.left + 14;
+    final waveW = rect.width - 16;
+    const stepPx = 1.5;
+
+    for (double x = 0; x <= waveW; x += stepPx) {
+      final phase = x / waveW;
+      final mv = CardiacHemodynamicEcgStrip.computeLeadSample(lead, phase, stElevationMm, scenario, rhythm: rhythm);
+      final y = baselineY - (mv * 14.0); // 1.0 mV ~ 14 px
+
+      if (x == 0) {
+        wavePath.moveTo(waveStartX + x, y);
+      } else {
+        wavePath.lineTo(waveStartX + x, y);
+      }
+    }
+    canvas.drawPath(wavePath, tracePaint);
+  }
+
+  void _drawRhythmStrip(Canvas canvas, Rect rect) {
+    // Divider
+    canvas.drawLine(
+      Offset(0, rect.top),
+      Offset(rect.width, rect.top),
+      Paint()..color = const Color(0xFF00E5FF).withValues(alpha: 0.4)..strokeWidth = 1.0,
+    );
+
+    // Label: "II (RHYTHM STRIP - 25 mm/s · 10 mm/mV)"
+    final tp = TextPainter(
+      text: const TextSpan(
+        text: 'II (RHYTHM STRIP · 25 mm/s · 10 mm/mV)',
+        style: TextStyle(
+          color: Color(0xFF00E5FF),
+          fontSize: 8.5,
+          fontWeight: FontWeight.bold,
+          fontFamily: 'monospace',
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+    )..layout();
+    tp.paint(canvas, Offset(4, rect.top + 3));
+
+    final baselineY = rect.top + (rect.height - 14) * 0.52;
+    final traceColor = _isThermal ? const Color(0xFF0F172A) : const Color(0xFF00E676);
+    final tracePaint = Paint()
+      ..color = traceColor
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.3
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+
+    final wavePath = Path();
+    const beatsInStrip = 3.0;
+    const stepPx = 1.5;
+
+    for (double x = 0; x <= rect.width; x += stepPx) {
+      final phase = (x / rect.width * beatsInStrip) % 1.0;
+      final mv = CardiacHemodynamicEcgStrip.computeSyntheticEcgSample(phase, stElevationMm, rhythm: rhythm);
+      final y = baselineY - (mv * 13.0);
+
+      if (x == 0) {
+        wavePath.moveTo(x, y);
+      } else {
+        wavePath.lineTo(x, y);
+      }
+    }
+    canvas.drawPath(wavePath, tracePaint);
+
+    // Bottom Interval Highlight Bars
+    final barY = rect.bottom - 12;
+    _drawIntervalBars(canvas, rect.width, barY);
+  }
+
+  void _drawIntervalBars(Canvas canvas, double totalW, double y) {
+    final rrMs = (60000.0 / bpm.clamp(30.0, 220.0)).round();
+
+    // 4 Interval highlight badges
+    final intervals = [
+      (label: 'PR: 160 ms (120-200)', col: const Color(0xFFFFB300)),
+      (label: 'QRS: 84 ms (<120)', col: const Color(0xFFFF5252)),
+      (label: 'QT/QTc: 390 ms (<440)', col: const Color(0xFF00E5FF)),
+      (label: 'R-R: $rrMs ms', col: const Color(0xFF64748B)),
+    ];
+
+    double curX = 6.0;
+    for (final it in intervals) {
+      final tp = TextPainter(
+        text: TextSpan(
+          text: it.label,
+          style: TextStyle(
+            color: it.col,
+            fontSize: 7.5,
+            fontWeight: FontWeight.bold,
+            fontFamily: 'monospace',
+          ),
+        ),
+        textDirection: TextDirection.ltr,
+      )..layout();
+
+      final pillRect = Rect.fromLTWH(curX, y, tp.width + 8, 10);
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(pillRect, const Radius.circular(2)),
+        Paint()..color = it.col.withValues(alpha: 0.15),
+      );
+      tp.paint(canvas, Offset(curX + 4, y + 0.5));
+      curX += tp.width + 12;
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _TwelveLeadAtlasPainter old) {
+    return old.cardiacPhase != cardiacPhase ||
+        old.stElevationMm != stElevationMm ||
+        old.scenario != scenario ||
+        old.rhythm != rhythm ||
+        old.selectedWaveFocus != selectedWaveFocus ||
+        old.selectedLead != selectedLead ||
+        old.displayTheme != displayTheme ||
+        old.bpm != bpm;
   }
 }

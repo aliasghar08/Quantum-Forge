@@ -35,7 +35,9 @@ enum HeartViewMode {
   conduction('Conduction'),
   coronaries('Vessels'),
   ischemiaMap('Ischemia Map'),
-  colorDoppler('Color Doppler');
+  colorDoppler('Color Doppler'),
+  cutawayEM('Heart Cutaway'),
+  conductionXray('Conduction X-Ray');
 
   final String label;
   const HeartViewMode(this.label);
@@ -79,6 +81,10 @@ class _Cardiac3DAnatomicalHeartViewportState
 
   HeartViewMode _viewMode = HeartViewMode.anatomy;
   bool _showLabels = true;
+  double? _scrubbedPhase;
+  bool _isScrubberPlaying = true;
+  double _scrubberSpeed = 1.0;
+  bool _showHexaxialGizmo = false;
 
   CardioCathThreeBridge? _threeBridge;
   CardiacFsiTrajectory? _trajectory;
@@ -113,11 +119,15 @@ class _Cardiac3DAnatomicalHeartViewportState
   }
 
   void _syncCurrentFrame() {
-    if (_threeBridge == null || _trajectory == null || _trajectory!.frames.isEmpty) return;
-    final int frameIdx = ((widget.cardiacPhase * (_trajectory!.frames.length - 1)).round())
-        .clamp(0, _trajectory!.frames.length - 1);
-    final frame = _trajectory!.frames[frameIdx];
-    _threeBridge!.applyFsiFrame(frame);
+    if (_threeBridge == null) return;
+    final activePhase = _scrubbedPhase ?? widget.cardiacPhase;
+    if (_trajectory != null && _trajectory!.frames.isNotEmpty) {
+      final int frameIdx = ((activePhase * (_trajectory!.frames.length - 1)).round())
+          .clamp(0, _trajectory!.frames.length - 1);
+      final frame = _trajectory!.frames[frameIdx];
+      _threeBridge!.applyFsiFrame(frame);
+    }
+    _threeBridge!.setBeatPhase(activePhase);
   }
 
   @override
@@ -130,6 +140,9 @@ class _Cardiac3DAnatomicalHeartViewportState
       _computeTrajectory();
       _syncBridge();
     } else if (widget.cardiacPhase != oldWidget.cardiacPhase) {
+      if (_isScrubberPlaying) {
+        _scrubbedPhase = null;
+      }
       _syncCurrentFrame();
     }
     if (widget.contrastIntensity > 0.05 && oldWidget.contrastIntensity <= 0.05) {
@@ -178,6 +191,7 @@ class _Cardiac3DAnatomicalHeartViewportState
   @override
   Widget build(BuildContext context) {
     final palette = ThemeNotifier.paletteOf(context);
+    final activePhase = _scrubbedPhase ?? widget.cardiacPhase;
 
     if (kIsWeb && _threeBridge == null) {
       _threeBridge = CardioCathThreeBridge.latestHeartBridge;
@@ -227,7 +241,7 @@ class _Cardiac3DAnatomicalHeartViewportState
                       child: CustomPaint(
                         painter: _AnatomicalHeart3DPainter(
                           scenario: widget.scenario,
-                          cardiacPhase: widget.cardiacPhase,
+                          cardiacPhase: activePhase,
                           isCatheterEngaged: widget.isCatheterEngaged,
                           contrastIntensity: widget.contrastIntensity,
                           rotationY: _rotationY,
@@ -294,48 +308,117 @@ class _Cardiac3DAnatomicalHeartViewportState
                         customLabel: 'Info',
                         size: 12,
                       ),
-                      const Spacer(),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              // Hexaxial Lead Gizmo Toggle
+                              _actionButton(
+                                key: const Key('toggle_hexaxial_gizmo'),
+                                icon: Icons.explore_rounded,
+                                tooltip: _showHexaxialGizmo
+                                    ? 'Hide Hexaxial Lead Compass'
+                                    : 'Show Hexaxial Lead Compass',
+                                isActive: _showHexaxialGizmo,
+                                onTap: () => setState(() => _showHexaxialGizmo = !_showHexaxialGizmo),
+                                palette: palette,
+                              ),
+                              const SizedBox(width: 4),
 
-                      // Interactive Master Guide Button
-                      _actionButton(
-                        icon: Icons.menu_book_rounded,
-                        tooltip: 'Open Complete Cath Lab & Dual-Circulation Guide',
-                        isActive: false,
-                        onTap: () => showCardiacInteractiveGuideDialog(context),
-                        palette: palette,
-                      ),
-                      const SizedBox(width: 4),
+                              // Camera Presets
+                              _actionButton(
+                                key: const Key('camera_preset_front'),
+                                icon: Icons.crop_portrait_rounded,
+                                tooltip: 'Camera: Front (AP)',
+                                isActive: false,
+                                onTap: () => _threeBridge?.setCameraPreset('front'),
+                                palette: palette,
+                              ),
+                              const SizedBox(width: 4),
+                              _actionButton(
+                                key: const Key('camera_preset_lao'),
+                                icon: Icons.rotate_left_rounded,
+                                tooltip: 'Camera: LAO (Left Anterior Oblique)',
+                                isActive: false,
+                                onTap: () => _threeBridge?.setCameraPreset('left'),
+                                palette: palette,
+                              ),
+                              const SizedBox(width: 4),
+                              _actionButton(
+                                key: const Key('camera_preset_rao'),
+                                icon: Icons.rotate_right_rounded,
+                                tooltip: 'Camera: RAO (Right Anterior Oblique)',
+                                isActive: false,
+                                onTap: () => _threeBridge?.setCameraPreset('right'),
+                                palette: palette,
+                              ),
+                              const SizedBox(width: 4),
+                              _actionButton(
+                                key: const Key('camera_preset_inf'),
+                                icon: Icons.vertical_align_bottom_rounded,
+                                tooltip: 'Camera: Inferior (Diaphragmatic)',
+                                isActive: false,
+                                onTap: () => _threeBridge?.setCameraPreset('inferior'),
+                                palette: palette,
+                              ),
+                              const SizedBox(width: 4),
+                              _actionButton(
+                                key: const Key('camera_preset_post'),
+                                icon: Icons.flip_camera_android_rounded,
+                                tooltip: 'Camera: Posterior',
+                                isActive: false,
+                                onTap: () => _threeBridge?.setCameraPreset('posterior'),
+                                palette: palette,
+                              ),
+                              const SizedBox(width: 4),
 
-                      // Toggle Labels Button
-                      _actionButton(
-                        icon: _showLabels
-                            ? Icons.label_rounded
-                            : Icons.label_off_rounded,
-                        tooltip: _showLabels ? 'Hide Labels' : 'Show Labels',
-                        isActive: _showLabels,
-                        onTap: () => setState(() => _showLabels = !_showLabels),
-                        palette: palette,
-                      ),
-                      const SizedBox(width: 4),
+                              // Interactive Master Guide Button
+                              _actionButton(
+                                icon: Icons.menu_book_rounded,
+                                tooltip: 'Open Complete Cath Lab & Dual-Circulation Guide',
+                                isActive: false,
+                                onTap: () => showCardiacInteractiveGuideDialog(context),
+                                palette: palette,
+                              ),
+                              const SizedBox(width: 4),
 
-                      // Reset Camera
-                      _actionButton(
-                        icon: Icons.refresh_rounded,
-                        tooltip: 'Reset 3D Camera',
-                        isActive: false,
-                        onTap: _resetCamera,
-                        palette: palette,
-                      ),
-                      const SizedBox(width: 4),
+                              // Toggle Labels Button
+                              _actionButton(
+                                icon: _showLabels
+                                    ? Icons.label_rounded
+                                    : Icons.label_off_rounded,
+                                tooltip: _showLabels ? 'Hide Labels' : 'Show Labels',
+                                isActive: _showLabels,
+                                onTap: () => setState(() => _showLabels = !_showLabels),
+                                palette: palette,
+                              ),
+                              const SizedBox(width: 4),
 
-                      // Full-Screen Micro-Anatomical Heart Theater Launcher
-                      _actionButton(
-                        key: const Key('launch_fullscreen_heart_theater'),
-                        icon: Icons.fullscreen_rounded,
-                        tooltip: 'Full-Screen Micro-Anatomical 3D Heart Theater',
-                        isActive: false,
-                        onTap: _openFullScreenTheater,
-                        palette: palette,
+                              // Reset Camera
+                              _actionButton(
+                                icon: Icons.refresh_rounded,
+                                tooltip: 'Reset 3D Camera',
+                                isActive: false,
+                                onTap: _resetCamera,
+                                palette: palette,
+                              ),
+                              const SizedBox(width: 4),
+
+                              // Full-Screen Micro-Anatomical Heart Theater Launcher
+                              _actionButton(
+                                key: const Key('launch_fullscreen_heart_theater'),
+                                icon: Icons.fullscreen_rounded,
+                                tooltip: 'Full-Screen Micro-Anatomical 3D Heart Theater',
+                                isActive: false,
+                                onTap: _openFullScreenTheater,
+                                palette: palette,
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
                     ],
                   ),
@@ -394,6 +477,17 @@ class _Cardiac3DAnatomicalHeartViewportState
               ),
             ),
 
+            // ── 3D Hexaxial ECG Lead Gizmo ──────────────────────────────────
+            if (_showHexaxialGizmo)
+              Positioned(
+                top: 86,
+                right: 8,
+                child: CardiacHexaxialGizmo(
+                  cardiacPhase: activePhase,
+                  scenario: widget.scenario,
+                ),
+              ),
+
             // ── Bottom Dual-Circulation Structure Info Bar & Dynamic Legend ─
             Positioned(
               bottom: 8,
@@ -403,6 +497,33 @@ class _Cardiac3DAnatomicalHeartViewportState
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  // 1-Beat Color-Coded Phase Scrubber Bar
+                  CardiacBeatScrubberBar(
+                    activePhase: activePhase,
+                    bpm: widget.bpm,
+                    isPlaying: _isScrubberPlaying,
+                    speed: _scrubberSpeed,
+                    onPhaseChanged: (phase) {
+                      setState(() {
+                        _scrubbedPhase = phase;
+                        _isScrubberPlaying = false;
+                      });
+                      _threeBridge?.setBeatPhase(phase);
+                    },
+                    onPlayPauseToggle: () {
+                      setState(() {
+                        _isScrubberPlaying = !_isScrubberPlaying;
+                        if (_isScrubberPlaying) {
+                          _scrubbedPhase = null;
+                        }
+                      });
+                    },
+                    onSpeedChanged: (speed) {
+                      setState(() => _scrubberSpeed = speed);
+                    },
+                  ),
+                  const SizedBox(height: 4),
+
                   // Interactive Structure & Dual-Circulation Hover/Click `i` Bar
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3.5),
@@ -610,6 +731,19 @@ class _Cardiac3DAnatomicalHeartViewportState
           _legendItem(const Color(0xFFFF3D00), 'Mitral Inflow (Toward Apex — BART Red)'),
           _legendItem(const Color(0xFF00B0FF), 'Aortic Ejection (Away from Apex — BART Blue)'),
           _legendItem(const Color(0xFFFFEA00), 'Turbulent Mosaic (Aliasing Vortex)'),
+        ];
+      case HeartViewMode.cutawayEM:
+        return [
+          _legendItem(const Color(0xFFFFB300), 'Golden Depolarization Wavefront'),
+          _legendItem(const Color(0xFFFFD54F), 'Electrical Dipole Vector (IVS)'),
+          _legendItem(const Color(0xFFEF4444), '4-Chamber Myocardium'),
+          _legendItem(const Color(0xFF00E5FF), 'Valves & Endocardium'),
+        ];
+      case HeartViewMode.conductionXray:
+        return [
+          _legendItem(const Color(0xFFFFD54F), 'Action Potential Pulse (Sparks)'),
+          _legendItem(const Color(0xFF00E676), 'SA / AV Nodes & Purkinje Tree'),
+          _legendItem(const Color(0xFF38BDF8), 'Translucent Silhouette'),
         ];
     }
   }
@@ -2722,5 +2856,544 @@ class AnatomicalHeart3DPainter extends CustomPainter {
         old.viewMode != viewMode ||
         old.showLabels != showLabels ||
         old.lvefPct != lvefPct;
+  }
+}
+
+// ============================================================================
+// 3D Frontal Plane Hexaxial ECG Lead Gizmo & Dynamic Electrical Dipole Compass
+// ============================================================================
+
+class CardiacHexaxialGizmo extends StatelessWidget {
+  final double cardiacPhase;
+  final CardiacPathologyScenario scenario;
+
+  const CardiacHexaxialGizmo({
+    super.key,
+    required this.cardiacPhase,
+    required this.scenario,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 148,
+      padding: const EdgeInsets.all(6),
+      decoration: BoxDecoration(
+        color: const Color(0xFF070C16).withValues(alpha: 0.92),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: const Color(0xFFFFB300).withValues(alpha: 0.4), width: 1),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.5),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Flexible(
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.explore_rounded, color: Color(0xFFFFB300), size: 10),
+                    SizedBox(width: 3),
+                    Flexible(
+                      child: Text(
+                        'HEXAXIAL',
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: Color(0xFFFFB300),
+                          fontSize: 8.0,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 0.3,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 4),
+              Text(
+                _getAxisClassification(),
+                style: TextStyle(
+                  color: _getAxisColor(),
+                  fontSize: 7.5,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          SizedBox(
+            width: 128,
+            height: 128,
+            child: CustomPaint(
+              painter: _HexaxialCompassPainter(
+                cardiacPhase: cardiacPhase,
+                axisDeg: _getMeanElectricalAxisDeg(),
+                dipoleStrength: _getDipoleStrength(),
+              ),
+            ),
+          ),
+          const SizedBox(height: 4),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.05),
+              borderRadius: BorderRadius.circular(3),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Text(
+                    'Vector: ${_getMeanElectricalAxisDeg().round()}°',
+                    style: const TextStyle(
+                      color: Colors.white70,
+                      fontSize: 7.5,
+                      fontFamily: 'monospace',
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                Text(
+                  '|D|: ${(_getDipoleStrength() * 100).round()}%',
+                  style: const TextStyle(
+                    color: Color(0xFFFFD54F),
+                    fontSize: 7.5,
+                    fontFamily: 'monospace',
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  double _getMeanElectricalAxisDeg() {
+    if (scenario.id.contains('inferior_mi')) {
+      return 115.0; // Right Axis Deviation (+115°)
+    } else if (scenario.id.contains('anterior_mi') || scenario.id.contains('critical_lm')) {
+      return -40.0; // Left Axis Deviation (-40°)
+    }
+    return 58.0; // Normal Axis (+58°)
+  }
+
+  String _getAxisClassification() {
+    final deg = _getMeanElectricalAxisDeg();
+    if (deg >= -30 && deg <= 90) return 'Normal';
+    if (deg < -30 && deg >= -90) return 'LAD';
+    if (deg > 90 && deg <= 180) return 'RAD';
+    return 'Extreme';
+  }
+
+  Color _getAxisColor() {
+    final deg = _getMeanElectricalAxisDeg();
+    if (deg >= -30 && deg <= 90) return const Color(0xFF00E676);
+    if (deg < -30 && deg >= -90) return const Color(0xFFFF9100);
+    return const Color(0xFFFF5252);
+  }
+
+  double _getDipoleStrength() {
+    final phi = cardiacPhase % 1.0;
+    if (phi >= 0.08 && phi <= 0.18) {
+      // P wave
+      return 0.28 * math.sin((phi - 0.08) / 0.10 * math.pi);
+    } else if (phi >= 0.24 && phi <= 0.34) {
+      // QRS complex
+      final tau = (phi - 0.24) / 0.10;
+      return math.sin(tau * math.pi);
+    } else if (phi >= 0.44 && phi <= 0.62) {
+      // T wave
+      return 0.38 * math.sin((phi - 0.44) / 0.18 * math.pi);
+    }
+    return 0.04;
+  }
+}
+
+class _HexaxialCompassPainter extends CustomPainter {
+  final double cardiacPhase;
+  final double axisDeg;
+  final double dipoleStrength;
+
+  _HexaxialCompassPainter({
+    required this.cardiacPhase,
+    required this.axisDeg,
+    required this.dipoleStrength,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = size.width / 2 - 14;
+
+    // Outer circle
+    final circlePaint = Paint()
+      ..color = Colors.white.withValues(alpha: 0.12)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.0;
+    canvas.drawCircle(center, radius, circlePaint);
+
+    // Color-coded axis quadrant sectors:
+    // Normal axis (-30° to +90°) -> Green tint
+    final normalArcPaint = Paint()
+      ..color = const Color(0xFF00E676).withValues(alpha: 0.08)
+      ..style = PaintingStyle.fill;
+    canvas.drawArc(
+      Rect.fromCircle(center: center, radius: radius),
+      -30 * math.pi / 180,
+      120 * math.pi / 180,
+      true,
+      normalArcPaint,
+    );
+
+    // LAD (-30° to -90°) -> Orange tint
+    final ladArcPaint = Paint()
+      ..color = const Color(0xFFFF9100).withValues(alpha: 0.08)
+      ..style = PaintingStyle.fill;
+    canvas.drawArc(
+      Rect.fromCircle(center: center, radius: radius),
+      -90 * math.pi / 180,
+      60 * math.pi / 180,
+      true,
+      ladArcPaint,
+    );
+
+    // 6 Frontal Leads axis lines and labels
+    final leads = [
+      (deg: 0.0, label: 'I (0°)', col: const Color(0xFF00E676)),
+      (deg: 60.0, label: 'II (+60°)', col: const Color(0xFF00E676)),
+      (deg: 120.0, label: 'III (+120°)', col: const Color(0xFF64B5F6)),
+      (deg: 90.0, label: 'aVF (+90°)', col: const Color(0xFF81C784)),
+      (deg: -30.0, label: 'aVL (-30°)', col: const Color(0xFFFFB74D)),
+      (deg: -150.0, label: 'aVR (-150°)', col: const Color(0xFFE57373)),
+    ];
+
+    final axisLinePaint = Paint()
+      ..color = Colors.white.withValues(alpha: 0.22)
+      ..strokeWidth = 0.8;
+
+    for (final lead in leads) {
+      final rad = lead.deg * math.pi / 180;
+      final pEnd = center + Offset(math.cos(rad) * radius, math.sin(rad) * radius);
+      final pOpp = center - Offset(math.cos(rad) * radius, math.sin(rad) * radius);
+      canvas.drawLine(pOpp, pEnd, axisLinePaint);
+
+      // Label text
+      final labelRad = lead.deg * math.pi / 180;
+      final labelPos = center + Offset(math.cos(labelRad) * (radius + 8), math.sin(labelRad) * (radius + 8));
+      final tp = TextPainter(
+        text: TextSpan(
+          text: lead.label.split(' ')[0],
+          style: TextStyle(
+            color: lead.col,
+            fontSize: 7.5,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        textDirection: TextDirection.ltr,
+      )..layout();
+      tp.paint(canvas, labelPos - Offset(tp.width / 2, tp.height / 2));
+    }
+
+    // Dynamic 3D Electrical Dipole Vector Arrow
+    final dipoleRad = axisDeg * math.pi / 180;
+    final arrowLen = (radius * 0.85) * dipoleStrength.clamp(0.12, 1.0);
+    final arrowEnd = center + Offset(math.cos(dipoleRad) * arrowLen, math.sin(dipoleRad) * arrowLen);
+
+    final arrowGlowPaint = Paint()
+      ..color = const Color(0xFFFFB300).withValues(alpha: 0.35)
+      ..strokeWidth = 4.0
+      ..strokeCap = StrokeCap.round;
+    canvas.drawLine(center, arrowEnd, arrowGlowPaint);
+
+    final arrowCorePaint = Paint()
+      ..color = const Color(0xFFFFD54F)
+      ..strokeWidth = 2.0
+      ..strokeCap = StrokeCap.round;
+    canvas.drawLine(center, arrowEnd, arrowCorePaint);
+
+    // Arrowhead
+    final headAngle = math.pi / 6;
+    final headLen = 6.0;
+    final headP1 = arrowEnd - Offset(math.cos(dipoleRad - headAngle) * headLen, math.sin(dipoleRad - headAngle) * headLen);
+    final headP2 = arrowEnd - Offset(math.cos(dipoleRad + headAngle) * headLen, math.sin(dipoleRad + headAngle) * headLen);
+    final headPath = Path()
+      ..moveTo(arrowEnd.dx, arrowEnd.dy)
+      ..lineTo(headP1.dx, headP1.dy)
+      ..lineTo(headP2.dx, headP2.dy)
+      ..close();
+    canvas.drawPath(headPath, Paint()..color = const Color(0xFFFFD54F));
+
+    // Center pivot point
+    canvas.drawCircle(center, 2.5, Paint()..color = const Color(0xFFFFD54F));
+  }
+
+  @override
+  bool shouldRepaint(covariant _HexaxialCompassPainter old) {
+    return old.cardiacPhase != cardiacPhase ||
+        old.axisDeg != axisDeg ||
+        old.dipoleStrength != dipoleStrength;
+  }
+}
+
+// ============================================================================
+// Single-Beat Phase Scrubber Bar with Play/Pause & Speed Controls
+// ============================================================================
+
+class CardiacBeatScrubberBar extends StatelessWidget {
+  final double activePhase;
+  final double bpm;
+  final bool isPlaying;
+  final double speed;
+  final ValueChanged<double> onPhaseChanged;
+  final VoidCallback onPlayPauseToggle;
+  final ValueChanged<double> onSpeedChanged;
+
+  const CardiacBeatScrubberBar({
+    super.key,
+    required this.activePhase,
+    required this.bpm,
+    required this.isPlaying,
+    required this.speed,
+    required this.onPhaseChanged,
+    required this.onPlayPauseToggle,
+    required this.onSpeedChanged,
+  });
+
+  String _getPhaseDescription(double phase) {
+    final phi = phase % 1.0;
+    if (phi < 0.08) return 'Isoelectric Baseline';
+    if (phi < 0.18) return 'P Wave (Atrial Systole)';
+    if (phi < 0.24) return 'PR Segment (AV Nodal Delay)';
+    if (phi < 0.34) return 'QRS Complex (Ventricular Depolarization)';
+    if (phi < 0.44) return 'ST Segment (Plateau Ejection)';
+    if (phi < 0.62) return 'T Wave (Ventricular Repolarization)';
+    return 'Diastole (Ventricular Filling)';
+  }
+
+  Color _getPhaseColor(double phase) {
+    final phi = phase % 1.0;
+    if (phi >= 0.08 && phi < 0.18) return const Color(0xFF00E676);
+    if (phi >= 0.18 && phi < 0.24) return const Color(0xFF64748B);
+    if (phi >= 0.24 && phi < 0.34) return const Color(0xFFFF5252);
+    if (phi >= 0.34 && phi < 0.44) return const Color(0xFF94A3B8);
+    if (phi >= 0.44 && phi < 0.62) return const Color(0xFF00E5FF);
+    return const Color(0xFF475569);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final rrMs = (60000.0 / bpm.clamp(30.0, 220.0)).round();
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: const Color(0xFF070B13).withValues(alpha: 0.94),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: Colors.white12),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            children: [
+              // Play / Pause Button
+              InkWell(
+                key: const Key('beat_scrubber_play_pause'),
+                onTap: onPlayPauseToggle,
+                child: Container(
+                  padding: const EdgeInsets.all(3),
+                  decoration: BoxDecoration(
+                    color: isPlaying
+                        ? const Color(0xFF00E676).withValues(alpha: 0.2)
+                        : const Color(0xFFFFB300).withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(4),
+                    border: Border.all(
+                      color: isPlaying ? const Color(0xFF00E676) : const Color(0xFFFFB300),
+                    ),
+                  ),
+                  child: Icon(
+                    isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                    size: 13,
+                    color: isPlaying ? const Color(0xFF00E676) : const Color(0xFFFFB300),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 6),
+
+              // Speed Pills: 1x, 0.5x, 0.25x
+              _speedPill('1x', 1.0, const Key('beat_scrubber_speed_1x')),
+              const SizedBox(width: 3),
+              _speedPill('0.5x', 0.5, const Key('beat_scrubber_speed_05x')),
+              const SizedBox(width: 3),
+              _speedPill('0.25x', 0.25, const Key('beat_scrubber_speed_025x')),
+              const SizedBox(width: 8),
+
+              // Phase Description
+              Expanded(
+                child: Text(
+                  'Φ ${(activePhase % 1.0).toStringAsFixed(2)} · ${_getPhaseDescription(activePhase)}',
+                  style: TextStyle(
+                    color: _getPhaseColor(activePhase),
+                    fontSize: 8.5,
+                    fontFamily: 'monospace',
+                    fontWeight: FontWeight.bold,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              const SizedBox(width: 6),
+
+              // RR & BPM Readout
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.06),
+                  borderRadius: BorderRadius.circular(3),
+                ),
+                child: Text(
+                  'RR: $rrMs ms | ${bpm.round()} BPM',
+                  style: const TextStyle(
+                    color: Colors.white70,
+                    fontSize: 8.0,
+                    fontFamily: 'monospace',
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+
+          // Interactive Track
+          LayoutBuilder(
+            builder: (context, constraints) {
+              return GestureDetector(
+                key: const Key('beat_scrubber_track'),
+                behavior: HitTestBehavior.opaque,
+                onHorizontalDragUpdate: (details) {
+                  final newPhase = (details.localPosition.dx / constraints.maxWidth).clamp(0.0, 1.0);
+                  onPhaseChanged(newPhase);
+                },
+                onTapDown: (details) {
+                  final newPhase = (details.localPosition.dx / constraints.maxWidth).clamp(0.0, 1.0);
+                  onPhaseChanged(newPhase);
+                },
+                child: SizedBox(
+                  height: 14,
+                  child: CustomPaint(
+                    painter: _BeatScrubberTrackPainter(
+                      activePhase: activePhase,
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _speedPill(String label, double val, Key key) {
+    final isSel = (speed - val).abs() < 0.05;
+    return InkWell(
+      key: key,
+      onTap: () => onSpeedChanged(val),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1.5),
+        decoration: BoxDecoration(
+          color: isSel ? const Color(0xFF00E5FF).withValues(alpha: 0.25) : Colors.transparent,
+          borderRadius: BorderRadius.circular(3),
+          border: Border.all(
+            color: isSel ? const Color(0xFF00E5FF) : Colors.white24,
+            width: isSel ? 1.0 : 0.6,
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: isSel ? const Color(0xFF00E5FF) : Colors.white60,
+            fontSize: 7.5,
+            fontWeight: isSel ? FontWeight.bold : FontWeight.normal,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _BeatScrubberTrackPainter extends CustomPainter {
+  final double activePhase;
+
+  _BeatScrubberTrackPainter({required this.activePhase});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final h = size.height;
+    final w = size.width;
+    final r = Rect.fromLTWH(0, (h - 6) / 2, w, 6);
+
+    final segments = [
+      (0.00, 0.08, const Color(0xFF1E293B)),
+      (0.08, 0.18, const Color(0xFF00E676)),
+      (0.18, 0.24, const Color(0xFF64748B)),
+      (0.24, 0.34, const Color(0xFFFF5252)),
+      (0.34, 0.44, const Color(0xFF94A3B8)),
+      (0.44, 0.62, const Color(0xFF00E5FF)),
+      (0.62, 1.00, const Color(0xFF1E293B)),
+    ];
+
+    final trackRRect = RRect.fromRectAndRadius(r, const Radius.circular(3));
+    canvas.save();
+    canvas.clipRRect(trackRRect);
+
+    for (final seg in segments) {
+      final segRect = Rect.fromLTWH(seg.$1 * w, r.top, (seg.$2 - seg.$1) * w, r.height);
+      canvas.drawRect(segRect, Paint()..color = seg.$3);
+    }
+    canvas.restore();
+
+    // Border
+    canvas.drawRRect(
+      trackRRect,
+      Paint()
+        ..color = Colors.white24
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 0.8,
+    );
+
+    // Scrubber thumb cursor
+    final cursorX = ((activePhase % 1.0) * w).clamp(0.0, w);
+    canvas.drawLine(
+      Offset(cursorX, 0),
+      Offset(cursorX, h),
+      Paint()
+        ..color = const Color(0xFFFFD54F)
+        ..strokeWidth = 2.0,
+    );
+    canvas.drawCircle(
+      Offset(cursorX, h / 2),
+      4.0,
+      Paint()..color = const Color(0xFFFFD54F),
+    );
+    canvas.drawCircle(
+      Offset(cursorX, h / 2),
+      2.0,
+      Paint()..color = Colors.black,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant _BeatScrubberTrackPainter old) {
+    return old.activePhase != activePhase;
   }
 }

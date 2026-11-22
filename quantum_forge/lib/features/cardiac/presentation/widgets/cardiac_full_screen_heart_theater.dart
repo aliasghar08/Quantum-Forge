@@ -70,6 +70,7 @@ class _CardiacFullScreenHeartTheaterState
   HeartViewMode _viewMode = HeartViewMode.anatomy;
   LandmarkCategory _selectedCategory = LandmarkCategory.all;
   bool _showNameTags = true;
+  bool _showHexaxialGizmo = false;
   double _cutawayFraction = 0.0;
 
   // Active selected anatomical structure card
@@ -142,6 +143,7 @@ class _CardiacFullScreenHeartTheaterState
     _threeBridge!.setCutawayDepth(_cutawayFraction);
     _threeBridge!.setTimeScale(_isPaused ? 0.0 : _timeScale);
     _threeBridge!.setCardiacPhase(_currentPhase);
+    _threeBridge!.setBeatPhase(_currentPhase);
     _threeBridge!.setShowLabels(_showNameTags);
   }
 
@@ -190,6 +192,7 @@ class _CardiacFullScreenHeartTheaterState
     });
     _threeBridge?.setTimeScale(0.0);
     _threeBridge?.setCardiacPhase(phase);
+    _threeBridge?.setBeatPhase(phase);
   }
 
   void _onCutawayChanged(double value) {
@@ -432,6 +435,17 @@ class _CardiacFullScreenHeartTheaterState
                 ),
               ),
 
+            // ── 3D Hexaxial Lead Gizmo ──────────────────────────────────
+            if (_showHexaxialGizmo)
+              Positioned(
+                top: isMobile ? 120 : 96,
+                right: 16,
+                child: CardiacHexaxialGizmo(
+                  cardiacPhase: _currentPhase,
+                  scenario: widget.scenario,
+                ),
+              ),
+
             // ── Click-to-Inspect Clinical Structure Card ─────────────────
             if (_selectedLandmark != null)
               Positioned(
@@ -572,6 +586,61 @@ class _CardiacFullScreenHeartTheaterState
                                 setState(() => _showNameTags = !_showNameTags);
                                 _threeBridge?.setShowLabels(_showNameTags);
                               },
+                            ),
+
+                            // Action: Toggle Hexaxial Lead Gizmo
+                            IconButton(
+                              key: const Key('theater_toggle_hexaxial_gizmo'),
+                              icon: Icon(
+                                Icons.explore_rounded,
+                                color: _showHexaxialGizmo
+                                    ? const Color(0xFFFFB300)
+                                    : Colors.white70,
+                                size: 18,
+                              ),
+                              tooltip: _showHexaxialGizmo
+                                  ? 'Hide Hexaxial Lead Compass'
+                                  : 'Show Hexaxial Lead Compass',
+                              onPressed: () {
+                                setState(() => _showHexaxialGizmo = !_showHexaxialGizmo);
+                              },
+                            ),
+
+                            // Camera Presets
+                            IconButton(
+                              key: const Key('theater_camera_front'),
+                              icon: const Icon(Icons.crop_portrait_rounded,
+                                  color: Colors.white70, size: 18),
+                              tooltip: 'Front AP',
+                              onPressed: () => _threeBridge?.setCameraPreset('front'),
+                            ),
+                            IconButton(
+                              key: const Key('theater_camera_lao'),
+                              icon: const Icon(Icons.rotate_left_rounded,
+                                  color: Colors.white70, size: 18),
+                              tooltip: 'LAO',
+                              onPressed: () => _threeBridge?.setCameraPreset('left'),
+                            ),
+                            IconButton(
+                              key: const Key('theater_camera_rao'),
+                              icon: const Icon(Icons.rotate_right_rounded,
+                                  color: Colors.white70, size: 18),
+                              tooltip: 'RAO',
+                              onPressed: () => _threeBridge?.setCameraPreset('right'),
+                            ),
+                            IconButton(
+                              key: const Key('theater_camera_inf'),
+                              icon: const Icon(Icons.vertical_align_bottom_rounded,
+                                  color: Colors.white70, size: 18),
+                              tooltip: 'Inferior',
+                              onPressed: () => _threeBridge?.setCameraPreset('inferior'),
+                            ),
+                            IconButton(
+                              key: const Key('theater_camera_post'),
+                              icon: const Icon(Icons.flip_camera_android_rounded,
+                                  color: Colors.white70, size: 18),
+                              tooltip: 'Posterior',
+                              onPressed: () => _threeBridge?.setCameraPreset('posterior'),
                             ),
 
                             // Action: Reset Camera
@@ -1054,6 +1123,8 @@ class _CardiacFullScreenHeartTheaterState
             child: Row(
               children: [
                 _modePill(HeartViewMode.anatomy, 'Anatomy (Whole Heart)', 'theater_mode_anatomy'),
+                _modePill(HeartViewMode.cutawayEM, 'Heart Cutaway', 'theater_mode_cutaway_em'),
+                _modePill(HeartViewMode.conductionXray, 'Conduction X-Ray', 'theater_mode_conduction_xray'),
                 _modePill(HeartViewMode.chambers, '4-Chamber Cutaway', 'theater_mode_cutaway',
                     onSelect: () {
                   if (_cutawayFraction < 0.1) {
