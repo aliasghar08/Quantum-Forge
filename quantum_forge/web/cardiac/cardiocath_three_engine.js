@@ -152,11 +152,11 @@
       float normY = clamp((0.45 - vWorldPosition.y) / 1.55, 0.0, 1.0);
       float localContrast = uContrastDensity;
       if (uBolusFront > 0.0) {
-        float bolusReach = smoothstep(uBolusFront + 0.18, uBolusFront - 0.05, normY);
+        float bolusReach = 1.0 - smoothstep(uBolusFront - 0.08, uBolusFront + 0.16, normY);
         localContrast = uContrastDensity * bolusReach;
       }
 
-      float mu = (uDsaMode == 1) ? (localContrast * 7.5) : (0.15 + localContrast * 5.2);
+      float mu = (uDsaMode == 1) ? (localContrast * 8.5) : (0.25 + localContrast * 6.5);
       float attenuation = exp(-mu * thickness);
       float radiodensity = clamp(1.0 - attenuation, 0.0, 1.0);
 
@@ -165,11 +165,11 @@
         if (localContrast < 0.04) {
           // Un-opacified vessel lumen
           vec3 lumenCol = vec3(0.65, 0.70, 0.78);
-          gl_FragColor = vec4(lumenCol, clamp(thickness * 0.09, 0.03, 0.12));
+          gl_FragColor = vec4(lumenCol, clamp(thickness * 0.18, 0.06, 0.22));
           return;
         }
-        vec3 contrastCol = vec3(0.88, 0.91, 0.95) + noise * 0.3;
-        float alpha = clamp(0.15 + radiodensity * 0.82, 0.15, 0.96);
+        vec3 contrastCol = vec3(0.90, 0.93, 0.97) + noise * 0.3;
+        float alpha = clamp(0.25 + radiodensity * 0.75, 0.25, 0.98);
 
         // Optional false-color vFFR overlay (ONLY when explicitly enabled)
         if (uVffrOverlay == 1) {
@@ -189,12 +189,12 @@
         if (localContrast < 0.04) {
           // Un-opacified vessel lumen
           vec3 lumenCol = vec3(0.18, 0.22, 0.26);
-          gl_FragColor = vec4(lumenCol, clamp(thickness * 0.08, 0.03, 0.12));
+          gl_FragColor = vec4(lumenCol, clamp(thickness * 0.18, 0.06, 0.22));
           return;
         }
         // Dark charcoal/black Beer-Lambert X-ray contrast dye absorption
-        vec3 contrastCol = vec3(0.065, 0.075, 0.09) + noise * 0.3;
-        float alpha = clamp(0.15 + radiodensity * 0.82, 0.15, 0.96);
+        vec3 contrastCol = vec3(0.045, 0.055, 0.07) + noise * 0.2;
+        float alpha = clamp(0.30 + radiodensity * 0.70, 0.30, 0.98);
 
         // Optional false-color vFFR overlay (ONLY when explicitly enabled)
         if (uVffrOverlay == 1) {
