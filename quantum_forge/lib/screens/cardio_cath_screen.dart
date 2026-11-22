@@ -33,6 +33,8 @@ import '../features/cardiac/presentation/widgets/cardiac_clinical_info_system.da
 import '../features/cardiac/presentation/widgets/cardiac_diagnostic_workstation_panel.dart';
 import '../features/cardiac/presentation/widgets/cardiac_research_workstation_panel.dart';
 import '../features/cardiac/presentation/widgets/cardiac_fellowship_suite_panel.dart';
+import '../features/cardiac/presentation/widgets/cardiac_presurgical_rehearsal_panel.dart';
+import '../features/cardiac/presentation/widgets/cardiac_full_screen_fluo_theater.dart';
 import '../features/education/presentation/widgets/clinical_vignette_quiz_drawer.dart';
 import '../features/education/presentation/widgets/study_card_export_dialog.dart';
 import '../features/clinical_core/presentation/widgets/multi_organ_coupling_pill.dart';
@@ -551,6 +553,35 @@ class _CardioCathScreenState extends State<CardioCathScreen>
     );
   }
 
+  void _openFullScreenFluoTheater() {
+    Navigator.of(context).push(
+      PageRouteBuilder(
+        opaque: false,
+        barrierColor: Colors.black.withValues(alpha: 0.88),
+        pageBuilder: (context, animation, secondaryAnimation) {
+          return FadeTransition(
+            opacity: animation,
+            child: CardiacFullScreenFluoTheater(
+              scenario: _activeScenario,
+              laoRaoAngle: _laoRaoAngle,
+              cranCaudAngle: _cranCaudAngle,
+              contrastIntensity: _contrastIntensity,
+              cardiacPhase: _cardiacAnimController.value,
+              onInjectContrast: _injectContrastDye,
+              isInjecting: _isInjecting,
+              dominance: _dominance,
+              isRevascularized: _isRevascularized,
+              onSimulatePci: _simulatePciDeployment,
+              masterVitals: _masterVitals,
+              onLaoRaoChanged: (val) => setState(() => _laoRaoAngle = val),
+              onCranCaudChanged: (val) => setState(() => _cranCaudAngle = val),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final palette = ThemeNotifier.paletteOf(context);
@@ -977,6 +1008,15 @@ class _CardioCathScreenState extends State<CardioCathScreen>
               initialRoomCode: Uri.base.queryParameters['room'],
               onSyncHeartRate: _updateBpm,
               masterVitals: _masterVitals,
+            ),
+
+            const SizedBox(height: 12),
+
+            // ── View 8: 3D Pre-Surgical Experimental Rehearsal & Multi-Arm Strategy Lab ──
+            CardiacPresurgicalRehearsalPanel(
+              animationPhase: _cardiacAnimController.value,
+              masterVitals: _masterVitals,
+              onLaunchFluoroTheater: _openFullScreenFluoTheater,
             ),
 
             const SizedBox(height: 12),

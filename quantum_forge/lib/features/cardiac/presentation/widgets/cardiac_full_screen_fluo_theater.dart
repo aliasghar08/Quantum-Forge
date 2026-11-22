@@ -17,10 +17,13 @@
 // ============================================================================
 
 import 'dart:math' as math;
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../data/cardiac_pathology_models.dart';
 import '../../data/cardiac_master_vitals_state.dart';
+import 'cardiac_three_engine.dart';
+import 'cardiac_presurgical_rehearsal_panel.dart';
 
 class AngiographicLandmarkTag {
   final String id;
@@ -97,6 +100,29 @@ class _CardiacFullScreenFluoTheaterState extends State<CardiacFullScreenFluoThea
   bool _showNameTags = true;
   final bool _showSternotomyWires = true;
   bool _showQcaCalipers = false;
+
+  // 3D WebGL Workstation State
+  CardioCathThreeBridge? _threeBridge;
+  bool _freeOrbit = false;
+  bool _showVffrHeatmap = false;
+  bool _showBypassGrafts = false;
+  bool _showTavrFrame = false;
+  String _procedureStep = 'all';
+  bool _showPipDetector = true;
+
+  void _syncBridge() {
+    if (_threeBridge == null) return;
+    _threeBridge!.setGantryAngles(_laoRaoAngle, _cranCaudAngle);
+    _threeBridge!.setFreeOrbit(_freeOrbit);
+    _threeBridge!.setShowVffrHeatmap(_showVffrHeatmap);
+    _threeBridge!.setShowBypassGrafts(_showBypassGrafts);
+    _threeBridge!.setShowTavrFrame(_showTavrFrame);
+    _threeBridge!.setProcedureStep(_procedureStep);
+    _threeBridge!.setInvertLut(_invertLut);
+    _threeBridge!.setDominance(widget.dominance);
+    _threeBridge!.setRevascularized(widget.isRevascularized);
+    _threeBridge!.setCardiacPhase(_cinePhase);
+  }
 
   // QCA Caliper Measurement State
   Offset _qcaRefPoint1 = const Offset(180, 240);
@@ -259,6 +285,9 @@ class _CardiacFullScreenFluoTheaterState extends State<CardiacFullScreenFluoThea
   @override
   void initState() {
     super.initState();
+    if (kIsWeb) {
+      CardioCathThreeBridge.ensureViewFactories();
+    }
     _laoRaoAngle = widget.laoRaoAngle;
     _cranCaudAngle = widget.cranCaudAngle;
     _cinePhase = widget.cardiacPhase;
@@ -271,6 +300,7 @@ class _CardiacFullScreenFluoTheaterState extends State<CardiacFullScreenFluoThea
           setState(() {
             _cinePhase = _cineAnimController.value;
           });
+          _threeBridge?.setCardiacPhase(_cinePhase);
         }
       });
 
@@ -323,6 +353,13 @@ class _CardiacFullScreenFluoTheaterState extends State<CardiacFullScreenFluoThea
 
   @override
   Widget build(BuildContext context) {
+    if (kIsWeb && _threeBridge == null) {
+      _threeBridge = CardioCathThreeBridge.latestFluoroBridge;
+      if (_threeBridge != null) {
+        _syncBridge();
+      }
+    }
+
     return Focus(
       focusNode: _focusNode,
       autofocus: true,
@@ -339,65 +376,73 @@ class _CardiacFullScreenFluoTheaterState extends State<CardiacFullScreenFluoThea
         body: SafeArea(
           child: Stack(
             children: [
-              // ── Main Full-Screen Angiography Canvas ───────────────────────────
+              // ── Main Full-Screen 3D WebGL Angiography & Pre-Op Stage ─────────
               Positioned.fill(
-                child: GestureDetector(
-                  onPanUpdate: _showQcaCalipers
-                      ? (details) {
-                          if (_activeCaliperDragIndex != null) {
-                            setState(() {
-                              switch (_activeCaliperDragIndex) {
-                                case 0:
-                                  _qcaRefPoint1 += details.delta;
-                                  break;
-                                case 1:
-                                  _qcaRefPoint2 += details.delta;
-                                  break;
-                                case 2:
-                                  _qcaMldPoint1 += details.delta;
-                                  break;
-                                case 3:
-                                  _qcaMldPoint2 += details.delta;
-                                  break;
+                child: kIsWeb && CardioCathThreeBridge.isSupported && !(_threeBridge?.hasFailed ?? false)
+                    ? HtmlElementView(
+                        viewType: CardioCathThreeBridge.fluoroViewType,
+                        onPlatformViewCreated: (int id) {
+                          _threeBridge = CardioCathThreeBridge.forFluoroView(id);
+                          _syncBridge();
+                        },
+                      )
+                    : GestureDetector(
+                        onPanUpdate: _showQcaCalipers
+                            ? (details) {
+                                if (_activeCaliperDragIndex != null) {
+                                  setState(() {
+                                    switch (_activeCaliperDragIndex) {
+                                      case 0:
+                                        _qcaRefPoint1 += details.delta;
+                                        break;
+                                      case 1:
+                                        _qcaRefPoint2 += details.delta;
+                                        break;
+                                      case 2:
+                                        _qcaMldPoint1 += details.delta;
+                                        break;
+                                      case 3:
+                                        _qcaMldPoint2 += details.delta;
+                                        break;
+                                    }
+                                  });
+                                }
                               }
-                            });
-                          }
-                        }
-                      : null,
-                  onPanStart: _showQcaCalipers
-                      ? (details) {
-                          final pos = details.localPosition;
-                          const hitDist = 24.0;
-                          if ((pos - _qcaRefPoint1).distance < hitDist) {
-                            _activeCaliperDragIndex = 0;
-                          } else if ((pos - _qcaRefPoint2).distance < hitDist) {
-                            _activeCaliperDragIndex = 1;
-                          } else if ((pos - _qcaMldPoint1).distance < hitDist) {
-                            _activeCaliperDragIndex = 2;
-                          } else if ((pos - _qcaMldPoint2).distance < hitDist) {
-                            _activeCaliperDragIndex = 3;
-                          } else {
-                            _activeCaliperDragIndex = null;
-                          }
-                        }
-                      : null,
-                  onPanEnd: (_) => _activeCaliperDragIndex = null,
-                  child: CustomPaint(
-                    size: Size.infinite,
-                    painter: _FullScreenFluoAngioPainter(
-                      scenario: widget.scenario,
-                      laoRaoAngle: _laoRaoAngle,
-                      cranCaudAngle: _cranCaudAngle,
-                      contrastIntensity: widget.contrastIntensity,
-                      cardiacPhase: _cinePhase,
-                      dominance: widget.dominance,
-                      isRevascularized: widget.isRevascularized,
-                      isInjecting: widget.isInjecting,
-                      invertLut: _invertLut,
-                      showSternotomyWires: _showSternotomyWires,
-                    ),
-                  ),
-                ),
+                            : null,
+                        onPanStart: _showQcaCalipers
+                            ? (details) {
+                                final pos = details.localPosition;
+                                const hitDist = 24.0;
+                                if ((pos - _qcaRefPoint1).distance < hitDist) {
+                                  _activeCaliperDragIndex = 0;
+                                } else if ((pos - _qcaRefPoint2).distance < hitDist) {
+                                  _activeCaliperDragIndex = 1;
+                                } else if ((pos - _qcaMldPoint1).distance < hitDist) {
+                                  _activeCaliperDragIndex = 2;
+                                } else if ((pos - _qcaMldPoint2).distance < hitDist) {
+                                  _activeCaliperDragIndex = 3;
+                                } else {
+                                  _activeCaliperDragIndex = null;
+                                }
+                              }
+                            : null,
+                        onPanEnd: (_) => _activeCaliperDragIndex = null,
+                        child: CustomPaint(
+                          size: Size.infinite,
+                          painter: _FullScreenFluoAngioPainter(
+                            scenario: widget.scenario,
+                            laoRaoAngle: _laoRaoAngle,
+                            cranCaudAngle: _cranCaudAngle,
+                            contrastIntensity: widget.contrastIntensity,
+                            cardiacPhase: _cinePhase,
+                            dominance: widget.dominance,
+                            isRevascularized: widget.isRevascularized,
+                            isInjecting: widget.isInjecting,
+                            invertLut: _invertLut,
+                            showSternotomyWires: _showSternotomyWires,
+                          ),
+                        ),
+                      ),
               ),
 
               // ── QCA Electronic Calipers Overlay (Draggable Handles) ───────────
@@ -587,68 +632,254 @@ class _CardiacFullScreenFluoTheaterState extends State<CardiacFullScreenFluoThea
                         const SizedBox(width: 8),
                       ],
 
-                      const Spacer(),
+                      // Actions Ribbon
+                      Expanded(
+                        child: SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              // 3D Orbit vs C-Arm Gantry Lock
+                              FilterChip(
+                                key: const Key('fluo_theater_free_orbit_toggle'),
+                                avatar: Icon(
+                                  _freeOrbit ? Icons.threed_rotation_rounded : Icons.lock_clock_rounded,
+                                  size: 13,
+                                  color: _freeOrbit ? Colors.black : const Color(0xFF00E5FF),
+                                ),
+                                label: Text(_freeOrbit ? '3D Orbit: Free' : 'C-Arm Lock'),
+                                selected: _freeOrbit,
+                                selectedColor: const Color(0xFF00E5FF),
+                                onSelected: (val) {
+                                  setState(() {
+                                    _freeOrbit = val;
+                                    _syncBridge();
+                                  });
+                                },
+                                visualDensity: VisualDensity.compact,
+                                labelStyle: TextStyle(
+                                  fontSize: 10.0,
+                                  fontWeight: FontWeight.bold,
+                                  color: _freeOrbit ? Colors.black : Colors.white70,
+                                ),
+                              ),
+                              const SizedBox(width: 5),
 
-                      // Name Tags Toggle
-                      FilterChip(
-                        key: const Key('fluo_theater_tags_toggle'),
-                        avatar: Icon(
-                          _showNameTags ? Icons.label_rounded : Icons.label_off_rounded,
-                          size: 13,
-                          color: _showNameTags ? Colors.black : Colors.white70,
-                        ),
-                        label: Text(_showNameTags ? 'Tags ON' : 'Tags OFF'),
-                        selected: _showNameTags,
-                        selectedColor: const Color(0xFF00E5FF),
-                        onSelected: (val) => setState(() => _showNameTags = val),
-                        visualDensity: VisualDensity.compact,
-                        labelStyle: TextStyle(
-                          fontSize: 10.5,
-                          fontWeight: FontWeight.bold,
-                          color: _showNameTags ? Colors.black : Colors.white70,
-                        ),
-                      ),
-                      const SizedBox(width: 6),
+                              // 3D vFFR / QFR & TAWSS Heatmap Toggle
+                              FilterChip(
+                                key: const Key('fluo_theater_vffr_heatmap_toggle'),
+                                avatar: Icon(
+                                  Icons.gradient_rounded,
+                                  size: 13,
+                                  color: _showVffrHeatmap ? Colors.black : const Color(0xFF10B981),
+                                ),
+                                label: Text(_showVffrHeatmap ? 'vFFR Heatmap ON' : 'vFFR Heatmap'),
+                                selected: _showVffrHeatmap,
+                                selectedColor: const Color(0xFF10B981),
+                                onSelected: (val) {
+                                  setState(() {
+                                    _showVffrHeatmap = val;
+                                    _syncBridge();
+                                  });
+                                },
+                                visualDensity: VisualDensity.compact,
+                                labelStyle: TextStyle(
+                                  fontSize: 10.0,
+                                  fontWeight: FontWeight.bold,
+                                  color: _showVffrHeatmap ? Colors.black : Colors.white70,
+                                ),
+                              ),
+                              const SizedBox(width: 5),
 
-                      // QCA Calipers Toggle
-                      FilterChip(
-                        key: const Key('fluo_theater_qca_toggle'),
-                        avatar: Icon(
-                          Icons.straighten_rounded,
-                          size: 13,
-                          color: _showQcaCalipers ? Colors.black : const Color(0xFFFFD600),
-                        ),
-                        label: const Text('QCA Calipers'),
-                        selected: _showQcaCalipers,
-                        selectedColor: const Color(0xFFFFD600),
-                        onSelected: (val) => setState(() => _showQcaCalipers = val),
-                        visualDensity: VisualDensity.compact,
-                        labelStyle: TextStyle(
-                          fontSize: 10.5,
-                          fontWeight: FontWeight.bold,
-                          color: _showQcaCalipers ? Colors.black : Colors.white70,
-                        ),
-                      ),
-                      const SizedBox(width: 6),
+                              // CABG Bypass Grafts Toggle
+                              FilterChip(
+                                key: const Key('fluo_theater_cabg_toggle'),
+                                avatar: Icon(
+                                  Icons.alt_route_rounded,
+                                  size: 13,
+                                  color: _showBypassGrafts ? Colors.black : const Color(0xFF38BDF8),
+                                ),
+                                label: Text(_showBypassGrafts ? 'CABG Grafts ON' : 'CABG Grafts'),
+                                selected: _showBypassGrafts,
+                                selectedColor: const Color(0xFF38BDF8),
+                                onSelected: (val) {
+                                  setState(() {
+                                    _showBypassGrafts = val;
+                                    _syncBridge();
+                                  });
+                                },
+                                visualDensity: VisualDensity.compact,
+                                labelStyle: TextStyle(
+                                  fontSize: 10.0,
+                                  fontWeight: FontWeight.bold,
+                                  color: _showBypassGrafts ? Colors.black : Colors.white70,
+                                ),
+                              ),
+                              const SizedBox(width: 5),
 
-                      // LUT Invert Toggle
-                      IconButton(
-                        key: const Key('fluo_theater_invert_lut_button'),
-                        tooltip: _invertLut ? 'Switch to Inverted Fluoroscopy' : 'Switch to Direct X-Ray',
-                        icon: Icon(
-                          _invertLut ? Icons.invert_colors_off_rounded : Icons.invert_colors_rounded,
-                          size: 18,
-                          color: Colors.white70,
-                        ),
-                        onPressed: () => setState(() => _invertLut = !_invertLut),
-                      ),
+                              // TAVR VTC Clearance Toggle
+                              FilterChip(
+                                key: const Key('fluo_theater_tavr_toggle'),
+                                avatar: Icon(
+                                  Icons.radar_rounded,
+                                  size: 13,
+                                  color: _showTavrFrame ? Colors.black : const Color(0xFFA78BFA),
+                                ),
+                                label: Text(_showTavrFrame ? 'TAVR VTC ON' : 'TAVR VTC'),
+                                selected: _showTavrFrame,
+                                selectedColor: const Color(0xFFA78BFA),
+                                onSelected: (val) {
+                                  setState(() {
+                                    _showTavrFrame = val;
+                                    _syncBridge();
+                                  });
+                                },
+                                visualDensity: VisualDensity.compact,
+                                labelStyle: TextStyle(
+                                  fontSize: 10.0,
+                                  fontWeight: FontWeight.bold,
+                                  color: _showTavrFrame ? Colors.black : Colors.white70,
+                                ),
+                              ),
+                              const SizedBox(width: 5),
 
-                      // Exit Button
-                      IconButton(
-                        key: const Key('fluo_theater_exit_button'),
-                        tooltip: 'Exit Full-Screen Theater (Esc)',
-                        icon: const Icon(Icons.fullscreen_exit_rounded, color: Colors.white, size: 22),
-                        onPressed: () => Navigator.of(context).pop(),
+                              // Pre-Surgical Rehearsal Lab Launcher Button
+                              InkWell(
+                                key: const Key('fluo_theater_presurgical_lab_button'),
+                                onTap: () {
+                                  showModalBottomSheet(
+                                    context: context,
+                                    backgroundColor: Colors.transparent,
+                                    isScrollControlled: true,
+                                    builder: (ctx) => DraggableScrollableSheet(
+                                      initialChildSize: 0.75,
+                                      minChildSize: 0.40,
+                                      maxChildSize: 0.95,
+                                      builder: (_, scrollCtrl) => Container(
+                                        decoration: const BoxDecoration(
+                                          color: Color(0xFF0F172A),
+                                          borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+                                        ),
+                                        padding: const EdgeInsets.all(12),
+                                        child: SingleChildScrollView(
+                                          controller: scrollCtrl,
+                                          child: CardiacPresurgicalRehearsalPanel(
+                                            masterVitals: widget.masterVitals,
+                                            animationPhase: _cinePhase,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                },
+                                borderRadius: BorderRadius.circular(6),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF10B981).withValues(alpha: 0.20),
+                                    borderRadius: BorderRadius.circular(6),
+                                    border: Border.all(color: const Color(0xFF10B981)),
+                                  ),
+                                  child: const Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(Icons.biotech_rounded, color: Color(0xFF10B981), size: 13),
+                                      SizedBox(width: 3.5),
+                                      Text(
+                                        'Pre-Op Lab',
+                                        style: TextStyle(
+                                          color: Color(0xFF10B981),
+                                          fontSize: 9.5,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 5),
+
+                              // Name Tags Toggle
+                              FilterChip(
+                                key: const Key('fluo_theater_tags_toggle'),
+                                avatar: Icon(
+                                  _showNameTags ? Icons.label_rounded : Icons.label_off_rounded,
+                                  size: 13,
+                                  color: _showNameTags ? Colors.black : Colors.white70,
+                                ),
+                                label: Text(_showNameTags ? 'Tags ON' : 'Tags OFF'),
+                                selected: _showNameTags,
+                                selectedColor: const Color(0xFF00E5FF),
+                                onSelected: (val) => setState(() => _showNameTags = val),
+                                visualDensity: VisualDensity.compact,
+                                labelStyle: TextStyle(
+                                  fontSize: 10.0,
+                                  fontWeight: FontWeight.bold,
+                                  color: _showNameTags ? Colors.black : Colors.white70,
+                                ),
+                              ),
+                              const SizedBox(width: 5),
+
+                              // QCA Calipers Toggle
+                              FilterChip(
+                                key: const Key('fluo_theater_qca_toggle'),
+                                avatar: Icon(
+                                  Icons.straighten_rounded,
+                                  size: 13,
+                                  color: _showQcaCalipers ? Colors.black : const Color(0xFFFFD600),
+                                ),
+                                label: const Text('QCA Calipers'),
+                                selected: _showQcaCalipers,
+                                selectedColor: const Color(0xFFFFD600),
+                                onSelected: (val) => setState(() => _showQcaCalipers = val),
+                                visualDensity: VisualDensity.compact,
+                                labelStyle: TextStyle(
+                                  fontSize: 10.0,
+                                  fontWeight: FontWeight.bold,
+                                  color: _showQcaCalipers ? Colors.black : Colors.white70,
+                                ),
+                              ),
+                              const SizedBox(width: 5),
+
+                              // 2D C-Arm PiP Detector Toggle
+                              IconButton(
+                                key: const Key('fluo_theater_pip_toggle'),
+                                tooltip: _showPipDetector ? 'Hide 2D C-Arm PiP Detector' : 'Show 2D C-Arm PiP Detector',
+                                icon: Icon(
+                                  _showPipDetector ? Icons.picture_in_picture_alt_rounded : Icons.picture_in_picture_rounded,
+                                  size: 17,
+                                  color: _showPipDetector ? const Color(0xFF00E5FF) : Colors.white70,
+                                ),
+                                onPressed: () => setState(() => _showPipDetector = !_showPipDetector),
+                              ),
+
+                              // LUT Invert Toggle
+                              IconButton(
+                                key: const Key('fluo_theater_invert_lut_button'),
+                                tooltip: _invertLut ? 'Switch to Inverted Fluoroscopy' : 'Switch to Direct X-Ray',
+                                icon: Icon(
+                                  _invertLut ? Icons.invert_colors_off_rounded : Icons.invert_colors_rounded,
+                                  size: 18,
+                                  color: Colors.white70,
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    _invertLut = !_invertLut;
+                                    _syncBridge();
+                                  });
+                                },
+                              ),
+
+                              // Exit Button
+                              IconButton(
+                                key: const Key('fluo_theater_exit_button'),
+                                tooltip: 'Exit Full-Screen Theater (Esc)',
+                                icon: const Icon(Icons.fullscreen_exit_rounded, color: Colors.white, size: 22),
+                                onPressed: () => Navigator.of(context).pop(),
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
                     ],
                   ),
@@ -853,6 +1084,154 @@ class _CardiacFullScreenFluoTheaterState extends State<CardiacFullScreenFluoThea
                     ),
                   ),
                 ),
+
+              // ── Picture-in-Picture 2D Beer-Lambert C-Arm Detector ───────────────────
+              if (_showPipDetector)
+                Positioned(
+                  right: 16,
+                  bottom: 72,
+                  width: 220,
+                  height: 165,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.black,
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: const Color(0xFF00E5FF).withValues(alpha: 0.6),
+                        width: 1.5,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.6),
+                          blurRadius: 8,
+                        ),
+                      ],
+                    ),
+                    clipBehavior: Clip.antiAlias,
+                    child: Stack(
+                      children: [
+                        Positioned.fill(
+                          child: CustomPaint(
+                            painter: _FullScreenFluoAngioPainter(
+                              scenario: widget.scenario,
+                              laoRaoAngle: _laoRaoAngle,
+                              cranCaudAngle: _cranCaudAngle,
+                              contrastIntensity: widget.contrastIntensity,
+                              cardiacPhase: _cinePhase,
+                              dominance: widget.dominance,
+                              isRevascularized: widget.isRevascularized,
+                              isInjecting: widget.isInjecting,
+                              invertLut: _invertLut,
+                              showSternotomyWires: _showSternotomyWires,
+                            ),
+                          ),
+                        ),
+                        Positioned(
+                          top: 4,
+                          left: 6,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: Colors.black.withValues(alpha: 0.7),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: const Text(
+                              '2D C-ARM DETECTOR PiP',
+                              style: TextStyle(color: Color(0xFF00E5FF), fontSize: 8.0, fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                        ),
+                        Positioned(
+                          top: 2,
+                          right: 2,
+                          child: InkWell(
+                            onTap: () => setState(() => _showPipDetector = false),
+                            child: Container(
+                              padding: const EdgeInsets.all(2),
+                              decoration: BoxDecoration(
+                                color: Colors.black.withValues(alpha: 0.6),
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(Icons.close_rounded, color: Colors.white70, size: 12),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+              // ── Step-by-Step Procedure Dock ─────────────────────────────────────
+              Positioned(
+                bottom: 72,
+                left: 16,
+                right: _showPipDetector ? 245 : 16,
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF0F172A).withValues(alpha: 0.90),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: const Color(0xFF334155)),
+                      boxShadow: [
+                        BoxShadow(color: Colors.black.withValues(alpha: 0.4), blurRadius: 8),
+                      ],
+                    ),
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Text('PROCEDURE:', style: TextStyle(color: Colors.white54, fontSize: 8.5, fontWeight: FontWeight.bold)),
+                          const SizedBox(width: 5),
+                          ...[
+                            ('all', 'Overview'),
+                            ('guide_catheter', '1. JL4 Catheter'),
+                            ('guidewire', '2. 0.014" Wire'),
+                            ('ivus_coreg', '3. IVUS Co-Reg'),
+                            ('calcium_prep', '4. Calcium Prep'),
+                            ('deploy_stent', '5. Deploy DES'),
+                            ('cabg_graft', '6. CABG Grafts'),
+                            ('tavr_valve', '7. TAVR Valve'),
+                          ].map((step) {
+                            final isSel = _procedureStep == step.$1;
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 2.0),
+                              child: InkWell(
+                                onTap: () {
+                                  setState(() {
+                                    _procedureStep = step.$1;
+                                    if (step.$1 == 'cabg_graft') _showBypassGrafts = true;
+                                    if (step.$1 == 'tavr_valve') _showTavrFrame = true;
+                                    _syncBridge();
+                                  });
+                                },
+                                borderRadius: BorderRadius.circular(10),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2.5),
+                                  decoration: BoxDecoration(
+                                    color: isSel ? const Color(0xFF00E5FF) : const Color(0xFF1E293B),
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: Text(
+                                    step.$2,
+                                    style: TextStyle(
+                                      color: isSel ? Colors.black : Colors.white70,
+                                      fontSize: 8.5,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            );
+                          }),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
 
               // ── Bottom Floating Cine Controls & Injection Bar ─────────────────
               Positioned(

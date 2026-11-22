@@ -315,6 +315,48 @@ class CardioCathThreeBridge {
     } catch (_) {}
   }
 
+  void setFreeOrbit(bool enabled) {
+    if (_viewer == null || _disposed) return;
+    try {
+      _viewer!.callMethod('setFreeOrbit'.toJS, enabled.toJS);
+    } catch (_) {}
+  }
+
+  void setShowBypassGrafts(bool show) {
+    if (_viewer == null || _disposed) return;
+    try {
+      _viewer!.callMethod('setShowBypassGrafts'.toJS, show.toJS);
+    } catch (_) {}
+  }
+
+  void setShowTavrFrame(bool show) {
+    if (_viewer == null || _disposed) return;
+    try {
+      _viewer!.callMethod('setShowTavrFrame'.toJS, show.toJS);
+    } catch (_) {}
+  }
+
+  void setShowVffrHeatmap(bool show) {
+    if (_viewer == null || _disposed) return;
+    try {
+      _viewer!.callMethod('setShowVffrHeatmap'.toJS, show.toJS);
+    } catch (_) {}
+  }
+
+  void setProcedureStep(String step) {
+    if (_viewer == null || _disposed) return;
+    try {
+      _viewer!.callMethod('setProcedureStep'.toJS, step.toJS);
+    } catch (_) {}
+  }
+
+  void setInvertLut(bool invert) {
+    if (_viewer == null || _disposed) return;
+    try {
+      _viewer!.callMethod('setInvertLut'.toJS, invert.toJS);
+    } catch (_) {}
+  }
+
   List<ProjectedLandmark> getProjectedLandmarks({String category = 'all'}) {
     if (_viewer == null || _disposed) return [];
     try {

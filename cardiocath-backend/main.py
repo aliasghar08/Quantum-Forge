@@ -87,6 +87,28 @@ class CompoundPredictRequest(BaseModel):
     name: Optional[str] = Field(None, description="Optional drug/compound name")
 
 
+class AngioQfrRequest(BaseModel):
+    vessel: str = "LAD"
+    stenosis_pct: float = Field(75.0, ge=0.0, le=99.0)
+    lesion_length_mm: float = Field(20.0, ge=1.0, le=80.0)
+    ref_diam_mm: float = Field(3.0, ge=1.5, le=5.5)
+    calcification_deg: float = Field(90.0, ge=0.0, le=360.0)
+    heart_rate_bpm: float = 72.0
+    map_mmhg: float = 93.0
+    contrast_flow_rate: float = 4.0
+    all_segments: bool = True
+
+
+class PreSurgicalExperimentRequest(BaseModel):
+    strategies: Optional[List[str]] = Field(default_factory=lambda: ["CABG", "Hybrid", "IVUS_PCI", "TAVR_SAVR", "OMT"])
+    vessel_stenoses: Optional[Dict[str, float]] = Field(default_factory=lambda: {"LM": 50.0, "LAD": 85.0, "LCx": 70.0, "RCA": 60.0})
+    calcification_arcs: Optional[Dict[str, float]] = Field(default_factory=lambda: {"LM": 90.0, "LAD": 180.0, "LCx": 45.0, "RCA": 90.0})
+    baseline_lvef: float = 50.0
+    has_bifurcation: bool = True
+    tavr_sinus_height_mm: float = 11.5
+    calcium_thickness_mm: float = 0.8
+
+
 PRESET_COMPOUNDS: List[Dict[str, Any]] = [
     {
         "name": "Enalaprilat",
@@ -845,6 +867,38 @@ async def api_oscilloscope_rhythm(req: OscilloscopeRhythmRequest):
         tcp_pacing=req.tcp_pacing,
         signal_mode=req.signal_mode,
         mains_hum=req.mains_hum,
+    )
+
+
+@app.post("/api/cardiac/angio-qfr")
+async def api_angio_qfr(req: AngioQfrRequest):
+    """Wire-free vFFR / QFR, TAWSS, cTFC, and Myocardial Blush Grade powered by AngioFlow-PINN."""
+    solver = CoronaryHemodynamicsSolver()
+    return solver.solve_angio_qfr(
+        vessel=req.vessel,
+        stenosis_pct=req.stenosis_pct,
+        lesion_length_mm=req.lesion_length_mm,
+        ref_diam_mm=req.ref_diam_mm,
+        calcification_deg=req.calcification_deg,
+        heart_rate_bpm=req.heart_rate_bpm,
+        map_mmhg=req.map_mmhg,
+        contrast_flow_rate=req.contrast_flow_rate,
+        all_segments=req.all_segments,
+    )
+
+
+@app.post("/api/cardiac/presurgical-experiment")
+async def api_presurgical_experiment(req: PreSurgicalExperimentRequest):
+    """Multi-Arm Pre-Surgical Rehearsal Lab (CABG vs Hybrid vs IVUS-PCI vs TAVR) via SurgTwin-GNN & CardioTissue-BiomechNet."""
+    solver = CoronaryHemodynamicsSolver()
+    return solver.solve_presurgical_experiment(
+        strategies=req.strategies,
+        vessel_stenoses=req.vessel_stenoses,
+        calcification_arcs=req.calcification_arcs,
+        baseline_lvef=req.baseline_lvef,
+        has_bifurcation=req.has_bifurcation,
+        tavr_sinus_height_mm=req.tavr_sinus_height_mm,
+        calcium_thickness_mm=req.calcium_thickness_mm,
     )
 
 

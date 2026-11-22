@@ -46,7 +46,7 @@ void main() {
       // Verify SaMD legal banner
       expect(
         find.textContaining('Educational Simulation Only — Not for Clinical Diagnosis'),
-        findsOneWidget,
+        findsWidgets,
       );
 
       // Verify Screen Header
@@ -1593,12 +1593,14 @@ void main() {
       // 3. Test Toggle 3D Name Tags
       final tagsToggle = find.byKey(const Key('fluo_theater_tags_toggle'));
       expect(tagsToggle, findsOneWidget);
+      await tester.ensureVisible(tagsToggle);
       await tester.tap(tagsToggle);
       await tester.pump(const Duration(milliseconds: 100));
 
       // 4. Test Toggle QCA Calipers
       final qcaToggle = find.byKey(const Key('fluo_theater_qca_toggle'));
       expect(qcaToggle, findsOneWidget);
+      await tester.ensureVisible(qcaToggle);
       await tester.tap(qcaToggle);
       await tester.pump(const Duration(milliseconds: 100));
 
@@ -1611,12 +1613,14 @@ void main() {
       final lutBtn =
           find.byKey(const Key('fluo_theater_invert_lut_button'));
       expect(lutBtn, findsOneWidget);
+      await tester.ensureVisible(lutBtn);
       await tester.tap(lutBtn);
       await tester.pump(const Duration(milliseconds: 100));
 
       // 6. Test Exit Theater Button
       final exitBtn = find.byKey(const Key('fluo_theater_exit_button'));
       expect(exitBtn, findsOneWidget);
+      await tester.ensureVisible(exitBtn);
       await tester.tap(exitBtn);
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 400));
@@ -1840,6 +1844,168 @@ void main() {
       await tester.pump();
 
       expect(find.text('8 CLASSIC ECGs:'), findsOneWidget);
+    });
+
+    testWidgets(
+        '3D Full-Screen Volumetric Fluo Theater: Free Orbit, vFFR Heatmap, CABG Grafts, TAVR VTC, Procedure Dock, and 2D PiP Detector',
+        (tester) async {
+      tester.view.physicalSize = const Size(1440, 1000);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(buildTestScreen(size: const Size(1440, 1000)));
+      await tester.pump();
+
+      // Launch Full-Screen Fluo Theater
+      final launchBtn = find.byKey(const Key('launch_fullscreen_fluo_theater'));
+      expect(launchBtn, findsOneWidget);
+      await tester.ensureVisible(launchBtn);
+      await tester.tap(launchBtn);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+
+      // Verify 3D Orbit, vFFR Heatmap, CABG, and TAVR toggles
+      final orbitToggle = find.byKey(const Key('fluo_theater_free_orbit_toggle'));
+      final heatmapToggle = find.byKey(const Key('fluo_theater_vffr_heatmap_toggle'));
+      final cabgToggle = find.byKey(const Key('fluo_theater_cabg_toggle'));
+      final tavrToggle = find.byKey(const Key('fluo_theater_tavr_toggle'));
+      final pipToggle = find.byKey(const Key('fluo_theater_pip_toggle'));
+
+      expect(orbitToggle, findsOneWidget);
+      expect(heatmapToggle, findsOneWidget);
+      expect(cabgToggle, findsOneWidget);
+      expect(tavrToggle, findsOneWidget);
+      expect(pipToggle, findsOneWidget);
+
+      // Tap 3D Orbit toggle
+      await tester.ensureVisible(orbitToggle);
+      await tester.tap(orbitToggle);
+      await tester.pump();
+      expect(find.text('3D Orbit: Free'), findsOneWidget);
+
+      // Tap vFFR Heatmap
+      await tester.ensureVisible(heatmapToggle);
+      await tester.tap(heatmapToggle);
+      await tester.pump();
+      expect(find.text('vFFR Heatmap ON'), findsOneWidget);
+
+      // Tap CABG Grafts
+      await tester.ensureVisible(cabgToggle);
+      await tester.tap(cabgToggle);
+      await tester.pump();
+      expect(find.text('CABG Grafts ON'), findsOneWidget);
+
+      // Tap TAVR VTC
+      await tester.ensureVisible(tavrToggle);
+      await tester.tap(tavrToggle);
+      await tester.pump();
+      expect(find.text('TAVR VTC ON'), findsOneWidget);
+
+      // Verify Step-by-Step Procedure Dock is mounted
+      expect(find.text('PROCEDURE:'), findsOneWidget);
+      expect(find.text('1. JL4 Catheter'), findsOneWidget);
+      expect(find.text('6. CABG Grafts'), findsOneWidget);
+      expect(find.text('7. TAVR Valve'), findsOneWidget);
+
+      // Tap Procedure step
+      await tester.tap(find.text('6. CABG Grafts'));
+      await tester.pump();
+
+      // Verify 2D PiP Detector
+      expect(find.text('2D C-ARM DETECTOR PiP'), findsOneWidget);
+
+      // Test Pre-Op Lab Modal Button
+      final preOpBtn = find.byKey(const Key('fluo_theater_presurgical_lab_button'));
+      expect(preOpBtn, findsOneWidget);
+      await tester.tap(preOpBtn);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(find.text('3D PRE-SURGICAL REHEARSAL LAB'), findsWidgets);
+
+      // Dismiss modal
+      await tester.tapAt(const Offset(20, 20));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      // Exit theater
+      final exitBtn = find.byKey(const Key('fluo_theater_exit_button'));
+      await tester.tap(exitBtn);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+    });
+
+    testWidgets(
+        '3D Pre-Surgical Experimental Rehearsal Panel: Patient Digital Twin, Multi-Arm Strategy Comparator, Biomech Plaque Prep, and Stress Drills',
+        (tester) async {
+      tester.view.physicalSize = const Size(1440, 1100);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(buildTestScreen(size: const Size(1440, 1100)));
+      await tester.pump();
+
+      // Scroll to Pre-Surgical Rehearsal Panel
+      final panelHeader = find.text('3D PRE-SURGICAL REHEARSAL LAB');
+      expect(panelHeader, findsOneWidget);
+      await tester.ensureVisible(panelHeader);
+      await tester.pump();
+
+      // Verify Legal SaMD Amber Banner
+      expect(
+        find.textContaining('Research & Educational Simulation Only — Not for Clinical Diagnosis, Surgical Planning, or Patient Care'),
+        findsWidgets,
+      );
+
+      // Verify Tab 0 (Digital Twin Builder) is active by default
+      expect(find.text('Left Main (LMCA) Stenosis'), findsOneWidget);
+      expect(find.text('Left Anterior Descending (LAD)'), findsOneWidget);
+      expect(find.text('Calcification Arc'), findsOneWidget);
+
+      // Switch to Tab 1: Multi-Arm Strategy Comparator
+      final tab1 = find.text('2. Multi-Arm Strategy Comparator');
+      expect(tab1, findsOneWidget);
+      await tester.tap(tab1);
+      await tester.pump();
+
+      expect(find.text('Surgical CABG'), findsOneWidget);
+      expect(find.text('Hybrid Revascularization'), findsOneWidget);
+      expect(find.text('Multi-Vessel IVUS-PCI'), findsOneWidget);
+      expect(find.text('TAVR / Structural Valve'), findsOneWidget);
+      expect(find.text('Optimal Medical Therapy'), findsOneWidget);
+
+      // Tap on Hybrid
+      await tester.tap(find.text('Hybrid Revascularization'));
+      await tester.pump();
+
+      // Switch to Tab 2: Biomech Plaque Prep
+      final tab2 = find.text('3. Biomech Plaque Prep');
+      expect(tab2, findsOneWidget);
+      await tester.tap(tab2);
+      await tester.pump();
+
+      expect(find.text('Standard Non-Compliant Balloon'), findsOneWidget);
+      expect(find.text('Rotablator Rotational Atherectomy'), findsOneWidget);
+      expect(find.text('Shockwave Intravascular Lithotripsy (IVL)'), findsOneWidget);
+
+      // Switch to Tab 3: Intra-Op Stress Drills
+      final tab3 = find.text('4. Intra-Op Stress Drills');
+      expect(tab3, findsOneWidget);
+      await tester.tap(tab3);
+      await tester.pump();
+
+      expect(find.text('Competitive Graft Flow (LIMA-LAD)'), findsOneWidget);
+      expect(find.text('Under-Expanded Stent in 270° Calcium'), findsOneWidget);
+
+      final simulateBtn = find.text('Simulate Drill').first;
+      await tester.tap(simulateBtn);
+      await tester.pump();
+
+      expect(find.text('Apply Bailout Protocol'), findsOneWidget);
+      await tester.tap(find.text('Apply Bailout Protocol'));
+      await tester.pump();
     });
   });
 }

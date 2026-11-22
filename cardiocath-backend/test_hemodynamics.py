@@ -576,6 +576,70 @@ def test_oscilloscope_5_channel_telemetry_and_14_rhythms():
     assert hum_on["ecg_primary"] != clean_mode["ecg_primary"]
 
 
+def test_angio_qfr_neural_operator_endpoint():
+    """Verify AngioFlow-PINN computes vFFR/QFR, TAWSS, cTFC, MBG, and bolus arrival curves."""
+    res = client.post(
+        "/api/cardiac/angio-qfr",
+        json={
+            "vessel": "LAD",
+            "stenosis_pct": 80.0,
+            "lesion_length_mm": 22.0,
+            "ref_diam_mm": 3.0,
+            "calcification_deg": 120.0,
+            "all_segments": True,
+        },
+    ).json()
+    assert res["status"] == "success"
+    assert res["target_vessel"] == "LAD"
+    assert "primary" in res
+    assert "vffr_qfr" in res["primary"]
+    assert 0.20 <= res["primary"]["vffr_qfr"] <= 1.0
+    assert "ctfc" in res["primary"]
+    assert "mbg" in res["primary"]
+    assert "mean_tawss_dynes_cm2" in res["primary"]
+    assert "total_syntax_score" in res
+    assert len(res["contrast_bolus_curve"]) == 60
+    assert "all_segments" in res
+    assert "LAD" in res["all_segments"]
+    assert "RCA" in res["all_segments"]
+
+
+def test_presurgical_experiment_multi_arm_endpoint():
+    """Verify SurgTwin-GNN + CardioTissue-BiomechNet evaluate competing pre-surgical arms."""
+    res = client.post(
+        "/api/cardiac/presurgical-experiment",
+        json={
+            "strategies": ["CABG", "Hybrid", "IVUS_PCI", "TAVR_SAVR", "OMT"],
+            "vessel_stenoses": {"LM": 50.0, "LAD": 85.0, "LCx": 75.0, "RCA": 60.0},
+            "calcification_arcs": {"LM": 90.0, "LAD": 270.0, "LCx": 60.0, "RCA": 90.0},
+            "baseline_lvef": 45.0,
+            "has_bifurcation": True,
+            "tavr_sinus_height_mm": 11.0,
+            "calcium_thickness_mm": 1.0,
+        },
+    ).json()
+    assert res["status"] == "success"
+    assert len(res["multi_arm_outcomes"]) == 5
+    for arm in res["multi_arm_outcomes"]:
+        assert "strategy" in arm
+        assert "territorial_perfusion_reserve" in arm
+        assert "patency_12mo_rate" in arm
+        assert "mace_30day_risk" in arm
+        assert "vtc_distance_mm" in arm
+        assert "epistemic_uncertainty_sigma" in arm
+
+    # Biomechanical preparation modalities
+    assert len(res["biomechanical_preparation"]) == 3
+    for prep in res["biomechanical_preparation"]:
+        assert "modality" in prep
+        assert "calcific_plaque_fracture_threshold_atm" in prep
+        assert "stent_expansion_index" in prep
+
+    assert "optimal_recommendation" in res
+    assert "preferred_strategy" in res["optimal_recommendation"]
+
+
+
 
 
 

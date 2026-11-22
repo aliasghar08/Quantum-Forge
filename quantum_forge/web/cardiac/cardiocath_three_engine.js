@@ -2558,7 +2558,14 @@
       this.dominance = this.options.dominance;
       this.isRevascularized = this.options.isRevascularized;
       this.contrastIntensity = 0.0;
+      this.cardiacPhase = 0.0;
       this.isDisposed = false;
+      this.isFreeOrbit = false;
+      this.showBypassGrafts = false;
+      this.showTavrFrame = false;
+      this.showVffrHeatmap = false;
+      this.procedureStep = 'all';
+      this.invertLut = false;
 
       this._initFluoroScene();
       this._buildFluoroAnatomy();
@@ -2599,6 +2606,13 @@
       this.canvas.style.height = '100%';
       this.canvas.style.display = 'block';
       this.container.appendChild(this.canvas);
+
+      if (typeof THREE.OrbitControls !== 'undefined') {
+        this.controls = new THREE.OrbitControls(this.camera, this.canvas);
+        this.controls.enableDamping = true;
+        this.controls.dampingFactor = 0.08;
+        this.controls.enabled = false;
+      }
     }
 
     _buildFluoroAnatomy() {
@@ -2636,12 +2650,42 @@
         transparent: true,
       });
 
+      // Ghost Silhouette Myocardium (Translucent X-Ray Beating Heart)
+      const ghostMat = new THREE.MeshBasicMaterial({
+        color: 0x1b2838,
+        transparent: true,
+        opacity: 0.22,
+        wireframe: false,
+      });
+      this.ghostHeart = new THREE.Mesh(new THREE.SphereGeometry(1.10, 24, 18), ghostMat);
+      this.ghostHeart.scale.set(0.92, 1.25, 0.88);
+      this.ghostHeart.position.set(-0.08, -0.22, 0.0);
+      this.anatomyGroup.add(this.ghostHeart);
+
       // Spine Vertebrae Column (Radiopaque shadow behind coronaries)
       for (let s = -4; s <= 4; s++) {
         const spineVert = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.28, 0.35), this.boneMat);
         spineVert.position.set(0.18, s * 0.38, -0.65);
         this.anatomyGroup.add(spineVert);
       }
+
+      // Thoracic Ribcage Shadows
+      this.ribsGroup = new THREE.Group();
+      for (let r = -3; r <= 3; r++) {
+        const ribCurveL = new THREE.CatmullRomCurve3([
+          new THREE.Vector3(0.18, r * 0.42, -0.65),
+          new THREE.Vector3(-0.85, r * 0.40, -0.42),
+          new THREE.Vector3(-1.55, r * 0.36 - 0.2, -0.15),
+        ]);
+        const ribCurveR = new THREE.CatmullRomCurve3([
+          new THREE.Vector3(0.18, r * 0.42, -0.65),
+          new THREE.Vector3(0.95, r * 0.40, -0.42),
+          new THREE.Vector3(1.65, r * 0.36 - 0.2, -0.15),
+        ]);
+        this.ribsGroup.add(new THREE.Mesh(new THREE.TubeGeometry(ribCurveL, 16, 0.035, 6, false), this.boneMat));
+        this.ribsGroup.add(new THREE.Mesh(new THREE.TubeGeometry(ribCurveR, 16, 0.035, 6, false), this.boneMat));
+      }
+      this.anatomyGroup.add(this.ribsGroup);
 
       // Catheter Silhouette (Always radiopaque)
       const cathCurve = new THREE.CatmullRomCurve3([
@@ -2651,10 +2695,10 @@
         new THREE.Vector3(0.0, 0.4, 0.1),
       ]);
       const cathMat = new THREE.MeshBasicMaterial({ color: 0x111111 });
-      const cath = new THREE.Mesh(new THREE.TubeGeometry(cathCurve, 32, 0.045, 10, false), cathMat);
-      this.anatomyGroup.add(cath);
+      this.cathMesh = new THREE.Mesh(new THREE.TubeGeometry(cathCurve, 32, 0.045, 10, false), cathMat);
+      this.anatomyGroup.add(this.cathMesh);
 
-      // Complete Coronary Tree in Fluoroscopy (LM, LAD, D1, LCx, OM1, RCA, PDA)
+      // Complete Volumetric Coronary Tree (LM, LAD, D1, D2, S1, S2, LCx, OM1, OM2, RCA, PDA, PLV)
       // Left Main
       const lmCurve = new THREE.CatmullRomCurve3([
         new THREE.Vector3(0.0, 0.4, 0.1),
@@ -2670,7 +2714,8 @@
         new THREE.Vector3(-0.12, -0.75, 0.35),
         new THREE.Vector3(-0.22, -1.05, 0.18),
       ]);
-      this.anatomyGroup.add(new THREE.Mesh(new THREE.TubeGeometry(ladCurve, 32, 0.034, 10, false), this.vesselMat));
+      this.ladMesh = new THREE.Mesh(new THREE.TubeGeometry(ladCurve, 32, 0.034, 10, false), this.vesselMat);
+      this.anatomyGroup.add(this.ladMesh);
 
       // D1
       const d1Curve = new THREE.CatmullRomCurve3([
@@ -2679,6 +2724,21 @@
         new THREE.Vector3(-0.55, -0.55, 0.32),
       ]);
       this.anatomyGroup.add(new THREE.Mesh(new THREE.TubeGeometry(d1Curve, 18, 0.024, 8, false), this.vesselMat));
+
+      // D2
+      const d2Curve = new THREE.CatmullRomCurve3([
+        new THREE.Vector3(-0.12, -0.75, 0.35),
+        new THREE.Vector3(-0.38, -0.92, 0.28),
+      ]);
+      this.anatomyGroup.add(new THREE.Mesh(new THREE.TubeGeometry(d2Curve, 12, 0.020, 8, false), this.vesselMat));
+
+      // S1 (First Septal Perforator diving deep)
+      const s1Curve = new THREE.CatmullRomCurve3([
+        new THREE.Vector3(-0.08, 0.05, 0.42),
+        new THREE.Vector3(-0.05, 0.02, 0.15),
+        new THREE.Vector3(-0.02, -0.25, 0.05),
+      ]);
+      this.anatomyGroup.add(new THREE.Mesh(new THREE.TubeGeometry(s1Curve, 14, 0.018, 8, false), this.vesselMat));
 
       // LCx
       const lcxCurve = new THREE.CatmullRomCurve3([
@@ -2696,6 +2756,13 @@
         new THREE.Vector3(-0.72, -0.55, -0.12),
       ]);
       this.anatomyGroup.add(new THREE.Mesh(new THREE.TubeGeometry(om1Curve, 18, 0.024, 8, false), this.vesselMat));
+
+      // OM2
+      const om2Curve = new THREE.CatmullRomCurve3([
+        new THREE.Vector3(-0.65, 0.18, -0.15),
+        new THREE.Vector3(-0.75, -0.25, -0.25),
+      ]);
+      this.anatomyGroup.add(new THREE.Mesh(new THREE.TubeGeometry(om2Curve, 12, 0.020, 8, false), this.vesselMat));
 
       // RCA
       const rcaCurve = new THREE.CatmullRomCurve3([
@@ -2720,6 +2787,152 @@
             new THREE.Vector3(-0.12, -0.85, -0.25),
           ]);
       this.anatomyGroup.add(new THREE.Mesh(new THREE.TubeGeometry(pdaCurve, 20, 0.026, 8, false), this.vesselMat));
+
+      // ── 3D Bypass Grafts Group (CABG Revascularization) ────────────────────
+      this.graftsGroup = new THREE.Group();
+      // 1. LIMA -> mid-LAD anastomosis
+      const limaCurve = new THREE.CatmullRomCurve3([
+        new THREE.Vector3(-0.55, 1.20, 0.15),
+        new THREE.Vector3(-0.35, 0.55, 0.32),
+        new THREE.Vector3(-0.12, -0.10, 0.44),
+        new THREE.Vector3(-0.02, -0.32, 0.45),
+      ]);
+      const graftMat = new THREE.MeshBasicMaterial({ color: 0x38BDF8, transparent: true, opacity: 0.88 });
+      this.graftsGroup.add(new THREE.Mesh(new THREE.TubeGeometry(limaCurve, 28, 0.028, 8, false), graftMat));
+
+      // 2. SVG -> OM1 anastomosis
+      const svgOmCurve = new THREE.CatmullRomCurve3([
+        new THREE.Vector3(0.04, 0.85, 0.12),
+        new THREE.Vector3(-0.35, 0.65, -0.05),
+        new THREE.Vector3(-0.68, -0.22, 0.05),
+      ]);
+      this.graftsGroup.add(new THREE.Mesh(new THREE.TubeGeometry(svgOmCurve, 24, 0.032, 8, false), graftMat));
+
+      // 3. SVG -> PDA anastomosis
+      const svgPdaCurve = new THREE.CatmullRomCurve3([
+        new THREE.Vector3(0.06, 0.82, 0.10),
+        new THREE.Vector3(0.38, 0.45, -0.15),
+        new THREE.Vector3(0.18, -0.68, -0.32),
+      ]);
+      this.graftsGroup.add(new THREE.Mesh(new THREE.TubeGeometry(svgPdaCurve, 24, 0.032, 8, false), graftMat));
+      this.graftsGroup.visible = this.showBypassGrafts;
+      this.anatomyGroup.add(this.graftsGroup);
+
+      // ── 3D TAVR Valve Prosthetic Frame & VTC Clearance Rays ────────────────
+      this.tavrGroup = new THREE.Group();
+      const tavrGeo = new THREE.CylinderGeometry(0.24, 0.24, 0.38, 16, 2, true);
+      const tavrMat = new THREE.MeshBasicMaterial({ color: 0xF59E0B, wireframe: true });
+      const tavrMesh = new THREE.Mesh(tavrGeo, tavrMat);
+      tavrMesh.position.set(0.0, 0.45, 0.1);
+      this.tavrGroup.add(tavrMesh);
+
+      // VTC Clearance Ray to Left Main (LM VTC: 5.2 mm)
+      const vtcLmGeo = new THREE.BufferGeometry().setFromPoints([
+        new THREE.Vector3(0.0, 0.45, 0.1),
+        new THREE.Vector3(-0.15, 0.35, 0.18),
+      ]);
+      const vtcLmLine = new THREE.Line(vtcLmGeo, new THREE.LineBasicMaterial({ color: 0x10B981, linewidth: 2 }));
+      this.tavrGroup.add(vtcLmLine);
+
+      // VTC Clearance Ray to RCA Ostium (RCA VTC: 6.8 mm)
+      const vtcRcaGeo = new THREE.BufferGeometry().setFromPoints([
+        new THREE.Vector3(0.0, 0.45, 0.1),
+        new THREE.Vector3(0.08, 0.42, 0.06),
+      ]);
+      const vtcRcaLine = new THREE.Line(vtcRcaGeo, new THREE.LineBasicMaterial({ color: 0x10B981, linewidth: 2 }));
+      this.tavrGroup.add(vtcRcaLine);
+      this.tavrGroup.visible = this.showTavrFrame;
+      this.anatomyGroup.add(this.tavrGroup);
+
+      // ── 3D Interventional Devices (0.014" Guidewire & Stent Mesh) ──────────
+      this.devicesGroup = new THREE.Group();
+      // 0.014" Guidewire traversing through LAD
+      const wireCurve = new THREE.CatmullRomCurve3([
+        new THREE.Vector3(0.0, 0.4, 0.1),
+        new THREE.Vector3(-0.08, 0.05, 0.42),
+        new THREE.Vector3(-0.02, -0.32, 0.45),
+        new THREE.Vector3(-0.12, -0.75, 0.35),
+        new THREE.Vector3(-0.25, -1.25, 0.15),
+      ]);
+      const wireMat = new THREE.MeshBasicMaterial({ color: 0x00E5FF });
+      this.wireMesh = new THREE.Mesh(new THREE.TubeGeometry(wireCurve, 40, 0.007, 6, false), wireMat);
+      this.devicesGroup.add(this.wireMesh);
+
+      // Stent diamond mesh deployed on mid-LAD lesion
+      const stentCurve = new THREE.CatmullRomCurve3([
+        new THREE.Vector3(-0.06, -0.22, 0.44),
+        new THREE.Vector3(-0.02, -0.32, 0.45),
+        new THREE.Vector3(-0.05, -0.44, 0.42),
+      ]);
+      const stentMeshMat = new THREE.MeshBasicMaterial({ color: 0xFFD700, wireframe: true });
+      this.stentMesh = new THREE.Mesh(new THREE.TubeGeometry(stentCurve, 16, 0.038, 12, false), stentMeshMat);
+      this.stentMesh.visible = this.isRevascularized;
+      this.devicesGroup.add(this.stentMesh);
+
+      this.anatomyGroup.add(this.devicesGroup);
+
+      // ── 3D vFFR / QFR & TAWSS Heatmap Overlays ──────────────────────────────
+      this.heatmapGroup = new THREE.Group();
+      // Colored segments overlaying LAD: Proximal=Green, Mid Stenosis=Red/Yellow, Distal=Red
+      const hmLadCurve = new THREE.CatmullRomCurve3([
+        new THREE.Vector3(-0.15, 0.35, 0.18),
+        new THREE.Vector3(-0.08, 0.05, 0.42),
+        new THREE.Vector3(-0.02, -0.32, 0.45),
+        new THREE.Vector3(-0.12, -0.75, 0.35),
+      ]);
+      const heatMat = new THREE.MeshBasicMaterial({ color: 0xEF4444, transparent: true, opacity: 0.85 });
+      this.heatmapMesh = new THREE.Mesh(new THREE.TubeGeometry(hmLadCurve, 32, 0.038, 10, false), heatMat);
+      this.heatmapGroup.add(this.heatmapMesh);
+      this.heatmapGroup.visible = this.showVffrHeatmap;
+      this.anatomyGroup.add(this.heatmapGroup);
+    }
+
+    setFreeOrbit(enabled) {
+      this.isFreeOrbit = !!enabled;
+      if (this.controls) {
+        this.controls.enabled = this.isFreeOrbit;
+        if (!this.isFreeOrbit) {
+          this._updateCameraGantry();
+        }
+      }
+    }
+
+    setShowBypassGrafts(show) {
+      this.showBypassGrafts = !!show;
+      if (this.graftsGroup) this.graftsGroup.visible = this.showBypassGrafts;
+    }
+
+    setShowTavrFrame(show) {
+      this.showTavrFrame = !!show;
+      if (this.tavrGroup) this.tavrGroup.visible = this.showTavrFrame;
+    }
+
+    setShowVffrHeatmap(show) {
+      this.showVffrHeatmap = !!show;
+      if (this.heatmapGroup) this.heatmapGroup.visible = this.showVffrHeatmap;
+    }
+
+    setProcedureStep(step) {
+      this.procedureStep = step;
+      if (this.wireMesh) {
+        this.wireMesh.visible = (step === 'guidewire' || step === 'ivus_coreg' || step === 'calcium_prep' || step === 'deploy_stent' || step === 'all');
+      }
+      if (this.stentMesh) {
+        this.stentMesh.visible = (step === 'deploy_stent' || this.isRevascularized || step === 'all');
+      }
+      if (this.graftsGroup) {
+        this.graftsGroup.visible = (step === 'cabg_graft' || this.showBypassGrafts);
+      }
+      if (this.tavrGroup) {
+        this.tavrGroup.visible = (step === 'tavr_valve' || this.showTavrFrame);
+      }
+    }
+
+    setInvertLut(invert) {
+      this.invertLut = !!invert;
+      if (this.scene) {
+        this.scene.background = new THREE.Color(this.invertLut ? 0xe5e7eb : 0x0a0d12);
+      }
     }
 
     _updateCameraGantry() {
@@ -2776,6 +2989,10 @@
         if (this.isDisposed) return;
         requestAnimationFrame(render);
 
+        if (this.controls && this.isFreeOrbit) {
+          this.controls.update();
+        }
+
         if (this.contrastIntensity > 0.005) {
           this.contrastIntensity *= 0.975;
           if (this.vesselMat) {
@@ -2788,38 +3005,24 @@
           }
         }
 
-        if (this.boneMat) this.boneMat.uniforms.uTime.value = performance.now() * 0.001;
-        if (this.vesselMat) this.vesselMat.uniforms.uTime.value = performance.now() * 0.001;
+        const nowSec = performance.now() * 0.001;
+        if (this.boneMat) this.boneMat.uniforms.uTime.value = nowSec;
+        if (this.vesselMat) this.vesselMat.uniforms.uTime.value = nowSec;
 
-        // Animate Intracardiac Vortex & LVOT particles
-        if (this.vortexGroup && (this.viewMode === 'bloodFlow' || this.viewMode === 'chambers' || this.cutawayDepth > 0.05)) {
-          if (this.vortexPoints) {
-            const isDiastole = (phi >= 0.50 && phi <= 0.92);
-            this.vortexPoints.visible = isDiastole;
-            if (isDiastole) {
-              this.vortexPoints.rotation.y += 0.045;
-            }
+        // Cardiac beating pulsation on ghost heart and coronaries
+        const phi = this.cardiacPhase || 0.0;
+        if (this.ghostHeart) {
+          let sBeat = 1.0;
+          if (phi >= 0.24 && phi <= 0.44) {
+            const tau = (phi - 0.24) / 0.20;
+            sBeat = 1.0 - Math.sin(tau * Math.PI) * 0.08;
           }
-          if (this.lvotPoints) {
-            const isSystole = (phi >= 0.20 && phi <= 0.52);
-            this.lvotPoints.visible = isSystole;
-            if (isSystole) {
-              this.lvotPoints.rotation.y += 0.025;
-            }
-          }
+          this.ghostHeart.scale.set(0.92 * sBeat, 1.25 * sBeat, 0.88 * sBeat);
         }
 
-        // Camera LERP to focused anatomical landmark
-        if (this.cameraTargetPosition && this.controls) {
-          this.camera.position.lerp(this.cameraTargetPosition, 0.08);
-          this.controls.target.lerp(this.cameraTargetLookAt, 0.08);
-          if (this.camera.position.distanceTo(this.cameraTargetPosition) < 0.04) {
-            this.cameraTargetPosition = null;
-            this.cameraTargetLookAt = null;
-          }
+        if (this.renderer && this.scene && this.camera) {
+          this.renderer.render(this.scene, this.camera);
         }
-
-        this.renderer.render(this.scene, this.camera);
       };
       render();
     }

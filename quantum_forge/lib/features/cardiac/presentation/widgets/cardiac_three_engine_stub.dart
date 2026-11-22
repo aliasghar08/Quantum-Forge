@@ -52,6 +52,12 @@ class CardioCathThreeBridge {
   void setCardiacPhase(double phase) {}
   void setBeatPhase(double phase) {}
   void setShowLabels(bool show) {}
+  void setFreeOrbit(bool enabled) {}
+  void setShowBypassGrafts(bool show) {}
+  void setShowTavrFrame(bool show) {}
+  void setShowVffrHeatmap(bool show) {}
+  void setProcedureStep(String step) {}
+  void setInvertLut(bool invert) {}
 
   List<ProjectedLandmark> getProjectedLandmarks({String category = 'all'}) => const [];
 
