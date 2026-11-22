@@ -402,7 +402,7 @@ class _CardiacFullScreenFluoTheaterState extends State<CardiacFullScreenFluoThea
         return KeyEventResult.ignored;
       },
       child: Scaffold(
-        backgroundColor: Colors.black,
+        backgroundColor: Colors.transparent,
         body: SafeArea(
           child: Stack(
             children: [
