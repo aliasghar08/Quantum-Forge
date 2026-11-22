@@ -26,8 +26,58 @@
   const THREE = window.THREE;
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // GLSL Beer-Lambert X-Ray Fluoroscopy Shaders
+  // GLSL Beer-Lambert X-Ray Fluoroscopy Shaders & Image Intensifier Background
   // ─────────────────────────────────────────────────────────────────────────────
+  const INTENSIFIER_BG_VS = `
+    varying vec2 vUv;
+    void main() {
+      vUv = uv;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
+  `;
+
+  const INTENSIFIER_BG_FS = `
+    uniform int uInvertLut;
+    uniform vec2 uResolution;
+    uniform float uCollimationRadius;
+    uniform float uTime;
+
+    float rand(vec2 co) {
+      return fract(sin(dot(co.xy, vec2(12.9898, 78.233))) * 43758.5453);
+    }
+
+    void main() {
+      vec2 res = (uResolution.x > 0.0 && uResolution.y > 0.0) ? uResolution : vec2(800.0, 600.0);
+      vec2 screenUv = gl_FragCoord.xy / res;
+      float aspect = res.x / res.y;
+      vec2 aspectUv = vec2((screenUv.x - 0.5) * aspect + 0.5, screenUv.y);
+      float dist = distance(aspectUv, vec2(0.5, 0.5));
+
+      // Quantum mottle detector noise
+      float noise = (rand(gl_FragCoord.xy + fract(uTime)) - 0.5) * 0.026;
+      float shutter = smoothstep(uCollimationRadius, uCollimationRadius - 0.03, dist);
+
+      vec3 detectorColor;
+      if (uInvertLut == 1) {
+        // Inverted Dark Cine: #1E293B center -> #0F172A edge
+        float vignette = clamp(dist / uCollimationRadius, 0.0, 1.0);
+        vec3 centerCol = vec3(0.118, 0.161, 0.231) + noise * 0.4;
+        vec3 edgeCol = vec3(0.059, 0.090, 0.165);
+        detectorColor = mix(centerCol, edgeCol, vignette);
+      } else {
+        // Standard Hospital X-Ray: #C4CCD4 center -> #687078 edge vignette inside circular iris
+        float vignette = clamp(dist / uCollimationRadius, 0.0, 1.0);
+        vec3 centerCol = vec3(0.768, 0.800, 0.831) + noise;
+        vec3 edgeCol = vec3(0.408, 0.439, 0.471);
+        detectorColor = mix(centerCol, edgeCol, smoothstep(0.0, 1.0, vignette));
+      }
+
+      // Outside collimator iris: Lead Collimator #0B0E12
+      vec3 leadColor = (uInvertLut == 1) ? vec3(0.024, 0.031, 0.043) : vec3(0.043, 0.055, 0.070);
+      gl_FragColor = vec4(mix(leadColor, detectorColor, shutter), 1.0);
+    }
+  `;
+
   const XRAY_VS = `
     varying vec3 vNormal;
     varying vec3 vViewPosition;
@@ -67,84 +117,99 @@
     }
 
     void main() {
+      // In DSA mode, bone and rib structures are digitally subtracted completely
+      if (uDsaMode == 1 && uIsBone == 1) {
+        discard;
+      }
+
       vec3 normal = normalize(vNormal);
       vec3 viewDir = normalize(vViewPosition);
 
-      float thickness = clamp(1.0 - abs(dot(normal, viewDir)), 0.12, 1.0);
+      float thickness = clamp(1.0 - abs(dot(normal, viewDir)), 0.15, 1.0);
 
+      // Fine X-ray quantum detector noise
+      float noise = (rand(gl_FragCoord.xy + fract(uTime)) - 0.5) * 0.024;
+
+      // ── 1. BONE ANATOMY (Vertebrae T4-T9, Ribs, Diaphragm) ─────────────────
+      if (uIsBone == 1) {
+        float boneAtten = 1.0 - exp(-1.45 * thickness);
+        if (uInvertLut == 1) {
+          // Inverted cine: faint translucent white-gray shadow
+          vec3 boneCol = vec3(0.86, 0.89, 0.93) + noise * 0.3;
+          float alpha = clamp(boneAtten * 0.22, 0.06, 0.28);
+          gl_FragColor = vec4(boneCol, alpha);
+        } else {
+          // Standard hospital X-ray: translucent dark-gray bone attenuation
+          vec3 boneCol = vec3(0.18, 0.22, 0.26) + noise * 0.2;
+          float alpha = clamp(boneAtten * 0.28, 0.08, 0.34);
+          gl_FragColor = vec4(boneCol, alpha);
+        }
+        return;
+      }
+
+      // ── 2. CORONARY TREE & CONTRAST ADVECTION ──────────────────────────────
       // Navier-Stokes Bolus Wavefront Advection along coronary tree height
       float normY = clamp((0.45 - vWorldPosition.y) / 1.55, 0.0, 1.0);
       float localContrast = uContrastDensity;
-      if (uIsBone == 0 && uBolusFront > 0.0) {
+      if (uBolusFront > 0.0) {
         float bolusReach = smoothstep(uBolusFront + 0.18, uBolusFront - 0.05, normY);
         localContrast = uContrastDensity * bolusReach;
       }
 
-      // Linear X-ray attenuation coefficient mu
-      float mu = 0.0;
-      if (uDsaMode == 1) {
-        if (uIsBone == 1) {
-          mu = 0.0; // Bone and rib structures completely subtracted out in DSA Roadmap
-        } else {
-          mu = localContrast * 6.8;
-        }
-      } else {
-        mu = (uIsBone == 1) ? 1.35 : (0.20 + localContrast * 4.8);
-      }
-
+      float mu = (uDsaMode == 1) ? (localContrast * 7.5) : (0.15 + localContrast * 5.2);
       float attenuation = exp(-mu * thickness);
+      float radiodensity = clamp(1.0 - attenuation, 0.0, 1.0);
 
-      // Quantum mottle detector noise
-      float noise = (rand(gl_FragCoord.xy + fract(uTime)) - 0.5) * 0.024;
-      float radiodensity = clamp((1.0 - attenuation) * uIntensity + noise, 0.0, 1.0);
-
-      if (uDsaMode == 1 && uIsBone == 1) {
-        radiodensity = 0.0;
-      }
-
-      // Inverted clinical fluoroscopy (radiodense absorbs to black) vs Direct X-Ray
-      vec3 xRayColor;
       if (uInvertLut == 1) {
-        float brightness = clamp(0.08 + radiodensity * 0.86, 0.05, 0.95);
-        xRayColor = vec3(brightness);
+        // Inverted Cine Mode
+        if (localContrast < 0.04) {
+          // Un-opacified vessel lumen
+          vec3 lumenCol = vec3(0.65, 0.70, 0.78);
+          gl_FragColor = vec4(lumenCol, clamp(thickness * 0.09, 0.03, 0.12));
+          return;
+        }
+        vec3 contrastCol = vec3(0.88, 0.91, 0.95) + noise * 0.3;
+        float alpha = clamp(0.15 + radiodensity * 0.82, 0.15, 0.96);
+
+        // Optional false-color vFFR overlay (ONLY when explicitly enabled)
+        if (uVffrOverlay == 1) {
+          vec3 vffrColor;
+          if (normY < 0.28) {
+            vffrColor = vec3(0.06, 0.75, 0.45); // Proximal Green
+          } else if (normY < 0.55) {
+            vffrColor = vec3(0.95, 0.65, 0.08); // Stenosis Amber
+          } else {
+            vffrColor = vec3(0.92, 0.22, 0.25); // Ischemic Distal Red
+          }
+          contrastCol = mix(contrastCol, vffrColor, 0.70);
+        }
+        gl_FragColor = vec4(contrastCol, alpha);
       } else {
-        float brightness = clamp(0.78 - radiodensity * 0.70, 0.06, 0.88);
-        xRayColor = vec3(brightness);
-      }
-
-      // Myocardial blush capillary glow
-      if (uMyocardialBlush > 0.01 && uIsBone == 0) {
-        float blushNoise = (rand(gl_FragCoord.xy * 0.5) - 0.5) * 0.04;
-        float blushVal = clamp(uMyocardialBlush * 0.22 + blushNoise, 0.0, 0.35);
-        if (uInvertLut == 1) {
-          xRayColor += vec3(0.12, 0.14, 0.18) * blushVal;
-        } else {
-          xRayColor -= vec3(0.18, 0.18, 0.18) * blushVal;
+        // Standard Hospital X-Ray Fluoroscopy (Hospital Default)
+        if (localContrast < 0.04) {
+          // Un-opacified vessel lumen
+          vec3 lumenCol = vec3(0.18, 0.22, 0.26);
+          gl_FragColor = vec4(lumenCol, clamp(thickness * 0.08, 0.03, 0.12));
+          return;
         }
-      }
+        // Dark charcoal/black Beer-Lambert X-ray contrast dye absorption
+        vec3 contrastCol = vec3(0.065, 0.075, 0.09) + noise * 0.3;
+        float alpha = clamp(0.15 + radiodensity * 0.82, 0.15, 0.96);
 
-      // Wire-free vFFR / QFR per-segment color coding overlay
-      if (uVffrOverlay == 1 && uIsBone == 0 && localContrast > 0.1) {
-        vec3 vffrColor;
-        if (normY < 0.28) {
-          vffrColor = vec3(0.06, 0.75, 0.45); // Proximal Green (vFFR >= 0.88)
-        } else if (normY < 0.55) {
-          vffrColor = vec3(0.95, 0.65, 0.08); // Stenosis Amber (vFFR 0.75-0.80)
-        } else {
-          vffrColor = vec3(0.92, 0.22, 0.25); // Ischemic Distal Red (vFFR < 0.75)
+        // Optional false-color vFFR overlay (ONLY when explicitly enabled)
+        if (uVffrOverlay == 1) {
+          vec3 vffrColor;
+          if (normY < 0.28) {
+            vffrColor = vec3(0.06, 0.75, 0.45); // Proximal Green
+          } else if (normY < 0.55) {
+            vffrColor = vec3(0.95, 0.65, 0.08); // Stenosis Amber
+          } else {
+            vffrColor = vec3(0.92, 0.22, 0.25); // Ischemic Distal Red
+          }
+          contrastCol = mix(contrastCol, vffrColor, 0.70);
         }
-        xRayColor = mix(xRayColor, vffrColor, 0.68);
+        gl_FragColor = vec4(contrastCol, alpha);
       }
-
-      // Aspect-ratio corrected circular collimator iris
-      vec2 res = (uResolution.x > 0.0 && uResolution.y > 0.0) ? uResolution : vec2(800.0, 600.0);
-      vec2 screenUv = gl_FragCoord.xy / res;
-      float aspect = res.x / res.y;
-      vec2 aspectUv = vec2((screenUv.x - 0.5) * aspect + 0.5, screenUv.y);
-      float dist = distance(aspectUv, vec2(0.5, 0.5));
-      float shutter = smoothstep(uCollimationRadius, uCollimationRadius - 0.03, dist);
-
-      gl_FragColor = vec4(mix(vec3(0.02, 0.04, 0.06), xRayColor, shutter), 1.0);
     }
   `;
 
@@ -2650,10 +2715,30 @@
       const height = this.container.clientHeight || 350;
 
       this.scene = new THREE.Scene();
-      this.scene.background = new THREE.Color(0x0a0d12);
+      this.scene.background = new THREE.Color(this.invertLut ? 0x06080b : 0x0b0e12);
 
       this.camera = new THREE.PerspectiveCamera(36, width / height, 0.1, 100);
       this.camera.position.set(0, 0, 4.8);
+
+      // Authentic Hospital X-Ray Image Intensifier Phosphor Detector Screen (anchored to camera)
+      this.bgDetectorMat = new THREE.ShaderMaterial({
+        vertexShader: INTENSIFIER_BG_VS,
+        fragmentShader: INTENSIFIER_BG_FS,
+        uniforms: {
+          uInvertLut: { value: this.invertLut ? 1 : 0 },
+          uResolution: { value: new THREE.Vector2(width, height) },
+          uCollimationRadius: { value: 0.46 },
+          uTime: { value: 0.0 },
+        },
+        depthWrite: false,
+        depthTest: false,
+      });
+      const bgGeo = new THREE.PlaneGeometry(30, 30);
+      this.bgDetectorMesh = new THREE.Mesh(bgGeo, this.bgDetectorMat);
+      this.bgDetectorMesh.position.set(0, 0, -9.0);
+      this.bgDetectorMesh.renderOrder = -100;
+      this.camera.add(this.bgDetectorMesh);
+      this.scene.add(this.camera);
 
       try {
         this.renderer = new THREE.WebGLRenderer({
@@ -2707,7 +2792,7 @@
           uMyocardialBlush: { value: 0.0 },
           uVffrOverlay: { value: 0 },
           uResolution: { value: new THREE.Vector2(800, 600) },
-          uInvertLut: { value: 0 },
+          uInvertLut: { value: this.invertLut ? 1 : 0 },
           uBolusFront: { value: 0.0 },
         },
         transparent: true,
@@ -2727,20 +2812,20 @@
           uMyocardialBlush: { value: 0.0 },
           uVffrOverlay: { value: 0 },
           uResolution: { value: new THREE.Vector2(800, 600) },
-          uInvertLut: { value: 0 },
+          uInvertLut: { value: this.invertLut ? 1 : 0 },
           uBolusFront: { value: 0.0 },
         },
         transparent: true,
       });
 
       // Ghost Silhouette Myocardium (Translucent X-Ray Beating Heart)
-      const ghostMat = new THREE.MeshBasicMaterial({
-        color: 0x1b2838,
+      this.ghostMat = new THREE.MeshBasicMaterial({
+        color: this.invertLut ? 0x94a3b8 : 0x242c34,
         transparent: true,
-        opacity: 0.22,
+        opacity: this.invertLut ? 0.10 : 0.18,
         wireframe: false,
       });
-      this.ghostHeart = new THREE.Mesh(new THREE.SphereGeometry(1.10, 24, 18), ghostMat);
+      this.ghostHeart = new THREE.Mesh(new THREE.SphereGeometry(1.10, 24, 18), this.ghostMat);
       this.ghostHeart.scale.set(0.92, 1.25, 0.88);
       this.ghostHeart.position.set(-0.08, -0.22, 0.0);
       this.anatomyGroup.add(this.ghostHeart);
@@ -2786,8 +2871,12 @@
         new THREE.Vector3(-0.2, 0.8, 0.0),
         new THREE.Vector3(0.0, 0.4, 0.1),
       ]);
-      const cathMat = new THREE.MeshBasicMaterial({ color: 0x111111 });
-      this.cathMesh = new THREE.Mesh(new THREE.TubeGeometry(cathCurve, 32, 0.045, 10, false), cathMat);
+      this.cathMat = new THREE.MeshBasicMaterial({
+        color: this.invertLut ? 0xe2e8f0 : 0x11151a,
+        transparent: true,
+        opacity: 0.96,
+      });
+      this.cathMesh = new THREE.Mesh(new THREE.TubeGeometry(cathCurve, 32, 0.045, 10, false), this.cathMat);
       this.anatomyGroup.add(this.cathMesh);
 
       // Dynamic Coronary Group (Subject to cardiac torsion & systolic deformation)
@@ -2887,23 +2976,10 @@
 
       // Myocardial Capillary Blush Shell
       const blushGeo = new THREE.SphereGeometry(0.85, 20, 16);
-      this.blushMat = new THREE.ShaderMaterial({
-        vertexShader: XRAY_VS,
-        fragmentShader: XRAY_FS,
-        uniforms: {
-          uIntensity: { value: 0.8 },
-          uContrastDensity: { value: 0.0 },
-          uCollimationRadius: { value: 0.46 },
-          uTime: { value: 0.0 },
-          uIsBone: { value: 0 },
-          uDsaMode: { value: 0 },
-          uMyocardialBlush: { value: 0.0 },
-          uVffrOverlay: { value: 0 },
-          uResolution: { value: new THREE.Vector2(800, 600) },
-          uInvertLut: { value: 0 },
-          uBolusFront: { value: 0.0 },
-        },
+      this.blushMat = new THREE.MeshBasicMaterial({
+        color: this.invertLut ? 0xe2e8f0 : 0x182028,
         transparent: true,
+        opacity: 0.0,
         depthWrite: false,
       });
       this.blushMesh = new THREE.Mesh(blushGeo, this.blushMat);
@@ -2912,7 +2988,7 @@
       this.blushMesh.visible = false;
       this.anatomyGroup.add(this.blushMesh);
 
-      // ── 3D Bypass Grafts Group (CABG Revascularization) ────────────────────
+      // ── 3D Bypass Grafts Group (CABG Revascularization - Authentic Radiopaque X-Ray) ───
       this.graftsGroup = new THREE.Group();
       // 1. LIMA -> mid-LAD anastomosis
       const limaCurve = new THREE.CatmullRomCurve3([
@@ -2921,8 +2997,12 @@
         new THREE.Vector3(-0.12, -0.10, 0.44),
         new THREE.Vector3(-0.02, -0.32, 0.45),
       ]);
-      const graftMat = new THREE.MeshBasicMaterial({ color: 0x38BDF8, transparent: true, opacity: 0.88 });
-      this.graftsGroup.add(new THREE.Mesh(new THREE.TubeGeometry(limaCurve, 28, 0.028, 8, false), graftMat));
+      this.graftMat = new THREE.MeshBasicMaterial({
+        color: this.invertLut ? 0xe2e8f0 : 0x1c242c,
+        transparent: true,
+        opacity: 0.88,
+      });
+      this.graftsGroup.add(new THREE.Mesh(new THREE.TubeGeometry(limaCurve, 28, 0.028, 8, false), this.graftMat));
 
       // 2. SVG -> OM1 anastomosis
       const svgOmCurve = new THREE.CatmullRomCurve3([
@@ -2930,7 +3010,7 @@
         new THREE.Vector3(-0.35, 0.65, -0.05),
         new THREE.Vector3(-0.68, -0.22, 0.05),
       ]);
-      this.graftsGroup.add(new THREE.Mesh(new THREE.TubeGeometry(svgOmCurve, 24, 0.032, 8, false), graftMat));
+      this.graftsGroup.add(new THREE.Mesh(new THREE.TubeGeometry(svgOmCurve, 24, 0.032, 8, false), this.graftMat));
 
       // 3. SVG -> PDA anastomosis
       const svgPdaCurve = new THREE.CatmullRomCurve3([
@@ -2938,37 +3018,43 @@
         new THREE.Vector3(0.38, 0.45, -0.15),
         new THREE.Vector3(0.18, -0.68, -0.32),
       ]);
-      this.graftsGroup.add(new THREE.Mesh(new THREE.TubeGeometry(svgPdaCurve, 24, 0.032, 8, false), graftMat));
+      this.graftsGroup.add(new THREE.Mesh(new THREE.TubeGeometry(svgPdaCurve, 24, 0.032, 8, false), this.graftMat));
       this.graftsGroup.visible = this.showBypassGrafts;
       this.anatomyGroup.add(this.graftsGroup);
 
-      // ── 3D TAVR Valve Prosthetic Frame & VTC Clearance Rays ────────────────
+      // ── 3D TAVR Valve Prosthetic Frame & VTC Clearance (Authentic Metallic Wireframe) ───
       this.tavrGroup = new THREE.Group();
       const tavrGeo = new THREE.CylinderGeometry(0.24, 0.24, 0.38, 16, 2, true);
-      const tavrMat = new THREE.MeshBasicMaterial({ color: 0xF59E0B, wireframe: true });
-      const tavrMesh = new THREE.Mesh(tavrGeo, tavrMat);
+      this.tavrMat = new THREE.MeshBasicMaterial({
+        color: this.invertLut ? 0xe2e8f0 : 0x14181f,
+        wireframe: true,
+      });
+      const tavrMesh = new THREE.Mesh(tavrGeo, this.tavrMat);
       tavrMesh.position.set(0.0, 0.45, 0.1);
       this.tavrGroup.add(tavrMesh);
+
+      this.vtcLineMat = new THREE.LineBasicMaterial({
+        color: this.invertLut ? 0x94a3b8 : 0x2a323d,
+        linewidth: 2,
+      });
 
       // VTC Clearance Ray to Left Main (LM VTC: 5.2 mm)
       const vtcLmGeo = new THREE.BufferGeometry().setFromPoints([
         new THREE.Vector3(0.0, 0.45, 0.1),
         new THREE.Vector3(-0.15, 0.35, 0.18),
       ]);
-      const vtcLmLine = new THREE.Line(vtcLmGeo, new THREE.LineBasicMaterial({ color: 0x10B981, linewidth: 2 }));
-      this.tavrGroup.add(vtcLmLine);
+      this.tavrGroup.add(new THREE.Line(vtcLmGeo, this.vtcLineMat));
 
       // VTC Clearance Ray to RCA Ostium (RCA VTC: 6.8 mm)
       const vtcRcaGeo = new THREE.BufferGeometry().setFromPoints([
         new THREE.Vector3(0.0, 0.45, 0.1),
         new THREE.Vector3(0.08, 0.42, 0.06),
       ]);
-      const vtcRcaLine = new THREE.Line(vtcRcaGeo, new THREE.LineBasicMaterial({ color: 0x10B981, linewidth: 2 }));
-      this.tavrGroup.add(vtcRcaLine);
+      this.tavrGroup.add(new THREE.Line(vtcRcaGeo, this.vtcLineMat));
       this.tavrGroup.visible = this.showTavrFrame;
       this.anatomyGroup.add(this.tavrGroup);
 
-      // ── 3D Interventional Devices (0.014" Guidewire & Stent Mesh) ──────────
+      // ── 3D Interventional Devices (0.014" Guidewire & Stent Mesh - Radiopaque) ──────────
       this.devicesGroup = new THREE.Group();
       // 0.014" Guidewire traversing through LAD
       const wireCurve = new THREE.CatmullRomCurve3([
@@ -2978,8 +3064,12 @@
         new THREE.Vector3(-0.12, -0.75, 0.35),
         new THREE.Vector3(-0.25, -1.25, 0.15),
       ]);
-      const wireMat = new THREE.MeshBasicMaterial({ color: 0x00E5FF });
-      this.wireMesh = new THREE.Mesh(new THREE.TubeGeometry(wireCurve, 40, 0.007, 6, false), wireMat);
+      this.wireMat = new THREE.MeshBasicMaterial({
+        color: this.invertLut ? 0xe2e8f0 : 0x151a22,
+        transparent: true,
+        opacity: 0.92,
+      });
+      this.wireMesh = new THREE.Mesh(new THREE.TubeGeometry(wireCurve, 40, 0.007, 6, false), this.wireMat);
       this.devicesGroup.add(this.wireMesh);
 
       // Stent diamond mesh deployed on mid-LAD lesion
@@ -2988,8 +3078,13 @@
         new THREE.Vector3(-0.02, -0.32, 0.45),
         new THREE.Vector3(-0.05, -0.44, 0.42),
       ]);
-      const stentMeshMat = new THREE.MeshBasicMaterial({ color: 0xFFD700, wireframe: true });
-      this.stentMesh = new THREE.Mesh(new THREE.TubeGeometry(stentCurve, 16, 0.038, 12, false), stentMeshMat);
+      this.stentMeshMat = new THREE.MeshBasicMaterial({
+        color: this.invertLut ? 0xcbd5e1 : 0x181e28,
+        wireframe: true,
+        transparent: true,
+        opacity: 0.92,
+      });
+      this.stentMesh = new THREE.Mesh(new THREE.TubeGeometry(stentCurve, 16, 0.038, 12, false), this.stentMeshMat);
       this.stentMesh.visible = this.isRevascularized;
       this.devicesGroup.add(this.stentMesh);
 
@@ -3054,8 +3149,30 @@
 
     setInvertLut(invert) {
       this.invertLut = !!invert;
+      if (this.bgDetectorMat) {
+        this.bgDetectorMat.uniforms.uInvertLut.value = this.invertLut ? 1 : 0;
+      }
+      if (this.boneMat) {
+        this.boneMat.uniforms.uInvertLut.value = this.invertLut ? 1 : 0;
+      }
+      if (this.vesselMat) {
+        this.vesselMat.uniforms.uInvertLut.value = this.invertLut ? 1 : 0;
+      }
+      if (this.cathMat) this.cathMat.color.setHex(this.invertLut ? 0xe2e8f0 : 0x11151a);
+      if (this.wireMat) this.wireMat.color.setHex(this.invertLut ? 0xe2e8f0 : 0x151a22);
+      if (this.stentMeshMat) this.stentMeshMat.color.setHex(this.invertLut ? 0xcbd5e1 : 0x181e28);
+      if (this.graftMat) this.graftMat.color.setHex(this.invertLut ? 0xe2e8f0 : 0x1c242c);
+      if (this.tavrMat) this.tavrMat.color.setHex(this.invertLut ? 0xe2e8f0 : 0x14181f);
+      if (this.vtcLineMat) this.vtcLineMat.color.setHex(this.invertLut ? 0x94a3b8 : 0x2a323d);
+      if (this.ghostMat) {
+        this.ghostMat.color.setHex(this.invertLut ? 0x94a3b8 : 0x242c34);
+        this.ghostMat.opacity = this.invertLut ? 0.10 : 0.18;
+      }
+      if (this.blushMat) {
+        this.blushMat.color.setHex(this.invertLut ? 0xe2e8f0 : 0x182028);
+      }
       if (this.scene) {
-        this.scene.background = new THREE.Color(this.invertLut ? 0xe5e7eb : 0x0a0d12);
+        this.scene.background = new THREE.Color(this.invertLut ? 0x06080b : 0x0b0e12);
       }
     }
 
@@ -3126,6 +3243,7 @@
       this.camera.aspect = width / height;
       this.camera.updateProjectionMatrix();
       this.renderer.setSize(width, height);
+      if (this.bgDetectorMat) this.bgDetectorMat.uniforms.uResolution.value.set(width, height);
       if (this.vesselMat) this.vesselMat.uniforms.uResolution.value.set(width, height);
       if (this.boneMat) this.boneMat.uniforms.uResolution.value.set(width, height);
       if (this.blushMat) this.blushMat.uniforms.uResolution.value.set(width, height);
@@ -3163,7 +3281,16 @@
           this.bolusFront = 0.0;
         }
 
-        // Resolution uniform updates
+        // Resolution & Detector background uniform updates
+        if (this.bgDetectorMat) {
+          this.bgDetectorMat.uniforms.uTime.value = nowSec;
+          this.bgDetectorMat.uniforms.uInvertLut.value = this.invertLut ? 1 : 0;
+          if (this.container) {
+            const w = this.container.clientWidth || 800;
+            const h = this.container.clientHeight || 600;
+            this.bgDetectorMat.uniforms.uResolution.value.set(w, h);
+          }
+        }
         if (this.container && this.vesselMat) {
           const w = this.container.clientWidth || 800;
           const h = this.container.clientHeight || 600;

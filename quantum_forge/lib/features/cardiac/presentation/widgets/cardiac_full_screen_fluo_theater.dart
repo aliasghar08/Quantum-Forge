@@ -941,21 +941,50 @@ class _CardiacFullScreenFluoTheaterState extends State<CardiacFullScreenFluoThea
                                 onPressed: () => setState(() => _showPipDetector = !_showPipDetector),
                               ),
 
-                              // LUT Invert Toggle
-                              IconButton(
-                                key: const Key('fluo_theater_invert_lut_button'),
-                                tooltip: _invertLut ? 'Switch to Inverted Fluoroscopy' : 'Switch to Direct X-Ray',
-                                icon: Icon(
-                                  _invertLut ? Icons.invert_colors_off_rounded : Icons.invert_colors_rounded,
-                                  size: 18,
-                                  color: Colors.white70,
+                              // LUT Invert Toggle Pill (Standard Grayscale | Inverted Cine)
+                              Tooltip(
+                                message: _invertLut
+                                    ? 'Inverted Cine (Dark Mode) — Click for Standard X-Ray'
+                                    : 'Standard Hospital X-Ray (Silver Phosphor) — Click for Inverted Cine',
+                                child: InkWell(
+                                  key: const Key('fluo_theater_invert_lut_button'),
+                                  onTap: () {
+                                    setState(() {
+                                      _invertLut = !_invertLut;
+                                      _syncBridge();
+                                    });
+                                  },
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3.5),
+                                    decoration: BoxDecoration(
+                                      color: _invertLut ? const Color(0xFF1E293B) : const Color(0xFFC4CCD4),
+                                      borderRadius: BorderRadius.circular(8),
+                                      border: Border.all(
+                                        color: _invertLut ? const Color(0xFF475569) : const Color(0xFF94A3B8),
+                                      ),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(
+                                          _invertLut ? Icons.dark_mode_rounded : Icons.wb_sunny_rounded,
+                                          size: 13,
+                                          color: _invertLut ? const Color(0xFF38BDF8) : const Color(0xFF0F172A),
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          _invertLut ? 'Inverted Cine' : 'Standard X-Ray',
+                                          style: TextStyle(
+                                            color: _invertLut ? const Color(0xFFE2E8F0) : const Color(0xFF0F172A),
+                                            fontSize: 9.5,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
                                 ),
-                                onPressed: () {
-                                  setState(() {
-                                    _invertLut = !_invertLut;
-                                    _syncBridge();
-                                  });
-                                },
                               ),
 
                               // Exit Button
@@ -1537,8 +1566,8 @@ class _FullScreenFluoAngioPainter extends CustomPainter {
 
     // 1. Background Fluoroscopic Phosphor Screen
     final bgColors = invertLut
-        ? [const Color(0xFF1E293B), const Color(0xFF0F172A), Colors.black]
-        : [const Color(0xFFB0BEC5), const Color(0xFF78909C), const Color(0xFF37474F)];
+        ? [const Color(0xFF1E293B), const Color(0xFF0F172A), const Color(0xFF06080B)]
+        : [const Color(0xFFC4CCD4), const Color(0xFF687078), const Color(0xFF0B0E12)];
 
     final bgPaint = Paint()
       ..shader = RadialGradient(
@@ -1896,7 +1925,7 @@ class _FullScreenFluoAngioPainter extends CustomPainter {
     if (isRevascularized) {
       // Radiopaque Stent Diamond Mesh
       final stentPaint = Paint()
-        ..color = invertLut ? const Color(0xFFFFD700) : const Color(0xFFB45309)
+        ..color = invertLut ? const Color(0xFFCBD5E1) : const Color(0xFF181E28)
         ..style = PaintingStyle.stroke
         ..strokeWidth = 2.2 * s;
       canvas.drawLine(pLAD1, pLAD2, stentPaint);
