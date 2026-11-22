@@ -41,17 +41,17 @@
     uniform vec2 uResolution;
     uniform float uCollimationRadius;
     uniform float uTime;
+    varying vec2 vUv;
 
     float rand(vec2 co) {
       return fract(sin(dot(co.xy, vec2(12.9898, 78.233))) * 43758.5453);
     }
 
     void main() {
-      vec2 res = (uResolution.x > 0.0 && uResolution.y > 0.0) ? uResolution : vec2(800.0, 600.0);
-      vec2 screenUv = gl_FragCoord.xy / res;
-      float aspect = res.x / res.y;
-      vec2 aspectUv = vec2((screenUv.x - 0.5) * aspect + 0.5, screenUv.y);
-      float dist = distance(aspectUv, vec2(0.5, 0.5));
+      float aspect = (uResolution.y > 0.0) ? (uResolution.x / uResolution.y) : 1.0;
+      vec2 uvDist = vUv - vec2(0.5);
+      uvDist.x *= aspect;
+      float dist = length(uvDist);
 
       // Quantum mottle detector noise
       float noise = (rand(gl_FragCoord.xy + fract(uTime)) - 0.5) * 0.026;
@@ -2727,15 +2727,18 @@
         uniforms: {
           uInvertLut: { value: this.invertLut ? 1 : 0 },
           uResolution: { value: new THREE.Vector2(width, height) },
-          uCollimationRadius: { value: 0.46 },
+          uCollimationRadius: { value: 0.48 },
           uTime: { value: 0.0 },
         },
         depthWrite: false,
         depthTest: false,
       });
-      const bgGeo = new THREE.PlaneGeometry(30, 30);
+      const bgGeo = new THREE.PlaneGeometry(1, 1);
       this.bgDetectorMesh = new THREE.Mesh(bgGeo, this.bgDetectorMat);
       this.bgDetectorMesh.position.set(0, 0, -9.0);
+      const fH = 2.0 * 9.0 * Math.tan((36.0 * Math.PI / 180.0) / 2.0);
+      const fW = fH * (width / height);
+      this.bgDetectorMesh.scale.set(fW, fH, 1.0);
       this.bgDetectorMesh.renderOrder = -100;
       this.camera.add(this.bgDetectorMesh);
       this.scene.add(this.camera);
@@ -3243,6 +3246,9 @@
       this.camera.aspect = width / height;
       this.camera.updateProjectionMatrix();
       this.renderer.setSize(width, height);
+      const fH = 2.0 * 9.0 * Math.tan((36.0 * Math.PI / 180.0) / 2.0);
+      const fW = fH * (width / height);
+      if (this.bgDetectorMesh) this.bgDetectorMesh.scale.set(fW, fH, 1.0);
       if (this.bgDetectorMat) this.bgDetectorMat.uniforms.uResolution.value.set(width, height);
       if (this.vesselMat) this.vesselMat.uniforms.uResolution.value.set(width, height);
       if (this.boneMat) this.boneMat.uniforms.uResolution.value.set(width, height);
