@@ -315,6 +315,23 @@ class _CardiacFullScreenFluoTheaterState extends State<CardiacFullScreenFluoThea
   }
 
   @override
+  void didUpdateWidget(CardiacFullScreenFluoTheater oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if ((widget.contrastIntensity > 0.05 && oldWidget.contrastIntensity <= 0.05) ||
+        (widget.isInjecting && !oldWidget.isInjecting)) {
+      _threeBridge?.injectContrast();
+    }
+    if (widget.laoRaoAngle != oldWidget.laoRaoAngle ||
+        widget.cranCaudAngle != oldWidget.cranCaudAngle ||
+        widget.dominance != oldWidget.dominance ||
+        widget.isRevascularized != oldWidget.isRevascularized) {
+      _laoRaoAngle = widget.laoRaoAngle;
+      _cranCaudAngle = widget.cranCaudAngle;
+      _syncBridge();
+    }
+  }
+
+  @override
   void dispose() {
     _cineAnimController.dispose();
     _focusNode.dispose();
@@ -1457,6 +1474,7 @@ class _CardiacFullScreenFluoTheaterState extends State<CardiacFullScreenFluoThea
 
                       // Inject Dye Button
                       ElevatedButton.icon(
+                        key: const Key('fluo_theater_inject_contrast_button'),
                         icon: Icon(
                           widget.isInjecting ? Icons.water_drop_rounded : Icons.colorize_rounded,
                           size: 14,
@@ -1468,7 +1486,10 @@ class _CardiacFullScreenFluoTheaterState extends State<CardiacFullScreenFluoThea
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                           textStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
                         ),
-                        onPressed: widget.onInjectContrast,
+                        onPressed: () {
+                          widget.onInjectContrast();
+                          _threeBridge?.injectContrast();
+                        },
                       ),
 
                       // Simulate PCI Stent
