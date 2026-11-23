@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Circle of Willis Hemodynamics & Ischemic Penumbra — Quantum Forge Guides</title>
+  <meta name="description" content="Clinical neurovascular monograph on Circle of Willis anatomical variants, myogenic and chemical cerebral autoregulation, fluid dynamic collateral rerouting, and ischemic penumbra perfusion kinetics.">
+  <meta name="author" content="Ali Asghar">
+  <meta name="copyright" content="Copyright © 2026 Ali Asghar. All Rights Reserved.">
+  <link rel="icon" type="image/png" href="../favicon.png">
+  <meta name="google-adsense-account" content="ca-pub-9402443776639153">
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9402443776639153" crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=AW-16732994716"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'AW-16732994716');
+  </script>
+  <style>
+    :root {
+      --bg: #090D16;
+      --card-bg: #111827;
+      --card-border: #1F2937;
+      --primary: #00E5FF;
+      --accent: #00BFA5;
+      --text: #F3F4F6;
+      --text-muted: #9CA3AF;
+      --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background-color: var(--bg); color: var(--text); font-family: var(--font-family); line-height: 1.8; }
+    header { background: rgba(17, 24, 39, 0.85); backdrop-filter: blur(12px); border-bottom: 1px solid var(--card-border); position: sticky; top: 0; z-index: 50; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
+    .logo-container { display: flex; align-items: center; gap: 0.75rem; text-decoration: none; color: var(--text); }
+    .logo-badge { background: linear-gradient(135deg, #00BFA5, #00E5FF); color: #090D16; font-weight: 800; font-size: 1.1rem; padding: 0.25rem 0.6rem; border-radius: 6px; }
+    .logo-title { font-weight: 700; font-size: 1.25rem; letter-spacing: -0.025em; }
+    nav { display: flex; gap: 1.25rem; align-items: center; flex-wrap: wrap; }
+    nav a { color: var(--text-muted); text-decoration: none; font-size: 0.95rem; font-weight: 500; transition: color 0.2s; }
+    nav a:hover, nav a.active { color: var(--primary); }
+    .container { max-width: 900px; margin: 2rem auto; padding: 0 1.5rem; }
+    .breadcrumbs { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.5rem; }
+    .breadcrumbs a { color: var(--text-muted); text-decoration: none; }
+    .breadcrumbs a:hover { color: var(--primary); }
+    article { background-color: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; padding: 2.5rem; margin-bottom: 2rem; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4); }
+    h1 { font-size: 2.2rem; font-weight: 800; background: linear-gradient(135deg, #FFFFFF 0%, #00E5FF 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 1rem; line-height: 1.3; }
+    .meta-bar { display: flex; gap: 1.5rem; font-size: 0.85rem; color: var(--text-muted); border-bottom: 1px solid var(--card-border); padding-bottom: 1rem; margin-bottom: 2rem; flex-wrap: wrap; }
+    h2 { color: #FFFFFF; font-size: 1.4rem; margin: 2rem 0 1rem; border-bottom: 1px solid var(--card-border); padding-bottom: 0.4rem; }
+    h3 { color: var(--primary); font-size: 1.15rem; margin: 1.5rem 0 0.5rem; }
+    p { margin-bottom: 1.2rem; color: #D1D5DB; }
+    ul, ol { margin: 0 0 1.5rem 1.75rem; color: #D1D5DB; }
+    li { margin-bottom: 0.5rem; }
+    strong { color: #FFFFFF; }
+    table { width: 100%; border-collapse: collapse; margin: 1.5rem 0; font-size: 0.9rem; }
+    th, td { border: 1px solid var(--card-border); padding: 0.75rem 1rem; text-align: left; }
+    th { background: rgba(15, 23, 42, 0.8); color: var(--primary); font-weight: 600; }
+    td { background: rgba(17, 24, 39, 0.4); }
+    .math-block { background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(0, 229, 255, 0.2); border-radius: 8px; padding: 1rem 1.25rem; font-family: "Courier New", Courier, monospace; color: #67E8F9; margin: 1.5rem 0; overflow-x: auto; }
+    .callout { background: rgba(0, 191, 165, 0.08); border-left: 4px solid var(--accent); padding: 1.25rem; border-radius: 0 8px 8px 0; margin: 1.75rem 0; }
+    .callout h4 { color: var(--accent); margin-bottom: 0.5rem; font-size: 1rem; }
+    .callout p { margin: 0; color: #E5E7EB; }
+    .interactive-card { background: linear-gradient(135deg, rgba(0, 191, 165, 0.15) 0%, rgba(0, 229, 255, 0.15) 100%); border: 1px solid rgba(0, 229, 255, 0.3); border-radius: 8px; padding: 1.5rem; margin: 2rem 0; text-align: center; }
+    .interactive-card h4 { color: #FFFFFF; margin-bottom: 0.5rem; font-size: 1.1rem; }
+    .interactive-card p { color: #D1D5DB; margin-bottom: 1rem; font-size: 0.95rem; }
+    .interactive-card a { display: inline-block; background: linear-gradient(135deg, var(--accent), var(--primary)); color: #090D16; font-weight: 700; padding: 0.6rem 1.25rem; border-radius: 6px; text-decoration: none; transition: opacity 0.2s; }
+    .interactive-card a:hover { opacity: 0.9; }
+    .references { font-size: 0.85rem; color: var(--text-muted); border-top: 1px solid var(--card-border); padding-top: 1.5rem; margin-top: 2rem; }
+    .references ol { margin-left: 1.25rem; }
+    .references a { color: var(--primary); text-decoration: none; }
+    .references a:hover { text-decoration: underline; }
+    footer { background: #060911; border-top: 1px solid var(--card-border); padding: 2.5rem 1.5rem; text-align: center; font-size: 0.85rem; color: var(--text-muted); }
+    .footer-links { display: flex; justify-content: center; gap: 1.5rem; margin-bottom: 1rem; flex-wrap: wrap; }
+    .footer-links a { color: var(--text-muted); text-decoration: none; transition: color 0.2s; }
+    .footer-links a:hover { color: var(--primary); }
+  </style>
+</head>
+<body>
+
+  <header>
+    <a href="/" class="logo-container">
+      <div class="logo-badge">QF</div>
+      <div class="logo-title">Quantum Forge</div>
+    </a>
+    <nav>
+      <a href="/">Interactive 3D Lab</a>
+      <a href="/guides/" class="active">Scientific Guides</a>
+      <a href="/about.html">About</a>
+      <a href="/contact.html">Contact</a>
+      <a href="/privacy.html">Privacy Policy</a>
+      <a href="/terms.html">Terms</a>
+    </nav>
+  </header>
+
+  <div class="container">
+    <div class="breadcrumbs">
+      <a href="/">Home</a> &rarr; <a href="/guides/">Guides</a> &rarr; <span>Cerebral Autoregulation, Circle of Willis Collateral Flow & Ischemic Penumbra Pathophysiology</span>
+    </div>
+
+    <article>
+      <h1>Cerebral Autoregulation, Circle of Willis Collateral Flow & Ischemic Penumbra Pathophysiology</h1>
+      <div class="meta-bar">
+        <span><strong>Author:</strong> Ali Asghar</span>
+        <span><strong>Category:</strong> Neurovascular Physiology & Hemodynamics</span>
+        <span><strong>Est. Read Time:</strong> 15 min read</span>
+        <span><strong>Updated:</strong> November 2026</span>
+      </div>
+
+
+      <h2>1. Neurovascular Architecture: The Circle of Willis Polygon</h2>
+      <p>
+        The human brain represents approximately 2% of total body mass, yet demands roughly 15% of resting cardiac output and consumes &gt;20% of total basal body oxygen and glucose. Because cerebral neural tissue possesses negligible intracellular glycogen reserves and cannot tolerate ischemic hypoxia for more than a few minutes, cerebral blood flow (CBF) requires extraordinary anatomical redundancy and physiological autoregulation.
+      </p>
+      <p>
+        This arterial redundancy is embodied by the <strong>Circle of Willis (Circulus Arteriosus Cerebri)</strong>, a heptagonal anastomotic ring situated at the base of the brain in the interpeduncular cistern. The polygon links the anterior anterior-carotid circulation with the posterior vertebrobasilar circulation through specific anastomotic conduit vessels:
+      </p>
+      <ul>
+        <li><strong>Anterior Communicating Artery (ACoA):</strong> A short transverse bridging vessel connecting the bilateral A1 segments of the <strong>Anterior Cerebral Arteries (ACA)</strong>.</li>
+        <li><strong>Internal Carotid Arteries (ICA):</strong> Enter the skull base via the carotid canals, emerging into the middle cranial fossa to bifurcate into the Middle Cerebral Artery (MCA) and ACA.</li>
+        <li><strong>Posterior Communicating Arteries (PCoA):</strong> Connect the terminal ICA on each side to the ipsilateral P1 segment of the <strong>Posterior Cerebral Artery (PCA)</strong>.</li>
+        <li><strong>Basilar Artery:</strong> Formed by the confluence of the bilateral vertebral arteries at the pontomedullary junction, ascending along the clivus to divide into the bilateral P1 segments of the PCA.</li>
+      </ul>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Willisian Anatomy Configuration</th>
+            <th>Prevalence in Healthy Population</th>
+            <th>Hemodynamic Collateral Capacity</th>
+            <th>Stroke Vulnerability</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Complete Symmetrical Polygon</strong></td>
+            <td><strong>35 – 45%</strong></td>
+            <td>Optimal; instantaneous flow reversal through ACoA and PCoA maintains distal MCA perfusion during acute ICA occlusion.</td>
+            <td>Low; high tolerance to unilateral high-grade carotid stenosis.</td>
+          </tr>
+          <tr>
+            <td><strong>Hypoplastic / Absent PCoA</strong></td>
+            <td><strong>25 – 35%</strong> (Unilateral or bilateral)</td>
+            <td>Severely impaired anterior-to-posterior cross-talk; isolates posterior fossa from carotid inflow.</td>
+            <td>High vulnerability to PCA watershed infarctions if basilar stenosis occurs.</td>
+          </tr>
+          <tr>
+            <td><strong>Hypoplastic / Absent A1 Segment</strong></td>
+            <td><strong>7 – 10%</strong></td>
+            <td>Contralateral ICA supplies bilateral distal ACA territories via the ACoA.</td>
+            <td>Occlusion of the dominant ICA precipitates bilateral anterior cerebral infarction (paraplegia, abulia).</td>
+          </tr>
+          <tr>
+            <td><strong>Fetal-Type Posterior Cerebral Artery (fPCA)</strong></td>
+            <td><strong>15 – 25%</strong> (PCA arises directly from ICA; P1 absent)</td>
+            <td>Posterior cerebral circulation is entirely dependent on internal carotid inflow rather than basilar flow.</td>
+            <td>Carotid thromboembolism can cause simultaneous MCA and occipital lobe PCA infarctions.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h2>2. Cerebral Autoregulation: Myogenic & Metabolic Mechanisms</h2>
+      <p>
+        Under physiological conditions, global <strong>Cerebral Blood Flow (CBF)</strong> is maintained at a remarkably steady rate of approximately <strong>50 mL per 100 grams of brain tissue per minute</strong> (corresponding to ~750 mL/min for a standard 1,400 g adult brain). This constant perfusion is preserved across wide fluctuations in <strong>Cerebral Perfusion Pressure (CPP)</strong>, defined as:
+      </p>
+
+      <div class="math-block">
+        CPP = MAP - ICP (or CVP, whichever is higher)<br><br>
+        [Poiseuille Flow Equation applied to Cerebrovascular Beds]:<br>
+        CBF = CPP / CVR = ( MAP - ICP ) / ( ( 8 &middot; &eta; &middot; L ) / ( &pi; &middot; r^4 ) )
+      </div>
+
+      <p>
+        The classic <strong>Lassen Autoregulatory Curve</strong> demonstrates that CBF remains constant across Mean Arterial Pressures (MAP) ranging from approximately <strong>60 to 150 mmHg</strong>. This is achieved by dynamically adjusting <strong>Cerebrovascular Resistance (CVR)</strong> through two primary mechanisms:
+      </p>
+
+      <h3>1. The Myogenic Response (Bayliss Effect)</h3>
+      <p>
+        Vascular smooth muscle cells (VSMCs) in cerebral pial and penetrating parenchymal arterioles possess stretch-activated non-selective cation channels (TRPC6, Piezo1). When systemic blood pressure rises, the resulting stretch of the arterial wall activates these channels, causing extracellular Ca<sup>2+</sup> influx and membrane depolarization. This opens L-type voltage-gated calcium channels, promoting calmodulin-dependent Myosin Light Chain Kinase (MLCK) phosphorylation and rapid arteriolar vasoconstriction.
+      </p>
+      <p>
+        Because resistance varies inversely with the fourth power of the vessel radius ($R \propto 1/r^4$), subtle vasoconstriction steeply increases CVR, keeping CBF flat. Conversely, when perfusion pressure drops toward 60 mmHg, myogenic tone is abolished, inducing maximal precapillary arteriolar vasodilation to protect downstream capillary perfusion.
+      </p>
+
+      <h3>2. Chemical & Metabolic Coupling (pCO2 & pH)</h3>
+      <p>
+        Cerebral arterioles are exquisitely sensitive to arterial carbon dioxide tension (PaCO2). Carbon dioxide diffuses freely across the blood-brain barrier into the perivascular space, where it hydrates to form carbonic acid and dissociates into H<sup>+</sup> and HCO<sub>3</sub><sup>-</sup>:
+      </p>
+      <ul>
+        <li><strong>Hypercapnia (PaCO2 &gt; 45 mmHg):</strong> Local perivascular acidosis hyperpolarizes smooth muscle membranes via ATP-sensitive potassium channels (K<sub>ATP</sub>), inducing profound arteriolar vasodilation. CBF changes by roughly <strong>2 to 4% for every 1 mmHg change in PaCO2</strong>.</li>
+        <li><strong>Hypocapnia (PaCO2 &lt; 35 mmHg):</strong> Alkalosis induces marked cerebral vasoconstriction. Hyperventilation is utilized clinically in neurotrauma for acute, short-term reduction of elevated Intracranial Pressure (ICP), but must be applied cautiously to prevent iatrogenic cerebral ischemia.</li>
+      </ul>
+
+      <h2>3. Collateral Fluid Dynamics: Leptomeningeal Anastomoses</h2>
+      <p>
+        When an acute embolic occlusion occludes a major cerebral trunk—such as the proximal M1 segment of the Middle Cerebral Artery—the Circle of Willis polygon cannot deliver retrograde flow directly into the obstructed branch. Perfusion of the threatened territory now relies on secondary collateral pathways: <strong>Leptomeningeal (pial) Anastomoses</strong> (the Collaterals of Heubner).
+      </p>
+      <p>
+        These are small-caliber (diameter 100–300 &mu;m) bridging vessels linking the distal cortical branches of the ACA and PCA with distal terminal branches of the MCA over the hemispheric convexities. The driving force for collateral flow is governed by the trans-ischemic pressure gradient:
+      </p>
+
+      <div class="math-block">
+        &Delta;P_collateral = P_ACA/PCA (systemic pressure) - P_MCA_distal (near zero distal to clot)
+      </div>
+
+      <p>
+        If robust leptomeningeal collaterals are recruited, retrograde blood flow slows the expansion of the irreversible ischemic core, buying critical hours for acute mechanical thrombectomy or intravenous thrombolysis.
+      </p>
+
+      <h2>4. The Ischemic Penumbra: Perfusion Thresholds & Neuronal Viability</h2>
+      <p>
+        In acute focal ischemic stroke, the affected brain parenchyma is divided into two distinct pathophysiological zones: the <strong>Ischemic Core</strong> and the surrounding <strong>Ischemic Penumbra</strong> (Astrup concept):
+      </p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Perfusion Zone</th>
+            <th>CBF Threshold (mL / 100g / min)</th>
+            <th>Cellular Bioenergetics & Electrophysiology</th>
+            <th>Clinical Outcome & Reversibility</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Normal Tissue</strong></td>
+            <td><strong>&gt; 50</strong></td>
+            <td>Normal aerobic oxidative phosphorylation; intact ATP synthesis; resting membrane potential -70 mV.</td>
+            <td>Physiologically functional.</td>
+          </tr>
+          <tr>
+            <td><strong>Oligemia</strong></td>
+            <td><strong>22 – 50</strong></td>
+            <td>Mild hypoperfusion; oxygen extraction fraction (OEF) increases; neuronal firing remains intact.</td>
+            <td>No structural damage; tissue will not infarct even without reperfusion.</td>
+          </tr>
+          <tr>
+            <td><strong>Ischemic Penumbra</strong></td>
+            <td><strong>12 – 20</strong></td>
+            <td><strong>Electrical Failure:</strong> Neurons cease synaptic transmission to conserve energy (loss of EEG/evoked potentials); ATP stores preserved at ~50%; Na+/K+ ATPase pumps remain partially functional.</td>
+            <td><strong>Structurally salvageable!</strong> Reperfusion restores normal neurological function. If untreated, will progress into core infarction within 6 to 24 hours.</td>
+          </tr>
+          <tr>
+            <td><strong>Ischemic Core</strong></td>
+            <td><strong>&lt; 10 – 12</strong></td>
+            <td><strong>Membrane & Bioenergetic Collapse:</strong> Complete ATP depletion (&lt;5%); failure of Na+/K+ ATPase; massive Na+ and Ca2+ influx; anoxic depolarization; cytotoxic edema; calpain/caspase activation; necrosis.</td>
+            <td><strong>Irreversible cell death</strong> occurring within minutes of complete ischemia. Cannot be salvaged by reperfusion.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Cytotoxic Edema & Anoxic Depolarization</h3>
+      <p>
+        When CBF drops below 10 mL/100g/min, the cessation of oxidative phosphorylation abolishes mitochondrial ATP synthesis. Without ATP, the <strong>Na<sup>+</sup>/K<sup>+</sup>-ATPase pump</strong> stalls. Intracellular sodium accumulates, destroying the transmembrane electrochemical gradient. Chloride and water rush into the neuron down osmotic gradients, precipitating <strong>Cytotoxic Edema</strong> (characterized on MRI by restricted diffusion with hyperintensity on DWI and hypointensity on ADC maps).
+      </p>
+      <p>
+        Simultaneously, unbuffered calcium influx triggers massive vesicular release of <strong>Glutamate</strong> into the synaptic cleft. Inability of astrocytic glutamate reuptake transporters (EAAT2) to clear glutamate produces catastrophic <strong>Excitotoxicity</strong>, over-activating postsynaptic NMDA and AMPA receptors, triggering enzymatic auto-digestion by calpains, endonucleases, and phospholipase A2. For systemic microvascular fluid principles, review our guide on <a href="/guides/coronary-bifurcation-ffr-hemodynamics.html">Coronary Bifurcation FFR & Hemodynamics</a>.
+      </p>
+
+      <div class="interactive-card">
+        <h4>Explore 3D Neurovascular & Willisian Models</h4>
+        <p>Inspect the internal carotid bifurcation, Circle of Willis polygon variants, and cerebral autoregulation curves in the live Quantum Forge 3D Workstation.</p>
+        <a href="/">Launch 3D Workstation &rarr;</a>
+      </div>
+
+
+      <div class="references">
+        <h2>References & Peer-Reviewed Literature</h2>
+        <ol>
+          <li>Alastruey, J., et al. (2007). Modelling the circle of Willis to assess the effects of anatomical variations on cerebral perfusion. <em>J. Biomech.</em>, 40(8), 1794–1805. <a href="https://doi.org/10.1016/j.jbiomech.2006.07.008" target="_blank" rel="noopener">doi:10.1016/j.jbiomech.2006.07.008</a></li>
+          <li>Astrup, J., Siesjo, B. K., & Symon, L. (1981). Thresholds in cerebral ischemia - the ischemic penumbra. <em>Stroke</em>, 12(6), 723–725. <a href="https://doi.org/10.1161/01.str.12.6.723" target="_blank" rel="noopener">doi:10.1161/01.str.12.6.723</a></li>
+          <li>Donnan, G. A., & Davis, S. M. (2002). The ischemic penumbra: pathophysiology and medical therapeutic approach. <em>Curr. Atheroscler. Rep.</em>, 4(4), 278–285. <a href="https://doi.org/10.1007/s11883-002-0006-2" target="_blank" rel="noopener">doi:10.1007/s11883-002-0006-2</a></li>
+          <li>Liebeskind, D. S. (2003). Collateral circulation. <em>Stroke</em>, 34(9), 2279–2284. <a href="https://doi.org/10.1161/01.STR.0000086465.41263.06" target="_blank" rel="noopener">doi:10.1161/01.STR.0000086465.41263.06</a></li>
+        </ol>
+      </div>
+    </article>
+
+    <aside aria-label="Recommended Study Resources" class="study-resources-card" style="background: rgba(17, 24, 39, 0.85); border: 1px solid #1F2937; border-radius: 12px; padding: 1.5rem 1.75rem; margin-top: 2rem; margin-bottom: 2rem; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);">
+      <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.85rem; border-bottom: 1px solid #1F2937; padding-bottom: 0.6rem;">
+        <span style="font-weight: 700; color: #00E5FF; font-size: 0.95rem; letter-spacing: 0.03em; display: flex; align-items: center; gap: 0.5rem;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: #00BFA5;"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+          Recommended Curriculum Study Resource
+        </span>
+        <span style="font-size: 0.78rem; color: #9CA3AF; font-style: italic;">Verified Educational Reference</span>
+      </div>
+      <div>
+        <h3 style="margin: 0 0 0.4rem; font-size: 1.15rem; color: #FFFFFF;">
+          <a href="https://link.amazon/B05IasrT1" rel="nofollow sponsored noopener" target="_blank" style="color: #00E5FF; text-decoration: none;">Guyton and Hall Textbook of Medical Physiology (14th Ed.) &rarr;</a>
+        </h3>
+        <p style="margin: 0 0 0.8rem; font-size: 0.92rem; color: #D1D5DB; line-height: 1.55;">
+          Foundational textbook on systemic hemodynamics, renal clearance, microvascular Starling forces, and respiratory gas exchange.
+        </p>
+        <p style="margin: 0; font-size: 0.78rem; color: #9CA3AF; line-height: 1.4; border-top: 1px dashed #1F2937; padding-top: 0.6rem;">
+          Disclosure: As an Amazon Associate, Quantum Forge earns from qualifying purchases at no extra cost to you.
+        </p>
+      </div>
+    </aside>
+  </div>
+
+  <footer>
+    <div class="footer-links">
+      <a href="/">Launch 3D Lab</a>
+      <a href="/guides/">All Scientific Guides</a>
+      <a href="/about.html">About</a>
+      <a href="/contact.html">Contact</a>
+      <a href="/privacy.html">Privacy Policy</a>
+      <a href="/terms.html">Terms of Service</a>
+      <a href="/sitemap.xml">Sitemap (XML)</a>
+    </div>
+    <p>Copyright &copy; 2026 Ali Asghar. All Rights Reserved. Educational Simulation Only &mdash; Not for Medical Care.</p>
+  </footer>
+
+</body>
+</html>

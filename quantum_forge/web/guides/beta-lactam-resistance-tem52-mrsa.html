@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Beta-Lactam Antibiotics & Resistance: PBP2a & ESBL — Quantum Forge Guides</title>
+  <meta name="description" content="Detailed structural biochemistry monograph on beta-lactam transpeptidase inhibition, PBP2a allosteric resistance in MRSA (mecA), Class A-D beta-lactamases, and next-generation diazabicyclooctane inhibitors.">
+  <meta name="author" content="Ali Asghar">
+  <meta name="copyright" content="Copyright © 2026 Ali Asghar. All Rights Reserved.">
+  <link rel="icon" type="image/png" href="../favicon.png">
+  <meta name="google-adsense-account" content="ca-pub-9402443776639153">
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9402443776639153" crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=AW-16732994716"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'AW-16732994716');
+  </script>
+  <style>
+    :root {
+      --bg: #090D16;
+      --card-bg: #111827;
+      --card-border: #1F2937;
+      --primary: #00E5FF;
+      --accent: #00BFA5;
+      --text: #F3F4F6;
+      --text-muted: #9CA3AF;
+      --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background-color: var(--bg); color: var(--text); font-family: var(--font-family); line-height: 1.8; }
+    header { background: rgba(17, 24, 39, 0.85); backdrop-filter: blur(12px); border-bottom: 1px solid var(--card-border); position: sticky; top: 0; z-index: 50; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
+    .logo-container { display: flex; align-items: center; gap: 0.75rem; text-decoration: none; color: var(--text); }
+    .logo-badge { background: linear-gradient(135deg, #00BFA5, #00E5FF); color: #090D16; font-weight: 800; font-size: 1.1rem; padding: 0.25rem 0.6rem; border-radius: 6px; }
+    .logo-title { font-weight: 700; font-size: 1.25rem; letter-spacing: -0.025em; }
+    nav { display: flex; gap: 1.25rem; align-items: center; flex-wrap: wrap; }
+    nav a { color: var(--text-muted); text-decoration: none; font-size: 0.95rem; font-weight: 500; transition: color 0.2s; }
+    nav a:hover, nav a.active { color: var(--primary); }
+    .container { max-width: 900px; margin: 2rem auto; padding: 0 1.5rem; }
+    .breadcrumbs { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.5rem; }
+    .breadcrumbs a { color: var(--text-muted); text-decoration: none; }
+    .breadcrumbs a:hover { color: var(--primary); }
+    article { background-color: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; padding: 2.5rem; margin-bottom: 2rem; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4); }
+    h1 { font-size: 2.2rem; font-weight: 800; background: linear-gradient(135deg, #FFFFFF 0%, #00E5FF 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 1rem; line-height: 1.3; }
+    .meta-bar { display: flex; gap: 1.5rem; font-size: 0.85rem; color: var(--text-muted); border-bottom: 1px solid var(--card-border); padding-bottom: 1rem; margin-bottom: 2rem; flex-wrap: wrap; }
+    h2 { color: #FFFFFF; font-size: 1.4rem; margin: 2rem 0 1rem; border-bottom: 1px solid var(--card-border); padding-bottom: 0.4rem; }
+    h3 { color: var(--primary); font-size: 1.15rem; margin: 1.5rem 0 0.5rem; }
+    p { margin-bottom: 1.2rem; color: #D1D5DB; }
+    ul, ol { margin: 0 0 1.5rem 1.75rem; color: #D1D5DB; }
+    li { margin-bottom: 0.5rem; }
+    strong { color: #FFFFFF; }
+    table { width: 100%; border-collapse: collapse; margin: 1.5rem 0; font-size: 0.9rem; }
+    th, td { border: 1px solid var(--card-border); padding: 0.75rem 1rem; text-align: left; }
+    th { background: rgba(15, 23, 42, 0.8); color: var(--primary); font-weight: 600; }
+    td { background: rgba(17, 24, 39, 0.4); }
+    .math-block { background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(0, 229, 255, 0.2); border-radius: 8px; padding: 1rem 1.25rem; font-family: "Courier New", Courier, monospace; color: #67E8F9; margin: 1.5rem 0; overflow-x: auto; }
+    .callout { background: rgba(0, 191, 165, 0.08); border-left: 4px solid var(--accent); padding: 1.25rem; border-radius: 0 8px 8px 0; margin: 1.75rem 0; }
+    .callout h4 { color: var(--accent); margin-bottom: 0.5rem; font-size: 1rem; }
+    .callout p { margin: 0; color: #E5E7EB; }
+    .interactive-card { background: linear-gradient(135deg, rgba(0, 191, 165, 0.15) 0%, rgba(0, 229, 255, 0.15) 100%); border: 1px solid rgba(0, 229, 255, 0.3); border-radius: 8px; padding: 1.5rem; margin: 2rem 0; text-align: center; }
+    .interactive-card h4 { color: #FFFFFF; margin-bottom: 0.5rem; font-size: 1.1rem; }
+    .interactive-card p { color: #D1D5DB; margin-bottom: 1rem; font-size: 0.95rem; }
+    .interactive-card a { display: inline-block; background: linear-gradient(135deg, var(--accent), var(--primary)); color: #090D16; font-weight: 700; padding: 0.6rem 1.25rem; border-radius: 6px; text-decoration: none; transition: opacity 0.2s; }
+    .interactive-card a:hover { opacity: 0.9; }
+    .references { font-size: 0.85rem; color: var(--text-muted); border-top: 1px solid var(--card-border); padding-top: 1.5rem; margin-top: 2rem; }
+    .references ol { margin-left: 1.25rem; }
+    .references a { color: var(--primary); text-decoration: none; }
+    .references a:hover { text-decoration: underline; }
+    footer { background: #060911; border-top: 1px solid var(--card-border); padding: 2.5rem 1.5rem; text-align: center; font-size: 0.85rem; color: var(--text-muted); }
+    .footer-links { display: flex; justify-content: center; gap: 1.5rem; margin-bottom: 1rem; flex-wrap: wrap; }
+    .footer-links a { color: var(--text-muted); text-decoration: none; transition: color 0.2s; }
+    .footer-links a:hover { color: var(--primary); }
+  </style>
+</head>
+<body>
+
+  <header>
+    <a href="/" class="logo-container">
+      <div class="logo-badge">QF</div>
+      <div class="logo-title">Quantum Forge</div>
+    </a>
+    <nav>
+      <a href="/">Interactive 3D Lab</a>
+      <a href="/guides/" class="active">Scientific Guides</a>
+      <a href="/about.html">About</a>
+      <a href="/contact.html">Contact</a>
+      <a href="/privacy.html">Privacy Policy</a>
+      <a href="/terms.html">Terms</a>
+    </nav>
+  </header>
+
+  <div class="container">
+    <div class="breadcrumbs">
+      <a href="/">Home</a> &rarr; <a href="/guides/">Guides</a> &rarr; <span>Beta-Lactam Antibiotics & Antimicrobial Resistance: PBP2a Steric Clash & Extended-Spectrum Beta-Lactamases</span>
+    </div>
+
+    <article>
+      <h1>Beta-Lactam Antibiotics & Antimicrobial Resistance: PBP2a Steric Clash & Extended-Spectrum Beta-Lactamases</h1>
+      <div class="meta-bar">
+        <span><strong>Author:</strong> Ali Asghar</span>
+        <span><strong>Category:</strong> Microbiology & Antimicrobial Pharmacology</span>
+        <span><strong>Est. Read Time:</strong> 15 min read</span>
+        <span><strong>Updated:</strong> November 2026</span>
+      </div>
+
+
+      <h2>1. Introduction: The Bacterial Cell Wall & The Beta-Lactam Pharmacophore</h2>
+      <p>
+        The bacterial peptidoglycan cell wall is an essential macromolecular scaffold that encases the cytoplasmic membrane, maintaining cellular morphology and withstanding internal osmotic turgor pressures exceeding 15 to 20 atmospheres in Gram-positive bacteria and 3 to 5 atmospheres in Gram-negative organisms. Peptidoglycan consists of repeating linear glycan strands of alternating <strong>N-acetylglucosamine (NAG)</strong> and <strong>N-acetylmuramic acid (NAM)</strong> linked by beta-(1,4)-glycosidic bonds, from which short peptide stems extend.
+      </p>
+      <p>
+        Cross-linking of adjacent peptide stems provides three-dimensional mechanical tensile strength. This transpeptidation reaction is executed by a family of membrane-anchored periplasmic enzymes termed <strong>Penicillin-Binding Proteins (PBPs)</strong>. Beta-lactam antibiotics—encompassing penicillins, cephalosporins, monobactams, and carbapenems—are stereochemical structural mimics of the native terminal <strong>D-alanyl-D-alanine (D-Ala-D-Ala)</strong> dipeptide substrate recognized by PBPs.
+      </p>
+
+      <h2>2. Transpeptidase Mechanism & Covalent Acylation Kinetics</h2>
+      <p>
+        The PBP transpeptidase active site harbors an invariant catalytic serine nucleophile (Ser-403 in standard numbering). Under physiological conditions, the Ser hydroxyl group attacks the penultimate D-Ala carbonyl group of a donor peptide stem, displacing the terminal D-Ala residue to create a high-energy covalent <strong>acyl-enzyme intermediate</strong>. Subsequently, the terminal amine of an acceptor stem (or pentaglycine bridge in <em>Staphylococcus aureus</em>) nucleophilically attacks this ester bond, forming a cross-linking peptide bond and regenerating the free catalytic Ser residue.
+      </p>
+
+      <div class="math-block">
+        [PBP Transpeptidase Reaction]:<br>
+        1. PBP-Ser-OH + D-Ala-D-Ala-peptide &rarr; PBP-Ser-O-CO-D-Ala-peptide + D-Ala (leaving group)<br>
+        2. PBP-Ser-O-CO-D-Ala-peptide + R-NH2 (Acceptor) &rarr; Cross-linked Peptidoglycan + PBP-Ser-OH (Free Enzyme)<br><br>
+        [Beta-Lactam Suicide Inhibition]:<br>
+        E + I &hArr;[K_d]&hArr; E:I &rarr;[k_2]&rarr; E-I* (Covalent Penicilloyl Intermediate) &rarr;[k_3]&rarr; E + Degraded Fragment<br>
+        where k_3 &approx; 0 (deacylation t_1/2 &gt; 48 hours &rarr; irreversible enzymatic death)
+      </div>
+
+      <p>
+        Because the strained, four-membered beta-lactam ring possesses high dihedral ring strain (~26 kcal/mol) and planarized nitrogen resonance suppression, the carbonyl carbon is extraordinarily electrophilic. When a beta-lactam enters the PBP active site, the catalytic Serine rapidly attacks the beta-lactam carbonyl (k<sub>2</sub> &gt; 10<sup>4</sup> M<sup>-1</sup> s<sup>-1</sup>), forming a covalent <strong>penicilloyl-enzyme adduct</strong>.
+      </p>
+      <p>
+        Unlike the physiological peptide ester which deacylates in milliseconds, the penicilloyl-enzyme intermediate induces a steric blockade that prevents water molecules from approaching the acyl carbon. The deacylation rate constant (k<sub>3</sub>) drops to near zero (half-lives extending up to 48–96 hours). The bacterium is unable to insert new cross-links into its growing cell wall; ongoing activity of endogenous bacterial autolysins (muramidases and endopeptidases) unbalances wall turnover, causing cell wall rupture and rapid osmotic lysis.
+      </p>
+
+      <h2>3. MRSA & The PBP2a Allosteric Resistance Mechanism</h2>
+      <p>
+        In Methicillin-Resistant <em>Staphylococcus aureus</em> (MRSA), resistance to virtually all standard beta-lactams is conferred by the acquisition of the mobile genetic element <strong>SCCmec</strong> (Staphylococcal Cassette Chromosome mec), which harbors the <strong>mecA</strong> or <strong>mecC</strong> gene.
+      </p>
+      <p>
+        The <em>mecA</em> gene encodes an altered, exogenous 78-kDa transpeptidase designated <strong>PBP2a</strong> (PDB: 1VQQ, 3ZFZ). Standard PBPs (PBP1, PBP2, PBP3, PBP4) in <em>S. aureus</em> remain fully susceptible to beta-lactam acylation and are completely inactivated by methicillin, nafcillin, or oxacillin. However, PBP2a is structurally incapable of binding standard beta-lactams at physiological concentrations, allowing it to autonomously take over the entire transpeptidation burden and preserve bacterial wall synthesis.
+      </p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Structural Domain</th>
+            <th>Wild-Type PBP2 (Susceptible)</th>
+            <th>PBP2a (MRSA / Resistant)</th>
+            <th>Molecular Consequence</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Active Site Conformation</strong></td>
+            <td>Open, solvent-accessible catalytic crevice</td>
+            <td>Closed, sterically occluded active site cleft</td>
+            <td>Standard beta-lactam side chains physically clash with residues Met-641, Tyr-446, and Ser-403.</td>
+          </tr>
+          <tr>
+            <td><strong>Allosteric Triggering</strong></td>
+            <td>None (Direct catalytic access)</td>
+            <td>Distal allosteric site located <strong>60 &Aring; away</strong> from catalytic Ser-403</td>
+            <td>Binding of intact peptidoglycan fragments to the allosteric site triggers a multi-domain conformational opening.</td>
+          </tr>
+          <tr>
+            <td><strong>Acylation Rate (k2 / Kd)</strong></td>
+            <td>High: ~10<sup>4</sup> – 10<sup>5</sup> M<sup>-1</sup> s<sup>-1</sup></td>
+            <td>Extremely low: &lt; 1 – 10 M<sup>-1</sup> s<sup>-1</sup></td>
+            <td>Methicillin minimum inhibitory concentrations (MIC) jump from &le;2 &mu;g/mL to &gt;256 &mu;g/mL.</td>
+          </tr>
+          <tr>
+            <td><strong>Ceftaroline Sensitivity</strong></td>
+            <td>High binding affinity</td>
+            <td>Unique dual-molecule binding: 1st molecule binds allosteric site; 2nd molecule acylates opened Ser-403</td>
+            <td>Ceftaroline acts as a 5th-generation anti-MRSA cephalosporin by pharmacologically unlocking PBP2a.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h2>4. Beta-Lactamases: Enzymatic Hydrolysis & The Ambler Classification</h2>
+      <p>
+        While altered PBPs dominate resistance in Gram-positive cocci, Gram-negative bacilli (such as <em>Escherichia coli</em>, <em>Klebsiella pneumoniae</em>, and <em>Pseudomonas aeruginosa</em>) primarily produce periplasmic hydrolytic enzymes termed <strong>beta-lactamases</strong>. Under the Ambler structural classification scheme, beta-lactamases are categorized into four classes based on primary amino acid homology and catalytic mechanism:
+      </p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Ambler Class</th>
+            <th>Catalytic Mechanism</th>
+            <th>Representative Enzymes</th>
+            <th>Hydrolytic Substrate Spectrum</th>
+            <th>Classic Inhibitor Profile</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Class A</strong></td>
+            <td>Active Site Serine (Ser-70) nucleophile; Glu-166 deacylation water activator</td>
+            <td>TEM-1, TEM-52, SHV-1, CTX-M-15, KPC-2 (Carbapenemase)</td>
+            <td>Penicillins, Cephalosporins (ESBL), Monobactams; KPC hydrolyzes all including Carbapenems</td>
+            <td>Inhibited by Clavulanic acid, Tazobactam, Avibactam, Vaborbactam</td>
+          </tr>
+          <tr>
+            <td><strong>Class B</strong></td>
+            <td><strong>Metallo-beta-lactamases (MBLs)</strong>: 1 or 2 catalytic Zn<sup>2+</sup> ions activating a hydroxide ion</td>
+            <td>NDM-1, VIM-1, IMP-1</td>
+            <td>All penicillins, cephalosporins, and carbapenems; <em>spares Monobactams (Aztreonam)</em></td>
+            <td>Resistant to all classical beta-lactamase inhibitors; chelators (EDTA) inhibit in vitro</td>
+          </tr>
+          <tr>
+            <td><strong>Class C</strong></td>
+            <td>Active Site Serine (Ser-64) nucleophile; Tyr-150 catalytic proton shuttle</td>
+            <td>AmpC, CMY, FOX</td>
+            <td>Penicillins, 1st–3rd gen Cephalosporins, Cephamycins (Cefoxitin); spares Cefepime</td>
+            <td>Resistant to Clavulanate/Sulbactam; inhibited by Avibactam</td>
+          </tr>
+          <tr>
+            <td><strong>Class D</strong></td>
+            <td>Active Site Serine (Ser-67) utilizing an N-carboxylated Lys-73 base</td>
+            <td>OXA-48, OXA-23, OXA-24/40</td>
+            <td>Cloxacillin, Cephalosporins; OXA-48 carbapenemases hydrolyze carbapenems poorly inhibited by EDTA</td>
+            <td>Poorly inhibited by Clavulanate; inhibited by Avibactam</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Extended-Spectrum Beta-Lactamases (ESBLs): TEM-52 & CTX-M Evolution</h3>
+      <p>
+        Classical narrow-spectrum beta-lactamases (e.g., TEM-1) are sterically incapable of accommodating the bulky, bulky oxyimino-side chains of third-generation cephalosporins (Ceftriaxone, Cefotaxime, Ceftazidime). However, point mutations within the active-site Omega loop (residues 164–179) drastically enlarge the catalytic pocket.
+      </p>
+      <p>
+        In <strong>TEM-52</strong>, three sequential substitutions—Glu104Lys, Met182Thr, and Gly238Ser—reposition the flexible B3 beta-strand and expand the substrate-binding groove. This allows oxyimino-cephalosporins to enter and be efficiently cleaved, rendering Ceftriaxone clinically useless. For related pharmacokinetics and drug clearance models, cross-reference our guide on <a href="/guides/cyp450-pharmacogenomics-adme.html">Cytochrome P450 Pharmacogenomics & ADME</a>.
+      </p>
+
+      <h2>5. Next-Generation Inhibitors: Boronic Acids & Diazabicyclooctanes</h2>
+      <p>
+        To counteract evolving ESBLs and carbapenemases, medicinal chemists have synthesized non-beta-lactam scaffold inhibitors:
+      </p>
+      <ul>
+        <li><strong>Avibactam (Diazabicyclooctane, DBO):</strong> Lacks a beta-lactam ring; possesses a rigid bridged bicyclic core with an active carbamate-forming carbamoyl ring. When attacked by the catalytic Serine of Class A, C, or D enzymes, it forms a stable, slowly reversible covalent bond that does not undergo hydrolytic degradation.</li>
+        <li><strong>Vaborbactam (Cyclic Boronic Acid):</strong> Acts as a direct transition-state mimic. The electrophilic boron atom adopts a tetrahedral sp<sup>3</sup> geometry with Ser-70 and the active-site water molecule, trapping KPC carbapenemases in an unreactive ground-state complex.</li>
+      </ul>
+
+      <div class="interactive-card">
+        <h4>Explore PBP & Beta-Lactamase Active Sites in 3D</h4>
+        <p>Inspect the Ser-403 transpeptidase pocket, penicilloyl acylation bonds, and ESBL mutations in the live Quantum Forge 3D Workstation.</p>
+        <a href="/">Launch 3D Workstation &rarr;</a>
+      </div>
+
+
+      <div class="references">
+        <h2>References & Peer-Reviewed Literature</h2>
+        <ol>
+          <li>Fuda, C., et al. (2004). Opening of the active site of penicillin-binding protein 2a in methicillin-resistant Staphylococcus aureus. <em>Nature Structural & Molecular Biology</em>, 11(10), 988–994. <a href="https://doi.org/10.1038/nsmb832" target="_blank" rel="noopener">doi:10.1038/nsmb832</a> [PDB: 1VQQ]</li>
+          <li>Bush, K., & Bradford, P. A. (2016). &beta;-Lactams and &beta;-Lactamase Inhibitors: An Overview. <em>Cold Spring Harb. Perspect. Med.</em>, 6(8), a025247. <a href="https://doi.org/10.1101/cshperspect.a025247" target="_blank" rel="noopener">doi:10.1101/cshperspect.a025247</a></li>
+          <li>Drawz, S. M., & Bonomo, R. A. (2010). Three decades of &beta;-lactamase inhibitors. <em>Clin. Microbiol. Rev.</em>, 23(1), 160–201. <a href="https://doi.org/10.1128/CMR.00037-09" target="_blank" rel="noopener">doi:10.1128/CMR.00037-09</a></li>
+          <li>Hecker, S. J., et al. (2015). Discovery of a cyclic boronic acid &beta;-lactamase inhibitor (RPX7009/Vaborbactam) with utility vs class A serine carbapenemases. <em>J. Med. Chem.</em>, 58(9), 3682–3692. <a href="https://doi.org/10.1021/acs.jmedchem.5b00127" target="_blank" rel="noopener">doi:10.1021/acs.jmedchem.5b00127</a></li>
+        </ol>
+      </div>
+    </article>
+
+    <aside aria-label="Recommended Study Resources" class="study-resources-card" style="background: rgba(17, 24, 39, 0.85); border: 1px solid #1F2937; border-radius: 12px; padding: 1.5rem 1.75rem; margin-top: 2rem; margin-bottom: 2rem; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);">
+      <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.85rem; border-bottom: 1px solid #1F2937; padding-bottom: 0.6rem;">
+        <span style="font-weight: 700; color: #00E5FF; font-size: 0.95rem; letter-spacing: 0.03em; display: flex; align-items: center; gap: 0.5rem;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: #00BFA5;"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+          Recommended Curriculum Study Resource
+        </span>
+        <span style="font-size: 0.78rem; color: #9CA3AF; font-style: italic;">Verified Educational Reference</span>
+      </div>
+      <div>
+        <h3 style="margin: 0 0 0.4rem; font-size: 1.15rem; color: #FFFFFF;">
+          <a href="https://link.amazon/B03y4mxsi" rel="nofollow sponsored noopener" target="_blank" style="color: #00E5FF; text-decoration: none;">Katzung’s Basic & Clinical Pharmacology (16th Ed.) &rarr;</a>
+        </h3>
+        <p style="margin: 0 0 0.8rem; font-size: 0.92rem; color: #D1D5DB; line-height: 1.55;">
+          Comprehensive clinical reference for receptor kinetics, CYP450 metabolism, pharmacogenomics, and anticoagulant pharmacology.
+        </p>
+        <p style="margin: 0; font-size: 0.78rem; color: #9CA3AF; line-height: 1.4; border-top: 1px dashed #1F2937; padding-top: 0.6rem;">
+          Disclosure: As an Amazon Associate, Quantum Forge earns from qualifying purchases at no extra cost to you.
+        </p>
+      </div>
+    </aside>
+  </div>
+
+  <footer>
+    <div class="footer-links">
+      <a href="/">Launch 3D Lab</a>
+      <a href="/guides/">All Scientific Guides</a>
+      <a href="/about.html">About</a>
+      <a href="/contact.html">Contact</a>
+      <a href="/privacy.html">Privacy Policy</a>
+      <a href="/terms.html">Terms of Service</a>
+      <a href="/sitemap.xml">Sitemap (XML)</a>
+    </div>
+    <p>Copyright &copy; 2026 Ali Asghar. All Rights Reserved. Educational Simulation Only &mdash; Not for Medical Care.</p>
+  </footer>
+
+</body>
+</html>
