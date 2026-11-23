@@ -197,14 +197,18 @@ class AvogadroBridge {
     }
   }
 
-  /// Synchronizes an arbitrary relative path (e.g. /reaction/aspirin-synthesis or /library) into the address bar.
+  /// Synchronizes an arbitrary relative path (e.g. /app/reaction/aspirin-synthesis or /app/library) into the address bar.
   static void syncNavPath(String path) {
     try {
       final history = _window.getProperty('history'.toJS) as JSObject?;
       if (history == null) return;
+      var appPath = path;
+      if (!appPath.startsWith('/app')) {
+        appPath = appPath.startsWith('/') ? '/app$appPath' : '/app/$appPath';
+      }
       final currentUri = Uri.base;
-      if (currentUri.path == path) return;
-      final newUrl = '${currentUri.origin}$path';
+      if (currentUri.path == appPath) return;
+      final newUrl = '${currentUri.origin}$appPath';
       history.callMethod(
         'pushState'.toJS,
         null,

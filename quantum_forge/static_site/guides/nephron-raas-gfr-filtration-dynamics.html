@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Renal Glomerular Filtration & RAAS Hemodynamics — Quantum Forge Guides</title>
+  <meta name="description" content="Comprehensive renal physiology monograph on Starling forces of glomerular ultrafiltration, macula densa tubuloglomerular feedback, Angiotensin II efferent vasoconstriction, and ACEi/ARB nephroprotective mechanisms.">
+  <meta name="author" content="Ali Asghar">
+  <meta name="copyright" content="Copyright © 2026 Ali Asghar. All Rights Reserved.">
+  <link rel="icon" type="image/png" href="../favicon.png">
+  <meta name="google-adsense-account" content="ca-pub-9402443776639153">
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9402443776639153" crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=AW-16732994716"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'AW-16732994716');
+  </script>
+  <style>
+    :root {
+      --bg: #090D16;
+      --card-bg: #111827;
+      --card-border: #1F2937;
+      --primary: #00E5FF;
+      --accent: #00BFA5;
+      --text: #F3F4F6;
+      --text-muted: #9CA3AF;
+      --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background-color: var(--bg); color: var(--text); font-family: var(--font-family); line-height: 1.8; }
+    header { background: rgba(17, 24, 39, 0.85); backdrop-filter: blur(12px); border-bottom: 1px solid var(--card-border); position: sticky; top: 0; z-index: 50; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
+    .logo-container { display: flex; align-items: center; gap: 0.75rem; text-decoration: none; color: var(--text); }
+    .logo-badge { background: linear-gradient(135deg, #00BFA5, #00E5FF); color: #090D16; font-weight: 800; font-size: 1.1rem; padding: 0.25rem 0.6rem; border-radius: 6px; }
+    .logo-title { font-weight: 700; font-size: 1.25rem; letter-spacing: -0.025em; }
+    nav { display: flex; gap: 1.25rem; align-items: center; flex-wrap: wrap; }
+    nav a { color: var(--text-muted); text-decoration: none; font-size: 0.95rem; font-weight: 500; transition: color 0.2s; }
+    nav a:hover, nav a.active { color: var(--primary); }
+    .container { max-width: 900px; margin: 2rem auto; padding: 0 1.5rem; }
+    .breadcrumbs { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.5rem; }
+    .breadcrumbs a { color: var(--text-muted); text-decoration: none; }
+    .breadcrumbs a:hover { color: var(--primary); }
+    article { background-color: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; padding: 2.5rem; margin-bottom: 2rem; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4); }
+    h1 { font-size: 2.2rem; font-weight: 800; background: linear-gradient(135deg, #FFFFFF 0%, #00E5FF 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 1rem; line-height: 1.3; }
+    .meta-bar { display: flex; gap: 1.5rem; font-size: 0.85rem; color: var(--text-muted); border-bottom: 1px solid var(--card-border); padding-bottom: 1rem; margin-bottom: 2rem; flex-wrap: wrap; }
+    h2 { color: #FFFFFF; font-size: 1.4rem; margin: 2rem 0 1rem; border-bottom: 1px solid var(--card-border); padding-bottom: 0.4rem; }
+    h3 { color: var(--primary); font-size: 1.15rem; margin: 1.5rem 0 0.5rem; }
+    p { margin-bottom: 1.2rem; color: #D1D5DB; }
+    ul, ol { margin: 0 0 1.5rem 1.75rem; color: #D1D5DB; }
+    li { margin-bottom: 0.5rem; }
+    strong { color: #FFFFFF; }
+    table { width: 100%; border-collapse: collapse; margin: 1.5rem 0; font-size: 0.9rem; }
+    th, td { border: 1px solid var(--card-border); padding: 0.75rem 1rem; text-align: left; }
+    th { background: rgba(15, 23, 42, 0.8); color: var(--primary); font-weight: 600; }
+    td { background: rgba(17, 24, 39, 0.4); }
+    .math-block { background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(0, 229, 255, 0.2); border-radius: 8px; padding: 1rem 1.25rem; font-family: "Courier New", Courier, monospace; color: #67E8F9; margin: 1.5rem 0; overflow-x: auto; }
+    .callout { background: rgba(0, 191, 165, 0.08); border-left: 4px solid var(--accent); padding: 1.25rem; border-radius: 0 8px 8px 0; margin: 1.75rem 0; }
+    .callout h4 { color: var(--accent); margin-bottom: 0.5rem; font-size: 1rem; }
+    .callout p { margin: 0; color: #E5E7EB; }
+    .interactive-card { background: linear-gradient(135deg, rgba(0, 191, 165, 0.15) 0%, rgba(0, 229, 255, 0.15) 100%); border: 1px solid rgba(0, 229, 255, 0.3); border-radius: 8px; padding: 1.5rem; margin: 2rem 0; text-align: center; }
+    .interactive-card h4 { color: #FFFFFF; margin-bottom: 0.5rem; font-size: 1.1rem; }
+    .interactive-card p { color: #D1D5DB; margin-bottom: 1rem; font-size: 0.95rem; }
+    .interactive-card a { display: inline-block; background: linear-gradient(135deg, var(--accent), var(--primary)); color: #090D16; font-weight: 700; padding: 0.6rem 1.25rem; border-radius: 6px; text-decoration: none; transition: opacity 0.2s; }
+    .interactive-card a:hover { opacity: 0.9; }
+    .references { font-size: 0.85rem; color: var(--text-muted); border-top: 1px solid var(--card-border); padding-top: 1.5rem; margin-top: 2rem; }
+    .references ol { margin-left: 1.25rem; }
+    .references a { color: var(--primary); text-decoration: none; }
+    .references a:hover { text-decoration: underline; }
+    footer { background: #060911; border-top: 1px solid var(--card-border); padding: 2.5rem 1.5rem; text-align: center; font-size: 0.85rem; color: var(--text-muted); }
+    .footer-links { display: flex; justify-content: center; gap: 1.5rem; margin-bottom: 1rem; flex-wrap: wrap; }
+    .footer-links a { color: var(--text-muted); text-decoration: none; transition: color 0.2s; }
+    .footer-links a:hover { color: var(--primary); }
+  </style>
+</head>
+<body>
+
+  <header>
+    <a href="/" class="logo-container">
+      <div class="logo-badge">QF</div>
+      <div class="logo-title">Quantum Forge</div>
+    </a>
+    <nav>
+      <a href="/">Interactive 3D Lab</a>
+      <a href="/guides/" class="active">Scientific Guides</a>
+      <a href="/about.html">About</a>
+      <a href="/contact.html">Contact</a>
+      <a href="/privacy.html">Privacy Policy</a>
+      <a href="/terms.html">Terms</a>
+    </nav>
+  </header>
+
+  <div class="container">
+    <div class="breadcrumbs">
+      <a href="/">Home</a> &rarr; <a href="/guides/">Guides</a> &rarr; <span>Renal Glomerular Filtration Dynamics: Starling Forces, RAAS Vasoconstriction & ACEi/ARB Nephroprotection</span>
+    </div>
+
+    <article>
+      <h1>Renal Glomerular Filtration Dynamics: Starling Forces, RAAS Vasoconstriction & ACEi/ARB Nephroprotection</h1>
+      <div class="meta-bar">
+        <span><strong>Author:</strong> Ali Asghar</span>
+        <span><strong>Category:</strong> Renal Physiology & Hemodynamics</span>
+        <span><strong>Est. Read Time:</strong> 15 min read</span>
+        <span><strong>Updated:</strong> November 2026</span>
+      </div>
+
+
+      <h2>1. The Glomerular Filtration Barrier: Architecture & Permselectivity</h2>
+      <p>
+        The human kidneys receive roughly 20–25% of total resting cardiac output (~1,000–1,200 mL/min of renal blood flow, or ~600 mL/min of renal plasma flow [RPF]), filtering approximately 180 liters of plasma ultrafiltrate each day. This colossal fluid exchange is executed across approximately 2 million microscopic filtering units: the <strong>Glomeruli</strong>.
+      </p>
+      <p>
+        The <strong>Glomerular Filtration Barrier (GFB)</strong> is a sophisticated, three-layered biological sieve possessing extreme hydraulic conductivity while maintaining near-absolute retention of albumin (molecular weight ~66.5 kDa) and cellular blood elements:
+      </p>
+      <ol>
+        <li><strong>Fenestrated Endothelium:</strong> Endothelial cells lining the glomerular capillaries contain transcellular pores (fenestrae) with diameters of 70 to 100 nm. These pores prevent passage of erythrocytes and platelets, but freely admit fluid, electrolytes, and small proteins. The luminal glycocalyx contains polyanionic sialoproteins and proteoglycans that confer charge selectivity.</li>
+        <li><strong>Glomerular Basement Membrane (GBM):</strong> A dense acellular matrix (thickness ~300–350 nm) composed of a specialized type IV collagen (&alpha;3&alpha;4&alpha;5 network), laminin-521, nidogen, and <strong>heparan sulfate proteoglycans (agrin, perlecan)</strong>. The high density of sulfate groups confers a dense net negative charge, repelling polyanionic circulating serum proteins.</li>
+        <li><strong>Podocyte Slit Diaphragm:</strong> Terminally differentiated visceral epithelial cells (podocytes) wrap interdigitating foot processes (pedicels) around the capillary loops. The filtration slits (width ~30–40 nm) between adjacent pedicels are bridged by the <strong>Slit Diaphragm</strong>—a continuous proteinaceous zipper comprising <strong>nephrin, podocin, FAT1, and CD2AP</strong> linked intracellularly to the actin cytoskeleton. Nephrin mutations (e.g., Finnish-type congenital nephrotic syndrome) result in massive proteinuria.</li>
+      </ol>
+
+      <h2>2. Starling Forces of Ultrafiltration & Mathematical Modeling</h2>
+      <p>
+        Glomerular filtration is driven by physical hydrostatic and oncotic pressure differentials across the capillary wall, governed by the classical Starling equation adapted for renal microvasculature:
+      </p>
+
+      <div class="math-block">
+        GFR = K_f &middot; P_UF = K_f &middot; [ ( P_GC - P_BS ) - &sigma; &middot; ( &pi;_GC - &pi;_BS ) ]<br><br>
+        where:<br>
+        - K_f = Ultrafiltration coefficient (hydraulic conductivity &middot; surface area; ~12.5 mL/min/mmHg)<br>
+        - P_GC = Glomerular capillary hydrostatic pressure (~45 to 50 mmHg)<br>
+        - P_BS = Bowman space hydrostatic pressure (~10 to 12 mmHg)<br>
+        - &sigma; = Staverman reflection coefficient for albumin (&approx; 1.0 in healthy GFB)<br>
+        - &pi;_GC = Glomerular capillary oncotic pressure (~25 mmHg at afferent end &rarr; ~35 mmHg at efferent end)<br>
+        - &pi;_BS = Bowman space oncotic pressure (&approx; 0 mmHg in healthy urine)
+      </div>
+
+      <p>
+        Unlike systemic capillary beds where hydrostatic pressure plummets by 50% from the arteriolar to the venular end, the unique architecture of the glomerulus—being positioned between two muscular resistance vessels, the <strong>afferent arteriole</strong> and the <strong>efferent arteriole</strong>—maintains an exceptionally high and flat hydrostatic pressure (<strong>P<sub>GC</sub> ~ 45–50 mmHg</strong>) across the entire capillary length.
+      </p>
+      <p>
+        However, because a massive volume of protein-free fluid is progressively filtered out into Bowman's space (filtration fraction FF = GFR / RPF &approx; 20%), the protein concentration in the capillary lumen rises steeply. Consequently, glomerular capillary oncotic pressure (<strong>&pi;<sub>GC</sub></strong>) climbs from ~25 mmHg at the afferent entrance to ~35 mmHg at the efferent exit. When net ultrafiltration pressure reaches zero (P<sub>UF</sub> = 0), filtration equilibrium is achieved.
+      </p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Hemodynamic Parameter</th>
+            <th>Afferent End of Glomerulus</th>
+            <th>Efferent End of Glomerulus</th>
+            <th>Net Physiological Gradient</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Capillary Hydrostatic Pressure (P_GC)</strong></td>
+            <td>48 mmHg</td>
+            <td>46 mmHg</td>
+            <td>High, maintained hydrostatic driving force</td>
+          </tr>
+          <tr>
+            <td><strong>Bowman Space Pressure (P_BS)</strong></td>
+            <td>10 mmHg</td>
+            <td>10 mmHg</td>
+            <td>Constant back-pressure</td>
+          </tr>
+          <tr>
+            <td><strong>Capillary Oncotic Pressure (&pi;_GC)</strong></td>
+            <td>25 mmHg</td>
+            <td>35 mmHg</td>
+            <td><strong>Rises by +10 mmHg</strong> due to fluid hemoconcentration</td>
+          </tr>
+          <tr>
+            <td><strong>Net Ultrafiltration Pressure (P_UF)</strong></td>
+            <td><strong>+13 mmHg</strong> (Robust filtration)</td>
+            <td><strong>+1 mmHg</strong> (Filtration equilibrium)</td>
+            <td>Favors outward filtration along entire bed</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h2>3. Autoregulation & Tubuloglomerular Feedback (TGF)</h2>
+      <p>
+        Renal autoregulation protects the fragile glomerular microvasculature from systemic hypertensive injury while preventing renal insufficiency during moderate hypotension. Autoregulation maintains a stable GFR (~120 mL/min/1.73m<sup>2</sup>) across Mean Arterial Pressures between 80 and 170 mmHg via two coordinated mechanisms:
+      </p>
+      <h3>1. Myogenic Stretch Response</h3>
+      <p>
+        Direct vascular smooth muscle contraction of the <strong>afferent arteriole</strong> in response to elevated transmural pressure, mediated by stretch-sensitive ion channels and calcium influx.
+      </p>
+      <h3>2. Macula Densa Tubuloglomerular Feedback (TGF)</h3>
+      <p>
+        The <strong>Macula Densa</strong> consists of specialized columnar epithelial cells in the thick ascending limb of the loop of Henle positioned in direct anatomical contact with the vascular pole of its originating glomerulus (the juxtaglomerular apparatus, JGA).
+      </p>
+      <ul>
+        <li>If GFR rises, excessive NaCl delivery escapes proximal reabsorption and reaches the macula densa.</li>
+        <li>Macula densa cells take up Na<sup>+</sup> and 2 Cl<sup>-</sup> via the apical <strong>NKCC2 cotransporter</strong>.</li>
+        <li>Intracellular chloride accumulation causes basolateral ATP release.</li>
+        <li>Extracellular ecto-5'-nucleotidase cleaves ATP to <strong>Adenosine</strong>.</li>
+        <li>Adenosine binds vascular smooth muscle <strong>A1 receptors</strong> on the adjacent <strong>afferent arteriole</strong>, causing vasoconstriction, which lowers P<sub>GC</sub> and normalizes GFR.</li>
+      </ul>
+
+      <h2>4. RAAS Activation & Angiotensin II Differential Arteriolar Tone</h2>
+      <p>
+        When systemic arterial pressure falls or renal perfusion is compromised (e.g., in hypovolemia, cardiogenic shock, or bilateral renal artery stenosis), the juxtaglomerular granular cells release <strong>Renin</strong> into circulation. Renin cleaves hepatic angiotensinogen to Angiotensin I, which is converted by pulmonary endothelial Angiotensin-Converting Enzyme (ACE) to the octapeptide hormone <strong>Angiotensin II (Ang II)</strong>.
+      </p>
+      <p>
+        Crucially, Angiotensin II acts as a <strong>preferential vasoconstrictor of the efferent arteriole</strong> (via AT<sub>1</sub> receptors) at physiological and mildly elevated concentrations. This differential vasoconstriction is life-preserving:
+      </p>
+
+      <div class="math-block">
+        [Efferent Arteriolar Vasoconstriction Response]:<br>
+        &uarr; R_efferent &rarr; &darr; Renal Plasma Flow (RPF) BUT &uarr; Glomerular Hydrostatic Pressure (P_GC)<br>
+        Result: Preserves GFR and Filtration Fraction (FF = GFR / RPF) during systemic hypoperfusion!
+      </div>
+
+      <p>
+        Concurrently, intrarenal synthesis of <strong>Prostaglandins (PGE2, PGI2)</strong> via cyclooxygenase enzymes (COX-1/COX-2) selectively dilates the <strong>afferent arteriole</strong>, neutralizing excessive Ang II-mediated afferent constriction and safeguarding renal plasma flow.
+      </p>
+
+      <div class="callout">
+        <h4>The NSAID + ACEi/ARB "Triple Whammy" Acute Kidney Injury</h4>
+        <p>
+          The delicate balance between afferent prostaglandin dilation and efferent Ang II constriction explains the lethal pharmacology of <strong>Hemodynamically Mediated Acute Kidney Injury</strong>:
+          <br>&bull; <strong>NSAIDs:</strong> Inhibit COX enzymes, blocking PGE2/PGI2 synthesis and causing unchecked afferent arteriolar vasoconstriction (pinching the inflow).
+          <br>&bull; <strong>ACE Inhibitors / ARBs:</strong> Block Ang II synthesis/action, causing efferent arteriolar vasodilation (opening the outflow gate).
+          <br>&bull; When combined with dehydration or diuretics ("Triple Whammy"), glomerular hydrostatic pressure (P<sub>GC</sub>) collapses, dropping GFR to zero and precipitating acute anuric renal failure. For related COX pharmacology, see our guide on <a href="/guides/aspirin-cox-inhibition-mechanism.html">Aspirin & COX Inhibition</a>.
+        </p>
+      </div>
+
+      <h2>5. Pharmacological Nephroprotection: ACEi & ARBs in Chronic Kidney Disease</h2>
+      <p>
+        In diabetic kidney disease and chronic glomerular hyperfiltration, sustained intraglomerular hypertension (P<sub>GC</sub> &gt; 60 mmHg) exerts mechanical stretch on podocytes, inducing foot process effacement, detachment, and progressive glomerular sclerosis.
+      </p>
+      <p>
+        By competitively inhibiting ACE (e.g., Lisinopril, Ramipril) or blocking the AT<sub>1</sub> receptor (e.g., Losartan, Valsartan), these agents selectively relax the efferent arteriole. This reduces P<sub>GC</sub>, lowers the trans-glomerular pressure gradient, and arrests mechanical podocyte damage, significantly blunting albuminuria and slowing progression to end-stage renal disease (ESRD).
+      </p>
+      <p>
+        Clinicians must expect an acute, benign rise in serum creatinine of up to <strong>20–30%</strong> within the first 1–2 weeks of initiating ACEi/ARB therapy—this reflects the desired therapeutic reduction in intraglomerular pressure, not structural nephrotoxicity! Cross-reference our pharmacogenomics guide on <a href="/guides/cyp450-pharmacogenomics-adme.html">Cytochrome P450 Pharmacogenomics</a>.
+      </p>
+
+      <div class="interactive-card">
+        <h4>Simulate Glomerular Starling Dynamics in 3D</h4>
+        <p>Model afferent vs efferent arteriolar resistance, Starling pressure gradients, and nephron filtration in the live Quantum Forge 3D Workstation.</p>
+        <a href="/">Launch 3D Workstation &rarr;</a>
+      </div>
+
+
+      <div class="references">
+        <h2>References & Peer-Reviewed Literature</h2>
+        <ol>
+          <li>Brenner, B. M., et al. (2001). Effects of losartan on renal and cardiovascular outcomes in patients with type 2 diabetes and nephropathy. <em>N. Engl. J. Med.</em>, 345(12), 861–869. <a href="https://doi.org/10.1056/NEJMoa011161" target="_blank" rel="noopener">doi:10.1056/NEJMoa011161</a></li>
+          <li>Navar, L. G. (2014). Physiology of the autoregulation of renal blood flow and glomerular filtration rate. <em>Nephron Physiol.</em>, 127(1-4), 139–144. <a href="https://doi.org/10.1159/000363046" target="_blank" rel="noopener">doi:10.1159/000363046</a></li>
+          <li>Haraldsson, B., Nystrom, J., & Deen, W. M. (2008). Properties of the glomerular barrier and mechanisms of proteinuria. <em>Physiol. Rev.</em>, 88(2), 451–487. <a href="https://doi.org/10.1152/physrev.00055.2006" target="_blank" rel="noopener">doi:10.1152/physrev.00055.2006</a></li>
+          <li>Garg, P. (2018). A review of podocyte biology. <em>Am. J. Nephrol.</em>, 47(Suppl 1), 3–13. <a href="https://doi.org/10.1159/000481633" target="_blank" rel="noopener">doi:10.1159/000481633</a></li>
+        </ol>
+      </div>
+    </article>
+
+    <aside aria-label="Recommended Study Resources" class="study-resources-card" style="background: rgba(17, 24, 39, 0.85); border: 1px solid #1F2937; border-radius: 12px; padding: 1.5rem 1.75rem; margin-top: 2rem; margin-bottom: 2rem; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);">
+      <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.85rem; border-bottom: 1px solid #1F2937; padding-bottom: 0.6rem;">
+        <span style="font-weight: 700; color: #00E5FF; font-size: 0.95rem; letter-spacing: 0.03em; display: flex; align-items: center; gap: 0.5rem;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: #00BFA5;"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+          Recommended Curriculum Study Resource
+        </span>
+        <span style="font-size: 0.78rem; color: #9CA3AF; font-style: italic;">Verified Educational Reference</span>
+      </div>
+      <div>
+        <h3 style="margin: 0 0 0.4rem; font-size: 1.15rem; color: #FFFFFF;">
+          <a href="https://link.amazon/B05IasrT1" rel="nofollow sponsored noopener" target="_blank" style="color: #00E5FF; text-decoration: none;">Guyton and Hall Textbook of Medical Physiology (14th Ed.) &rarr;</a>
+        </h3>
+        <p style="margin: 0 0 0.8rem; font-size: 0.92rem; color: #D1D5DB; line-height: 1.55;">
+          Foundational textbook on systemic hemodynamics, renal clearance, microvascular Starling forces, and respiratory gas exchange.
+        </p>
+        <p style="margin: 0; font-size: 0.78rem; color: #9CA3AF; line-height: 1.4; border-top: 1px dashed #1F2937; padding-top: 0.6rem;">
+          Disclosure: As an Amazon Associate, Quantum Forge earns from qualifying purchases at no extra cost to you.
+        </p>
+      </div>
+    </aside>
+  </div>
+
+  <footer>
+    <div class="footer-links">
+      <a href="/">Launch 3D Lab</a>
+      <a href="/guides/">All Scientific Guides</a>
+      <a href="/about.html">About</a>
+      <a href="/contact.html">Contact</a>
+      <a href="/privacy.html">Privacy Policy</a>
+      <a href="/terms.html">Terms of Service</a>
+      <a href="/sitemap.xml">Sitemap (XML)</a>
+    </div>
+    <p>Copyright &copy; 2026 Ali Asghar. All Rights Reserved. Educational Simulation Only &mdash; Not for Medical Care.</p>
+  </footer>
+
+</body>
+</html>

@@ -151,7 +151,12 @@ class _QuantumForgeAppState extends State<QuantumForgeApp> {
       return widget.initialRouteOverride!;
     }
     if (kIsWeb) {
-      final path = Uri.base.path;
+      var path = Uri.base.path;
+      if (path.startsWith('/app/') || path.startsWith('app/')) {
+        path = path.replaceFirst(RegExp(r'^/?app/'), '/');
+      } else if (path == '/app' || path == 'app') {
+        path = '/';
+      }
       if (path.isNotEmpty && path != '/') {
         return path + (Uri.base.hasQuery ? '?${Uri.base.query}' : '');
       }
@@ -281,7 +286,12 @@ class _QuantumForgeAppState extends State<QuantumForgeApp> {
               onGenerateRoute: (routeSettings) {
                 final rawName = routeSettings.name ?? '';
                 final uri = Uri.tryParse(rawName);
-                final path = uri?.path.toLowerCase() ?? '';
+                var path = uri?.path.toLowerCase() ?? '';
+                if (path.startsWith('/app/') || path.startsWith('app/')) {
+                  path = path.replaceFirst(RegExp(r'^/?app/'), '/');
+                } else if (path == '/app' || path == 'app') {
+                  path = '/';
+                }
 
                 if (path.startsWith('/reaction/') || path.startsWith('reaction/')) {
                   final slug = path.replaceFirst(RegExp(r'^/?reaction/'), '').trim();

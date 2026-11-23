@@ -35,8 +35,8 @@ jobs:
       - name: Run Test Suite
         run: flutter test
 
-      - name: Build Web Release Bundle
-        run: flutter build web --release --no-tree-shake-icons
+      - name: Build Web & Assemble Hosting Distribution
+        run: bash ./scripts/build_hosting_dist.sh
 
       - name: Deploy to Firebase Hosting
         env:

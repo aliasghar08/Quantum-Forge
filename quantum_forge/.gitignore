@@ -51,3 +51,4 @@ app.*.map.json
 /.firebase/
 # Widget Preview related
 .widget_preview/
+hosting_dist/

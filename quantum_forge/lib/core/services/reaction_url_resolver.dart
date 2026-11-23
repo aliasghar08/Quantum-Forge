@@ -26,15 +26,15 @@ class ReactionUrlResolver {
     if (kIsWeb) {
       final origin = Uri.base.origin;
       if (origin.isNotEmpty && !origin.contains('localhost:0')) {
-        return '$origin/reaction/${template.slug}';
+        return '$origin/app/reaction/${template.slug}';
       }
     }
-    return '$canonicalBaseUrl/reaction/${template.slug}';
+    return '$canonicalBaseUrl/app/reaction/${template.slug}';
   }
 
   /// Generates the relative path for browser URL synchronization.
   static String getPath(ReactionTemplate template) {
-    return '/reaction/${template.slug}';
+    return '/app/reaction/${template.slug}';
   }
 
   /// Synchronously attempts to find a matching template in local curated bundles.
