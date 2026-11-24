@@ -28,6 +28,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../data/cardiac_pathology_models.dart';
 import '../../data/cardiac_master_vitals_state.dart';
+import 'package:quantum_forge/features/organ_articles/presentation/organ_structure_article_screen.dart';
 
 enum CarmTagCategory {
   hardware,
@@ -648,6 +649,39 @@ class _CardiacFullScreenCarmTheaterState
                                 ),
                               ),
                             ],
+                          ),
+                          const SizedBox(height: 8),
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: TextButton.icon(
+                              key: const Key('carm_view_article_button'),
+                              style: TextButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                minimumSize: Size.zero,
+                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                backgroundColor: const Color(0xFF10B981).withValues(alpha: 0.15),
+                              ),
+                              icon: const Icon(Icons.menu_book_rounded,
+                                  size: 13, color: Color(0xFF10B981)),
+                              label: const Text(
+                                'Full Article & Research 📖',
+                                style: TextStyle(
+                                  color: Color(0xFF10B981),
+                                  fontSize: 9.5,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              onPressed: () {
+                                OrganStructureArticleScreen.open(
+                                  context,
+                                  structureId: _selectedTag!.id,
+                                  structureName: _selectedTag!.label,
+                                  organSystem: 'Interventional Fluoroscopy & Radiation Physics',
+                                  bloodSupply: _selectedTag!.engineeringSpec,
+                                  contextPearl: _selectedTag!.clinicalPearl,
+                                );
+                              },
+                            ),
                           ),
                         ],
                       ),

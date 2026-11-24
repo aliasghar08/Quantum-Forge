@@ -210,6 +210,11 @@
         "source": "/ddi",
         "destination": "/app/ddi",
         "type": 301
+      },
+      {
+        "source": "/organ-article",
+        "destination": "/app/organ-article",
+        "type": 301
       }
     ]
   }

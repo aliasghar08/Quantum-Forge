@@ -36,6 +36,7 @@ import 'package:quantum_forge/screens/osce_sandbox_screen.dart';
 import 'package:quantum_forge/screens/ddi_split_screen.dart';
 import 'package:quantum_forge/screens/auth_screen.dart';
 import 'package:quantum_forge/screens/template_detail_screen.dart';
+import 'package:quantum_forge/features/organ_articles/presentation/organ_structure_article_screen.dart';
 import 'package:quantum_forge/features/reaction_library/data/medical_reaction_templates.dart';
 import 'package:quantum_forge/core/services/app_route_observer.dart';
 
@@ -369,6 +370,24 @@ class _QuantumForgeAppState extends State<QuantumForgeApp> {
                 }
                 if (path == '/ddi' || path == 'ddi') {
                   return DdiSplitScreen.route();
+                }
+                if (path == '/organ-article' || path == 'organ-article') {
+                  final id = uri?.queryParameters['id'] ?? 'lmca';
+                  final name = uri?.queryParameters['name'] ?? 'Anatomical Structure';
+                  final system = uri?.queryParameters['system'] ?? 'Cardiovascular';
+                  final latin = uri?.queryParameters['latin'];
+                  final blood = uri?.queryParameters['blood'];
+                  final nerve = uri?.queryParameters['nerve'];
+                  final pearl = uri?.queryParameters['pearl'];
+                  return OrganStructureArticleScreen.route(
+                    structureId: id,
+                    structureName: name,
+                    organSystem: system,
+                    latinName: latin,
+                    bloodSupply: blood,
+                    innervation: nerve,
+                    contextPearl: pearl,
+                  );
                 }
                 if (path == '/auth' || path == 'auth' || path == '/login' || path == 'login') {
                   return MaterialPageRoute<void>(

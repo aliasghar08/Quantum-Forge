@@ -16,6 +16,7 @@
 // ============================================================================
 
 import 'package:flutter/material.dart';
+import 'package:quantum_forge/features/organ_articles/presentation/organ_structure_article_screen.dart';
 
 class CardiacInfoTopic {
   final String id;
@@ -1215,6 +1216,21 @@ void showCardiacTopicModal(BuildContext context, CardiacInfoTopic topic) {
             onPressed: () {
               Navigator.of(ctx).pop();
               showCardiacInteractiveGuideDialog(context);
+            },
+          ),
+          OutlinedButton.icon(
+            key: const Key('modal_view_article_button'),
+            icon: const Icon(Icons.menu_book_rounded, size: 14),
+            label: const Text('View Full Article & Research 📖', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold)),
+            onPressed: () {
+              Navigator.of(ctx).pop();
+              OrganStructureArticleScreen.open(
+                context,
+                structureId: topic.id,
+                structureName: topic.title,
+                organSystem: 'Cardiovascular',
+                contextPearl: topic.clinicalBoardPearl,
+              );
             },
           ),
           ElevatedButton(

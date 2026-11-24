@@ -24,6 +24,7 @@ import '../../data/cardiac_pathology_models.dart';
 import '../../data/cardiac_master_vitals_state.dart';
 import 'cardiac_three_engine.dart';
 import 'cardiac_presurgical_rehearsal_panel.dart';
+import 'package:quantum_forge/features/organ_articles/presentation/organ_structure_article_screen.dart';
 
 class AngiographicLandmarkTag {
   final String id;
@@ -1100,6 +1101,39 @@ class _CardiacFullScreenFluoTheaterState extends State<CardiacFullScreenFluoThea
                             color: Color(0xFF94A3B8),
                             fontSize: 10.5,
                             fontStyle: FontStyle.italic,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: TextButton.icon(
+                            key: const Key('fluo_view_article_button'),
+                            style: TextButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                              minimumSize: Size.zero,
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              backgroundColor: const Color(0xFF10B981).withValues(alpha: 0.15),
+                            ),
+                            icon: const Icon(Icons.menu_book_rounded,
+                                size: 13, color: Color(0xFF10B981)),
+                            label: const Text(
+                              'Full Article & Research 📖',
+                              style: TextStyle(
+                                color: Color(0xFF10B981),
+                                fontSize: 9.5,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            onPressed: () {
+                              OrganStructureArticleScreen.open(
+                                context,
+                                structureId: _selectedTag!.id,
+                                structureName: _selectedTag!.label,
+                                organSystem: 'Cardiovascular Angiography',
+                                bloodSupply: _selectedTag!.vesselTerritory,
+                                contextPearl: _selectedTag!.clinicalPearl,
+                              );
+                            },
                           ),
                         ),
                       ],

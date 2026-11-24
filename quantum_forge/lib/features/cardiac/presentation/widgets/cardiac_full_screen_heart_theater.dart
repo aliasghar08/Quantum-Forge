@@ -26,6 +26,7 @@ import '../../data/cardiac_landmark_models.dart';
 import '../../data/cardiac_master_vitals_state.dart';
 import 'cardiac_three_engine.dart';
 import 'cardiac_3d_anatomical_heart_viewport.dart';
+import 'package:quantum_forge/features/organ_articles/presentation/organ_structure_article_screen.dart';
 
 class CardiacFullScreenHeartTheater extends StatefulWidget {
   final CardiacPathologyScenario scenario;
@@ -880,29 +881,63 @@ class _CardiacFullScreenHeartTheaterState
           ),
           const SizedBox(height: 6),
 
-          // Action Button: Focus View
-          Align(
-            alignment: Alignment.centerRight,
-            child: TextButton.icon(
-              key: const Key('theater_focus_landmark_button'),
-              style: TextButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                minimumSize: Size.zero,
-                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                backgroundColor: const Color(0xFF00E5FF).withValues(alpha: 0.15),
-              ),
-              icon: const Icon(Icons.center_focus_strong_rounded,
-                  size: 13, color: Color(0xFF00E5FF)),
-              label: const Text(
-                'Focus 3D View',
-                style: TextStyle(
-                  color: Color(0xFF00E5FF),
-                  fontSize: 9.5,
-                  fontWeight: FontWeight.bold,
+          // Action Buttons: Full Article & Focus View
+          Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 6,
+            runSpacing: 6,
+            children: [
+              TextButton.icon(
+                key: const Key('theater_view_article_button'),
+                style: TextButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  minimumSize: Size.zero,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  backgroundColor: const Color(0xFF10B981).withValues(alpha: 0.15),
                 ),
+                icon: const Icon(Icons.menu_book_rounded,
+                    size: 13, color: Color(0xFF10B981)),
+                label: const Text(
+                  'Full Article & Research 📖',
+                  style: TextStyle(
+                    color: Color(0xFF10B981),
+                    fontSize: 9.5,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                onPressed: () {
+                  OrganStructureArticleScreen.open(
+                    context,
+                    structureId: landmark.id,
+                    structureName: landmark.name,
+                    organSystem: 'Cardiovascular',
+                    bloodSupply: landmark.bloodSupply,
+                    contextPearl: landmark.clinicalPearl,
+                  );
+                },
               ),
-              onPressed: () => _focusLandmark(landmark),
-            ),
+              TextButton.icon(
+                key: const Key('theater_focus_landmark_button'),
+                style: TextButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  minimumSize: Size.zero,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  backgroundColor: const Color(0xFF00E5FF).withValues(alpha: 0.15),
+                ),
+                icon: const Icon(Icons.center_focus_strong_rounded,
+                    size: 13, color: Color(0xFF00E5FF)),
+                label: const Text(
+                  'Focus 3D View',
+                  style: TextStyle(
+                    color: Color(0xFF00E5FF),
+                    fontSize: 9.5,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                onPressed: () => _focusLandmark(landmark),
+              ),
+            ],
           ),
         ],
       ),
