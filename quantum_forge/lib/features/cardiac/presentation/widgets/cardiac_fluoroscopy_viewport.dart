@@ -604,23 +604,24 @@ class _FluoroscopyXRayPainter extends CustomPainter {
     double cosX,
     double sinX,
   ) {
-    // If contrast is zero, the coronary lumen is invisible (radiotranslucent like blood)
-    // As contrastIntensity rises, dense radiopaque iodine fills the lumen (blackening it)
-    if (contrastIntensity < 0.05) {
-      // Draw faint baseline cardiac cardiac silhouette outline
-      final ghostPaint = Paint()
-        ..color = const Color(0xFF455A64).withValues(alpha: 0.15)
-        ..style = PaintingStyle.fill;
-      canvas.drawCircle(Offset(cx, cy + 10 * s), 75 * s, ghostPaint);
-      return;
-    }
+    // Always draw baseline cardiac silhouette outline
+    final ghostPaint = Paint()
+      ..color = const Color(0xFF455A64).withValues(alpha: 0.22)
+      ..style = PaintingStyle.fill;
+    canvas.drawCircle(Offset(cx, cy + 10 * s), 75 * s, ghostPaint);
 
-    final dyeOpacity = (contrastIntensity * 0.95).clamp(0.1, 0.95);
-    final dyeColor = Color.lerp(
-      const Color(0xFF78909C),
-      const Color(0xFF050B14),
-      dyeOpacity,
-    )!;
+    // If contrast is zero/low, render subtle radiopaque ghost vessel lumens
+    // so coronary anatomy (LM, LAD, LCx, RCA) is immediately identifiable without full-screen.
+    // When contrast rises, dense radiopaque iodine fills the lumen (blackening it).
+    final isGhostMode = contrastIntensity < 0.05;
+    final dyeOpacity = isGhostMode ? 0.38 : (contrastIntensity * 0.95).clamp(0.1, 0.95);
+    final dyeColor = isGhostMode
+        ? const Color(0xFF455A64).withValues(alpha: 0.40)
+        : Color.lerp(
+            const Color(0xFF78909C),
+            const Color(0xFF050B14),
+            dyeOpacity,
+          )!;
 
     // ── Left Coronary System ────────────────────────────────────────────────
     final lmRoot = const [10.0, 52.0, 18.0];

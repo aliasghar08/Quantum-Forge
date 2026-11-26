@@ -1238,16 +1238,11 @@ void main() {
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
 
-      final vitals = CardiacMasterVitalsState();
-
-      await tester.pumpWidget(MaterialApp(
-        home: Scaffold(
-          body: CardiacMasterVitalsBar(
-            vitals: vitals,
-          ),
-        ),
-      ));
+      await tester.pumpWidget(buildTestScreen());
       await tester.pump(const Duration(milliseconds: 100));
+
+      final state = tester.state<CardioCathScreenState>(find.byType(CardioCathScreen));
+      final CardiacMasterVitalsState vitals = state.masterVitals;
 
       // 1. Initial State: Normal Sinus Auto-Pilot
       expect(vitals.activeSituation, CardiacClinicalSituation.normal);

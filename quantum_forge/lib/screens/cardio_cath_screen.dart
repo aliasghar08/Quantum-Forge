@@ -56,10 +56,10 @@ class CardioCathScreen extends StatefulWidget {
   }
 
   @override
-  State<CardioCathScreen> createState() => _CardioCathScreenState();
+  State<CardioCathScreen> createState() => CardioCathScreenState();
 }
 
-class _CardioCathScreenState extends State<CardioCathScreen>
+class CardioCathScreenState extends State<CardioCathScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _cardiacAnimController;
   int _selectedScenarioIndex = 0;
@@ -71,6 +71,7 @@ class _CardioCathScreenState extends State<CardioCathScreen>
   // Hemodynamic & Contrast State
   double _bpm = 72.0;
   late final CardiacMasterVitalsState _masterVitals;
+  CardiacMasterVitalsState get masterVitals => _masterVitals;
   double _contrastIntensity = 0.0;
   bool _isInjecting = false;
   Timer? _dyeWashoutTimer;
@@ -261,6 +262,42 @@ class _CardioCathScreenState extends State<CardioCathScreen>
       _masterVitals.applyScenarioPreset(_activeScenario);
       _updateBpm(_activeScenario.baselineBpm);
       _syncCarmProjectionForScenario(_activeScenario);
+      _injectContrastDye();
+    });
+  }
+
+  void _onSelectSituation(CardiacClinicalSituation sit) {
+    setState(() {
+      _masterVitals.triggerSituation(sit);
+      _isRevascularized = false;
+      _isRotablated = false;
+      _complication = AcuteComplicationState.none;
+
+      // Bidirectionally synchronize coronary lesion scenario if applicable
+      switch (sit) {
+        case CardiacClinicalSituation.anteriorStemi:
+          final idx = kCardiacScenarios.indexWhere((s) => s.id.contains('anterior_stemi'));
+          if (idx != -1) _selectedScenarioIndex = idx;
+          break;
+        case CardiacClinicalSituation.inferiorRvMi:
+          final idx = kCardiacScenarios.indexWhere((s) => s.id.contains('inferior_mi'));
+          if (idx != -1) _selectedScenarioIndex = idx;
+          break;
+        case CardiacClinicalSituation.cardiogenicShock:
+          final idx = kCardiacScenarios.indexWhere((s) => s.id.contains('anterior_stemi'));
+          if (idx != -1) _selectedScenarioIndex = idx;
+          break;
+        case CardiacClinicalSituation.normal:
+          final idx = kCardiacScenarios.indexWhere((s) => s.id.contains('normal'));
+          if (idx != -1) _selectedScenarioIndex = idx;
+          break;
+        default:
+          break;
+      }
+
+      _updateBpm(_masterVitals.heartRateBpm);
+      _syncCarmProjectionForScenario(_activeScenario);
+      _injectContrastDye();
     });
   }
 
@@ -1234,7 +1271,7 @@ class _CardioCathScreenState extends State<CardioCathScreen>
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      'CLINICAL SCENARIO & PATHOLOGY PRESETS:',
+                      'CLINICAL CONDITION & PATHOLOGY CONTROLLER:',
                       style: TextStyle(
                         color: palette.textMuted,
                         fontSize: 10.5,
@@ -1245,7 +1282,7 @@ class _CardioCathScreenState extends State<CardioCathScreen>
                     const SizedBox(width: 8),
                     const CardiacInfoButton(
                       topicId: 'section_scenarios',
-                      customLabel: 'Scenario Info',
+                      customLabel: 'Condition Info',
                       size: 12,
                     ),
                   ],
@@ -1335,34 +1372,149 @@ class _CardioCathScreenState extends State<CardioCathScreen>
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
-              children: List.generate(kCardiacScenarios.length, (idx) {
-                final s = kCardiacScenarios[idx];
-                final isSel = idx == _selectedScenarioIndex;
-                return Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: Tooltip(
-                    waitDuration: const Duration(milliseconds: 220),
-                    message: '${s.title}\nLesion: ${s.anatomicalLesion}\nECG: ${s.ecgFindings}',
-                    child: ChoiceChip(
-                      label: Text(s.title.split(' (').first),
-                      selected: isSel,
-                      selectedColor: const Color(0xFF00E5FF).withValues(alpha: 0.25),
-                      backgroundColor: palette.panelAlt,
-                      labelStyle: TextStyle(
-                        color: isSel ? const Color(0xFF00E5FF) : palette.textMuted,
-                        fontWeight: isSel ? FontWeight.bold : FontWeight.w500,
-                        fontSize: 11.5,
-                      ),
-                      side: BorderSide(
-                        color: isSel ? const Color(0xFF00E5FF) : palette.border,
-                      ),
-                      onSelected: (selected) {
-                        if (selected) _onSelectScenario(idx);
-                      },
-                    ),
+              children: [
+                // ── Group 1: Cath Lab & Coronary Lesions ─────────────────────────
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF00E5FF).withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(4),
+                    border: Border.all(color: const Color(0xFF00E5FF).withValues(alpha: 0.3), width: 0.7),
                   ),
-                );
-              }),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.monitor_heart_rounded, color: Color(0xFF00E5FF), size: 12),
+                      SizedBox(width: 4),
+                      Text(
+                        'CATH LAB & CORONARY',
+                        style: TextStyle(
+                          color: Color(0xFF00E5FF),
+                          fontSize: 9.5,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                ...List.generate(kCardiacScenarios.length, (idx) {
+                  final s = kCardiacScenarios[idx];
+                  final isSel = idx == _selectedScenarioIndex;
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: Tooltip(
+                      waitDuration: const Duration(milliseconds: 220),
+                      message: '${s.title}\nLesion: ${s.anatomicalLesion}\nECG: ${s.ecgFindings}',
+                      child: ChoiceChip(
+                        label: Text(s.title.split(' (').first),
+                        selected: isSel,
+                        selectedColor: const Color(0xFF00E5FF).withValues(alpha: 0.25),
+                        backgroundColor: palette.panelAlt,
+                        labelStyle: TextStyle(
+                          color: isSel ? const Color(0xFF00E5FF) : palette.textMuted,
+                          fontWeight: isSel ? FontWeight.bold : FontWeight.w500,
+                          fontSize: 11.5,
+                        ),
+                        side: BorderSide(
+                          color: isSel ? const Color(0xFF00E5FF) : palette.border,
+                        ),
+                        onSelected: (selected) {
+                          if (selected) _onSelectScenario(idx);
+                        },
+                      ),
+                    ),
+                  );
+                }),
+
+                // ── Divider ──────────────────────────────────────────────────
+                Container(
+                  height: 24,
+                  width: 1.2,
+                  margin: const EdgeInsets.symmetric(horizontal: 8),
+                  color: palette.border,
+                ),
+
+                // ── Group 2: Hemodynamics, Emergencies & Electrolytes ──────────
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFF9100).withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(4),
+                    border: Border.all(color: const Color(0xFFFF9100).withValues(alpha: 0.3), width: 0.7),
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.bolt_rounded, color: Color(0xFFFF9100), size: 12),
+                      SizedBox(width: 4),
+                      Text(
+                        'HEMODYNAMICS & ELECTROLYTES',
+                        style: TextStyle(
+                          color: Color(0xFFFF9100),
+                          fontSize: 9.5,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                ...CardiacClinicalSituation.values.map((sit) {
+                  final isCurrent = _masterVitals.activeSituation == sit;
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 6.0),
+                    child: Tooltip(
+                      waitDuration: const Duration(milliseconds: 220),
+                      message: '${sit.title}\n${sit.description}',
+                      child: InkWell(
+                        key: Key('situation_chip_${sit.id}'),
+                        onTap: () => _onSelectSituation(sit),
+                        borderRadius: BorderRadius.circular(4),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: isCurrent
+                                ? sit.accentColor.withValues(alpha: 0.22)
+                                : palette.panelAlt,
+                            borderRadius: BorderRadius.circular(4),
+                            border: Border.all(
+                              color: isCurrent
+                                  ? sit.accentColor
+                                  : palette.border,
+                              width: isCurrent ? 1.2 : 0.8,
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Container(
+                                width: 6,
+                                height: 6,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: isCurrent ? sit.accentColor : Colors.white24,
+                                ),
+                              ),
+                              const SizedBox(width: 5),
+                              Text(
+                                sit.shortLabel,
+                                style: TextStyle(
+                                  color: isCurrent ? Colors.white : palette.textMuted,
+                                  fontSize: 11,
+                                  fontWeight: isCurrent ? FontWeight.bold : FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                }),
+              ],
             ),
           ),
         ],

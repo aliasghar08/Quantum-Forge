@@ -51,10 +51,6 @@ class CardiacMasterVitalsBar extends StatelessWidget {
             children: [
               // ── Header & Physiological Coupling Badges ─────────────────────
               _buildHeaderRow(context),
-              const SizedBox(height: 8),
-
-              // ── Heart Situation Trigger Strip (Auto-Pilot Scenarios) ───────
-              _buildSituationTriggerRow(context),
               const SizedBox(height: 10),
 
               // ── Interactive Parameter Control Sliders ───────────────────────
@@ -202,90 +198,7 @@ class CardiacMasterVitalsBar extends StatelessWidget {
     );
   }
 
-  Widget _buildSituationHeaderBadge() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3.5),
-      decoration: BoxDecoration(
-        color: const Color(0xFF1E293B),
-        borderRadius: BorderRadius.circular(4),
-        border: Border.all(color: const Color(0xFF334155), width: 0.8),
-      ),
-      child: const Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.bolt_rounded, color: Color(0xFF00E5FF), size: 12),
-          SizedBox(width: 4),
-          Text(
-            'HEART SITUATION TRIGGER',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 9.5,
-              fontWeight: FontWeight.bold,
-              letterSpacing: 0.6,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  List<Widget> _buildSituationChipsList() {
-    return CardiacClinicalSituation.values.map((sit) {
-      final isCurrent = vitals.activeSituation == sit;
-      final isAuto = isCurrent && !vitals.isManualOverride;
-      return Padding(
-        padding: const EdgeInsets.only(right: 6.0),
-        child: InkWell(
-          key: Key('situation_chip_${sit.id}'),
-          onTap: () {
-            vitals.triggerSituation(sit);
-          },
-          borderRadius: BorderRadius.circular(4),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3.5),
-            decoration: BoxDecoration(
-              color: isAuto
-                  ? sit.accentColor.withValues(alpha: 0.22)
-                  : (isCurrent
-                      ? sit.accentColor.withValues(alpha: 0.10)
-                      : const Color(0xFF0F172A)),
-              borderRadius: BorderRadius.circular(4),
-              border: Border.all(
-                color: isAuto
-                    ? sit.accentColor
-                    : (isCurrent
-                        ? sit.accentColor.withValues(alpha: 0.6)
-                        : const Color(0xFF1E293B)),
-                width: isAuto ? 1.2 : 0.8,
-              ),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 6,
-                  height: 6,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: isCurrent ? sit.accentColor : Colors.white24,
-                  ),
-                ),
-                const SizedBox(width: 5),
-                Text(
-                  sit.shortLabel,
-                  style: TextStyle(
-                    color: isCurrent ? Colors.white : Colors.white70,
-                    fontSize: 10,
-                    fontWeight: isCurrent ? FontWeight.bold : FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      );
-    }).toList();
-  }
+  // (Situation triggers are now consolidated in the unified condition bar at the top of CardioCathScreen)
 
   Widget _buildStatusPill(BuildContext context) {
     if (!vitals.isManualOverride) {
@@ -377,51 +290,7 @@ class CardiacMasterVitalsBar extends StatelessWidget {
     }
   }
 
-  Widget _buildSituationTriggerRow(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-      decoration: BoxDecoration(
-        color: const Color(0xFF0B132B).withValues(alpha: 0.6),
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: const Color(0xFF1E293B), width: 0.8),
-      ),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final isNarrow = constraints.maxWidth < 950;
-          if (isNarrow) {
-            return SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: [
-                  _buildSituationHeaderBadge(),
-                  const SizedBox(width: 8),
-                  ..._buildSituationChipsList(),
-                  const SizedBox(width: 8),
-                  _buildStatusPill(context),
-                ],
-              ),
-            );
-          }
-          return Row(
-            children: [
-              _buildSituationHeaderBadge(),
-              const SizedBox(width: 8),
-              Expanded(
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    children: _buildSituationChipsList(),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              _buildStatusPill(context),
-            ],
-          );
-        },
-      ),
-    );
-  }
+
 
   Widget _buildHeaderRow(BuildContext context) {
     return Wrap(
@@ -452,6 +321,8 @@ class CardiacMasterVitalsBar extends StatelessWidget {
                 letterSpacing: 0.8,
               ),
             ),
+            const SizedBox(width: 10),
+            _buildStatusPill(context),
           ],
         ),
 
