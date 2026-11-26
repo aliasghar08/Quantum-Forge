@@ -516,9 +516,9 @@ class CardiacHemodynamicEcgStrip extends StatefulWidget {
 
     // Pathology ST-segment localized deviation
     double leadStMm = 0.0;
-    final isAnterior = scenario.id.contains('anterior_mi');
+    final isAnterior = scenario.id.contains('anterior_mi') || scenario.id.contains('anterior_stemi');
     final isInferior = scenario.id.contains('inferior_mi');
-    final isLm = scenario.id.contains('critical_lm');
+    final isLm = scenario.id.contains('critical_lm') || scenario.id.contains('lm_stenosis');
 
     if (isAnterior) {
       if (lead == 'V1') {
@@ -806,7 +806,7 @@ class _CardiacHemodynamicEcgStripState extends State<CardiacHemodynamicEcgStrip>
       if (mounted) {
         setState(() {
           _showShockFlash = false;
-          if (_currentRhythm.isShockable || _currentRhythm.isArrest) {
+          if (_currentRhythm.isShockable) {
             // Achieve ROSC back to NSR
             _currentRhythm = OscilloscopeRhythmType.nsr;
             widget.onBpmChanged(85.0);
@@ -816,13 +816,18 @@ class _CardiacHemodynamicEcgStripState extends State<CardiacHemodynamicEcgStrip>
             widget.masterVitals?.setRespiration(16.0, 42.0);
             _alertBannerText = '⚡ 200J BIPHASIC DELIVERED — ROSC ACHIEVED (NSR 85 BPM, EtCO₂ SURGED > 40 mmHg)';
             _alertBannerColor = const Color(0xFF00E676);
+            widget.onDefibrillated?.call();
+            widget.onRhythmChanged?.call(_currentRhythm);
+          } else if (_currentRhythm == OscilloscopeRhythmType.asystole) {
+            // Non-shockable arrest rhythm guard
+            _alertBannerText = '⚠️ CRITICAL: ASYSTOLE IS NON-SHOCKABLE! RESUME CPR & EPINEPHRINE 1mg IV';
+            _alertBannerColor = const Color(0xFFFF1744);
           } else {
-            _alertBannerText = '⚡ 200J BIPHASIC SYNCHRONIZED CARDIOVERSION DELIVERED';
-            _alertBannerColor = const Color(0xFF00E5FF);
+            // Non-shockable organized rhythm guard
+            _alertBannerText = '⚠️ NON-SHOCKABLE RHYTHM (${_currentRhythm.badge}) — DEFIBRILLATION WITHHELD';
+            _alertBannerColor = const Color(0xFFFF9100);
           }
         });
-        widget.onDefibrillated?.call();
-        widget.onRhythmChanged?.call(_currentRhythm);
       }
     });
   }
@@ -832,6 +837,7 @@ class _CardiacHemodynamicEcgStripState extends State<CardiacHemodynamicEcgStrip>
       _tcpActive = !_tcpActive;
       if (_tcpActive) {
         widget.onBpmChanged(70.0);
+        widget.masterVitals?.setHeartRate(70.0);
         _alertBannerText = '⚡ TRANSCUTANEOUS PACING ACTIVE — VENTRICULAR CAPTURE AT 70 BPM';
         _alertBannerColor = const Color(0xFF69F0AE);
       } else {
@@ -1052,7 +1058,42 @@ class _CardiacHemodynamicEcgStripState extends State<CardiacHemodynamicEcgStrip>
           baseSt = -1.5;
           break;
         case CardiacClinicalSituation.cardiogenicShock:
-          baseSt = 2.0;
+          final isInf = widget.scenario.id.contains('inferior_mi');
+          final isAnt = widget.scenario.id.contains('anterior_stemi') || widget.scenario.id.contains('anterior_mi');
+          final isLmLesion = widget.scenario.id.contains('critical_lm') || widget.scenario.id.contains('lm_stenosis');
+          if (isInf) {
+            switch (widget.activeTerritory) {
+              case EcgTerritoryLead.inferiorLeads:
+              case EcgTerritoryLead.leadII:
+                baseSt = 3.8;
+                break;
+              case EcgTerritoryLead.v1V4Anterior:
+                baseSt = -2.2;
+                break;
+              case EcgTerritoryLead.lateralLeads:
+                baseSt = -1.5;
+                break;
+            }
+          } else if (isAnt) {
+            switch (widget.activeTerritory) {
+              case EcgTerritoryLead.v1V4Anterior:
+                baseSt = 4.8;
+                break;
+              case EcgTerritoryLead.inferiorLeads:
+                baseSt = -2.0;
+                break;
+              case EcgTerritoryLead.lateralLeads:
+                baseSt = 1.2;
+                break;
+              case EcgTerritoryLead.leadII:
+                baseSt = widget.scenario.stElevationMm > 0 ? widget.scenario.stElevationMm : 4.5;
+                break;
+            }
+          } else if (isLmLesion) {
+            baseSt = -2.0;
+          } else {
+            baseSt = 2.0;
+          }
           break;
         case CardiacClinicalSituation.tamponade:
           baseSt = 1.0;
@@ -1126,7 +1167,8 @@ class _CardiacHemodynamicEcgStripState extends State<CardiacHemodynamicEcgStrip>
     final isPressureWire = widget.wireType == InterventionalWireType.pressureWireX;
     final isDamped = widget.scenario.isCatheterDamped ||
         widget.complication == AcuteComplicationState.lmVentricularization ||
-        (widget.catheterType == GuideCatheterType.al1 && widget.scenario.id.contains('critical_lm'));
+        (widget.catheterType == GuideCatheterType.al1 &&
+            (widget.scenario.id.contains('critical_lm') || widget.scenario.id.contains('lm_stenosis')));
 
     final isQrsActive = widget.cardiacPhase >= 0.255 && widget.cardiacPhase <= 0.295;
     final isThermal = _displayTheme == OscilloscopeDisplayTheme.thermalPaper;
@@ -3303,7 +3345,7 @@ class _FiveChannelHospitalOscilloscopePainter extends CustomPainter {
         pa = pa + respSwing + ringing;
       }
 
-      final yPa = bounds.bottom - 4.0 - (((pa - 35.0) / 105.0).clamp(0.0, 1.0)) * (bounds.height * 0.74);
+      final yPa = bounds.bottom - 4.0 - (((pa - 10.0) / 140.0).clamp(0.0, 1.0)) * (bounds.height * 0.76);
       if (paPath == null) {
         paPath = Path()..moveTo(x, yPa);
       } else {
@@ -3313,7 +3355,7 @@ class _FiveChannelHospitalOscilloscopePainter extends CustomPainter {
       if (isPressureWire) {
         final drop = (ffrValue != null) ? (1.0 - ffrValue!) * 40.0 : 25.0;
         final pd = math.max(pa - drop, 12.0);
-        final yPd = bounds.bottom - 4.0 - (((pd - 35.0) / 105.0).clamp(0.0, 1.0)) * (bounds.height * 0.74);
+        final yPd = bounds.bottom - 4.0 - (((pd - 10.0) / 140.0).clamp(0.0, 1.0)) * (bounds.height * 0.76);
         if (pdPath == null) {
           pdPath = Path()..moveTo(x, yPd);
         } else {
@@ -3457,7 +3499,7 @@ class _FiveChannelHospitalOscilloscopePainter extends CustomPainter {
     final pa = (rhythm == OscilloscopeRhythmType.asystole)
         ? 10.0
         : (rhythm == OscilloscopeRhythmType.vfib ? 15.0 : CardiacHemodynamicEcgStrip.computeAorticPressure(localPhase, isDamped, iabpActive, systolicBp: systolicBp, diastolicBp: diastolicBp));
-    final y3 = r3.bottom - 4.0 - (((pa - 35.0) / 105.0).clamp(0.0, 1.0)) * (r3.height * 0.74);
+    final y3 = r3.bottom - 4.0 - (((pa - 10.0) / 140.0).clamp(0.0, 1.0)) * (r3.height * 0.76);
     _drawPhosphorDot(canvas, Offset(cursorX, y3), _isThermal ? const Color(0xFF991B1B) : const Color(0xFFFF5252));
 
     // Channel 4: SpO2 Pleth

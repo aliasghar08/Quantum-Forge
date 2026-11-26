@@ -341,31 +341,38 @@ class _CardiacFluoroscopyViewportState extends State<CardiacFluoroscopyViewport>
                     const SizedBox(width: 8),
                     if (widget.onSimulatePci != null &&
                         (widget.scenario.ladStenosisFraction > 0 || widget.scenario.rcaStenosisFraction > 0)) ...[
-                      ElevatedButton.icon(
-                        icon: Icon(
-                          widget.isRevascularized ? Icons.check_circle_rounded : Icons.expand_circle_down_rounded,
-                          size: 14,
-                        ),
-                        label: Text(
-                          widget.isRevascularized ? 'TIMI 3 (Stented)' : 'Simulate PCI Stent',
-                          style: const TextStyle(
-                            fontSize: 10.5,
-                            fontWeight: FontWeight.bold,
+                      Tooltip(
+                        message: widget.isRevascularized
+                            ? 'TIMI 3 flow restored via balloon angioplasty and stent'
+                            : (widget.contrastIntensity <= 0.05 && !widget.isInjecting
+                                ? 'Angiographic visualization recommended — Inject contrast dye before stenting'
+                                : 'Deploy drug-eluting coronary stent at target lesion'),
+                        child: ElevatedButton.icon(
+                          icon: Icon(
+                            widget.isRevascularized ? Icons.check_circle_rounded : Icons.expand_circle_down_rounded,
+                            size: 14,
                           ),
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: widget.isRevascularized
-                              ? const Color(0xFF10B981)
-                              : const Color(0xFFF59E0B),
-                          foregroundColor: Colors.black,
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                          minimumSize: Size.zero,
-                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
+                          label: Text(
+                            widget.isRevascularized ? 'TIMI 3 (Stented)' : 'Simulate PCI Stent',
+                            style: const TextStyle(
+                              fontSize: 10.5,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: widget.isRevascularized
+                                ? const Color(0xFF10B981)
+                                : const Color(0xFFF59E0B),
+                            foregroundColor: Colors.black,
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                            minimumSize: Size.zero,
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          onPressed: widget.onSimulatePci,
                         ),
-                        onPressed: widget.onSimulatePci,
                       ),
                       const SizedBox(width: 6),
                     ],

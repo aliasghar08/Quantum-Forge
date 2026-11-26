@@ -1519,18 +1519,29 @@ class _CardiacFullScreenFluoTheaterState extends State<CardiacFullScreenFluoThea
                       ),
 
                       // Simulate PCI Stent
-                      if (widget.onSimulatePci != null) ...[
+                      if (widget.onSimulatePci != null &&
+                          (widget.scenario.ladStenosisFraction > 0 || widget.scenario.rcaStenosisFraction > 0)) ...[
                         const SizedBox(width: 8),
-                        ElevatedButton.icon(
-                          icon: const Icon(Icons.expand_circle_down_rounded, size: 14),
-                          label: Text(widget.isRevascularized ? 'Stented TIMI 3' : 'Deploy Stent'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: widget.isRevascularized ? const Color(0xFF10B981) : const Color(0xFFF59E0B),
-                            foregroundColor: Colors.black,
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                            textStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                        Tooltip(
+                          message: widget.isRevascularized
+                              ? 'TIMI 3 flow restored via stent'
+                              : (widget.contrastIntensity <= 0.05 && !widget.isInjecting
+                                  ? 'Angiographic visualization recommended — Inject contrast dye before stenting'
+                                  : 'Deploy drug-eluting coronary stent at target lesion'),
+                          child: ElevatedButton.icon(
+                            icon: Icon(
+                              widget.isRevascularized ? Icons.check_circle_rounded : Icons.expand_circle_down_rounded,
+                              size: 14,
+                            ),
+                            label: Text(widget.isRevascularized ? 'TIMI 3 (Stented)' : 'Simulate PCI Stent'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: widget.isRevascularized ? const Color(0xFF10B981) : const Color(0xFFF59E0B),
+                              foregroundColor: Colors.black,
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                              textStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                            ),
+                            onPressed: widget.onSimulatePci,
                           ),
-                          onPressed: widget.onSimulatePci,
                         ),
                       ],
                     ],

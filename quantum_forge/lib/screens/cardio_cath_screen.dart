@@ -160,6 +160,7 @@ class _CardioCathScreenState extends State<CardioCathScreen>
     );
     _masterVitals.applyScenarioPreset(_activeScenario);
     _masterVitals.addListener(_onMasterVitalsChanged);
+    _syncCarmProjectionForScenario(_activeScenario);
 
     final cycleDurationMs = (60.0 / _bpm * 1000).round();
     _cardiacAnimController = AnimationController(
@@ -238,6 +239,19 @@ class _CardioCathScreenState extends State<CardioCathScreen>
     });
   }
 
+  void _syncCarmProjectionForScenario(CardiacPathologyScenario scenario) {
+    if (scenario.id.contains('inferior_mi')) {
+      _laoRaoAngle = 40.0;
+      _cranCaudAngle = 0.0; // LAO Straight (RCA C-Shape)
+    } else if (scenario.id.contains('lm_stenosis') || scenario.id.contains('critical_lm')) {
+      _laoRaoAngle = -20.0;
+      _cranCaudAngle = -30.0; // RAO Caudal (Spider View)
+    } else {
+      _laoRaoAngle = 40.0;
+      _cranCaudAngle = 30.0; // LAO Cranial (LAD Profiler / Standard View)
+    }
+  }
+
   void _onSelectScenario(int idx) {
     setState(() {
       _selectedScenarioIndex = idx;
@@ -246,25 +260,59 @@ class _CardioCathScreenState extends State<CardioCathScreen>
       _complication = AcuteComplicationState.none;
       _masterVitals.applyScenarioPreset(_activeScenario);
       _updateBpm(_activeScenario.baselineBpm);
+      _syncCarmProjectionForScenario(_activeScenario);
     });
   }
 
   void _simulatePciDeployment() {
+    if (_activeScenario.ladStenosisFraction == 0 &&
+        _activeScenario.rcaStenosisFraction == 0 &&
+        _activeScenario.lcxStenosisFraction == 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Row(
+            children: [
+              Icon(Icons.warning_amber_rounded, color: Color(0xFFEF4444), size: 18),
+              SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Cannot deploy stent: Normal coronary circulation with zero stenosis (TIMI 3).',
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                ),
+              ),
+            ],
+          ),
+          backgroundColor: const Color(0xFF1E1014),
+          duration: const Duration(seconds: 3),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        ),
+      );
+      return;
+    }
+
+    final needsDyeInjection = _contrastIntensity < 0.05 && !_isInjecting;
+
     setState(() {
       _isRevascularized = true;
       _complication = AcuteComplicationState.none;
     });
+
     _injectContrastDye();
+    _masterVitals.setLvef(60.0);
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: const Row(
+        content: Row(
           children: [
-            Icon(Icons.check_circle_rounded, color: Color(0xFF10B981), size: 18),
-            SizedBox(width: 8),
+            const Icon(Icons.check_circle_rounded, color: Color(0xFF10B981), size: 18),
+            const SizedBox(width: 8),
             Expanded(
               child: Text(
-                'PCI Balloon Angioplasty & Stent Deployed! Restored TIMI 3 flow and 75% ST resolution.',
-                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                needsDyeInjection
+                    ? 'Angiographic roadmap primed & Stent Deployed! Restored TIMI 3 flow and 75% ST resolution.'
+                    : 'PCI Balloon Angioplasty & Stent Deployed! Restored TIMI 3 flow and 75% ST resolution.',
+                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
               ),
             ),
           ],

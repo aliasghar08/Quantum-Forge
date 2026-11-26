@@ -2037,5 +2037,145 @@ void main() {
       await tester.tap(find.text('Apply Bailout Protocol'));
       await tester.pump();
     });
+
+    test('CardiacMasterVitalsState preserves ischemic ST deviation under Cardiogenic Shock', () {
+      final state = CardiacMasterVitalsState();
+      // Apply Inferior MI preset
+      state.triggerSituation(CardiacClinicalSituation.inferiorRvMi);
+      expect(state.stElevationMm, 3.8);
+
+      // Trigger Cardiogenic Shock secondary complication
+      state.triggerSituation(CardiacClinicalSituation.cardiogenicShock);
+      // Inferior ST elevation must be preserved at 3.8 mm rather than wiped out to 2.0 mm
+      expect(state.stElevationMm, 3.8);
+      expect(state.heartRateBpm, 126.0);
+      expect(state.lvefPct, 22.0);
+
+      // Also verify Anterior STEMI preservation
+      final state2 = CardiacMasterVitalsState();
+      state2.triggerSituation(CardiacClinicalSituation.anteriorStemi);
+      expect(state2.stElevationMm, 4.5);
+      state2.triggerSituation(CardiacClinicalSituation.cardiogenicShock);
+      expect(state2.stElevationMm, 4.8);
+    });
+
+    test('Hemodynamic math consistency: MAP, CO, and Arrest collapse', () {
+      final state = CardiacMasterVitalsState(
+        heartRateBpm: 75.0,
+        systolicBp: 120.0,
+        diastolicBp: 80.0,
+        lvefPct: 60.0,
+      );
+
+      // MAP = DBP + (SBP - DBP) / 3
+      final expectedMap = 80.0 + (120.0 - 80.0) / 3.0;
+      expect((state.mapBp - expectedMap).abs() < 0.001, isTrue);
+
+      // SV = 120 * 0.6 = 72 mL; CO = (75 * 72) / 1000 = 5.4 L/min
+      expect(state.strokeVolumeMl, 72.0);
+      expect(state.cardiacOutputLMin, 5.4);
+
+      // Arrest collapses CO to 0.0
+      state.applyRhythmOverride(OscilloscopeRhythmType.asystole);
+      expect(state.cardiacOutputLMin, 0.0);
+
+      final stateVfib = CardiacMasterVitalsState();
+      stateVfib.applyRhythmOverride(OscilloscopeRhythmType.vfib);
+      expect(stateVfib.cardiacOutputLMin, 0.0);
+    });
+
+    test('Catheter damping produces physiological pressure ventricularization', () {
+      // Normal Pa
+      final normalPaSystole = CardiacHemodynamicEcgStrip.computeAorticPressure(0.38, false, false, systolicBp: 120, diastolicBp: 80);
+      expect(normalPaSystole > 100.0, isTrue);
+
+      // Damped Pa: ventricularized morphology (systolic drop, diastolic near ~18 mmHg)
+      final dampedSystole = CardiacHemodynamicEcgStrip.computeAorticPressure(0.38, true, false, systolicBp: 120, diastolicBp: 80);
+      final dampedDiastole = CardiacHemodynamicEcgStrip.computeAorticPressure(0.70, true, false, systolicBp: 120, diastolicBp: 80);
+
+      expect(dampedSystole < normalPaSystole, isTrue);
+      expect(dampedDiastole, 18.0);
+    });
+
+    testWidgets('C-Arm angles auto-synchronize to optimal projections upon scenario switch',
+        (tester) async {
+      tester.view.physicalSize = const Size(1280, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(buildTestScreen());
+      await tester.pump();
+
+      // Switch to Acute Anterior STEMI -> auto-sync to LAO 40° / Cranial 30°
+      final stemiChip = find.text('Acute Anterior STEMI');
+      await tester.ensureVisible(stemiChip);
+      await tester.tap(stemiChip);
+      await tester.pump();
+
+      expect(find.textContaining('LAO 40°'), findsWidgets);
+      expect(find.textContaining('CRAN 30°'), findsWidgets);
+
+      // Switch to Acute Inferior MI -> auto-sync to LAO 40° / Cranial 0° (LAO Straight)
+      final inferiorChip = find.text('Acute Inferior MI');
+      await tester.ensureVisible(inferiorChip);
+      await tester.tap(inferiorChip);
+      await tester.pump();
+
+      expect(find.textContaining('LAO 40°'), findsWidgets);
+      expect(find.textContaining('0°'), findsWidgets);
+
+      // Switch to Left Main Damping -> auto-sync to RAO -20° / Caudal -30° (Spider View)
+      final lmChip = find.text('Critical Left Main Stenosis & Catheter Damping');
+      await tester.ensureVisible(lmChip);
+      await tester.tap(lmChip);
+      await tester.pump();
+
+      expect(find.textContaining('RAO 20°'), findsWidgets);
+      expect(find.textContaining('CAUD 30°'), findsWidgets);
+    });
+
+    testWidgets('Defibrillator 200J Biphasic Shock safety: converts VFib and guards Asystole',
+        (tester) async {
+      await tester.binding.setSurfaceSize(const Size(1600, 1000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await tester.pumpWidget(buildTestScreen(size: const Size(1600, 1000)));
+      await tester.pump();
+
+      // Scroll to rhythm selector bar and select V-FIB
+      final vfibChip = find.text('V-FIB');
+      expect(vfibChip, findsOneWidget);
+      await tester.ensureVisible(vfibChip);
+      await tester.tap(vfibChip);
+      await tester.pump();
+
+      // Button now says '200J DEFIB (SHOCKABLE)'
+      final shockBtn = find.text('200J DEFIB (SHOCKABLE)');
+      expect(shockBtn, findsOneWidget);
+      await tester.ensureVisible(shockBtn);
+      await tester.pump();
+      await tester.tap(shockBtn);
+      await tester.pump(const Duration(milliseconds: 350));
+
+      // ROSC achieved: rhythm returns to NSR
+      expect(find.textContaining('ROSC ACHIEVED'), findsOneWidget);
+
+      // Now switch to ASYSTOLE (non-shockable arrest)
+      final asystoleChip = find.text('ASYSTOLE');
+      await tester.ensureVisible(asystoleChip);
+      await tester.tap(asystoleChip);
+      await tester.pump();
+
+      final nonShockBtn = find.text('200J BIPHASIC SHOCK');
+      expect(nonShockBtn, findsOneWidget);
+      await tester.ensureVisible(nonShockBtn);
+      await tester.pump();
+      await tester.tap(nonShockBtn);
+      await tester.pump(const Duration(milliseconds: 350));
+
+      // Asystole warning displayed — NOT converted to NSR
+      expect(find.textContaining('CRITICAL: ASYSTOLE IS NON-SHOCKABLE!'), findsOneWidget);
+    });
   });
 }

@@ -347,12 +347,16 @@ class CardiacMasterVitalsState extends ChangeNotifier {
       _heartRateBpm > 0 ? (60000.0 / _heartRateBpm) : 1000.0;
 
   /// Estimated Stroke Volume based on baseline 120 mL EDV scaled by LVEF [mL]
-  double get strokeVolumeMl =>
-      (120.0 * (_lvefPct / 100.0)).clamp(15.0, 130.0);
+  double get strokeVolumeMl {
+    if (_targetRhythm.isArrest) return 0.0;
+    return (120.0 * (_lvefPct / 100.0)).clamp(15.0, 130.0);
+  }
 
   /// Cardiac Output: (HR * SV) / 1000.0 [L/min]
-  double get cardiacOutputLMin =>
-      (_heartRateBpm * strokeVolumeMl) / 1000.0;
+  double get cardiacOutputLMin {
+    if (_targetRhythm.isArrest || _heartRateBpm <= 0) return 0.0;
+    return (_heartRateBpm * strokeVolumeMl) / 1000.0;
+  }
 
   /// Systemic Vascular Resistance index estimation [dynes*s/cm5]
   double get estimatedSvrDynes =>
@@ -363,6 +367,12 @@ class CardiacMasterVitalsState extends ChangeNotifier {
   /// Triggers an acute clinical situation, atomically aligning all vitals,
   /// rhythm, and ST-segment state while setting isManualOverride = false.
   void triggerSituation(CardiacClinicalSituation situation) {
+    // Preserve acute ischemic territory ST elevation if transitioning into shock / failure
+    final wasInferiorIschemic = _activeSituation == CardiacClinicalSituation.inferiorRvMi ||
+        (_targetRhythm == OscilloscopeRhythmType.sinusBrady && _stElevationMm > 2.5);
+    final wasAnteriorIschemic = _activeSituation == CardiacClinicalSituation.anteriorStemi ||
+        (_stElevationMm >= 4.0 && _activeSituation != CardiacClinicalSituation.cardiogenicShock);
+
     _activeSituation = situation;
     _isManualOverride = false;
     _heartRateBpm = situation.heartRateBpm;
@@ -372,7 +382,19 @@ class CardiacMasterVitalsState extends ChangeNotifier {
     _respRate = situation.respRate;
     _etco2MmHg = situation.etco2MmHg;
     _lvefPct = situation.lvefPct;
-    _stElevationMm = situation.stElevationMm;
+
+    if (situation == CardiacClinicalSituation.cardiogenicShock) {
+      if (wasInferiorIschemic) {
+        _stElevationMm = 3.8; // Preserve inferior STEMI ST elevation under cardiogenic shock
+      } else if (wasAnteriorIschemic) {
+        _stElevationMm = 4.8; // Preserve anterior STEMI ST elevation under cardiogenic shock
+      } else {
+        _stElevationMm = situation.stElevationMm;
+      }
+    } else {
+      _stElevationMm = situation.stElevationMm;
+    }
+
     _targetRhythm = situation.rhythm;
     notifyListeners();
   }

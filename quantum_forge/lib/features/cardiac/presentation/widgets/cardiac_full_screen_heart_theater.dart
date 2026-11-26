@@ -24,6 +24,7 @@ import 'package:quantum_forge/core/theme/theme_provider.dart';
 import '../../data/cardiac_pathology_models.dart';
 import '../../data/cardiac_landmark_models.dart';
 import '../../data/cardiac_master_vitals_state.dart';
+import '../../data/coronary_hemodynamics_engine.dart';
 import 'cardiac_three_engine.dart';
 import 'cardiac_3d_anatomical_heart_viewport.dart';
 import 'package:quantum_forge/features/organ_articles/presentation/organ_structure_article_screen.dart';
@@ -344,6 +345,7 @@ class _CardiacFullScreenHeartTheaterState
                           viewMode: _viewMode,
                           showLabels: false, // Handled by projected overlay
                           lvefPct: effectiveLvef,
+                          rhythm: widget.masterVitals?.targetRhythm ?? OscilloscopeRhythmType.nsr,
                         ),
                       ),
                     ),

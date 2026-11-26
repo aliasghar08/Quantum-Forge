@@ -253,6 +253,7 @@ class _Cardiac3DAnatomicalHeartViewportState
                           viewMode: _viewMode,
                           showLabels: _showLabels,
                           lvefPct: widget.lvefPct,
+                          rhythm: widget.masterVitals?.targetRhythm ?? OscilloscopeRhythmType.nsr,
                         ),
                       ),
                     ),
@@ -846,6 +847,7 @@ class AnatomicalHeart3DPainter extends CustomPainter {
   final HeartViewMode viewMode;
   final bool showLabels;
   final double lvefPct;
+  final OscilloscopeRhythmType rhythm;
 
   AnatomicalHeart3DPainter({
     required this.scenario,
@@ -861,6 +863,7 @@ class AnatomicalHeart3DPainter extends CustomPainter {
     required this.viewMode,
     required this.showLabels,
     this.lvefPct = 60.0,
+    this.rhythm = OscilloscopeRhythmType.nsr,
   });
 
   _Vec3 _rotate(_Vec3 p, double cosY, double sinY, double cosX, double sinX) {
@@ -910,11 +913,13 @@ class AnatomicalHeart3DPainter extends CustomPainter {
 
     // Physiological contraction: systole wrings and squeezes ventricles by ~12% (scaled by LVEF)
     // Atrial kick occurs at phase 0.15; ventricular peak systole at phase 0.35
-    final isSystole = cardiacPhase >= 0.22 && cardiacPhase <= 0.48;
+    final isAsystole = rhythm == OscilloscopeRhythmType.asystole;
+    final isVfib = rhythm == OscilloscopeRhythmType.vfib;
+    final isSystole = !isAsystole && !isVfib && cardiacPhase >= 0.22 && cardiacPhase <= 0.48;
     final efExcursionScale = (lvefPct / 60.0).clamp(0.25, 1.45);
     final systolicContraction = isSystole
         ? 0.12 * efExcursionScale * math.sin((cardiacPhase - 0.22) / 0.26 * math.pi)
-        : 0.0;
+        : (isVfib ? 0.012 * math.sin(cardiacPhase * 48.0) * math.cos(cardiacPhase * 32.0) : 0.0);
     final currentScale = baseScale * (1.0 - systolicContraction);
 
     // ── 0. Ghost Thoracic Ribcage & Spine Architecture ──────────────────────
@@ -1770,24 +1775,27 @@ class AnatomicalHeart3DPainter extends CustomPainter {
     double cosX,
     double sinX,
   ) {
+    final isAnterior = scenario.id.contains('anterior_stemi') || scenario.id.contains('anterior_mi');
+    final isInferior = scenario.id.contains('inferior_mi');
+
     final segments = [
-      (id: 1, name: 'Basal Ant', pos: const _Vec3(-6, 20, 28), isIschemic: !isRevascularized),
-      (id: 2, name: 'Basal AntSep', pos: const _Vec3(2, 20, 24), isIschemic: !isRevascularized),
-      (id: 3, name: 'Basal InfSep', pos: const _Vec3(4, 18, -14), isIschemic: false),
-      (id: 4, name: 'Basal Inf', pos: const _Vec3(-6, 18, -20), isIschemic: false),
+      (id: 1, name: 'Basal Ant', pos: const _Vec3(-6, 20, 28), isIschemic: isAnterior && !isRevascularized),
+      (id: 2, name: 'Basal AntSep', pos: const _Vec3(2, 20, 24), isIschemic: isAnterior && !isRevascularized),
+      (id: 3, name: 'Basal InfSep', pos: const _Vec3(4, 18, -14), isIschemic: isInferior && !isRevascularized),
+      (id: 4, name: 'Basal Inf', pos: const _Vec3(-6, 18, -20), isIschemic: isInferior && !isRevascularized),
       (id: 5, name: 'Basal InfLat', pos: const _Vec3(-22, 18, -14), isIschemic: false),
       (id: 6, name: 'Basal AntLat', pos: const _Vec3(-20, 18, 18), isIschemic: false),
-      (id: 7, name: 'Mid Ant', pos: const _Vec3(-6, -4, 30), isIschemic: !isRevascularized),
-      (id: 8, name: 'Mid AntSep', pos: const _Vec3(2, -4, 24), isIschemic: !isRevascularized),
-      (id: 9, name: 'Mid InfSep', pos: const _Vec3(3, -4, -14), isIschemic: false),
-      (id: 10, name: 'Mid Inf', pos: const _Vec3(-8, -4, -22), isIschemic: false),
+      (id: 7, name: 'Mid Ant', pos: const _Vec3(-6, -4, 30), isIschemic: isAnterior && !isRevascularized),
+      (id: 8, name: 'Mid AntSep', pos: const _Vec3(2, -4, 24), isIschemic: isAnterior && !isRevascularized),
+      (id: 9, name: 'Mid InfSep', pos: const _Vec3(3, -4, -14), isIschemic: isInferior && !isRevascularized),
+      (id: 10, name: 'Mid Inf', pos: const _Vec3(-8, -4, -22), isIschemic: isInferior && !isRevascularized),
       (id: 11, name: 'Mid InfLat', pos: const _Vec3(-24, -4, -14), isIschemic: false),
       (id: 12, name: 'Mid AntLat', pos: const _Vec3(-22, -4, 18), isIschemic: false),
-      (id: 13, name: 'Apical Ant', pos: const _Vec3(-6, -24, 22), isIschemic: !isRevascularized),
-      (id: 14, name: 'Apical Sep', pos: const _Vec3(1, -24, 14), isIschemic: !isRevascularized),
-      (id: 15, name: 'Apical Inf', pos: const _Vec3(-6, -24, -14), isIschemic: false),
+      (id: 13, name: 'Apical Ant', pos: const _Vec3(-6, -24, 22), isIschemic: isAnterior && !isRevascularized),
+      (id: 14, name: 'Apical Sep', pos: const _Vec3(1, -24, 14), isIschemic: isAnterior && !isRevascularized),
+      (id: 15, name: 'Apical Inf', pos: const _Vec3(-6, -24, -14), isIschemic: isInferior && !isRevascularized),
       (id: 16, name: 'Apical Lat', pos: const _Vec3(-20, -24, 10), isIschemic: false),
-      (id: 17, name: 'Apex', pos: const _Vec3(-10, -42, 8), isIschemic: !isRevascularized),
+      (id: 17, name: 'Apex', pos: const _Vec3(-10, -42, 8), isIschemic: isAnterior && !isRevascularized),
     ];
 
     for (final seg in segments) {
@@ -3281,18 +3289,22 @@ class CardiacBeatScrubberBar extends StatelessWidget {
               const SizedBox(width: 6),
 
               // RR & BPM Readout
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.06),
-                  borderRadius: BorderRadius.circular(3),
-                ),
-                child: Text(
-                  'RR: $rrMs ms | ${bpm.round()} BPM',
-                  style: const TextStyle(
-                    color: Colors.white70,
-                    fontSize: 8.0,
-                    fontFamily: 'monospace',
+              Flexible(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1.5),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.06),
+                    borderRadius: BorderRadius.circular(3),
+                  ),
+                  child: Text(
+                    '$rrMs ms | ${bpm.round()} BPM',
+                    style: const TextStyle(
+                      color: Colors.white70,
+                      fontSize: 8.0,
+                      fontFamily: 'monospace',
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ),
