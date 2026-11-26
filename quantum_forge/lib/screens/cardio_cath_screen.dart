@@ -454,9 +454,10 @@ class CardioCathScreenState extends State<CardioCathScreen>
       _cineBufferCount = 150;
     });
 
-    const steps = 24;
+    const steps = 32;
     int currentStep = 0;
-    final stepDuration = Duration(milliseconds: (2400 / steps).round());
+    // 4.0-second pulsatile physiological contrast advection & washout
+    final stepDuration = Duration(milliseconds: (4000 / steps).round());
 
     _dyeWashoutTimer = Timer.periodic(stepDuration, (timer) {
       currentStep++;

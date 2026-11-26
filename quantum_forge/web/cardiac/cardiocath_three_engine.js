@@ -65,10 +65,10 @@
         vec3 edgeCol = vec3(0.059, 0.090, 0.165);
         detectorColor = mix(centerCol, edgeCol, vignette);
       } else {
-        // Standard Hospital X-Ray: #C4CCD4 center -> #687078 edge vignette inside circular iris
+        // Standard Hospital X-Ray: #C2CAD2 center -> #606870 edge vignette inside circular iris
         float vignette = clamp(dist / uCollimationRadius, 0.0, 1.0);
-        vec3 centerCol = vec3(0.768, 0.800, 0.831) + noise;
-        vec3 edgeCol = vec3(0.408, 0.439, 0.471);
+        vec3 centerCol = vec3(0.761, 0.792, 0.824) + noise; // #C2CAD2
+        vec3 edgeCol = vec3(0.376, 0.408, 0.439); // #606870
         detectorColor = mix(centerCol, edgeCol, smoothstep(0.0, 1.0, vignette));
       }
 
@@ -132,16 +132,16 @@
 
       // ── 1. BONE ANATOMY (Vertebrae T4-T9, Ribs, Diaphragm) ─────────────────
       if (uIsBone == 1) {
-        float boneAtten = 1.0 - exp(-1.45 * thickness);
+        float boneAtten = 1.0 - exp(-1.85 * thickness);
         if (uInvertLut == 1) {
-          // Inverted cine: faint translucent white-gray shadow
-          vec3 boneCol = vec3(0.86, 0.89, 0.93) + noise * 0.3;
-          float alpha = clamp(boneAtten * 0.22, 0.06, 0.28);
+          // Inverted cine: translucent white-gray shadow
+          vec3 boneCol = vec3(0.88, 0.91, 0.95) + noise * 0.3;
+          float alpha = clamp(boneAtten * 0.35, 0.12, 0.45);
           gl_FragColor = vec4(boneCol, alpha);
         } else {
-          // Standard hospital X-ray: translucent dark-gray bone attenuation
-          vec3 boneCol = vec3(0.18, 0.22, 0.26) + noise * 0.2;
-          float alpha = clamp(boneAtten * 0.28, 0.08, 0.34);
+          // Standard hospital X-ray: radiopaque dark-gray bone attenuation
+          vec3 boneCol = vec3(0.12, 0.15, 0.18) + noise * 0.2;
+          float alpha = clamp(boneAtten * 0.48, 0.18, 0.60);
           gl_FragColor = vec4(boneCol, alpha);
         }
         return;
@@ -163,13 +163,13 @@
       if (uInvertLut == 1) {
         // Inverted Cine Mode
         if (localContrast < 0.04) {
-          // Un-opacified vessel lumen
-          vec3 lumenCol = vec3(0.65, 0.70, 0.78);
-          gl_FragColor = vec4(lumenCol, clamp(thickness * 0.18, 0.06, 0.22));
+          // Un-opacified vessel lumen (Always visible at minimum opacity 0.38)
+          vec3 lumenCol = vec3(0.68, 0.74, 0.82);
+          gl_FragColor = vec4(lumenCol, clamp(0.38 + thickness * 0.25, 0.38, 0.65));
           return;
         }
         vec3 contrastCol = vec3(0.90, 0.93, 0.97) + noise * 0.3;
-        float alpha = clamp(0.25 + radiodensity * 0.75, 0.25, 0.98);
+        float alpha = clamp(0.40 + radiodensity * 0.58, 0.40, 0.98);
 
         // Optional false-color vFFR overlay (ONLY when explicitly enabled)
         if (uVffrOverlay == 1) {
@@ -187,14 +187,14 @@
       } else {
         // Standard Hospital X-Ray Fluoroscopy (Hospital Default)
         if (localContrast < 0.04) {
-          // Un-opacified vessel lumen
-          vec3 lumenCol = vec3(0.18, 0.22, 0.26);
-          gl_FragColor = vec4(lumenCol, clamp(thickness * 0.18, 0.06, 0.22));
+          // Un-opacified vessel lumen (Always visible at minimum opacity 0.38)
+          vec3 lumenCol = vec3(0.11, 0.14, 0.18);
+          gl_FragColor = vec4(lumenCol, clamp(0.38 + thickness * 0.25, 0.38, 0.65));
           return;
         }
-        // Dark charcoal/black Beer-Lambert X-ray contrast dye absorption
-        vec3 contrastCol = vec3(0.045, 0.055, 0.07) + noise * 0.2;
-        float alpha = clamp(0.30 + radiodensity * 0.70, 0.30, 0.98);
+        // Dark charcoal/black Beer-Lambert X-ray contrast dye absorption (#0B0E12)
+        vec3 contrastCol = vec3(0.043, 0.055, 0.070) + noise * 0.15;
+        float alpha = clamp(0.45 + radiodensity * 0.53, 0.45, 0.98);
 
         // Optional false-color vFFR overlay (ONLY when explicitly enabled)
         if (uVffrOverlay == 1) {
@@ -3233,10 +3233,17 @@
     }
 
     _setupResizeObserver() {
-      if (window.ResizeObserver) {
+      if (window.ResizeObserver && this.container) {
         this.resizeObserver = new ResizeObserver(() => this.handleResize());
         this.resizeObserver.observe(this.container);
       }
+      // Immediate and next-tick resize synchronization for flex/layout mounting
+      this.handleResize();
+      if (typeof window.requestAnimationFrame === 'function') {
+        window.requestAnimationFrame(() => this.handleResize());
+      }
+      setTimeout(() => this.handleResize(), 80);
+      setTimeout(() => this.handleResize(), 250);
     }
 
     handleResize() {
@@ -3247,7 +3254,7 @@
 
       this.camera.aspect = width / height;
       this.camera.updateProjectionMatrix();
-      this.renderer.setSize(width, height);
+      this.renderer.setSize(width, height, false);
       const fH = 2.0 * 9.0 * Math.tan((36.0 * Math.PI / 180.0) / 2.0);
       const fW = fH * (width / height);
       if (this.bgDetectorMesh) this.bgDetectorMesh.scale.set(fW, fH, 1.0);

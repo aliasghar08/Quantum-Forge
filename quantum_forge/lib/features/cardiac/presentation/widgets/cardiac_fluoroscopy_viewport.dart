@@ -63,6 +63,13 @@ class _CardiacFluoroscopyViewportState extends State<CardiacFluoroscopyViewport>
       CardioCathThreeBridge.ensureViewFactories();
     }
     _computeTrajectory();
+
+    // Auto-run an initial 4-second contrast puff on initial page load / mount
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && widget.contrastIntensity <= 0.05 && !widget.isInjecting) {
+        widget.onInjectContrast();
+      }
+    });
   }
 
   void _computeTrajectory() {
@@ -175,25 +182,32 @@ class _CardiacFluoroscopyViewportState extends State<CardiacFluoroscopyViewport>
           children: [
             // ── Inverted Monochromatic Fluoroscopy Screen ───────────────────
             Positioned.fill(
-              child: kIsWeb && CardioCathThreeBridge.isSupported && !(_threeBridge?.hasFailed ?? false)
-                  ? HtmlElementView(
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  // High-contrast, authentic silver-gray hospital X-ray detector background
+                  CustomPaint(
+                    painter: _FluoroscopyXRayPainter(
+                      scenario: widget.scenario,
+                      laoRaoAngle: widget.laoRaoAngle,
+                      cranCaudAngle: widget.cranCaudAngle,
+                      contrastIntensity: widget.contrastIntensity,
+                      cardiacPhase: widget.cardiacPhase,
+                      dominance: widget.dominance,
+                      isRevascularized: widget.isRevascularized,
+                    ),
+                  ),
+                  // WebGL Accelerated Three.js Viewport (if supported)
+                  if (kIsWeb && CardioCathThreeBridge.isSupported && !(_threeBridge?.hasFailed ?? false))
+                    HtmlElementView(
                       viewType: CardioCathThreeBridge.fluoroViewType,
                       onPlatformViewCreated: (int id) {
                         _threeBridge = CardioCathThreeBridge.forFluoroView(id);
                         _syncBridge();
                       },
-                    )
-                  : CustomPaint(
-                      painter: _FluoroscopyXRayPainter(
-                        scenario: widget.scenario,
-                        laoRaoAngle: widget.laoRaoAngle,
-                        cranCaudAngle: widget.cranCaudAngle,
-                        contrastIntensity: widget.contrastIntensity,
-                        cardiacPhase: widget.cardiacPhase,
-                        dominance: widget.dominance,
-                        isRevascularized: widget.isRevascularized,
-                      ),
                     ),
+                ],
+              ),
             ),
 
             // ── Circular Intensifier Reticle Mask & Grid ────────────────────

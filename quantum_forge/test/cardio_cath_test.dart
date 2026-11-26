@@ -58,9 +58,10 @@ void main() {
       expect(find.byType(CardiacCArmGantryTwin), findsOneWidget);
       expect(find.byType(CardiacHemodynamicEcgStrip), findsOneWidget);
 
-      // Verify Telemetry strip readouts
+      // Verify Telemetry strip readouts & auto-injected contrast puff status on load
       expect(find.text('CATH LAB TELEMETRY'), findsOneWidget);
-      expect(find.text('Inject Contrast Dye'), findsOneWidget);
+      expect(find.text('Dye Flowing...'), findsOneWidget);
+      expect(find.text('DYE: OPACIFIED (PULSATILE)'), findsOneWidget);
     });
 
     testWidgets('switches scenario and updates ECG / hemodynamic parameters',
@@ -98,8 +99,17 @@ void main() {
       await tester.pumpWidget(buildTestScreen());
       await tester.pump();
 
+      // Initially opacified due to auto-bolus on load
+      expect(find.text('Dye Flowing...'), findsOneWidget);
+      expect(find.text('DYE: OPACIFIED (PULSATILE)'), findsOneWidget);
+
+      // Wait for dye washout to complete (4 seconds)
+      await tester.pump(const Duration(milliseconds: 4200));
+
+      // Now washed out: button shows Inject Contrast Dye & status DYE: CLEAR
       final injectBtn = find.text('Inject Contrast Dye');
       expect(injectBtn, findsOneWidget);
+      expect(find.text('DYE: CLEAR'), findsOneWidget);
       await tester.ensureVisible(injectBtn);
       await tester.pump();
 
