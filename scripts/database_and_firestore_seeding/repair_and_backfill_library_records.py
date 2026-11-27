@@ -24,7 +24,7 @@ import subprocess
 import sys
 import threading
 import time
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import ThreadPoolExecutor, as_completed, wait, FIRST_COMPLETED
 from typing import Any, Dict, List, Optional, Set, Tuple
 
 import requests
@@ -704,6 +704,13 @@ def run_repair_and_backfill(
                     pending_patches = []
                     fut = executor.submit(commit_batch_updates, session, token, to_commit, dry_run)
                     futures.append(fut)
+
+                    # Bounded concurrency backpressure to enforce strict O(1) memory
+                    while len(futures) >= max_workers * 2:
+                        done, _ = wait(futures, return_when=FIRST_COMPLETED)
+                        for f in done:
+                            total_repaired += f.result()
+                            futures.remove(f)
 
                 if limit and total_scanned >= limit:
                     break

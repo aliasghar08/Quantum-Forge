@@ -2,7 +2,7 @@ FROM python:3.11-slim
 WORKDIR /app
 ENV PYTHONUNBUFFERED=1 PYTHONDONTWRITEBYTECODE=1 PROJECT_ID=quantom-forge
 RUN pip install --no-cache-dir requests google-auth
-COPY scripts/database_and_firestore_seeding/search_tokenizer.py .
-COPY scripts/database_and_firestore_seeding/repair_and_backfill_library_records.py .
-COPY scripts/fix_previous_reactions.py .
+COPY search_tokenizer.py .
+COPY repair_and_backfill_library_records.py .
+COPY fix_previous_reactions.py .
 CMD ["python3", "repair_and_backfill_library_records.py", "--batch-size", "500", "--workers", "16", "--repair-user-runs"]

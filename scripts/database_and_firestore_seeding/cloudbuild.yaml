@@ -1,0 +1,5 @@
+steps:
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['build', '-f', 'Dockerfile.repair', '-t', 'us-central1-docker.pkg.dev/quantom-forge/quantom-forge-repo/library-full-repair:latest', '.']
+images:
+- 'us-central1-docker.pkg.dev/quantom-forge/quantom-forge-repo/library-full-repair:latest'
