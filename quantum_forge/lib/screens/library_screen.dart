@@ -4,6 +4,7 @@
 // ============================================================================
 
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -266,7 +267,25 @@ class _LibraryScreenState extends State<LibraryScreen> {
     }
   }
 
-  Future<void> _fetchCategoryCounts() async {
+  static Map<ReactionCategory?, int>? _categoryCountCache;
+  static DateTime? _categoryCountCacheTime;
+  static const Duration _categoryCountTtl = Duration(seconds: 30);
+
+  Future<void> _fetchCategoryCounts({bool forceRefresh = false}) async {
+    if (!forceRefresh &&
+        _categoryCountCache != null &&
+        _categoryCountCacheTime != null &&
+        DateTime.now().difference(_categoryCountCacheTime!) < _categoryCountTtl) {
+      if (!mounted) return;
+      setState(() {
+        _cloudCategoryCounts = Map<ReactionCategory?, int>.from(_categoryCountCache!);
+        if (_categoryCountCache![null] != null) {
+          _cloudCount = _categoryCountCache![null];
+        }
+      });
+      return;
+    }
+
     try {
       final CollectionReference<Map<String, dynamic>> col =
           FirebaseFirestore.instance.collection(_kReactionLibraryCollection);
@@ -286,42 +305,51 @@ class _LibraryScreenState extends State<LibraryScreen> {
         }
       }
 
-      // 2) Per-category isolated aggregation queries
+      // 2) Per-category isolated aggregation queries in chunks of 10
       final Map<ReactionCategory?, int> perCategory = <ReactionCategory?, int>{
         null: total,
       };
 
-      await Future.wait<void>(
-        ReactionCategory.values.map((ReactionCategory cat) async {
-          int count = 0;
-          try {
-            // Check standard lowercase name
-            final AggregateQuerySnapshot snap =
-                await col.where('category', isEqualTo: cat.name).count().get();
-            count = snap.count ?? 0;
+      final allCategories = ReactionCategory.values.toList();
+      const int chunkSize = 10;
+      for (int i = 0; i < allCategories.length; i += chunkSize) {
+        final chunk = allCategories.sublist(
+            i, math.min(i + chunkSize, allCategories.length));
+        await Future.wait<void>(
+          chunk.map((ReactionCategory cat) async {
+            int count = 0;
+            try {
+              // Check standard lowercase name
+              final AggregateQuerySnapshot snap =
+                  await col.where('category', isEqualTo: cat.name).count().get();
+              count = snap.count ?? 0;
 
-            // If 0, check capitalized (e.g. "Pharmaceutical")
-            if (count == 0) {
-              final capName =
-                  '${cat.name[0].toUpperCase()}${cat.name.substring(1)}';
-              final AggregateQuerySnapshot capSnap =
-                  await col.where('category', isEqualTo: capName).count().get();
-              if ((capSnap.count ?? 0) > 0) {
-                count = capSnap.count ?? 0;
-              } else {
-                // Check fully-qualified enum string
-                final AggregateQuerySnapshot enumSnap =
-                    await col.where('category', isEqualTo: cat.toString()).count().get();
-                count = enumSnap.count ?? 0;
+              // If 0, check capitalized (e.g. "Pharmaceutical")
+              if (count == 0) {
+                final capName =
+                    '${cat.name[0].toUpperCase()}${cat.name.substring(1)}';
+                final AggregateQuerySnapshot capSnap =
+                    await col.where('category', isEqualTo: capName).count().get();
+                if ((capSnap.count ?? 0) > 0) {
+                  count = capSnap.count ?? 0;
+                } else {
+                  // Check fully-qualified enum string
+                  final AggregateQuerySnapshot enumSnap =
+                      await col.where('category', isEqualTo: cat.toString()).count().get();
+                  count = enumSnap.count ?? 0;
+                }
               }
+            } catch (e) {
+              debugPrint('[LibraryScreen] Count query for ${cat.name} failed: $e');
+              count = _items.where((t) => t.category == cat).length;
             }
-          } catch (e) {
-            debugPrint('[LibraryScreen] Count query for ${cat.name} failed: $e');
-            count = _items.where((t) => t.category == cat).length;
-          }
-          perCategory[cat] = count;
-        }),
-      );
+            perCategory[cat] = count;
+          }),
+        );
+      }
+
+      _categoryCountCache = perCategory;
+      _categoryCountCacheTime = DateTime.now();
 
       if (!mounted) return;
       setState(() {

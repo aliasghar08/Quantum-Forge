@@ -369,11 +369,22 @@ class ContinualTrainer:
             logger.warning("Train dataset is empty. Aborting training cycle.")
             return {"status": "skipped_empty_data"}
 
+        loader_workers = min(4, os.cpu_count() or 1)
         train_loader = DataLoader(
-            train_ds, batch_size=batch_size, shuffle=True, collate_fn=pad_collate_fn
+            train_ds,
+            batch_size=batch_size,
+            shuffle=True,
+            collate_fn=pad_collate_fn,
+            num_workers=loader_workers,
+            persistent_workers=(loader_workers > 0),
         )
         val_loader = DataLoader(
-            val_ds, batch_size=batch_size, shuffle=False, collate_fn=pad_collate_fn
+            val_ds,
+            batch_size=batch_size,
+            shuffle=False,
+            collate_fn=pad_collate_fn,
+            num_workers=loader_workers,
+            persistent_workers=(loader_workers > 0),
         )
 
         optimizer = torch.optim.AdamW(self.model.parameters(), lr=lr, weight_decay=1e-5)

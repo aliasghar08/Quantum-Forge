@@ -9,15 +9,22 @@ Maintains a local SQLite ledger to ensure idempotency and prevent duplicate trai
 from __future__ import annotations
 
 import argparse
+import collections
+import concurrent.futures
 import datetime
 import json
 import logging
 import os
 from pathlib import Path
+import queue
 import random
+import re
 import sqlite3
+import threading
+import time
 import urllib.parse
 import urllib.request
+from typing import Any, Dict, List, Optional
 
 from scholarly_verifier import ScholarlyReactionVerifier
 
@@ -31,13 +38,124 @@ logger = logging.getLogger("LiteratureHarvester")
 DEFAULT_DB_PATH = Path("data/autonomous_training/literature_ledger.sqlite")
 
 
+class DomainRateLimiter:
+    """Thread-safe rate limiter enforcing max requests per second per domain."""
+
+    def __init__(self, calls_per_second: float):
+        self.min_interval = 1.0 / max(0.001, calls_per_second)
+        self.last_call = 0.0
+        self.lock = threading.Lock()
+
+    def wait(self):
+        with self.lock:
+            now = time.monotonic()
+            elapsed = now - self.last_call
+            if elapsed < self.min_interval:
+                time.sleep(self.min_interval - elapsed)
+            self.last_call = time.monotonic()
+
+
+# Domain-specific rate limiters
+_CROSSREF_LIMITER = DomainRateLimiter(10.0)      # 10 req/s
+_OPENALEX_LIMITER = DomainRateLimiter(10.0)      # 10 req/s
+_EUROPEPMC_LIMITER = DomainRateLimiter(5.0)       # 5 req/s
+_ARXIV_LIMITER = DomainRateLimiter(1.0 / 3.0)     # 1 req / 3s
+
+
+class LedgerWriter(threading.Thread):
+    """Single-writer background worker thread consuming from a Queue to eliminate SQLite write locks."""
+
+    def __init__(self, db_path: Path):
+        super().__init__(name="LedgerWriter", daemon=True)
+        self.db_path = db_path
+        self.queue: queue.Queue = queue.Queue()
+        self._stop_event = threading.Event()
+        self.start()
+
+    def run(self):
+        self.db_path.parent.mkdir(parents=True, exist_ok=True)
+        conn = sqlite3.connect(str(self.db_path), timeout=60.0)
+        conn.row_factory = sqlite3.Row
+        try:
+            conn.execute("PRAGMA journal_mode=WAL;")
+            conn.execute("PRAGMA synchronous=NORMAL;")
+            conn.execute("PRAGMA busy_timeout=60000;")
+        except Exception as e:
+            logger.warning("Could not configure SQLite pragmas: %s", e)
+
+        while not (self._stop_event.is_set() and self.queue.empty()):
+            try:
+                task = self.queue.get(timeout=0.2)
+            except queue.Empty:
+                continue
+
+            if task is None:
+                self.queue.task_done()
+                break
+
+            sql, params, event, result_box = task
+            try:
+                with conn:
+                    cur = conn.cursor()
+                    cur.execute(sql, params)
+                    if result_box is not None:
+                        result_box["rowcount"] = cur.rowcount
+                        result_box["lastrowid"] = cur.lastrowid
+            except Exception as e:
+                logger.error("LedgerWriter error executing '%s': %s", sql, e)
+                if result_box is not None:
+                    result_box["error"] = e
+            finally:
+                if event:
+                    event.set()
+                self.queue.task_done()
+
+        try:
+            conn.close()
+        except Exception:
+            pass
+
+    def submit(self, sql: str, params: tuple = (), wait: bool = True) -> Any:
+        event = threading.Event() if wait else None
+        result_box = {} if wait else None
+        self.queue.put((sql, params, event, result_box))
+        if wait:
+            event.wait()
+            if "error" in result_box:
+                raise result_box["error"]
+            return result_box
+        return None
+
+    def flush(self):
+        self.queue.join()
+
+    def stop(self):
+        self._stop_event.set()
+        self.queue.put(None)
+        self.join(timeout=5.0)
+
+
+_LEDGER_WRITERS: Dict[str, LedgerWriter] = {}
+_LEDGER_LOCK = threading.Lock()
+
+
+def get_ledger_writer(db_path: Path = DEFAULT_DB_PATH) -> LedgerWriter:
+    with _LEDGER_LOCK:
+        resolved = str(db_path.resolve())
+        if resolved not in _LEDGER_WRITERS or not _LEDGER_WRITERS[resolved].is_alive():
+            _LEDGER_WRITERS[resolved] = LedgerWriter(db_path)
+        return _LEDGER_WRITERS[resolved]
+
+
 def get_db(db_path: Path = DEFAULT_DB_PATH) -> sqlite3.Connection:
-    """Initialize SQLite database with schema if not exists."""
+    """Initialize SQLite database with schema if not exists with WAL mode enabled."""
     db_path.parent.mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(str(db_path), timeout=60.0)
     conn.row_factory = sqlite3.Row
     try:
         conn.execute("PRAGMA journal_mode=WAL;")
+        conn.execute("PRAGMA synchronous=NORMAL;")
+        conn.execute("PRAGMA busy_timeout=60000;")
     except Exception:
         pass
     with conn:
@@ -98,6 +216,7 @@ def get_db(db_path: Path = DEFAULT_DB_PATH) -> sqlite3.Connection:
     return conn
 
 
+
 def is_proper_clinical_medicine(title: str, journal: str = "") -> bool:
     """Strictly filters for human clinical pharmacology, therapeutics, and doctor-prescribed medicines.
     
@@ -145,7 +264,12 @@ class LiteratureHarvester:
     def __init__(self, db_path: Path = DEFAULT_DB_PATH):
         self.db_path = db_path
         self.conn = get_db(db_path)
+        self.writer = get_ledger_writer(db_path)
         self.verifier = ScholarlyReactionVerifier()
+
+    def flush_ledger(self):
+        """Ensure all pending ledger write operations are fully written and committed."""
+        self.writer.flush()
 
     def fetch_json(self, url: str, timeout: int = 15) -> dict | None:
         """Safe HTTP GET with polite User-Agent."""
@@ -164,7 +288,8 @@ class LiteratureHarvester:
             return None
 
     def search_openalex(self, query: str = "transition state reaction barrier DFT", limit: int = 5) -> list[dict]:
-        """Search OpenAlex works for recent chemical reaction and transition state publications."""
+        """Search OpenAlex works for recent chemical reaction and transition state publications with domain rate limiting."""
+        _OPENALEX_LIMITER.wait()
         logger.info("Polling OpenAlex for recent reaction dynamics papers: '%s'", query)
         encoded_q = urllib.parse.quote(query)
         # Filter works published recently (sort by publication_date desc)
@@ -209,7 +334,8 @@ class LiteratureHarvester:
         return discovered
 
     def search_crossref(self, query: str = "reaction kinetics activation energy DFT", limit: int = 5) -> list[dict]:
-        """Search CrossRef for newly minted chemical physics DOIs."""
+        """Search CrossRef for newly minted chemical physics DOIs with domain rate limiting."""
+        _CROSSREF_LIMITER.wait()
         logger.info("Polling CrossRef for chemical kinetics research: '%s'", query)
         encoded_q = urllib.parse.quote(query)
         url = f"https://api.crossref.org/works?query={encoded_q}&sort=published&order=desc&rows={limit}"
@@ -247,7 +373,8 @@ class LiteratureHarvester:
         return discovered
 
     def search_europepmc(self, query: str = "cardiology nephrology pharmacology", limit: int = 5) -> list[dict]:
-        """Search Europe PMC / PubMed Central for peer-reviewed biomedical and clinical pharmacology papers."""
+        """Search Europe PMC / PubMed Central for peer-reviewed biomedical and clinical pharmacology papers with rate limiting."""
+        _EUROPEPMC_LIMITER.wait()
         logger.info("Polling Europe PMC for physician-prescribed clinical pharmacology: '%s'", query)
         encoded_q = urllib.parse.quote(query + " AND (SRC:MED OR SRC:PMC)")
         url = f"https://www.ebi.ac.uk/europepmc/webservices/rest/search?query={encoded_q}&format=json&pageSize={limit}&resultType=core"
@@ -322,12 +449,12 @@ class LiteratureHarvester:
         # 2. Cloud Firestore check (for ephemeral Cloud Run containers where local sqlite is fresh)
         if self.is_doi_in_firestore(clean_doi):
             logger.info("DOI %s already exists in Firestore /library. Recording as trained in local ledger.", clean_doi)
-            with self.conn:
-                self.conn.execute(
-                    "INSERT OR REPLACE INTO papers (doi, title, published_date, source, url, status, discovered_at, updated_at) "
-                    "VALUES (?, ?, ?, ?, ?, 'trained', ?, ?)",
-                    (clean_doi, title or f"Research Paper ({clean_doi})", str(datetime.date.today()), source, f"https://doi.org/{clean_doi}", now, now),
-                )
+            self.writer.submit(
+                "INSERT OR REPLACE INTO papers (doi, title, published_date, source, url, status, discovered_at, updated_at) "
+                "VALUES (?, ?, ?, ?, ?, 'trained', ?, ?)",
+                (clean_doi, title or f"Research Paper ({clean_doi})", str(datetime.date.today()), source, f"https://doi.org/{clean_doi}", now, now),
+                wait=True
+            )
             return False
 
         # 3. Only hit CrossRef + OpenAlex for genuinely unseen DOIs
@@ -350,38 +477,36 @@ class LiteratureHarvester:
             if not title:
                 title = f"Research Paper ({clean_doi})"
 
-        with self.conn:
-            cur = self.conn.cursor()
-            cur.execute(
-                """
-                INSERT INTO papers (doi, title, published_date, source, url, status, discovered_at, updated_at, citation_count, journal, is_peer_reviewed)
-                VALUES (?, ?, ?, ?, ?, 'pending', ?, ?, ?, ?, ?)
-                """,
-                (
-                    clean_doi,
-                    title,
-                    str(datetime.date.today()),
-                    source,
-                    f"https://doi.org/{clean_doi}",
-                    now,
-                    now,
-                    citation_count,
-                    journal,
-                    is_peer_reviewed,
-                ),
-            )
-            logger.info("Registered and authenticated paper DOI: %s ('%s', %d citations)", clean_doi, title, citation_count)
-            return True
+        self.writer.submit(
+            """
+            INSERT INTO papers (doi, title, published_date, source, url, status, discovered_at, updated_at, citation_count, journal, is_peer_reviewed)
+            VALUES (?, ?, ?, ?, ?, 'pending', ?, ?, ?, ?, ?)
+            """,
+            (
+                clean_doi,
+                title,
+                str(datetime.date.today()),
+                source,
+                f"https://doi.org/{clean_doi}",
+                now,
+                now,
+                citation_count,
+                journal,
+                is_peer_reviewed,
+            ),
+            wait=True
+        )
+        logger.info("Registered and authenticated paper DOI: %s ('%s', %d citations)", clean_doi, title, citation_count)
+        return True
 
     def poll_for_new_research(self) -> list[str]:
-        """Polls scholarly networks, verifies academic authenticity, and queues papers.
+        """Polls scholarly networks concurrently, verifies academic authenticity, and queues papers.
         
         Returns:
             list[str]: List of new verified DOIs registered in this cycle.
         """
         now = datetime.datetime.now(datetime.timezone.utc).isoformat()
         
-        # High-yield search queries targeted for MBBS & Pharm-D clinical curricula:
         search_topics = [
             # ── 1. Cardiology & Hemodynamics (Core Priority) ──
             "angiotensin receptor neprilysin inhibitor sacubitril valsartan kinetics",
@@ -435,74 +560,126 @@ class LiteratureHarvester:
         # Pick 3 topics per cycle (round-robin / randomized)
         chosen_topics = random.sample(search_topics, k=min(3, len(search_topics)))
         all_candidates = []
-        for topic in chosen_topics:
-            all_candidates.extend(self.search_openalex(topic, limit=2))
-            all_candidates.extend(self.search_crossref(topic, limit=2))
-            all_candidates.extend(self.search_europepmc(topic, limit=2))
 
-        new_dois = []
+        # Concurrent search dispatch across chosen topics and sources
+        def execute_topic_searches(topic: str) -> list[dict]:
+            res = []
+            try:
+                res.extend(self.search_openalex(topic, limit=2))
+            except Exception as e:
+                logger.warning("OpenAlex search error for '%s': %s", topic, e)
+            try:
+                res.extend(self.search_crossref(topic, limit=2))
+            except Exception as e:
+                logger.warning("CrossRef search error for '%s': %s", topic, e)
+            try:
+                res.extend(self.search_europepmc(topic, limit=2))
+            except Exception as e:
+                logger.warning("EuropePMC search error for '%s': %s", topic, e)
+            return res
+
+        with concurrent.futures.ThreadPoolExecutor(max_workers=min(8, len(chosen_topics) * 3)) as search_pool:
+            futures = [search_pool.submit(execute_topic_searches, topic) for topic in chosen_topics]
+            for fut in concurrent.futures.as_completed(futures):
+                try:
+                    all_candidates.extend(fut.result())
+                except Exception as exc:
+                    logger.warning("Error fetching topic batch: %s", exc)
+
+        # Filter candidate duplicates and non-clinical records
+        unique_candidates = {}
+        for cand in all_candidates:
+            doi = cand.get("doi")
+            if not doi or doi in unique_candidates:
+                continue
+            title = cand.get("title", "")
+            journal = cand.get("journal", "")
+            if not is_proper_clinical_medicine(title, journal):
+                continue
+            unique_candidates[doi] = cand
+
+        # Check local ledger
+        unseen_candidates = []
         with self.conn:
             cur = self.conn.cursor()
-            for cand in all_candidates:
-                doi = cand["doi"]
-                title = cand.get("title", "")
-                journal = cand.get("journal", "")
-
-                # Strict physician-prescribed / doctor-used clinical medicine gate
-                if not is_proper_clinical_medicine(title, journal):
-                    logger.info("Skipping non-clinical or non-pharmaceutical work: %s ('%s')", doi, title[:60])
-                    continue
-
+            for doi, cand in unique_candidates.items():
                 cur.execute("SELECT doi FROM papers WHERE LOWER(doi) = LOWER(?)", (doi,))
-                if cur.fetchone() is not None:
-                    continue  # Already seen and tracked
+                if cur.fetchone() is None:
+                    unseen_candidates.append(cand)
 
-                if self.is_doi_in_firestore(doi):
-                    logger.info("DOI %s already in Firestore /library. Skipping.", doi)
-                    cur.execute(
-                        "INSERT OR REPLACE INTO papers (doi, title, published_date, source, url, status, discovered_at, updated_at) "
-                        "VALUES (?, ?, ?, ?, ?, 'trained', ?, ?)",
-                        (doi, title or f"Research Paper ({doi})", str(datetime.date.today()), cand.get("source", "Crossref"), f"https://doi.org/{doi}", now, now),
-                    )
-                    continue
-
-                # Verify DOI authenticity and citations
-                v = self.verifier.verify_doi_and_citations(doi)
-                citation_count = 0
-                journal = ""
-                is_peer_reviewed = 1
-                if v:
-                    if v.get("is_retracted"):
-                        logger.warning("Skipping retracted publication: %s", doi)
-                        continue
-                    cand["title"] = v.get("title") or cand["title"]
-                    journal = v.get("journal", "")
-                    citation_count = v.get("citation_count", 0)
-                    is_peer_reviewed = 1 if v.get("is_peer_reviewed") else 0
-
-                cur.execute(
-                    """
-                    INSERT INTO papers (doi, title, published_date, source, url, abstract, status, data_links, discovered_at, updated_at, citation_count, journal, is_peer_reviewed)
-                    VALUES (?, ?, ?, ?, ?, ?, 'pending', ?, ?, ?, ?, ?, ?)
-                    """,
-                    (
-                        doi,
-                        cand["title"],
-                        cand["published_date"],
-                        cand["source"],
-                        cand["url"],
-                        "",  # Strictly factual/bibliographic metadata; no copyrighted abstracts
-                        cand.get("data_links", "[]"),
-                        now,
-                        now,
-                        citation_count,
-                        journal,
-                        is_peer_reviewed,
-                    ),
+        # Concurrent verification across unseen candidate DOIs
+        new_dois = []
+        def verify_candidate(cand: dict) -> Optional[dict]:
+            doi = cand["doi"]
+            if self.is_doi_in_firestore(doi):
+                logger.info("DOI %s already in Firestore /library. Skipping.", doi)
+                self.writer.submit(
+                    "INSERT OR REPLACE INTO papers (doi, title, published_date, source, url, status, discovered_at, updated_at) "
+                    "VALUES (?, ?, ?, ?, ?, 'trained', ?, ?)",
+                    (doi, cand.get("title") or f"Research Paper ({doi})", str(datetime.date.today()), cand.get("source", "Crossref"), f"https://doi.org/{doi}", now, now),
+                    wait=False
                 )
-                logger.info("✨ Discovered & authenticated research paper: %s - %s (%d citations)", doi, cand["title"], citation_count)
-                new_dois.append(doi)
+                return None
 
+            v = self.verifier.verify_doi_and_citations(doi)
+            if v and v.get("is_retracted"):
+                logger.warning("Skipping retracted publication: %s", doi)
+                return None
+
+            citation_count = v.get("citation_count", 0) if v else 0
+            journal = v.get("journal", "") if v else cand.get("journal", "")
+            is_peer_reviewed = 1 if (v and v.get("is_peer_reviewed")) else 1
+            title = (v.get("title") if v else None) or cand["title"]
+
+            return {
+                "doi": doi,
+                "title": title,
+                "published_date": cand["published_date"],
+                "source": cand["source"],
+                "url": cand["url"],
+                "abstract": "",
+                "data_links": cand.get("data_links", "[]"),
+                "discovered_at": now,
+                "updated_at": now,
+                "citation_count": citation_count,
+                "journal": journal,
+                "is_peer_reviewed": is_peer_reviewed,
+            }
+
+        if unseen_candidates:
+            with concurrent.futures.ThreadPoolExecutor(max_workers=min(8, len(unseen_candidates))) as verifier_pool:
+                verify_futures = [verifier_pool.submit(verify_candidate, c) for c in unseen_candidates]
+                for vf in concurrent.futures.as_completed(verify_futures):
+                    try:
+                        record = vf.result()
+                        if record:
+                            self.writer.submit(
+                                """
+                                INSERT INTO papers (doi, title, published_date, source, url, abstract, status, data_links, discovered_at, updated_at, citation_count, journal, is_peer_reviewed)
+                                VALUES (?, ?, ?, ?, ?, ?, 'pending', ?, ?, ?, ?, ?, ?)
+                                """,
+                                (
+                                    record["doi"],
+                                    record["title"],
+                                    record["published_date"],
+                                    record["source"],
+                                    record["url"],
+                                    record["abstract"],
+                                    record["data_links"],
+                                    record["discovered_at"],
+                                    record["updated_at"],
+                                    record["citation_count"],
+                                    record["journal"],
+                                    record["is_peer_reviewed"],
+                                ),
+                                wait=True
+                            )
+                            logger.info("✨ Discovered & authenticated research paper: %s - %s (%d citations)", record["doi"], record["title"], record["citation_count"])
+                            new_dois.append(record["doi"])
+                    except Exception as ve:
+                        logger.warning("Verification error for candidate: %s", ve)
+
+        self.writer.flush()
         logger.info("Polling complete. %d new research publications registered.", len(new_dois))
         return new_dois
 
@@ -514,13 +691,14 @@ class LiteratureHarvester:
             return cur.fetchall()
 
     def update_paper_status(self, doi: str, status: str) -> None:
-        """Update paper status (e.g. 'processed', 'trained', 'skipped_no_coordinates')."""
+        """Update paper status (e.g. 'processed', 'trained', 'skipped_no_coordinates') via LedgerWriter."""
         now = datetime.datetime.now(datetime.timezone.utc).isoformat()
-        with self.conn:
-            self.conn.execute(
-                "UPDATE papers SET status = ?, updated_at = ? WHERE doi = ?",
-                (status, now, doi),
-            )
+        self.writer.submit(
+            "UPDATE papers SET status = ?, updated_at = ? WHERE doi = ?",
+            (status, now, doi),
+            wait=True
+        )
+
 
 
 def main():

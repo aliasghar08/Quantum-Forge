@@ -293,6 +293,31 @@ def predict_energy(molecule: MoleculeRequest):
 def predict_batch(req: BatchMoleculeRequest):
     calculator = registry.get(req.strategy)
     predictions = []
+
+    # Vectorized committee batch forward pass when supported
+    if hasattr(calculator, "predict_batch_with_uncertainty"):
+        try:
+            mols_dict = [
+                {"atomic_numbers": mol.atomic_numbers, "positions": mol.positions}
+                for mol in req.molecules
+            ]
+            batch_results = calculator.predict_batch_with_uncertainty(mols_dict)
+            predictions = [
+                {
+                    "energy_ev": round(e_val, 6),
+                    "uncertainty_kcal_mol": round(uncert, 4),
+                }
+                for e_val, uncert in batch_results
+            ]
+            return {
+                "status": "success",
+                "predictions": predictions,
+                "strategy": calculator.name(),
+            }
+        except Exception as exc:
+            print(f"[VectorizedBatch] Fallback to element-wise execution: {exc}")
+
+    # Fallback to per-molecule prediction
     for mol in req.molecules:
         uncert = 0.0
         try:
@@ -304,7 +329,7 @@ def predict_batch(req: BatchMoleculeRequest):
             fallback = registry.get("quantumforge-reaction-gnn")
             e_val = fallback.energy_ev(mol.atomic_numbers, mol.positions)
         predictions.append({
-            "energy_ev": e_val,
+            "energy_ev": round(e_val, 6),
             "uncertainty_kcal_mol": round(uncert, 4),
         })
     return {

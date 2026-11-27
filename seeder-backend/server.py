@@ -13,11 +13,19 @@ import json
 import logging
 import threading
 import datetime
-from typing import Optional
+import multiprocessing
+import collections
+from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor, as_completed
+from typing import Optional, List, Dict, Any
 from fastapi import FastAPI, BackgroundTasks, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
+
+try:
+    multiprocessing.set_start_method("spawn", force=True)
+except (RuntimeError, ValueError):
+    pass
 
 # Configure logging
 logging.basicConfig(
@@ -49,18 +57,20 @@ class SeederState:
         self.initial_count = 0
         self.current_live_count = 0
         self.speed_rxns_sec = 0.0
+        self.rolling_history = collections.deque(maxlen=20)  # (timestamp, batch_count)
         self.last_batch_time = time.time()
         self.last_error: Optional[str] = None
-        self.batch_size = int(os.environ.get("SEEDER_BATCH_SIZE", "200"))
-        self.workers = int(os.environ.get("SEEDER_WORKERS", "4"))
+        self.batch_size = int(os.environ.get("SEEDER_BATCH_SIZE", "500"))
+        self.cpu_workers = int(os.environ.get("SEEDER_CPU_WORKERS", str(max(1, min(4, (os.cpu_count() or 2))))))
+        self.io_workers = int(os.environ.get("SEEDER_IO_WORKERS", os.environ.get("SEEDER_WORKERS", "8")))
         self.category_mode = os.environ.get("SEEDER_CATEGORY_MODE", "all")
         self.status = "INITIALIZING"
 
 state = SeederState()
 
 def background_seeder_worker():
-    """Continuously streams batches of reactions into Cloud Firestore /library."""
-    logger.info("Starting background seeder worker thread...")
+    """Continuously streams batches of reactions into Cloud Firestore /library using hybrid multiprocessing and connection-pooled multithreading."""
+    logger.info("Starting background hybrid seeder worker thread (CPU: %d, IO: %d)...", state.cpu_workers, state.io_workers)
     try:
         token = seeder.get_auth_token_threadsafe()
         initial = seeder.get_total_count(token)
@@ -76,7 +86,15 @@ def background_seeder_worker():
             state.status = "AUTH_RETRYING"
 
     offset = state.initial_count
-    
+
+    try:
+        process_pool = ProcessPoolExecutor(max_workers=state.cpu_workers)
+    except Exception as exc:
+        logger.warning("Could not initialize ProcessPoolExecutor (%s). Falling back to direct generation.", exc)
+        process_pool = None
+
+    io_pool = ThreadPoolExecutor(max_workers=state.io_workers)
+
     while state.is_running:
         if state.is_paused:
             with state.lock:
@@ -87,33 +105,79 @@ def background_seeder_worker():
         try:
             token = seeder.get_auth_token_threadsafe()
             chunk_size = state.batch_size
-            chunk = seeder.generate_combinatorial_reactions(
-                offset, 
-                chunk_size, 
-                category_mode=state.category_mode
-            )
+            dispatch_n = max(2, min(state.io_workers, 8))
 
-            commit_start = time.time()
-            success = seeder.commit_batch(token, chunk)
-            commit_duration = time.time() - commit_start
+            # Dispatch chunk_size slices across ProcessPool / direct generation
+            gen_futures = []
+            if process_pool:
+                for i in range(dispatch_n):
+                    gen_futures.append(process_pool.submit(
+                        seeder.generate_and_validate_reaction_slice,
+                        (offset + (i * chunk_size), chunk_size, state.category_mode)
+                    ))
+            else:
+                for i in range(dispatch_n):
+                    batch = seeder.generate_combinatorial_reactions(
+                        offset + (i * chunk_size), chunk_size, category_mode=state.category_mode
+                    )
+                    gen_futures.append(batch)
 
-            if success:
-                offset += chunk_size
+            generated_batches = []
+            if process_pool:
+                for fut in as_completed(gen_futures):
+                    try:
+                        res = fut.result()
+                        if res:
+                            generated_batches.append(res)
+                    except Exception as ge:
+                        logger.warning("Generation error in process worker: %s", ge)
+            else:
+                generated_batches = [b for b in gen_futures if b]
+
+            if not generated_batches:
+                time.sleep(1.0)
+                continue
+
+            # Stream generated batches in parallel across ThreadPool
+            commit_futures = {
+                io_pool.submit(seeder.commit_batch, token, b): len(b)
+                for b in generated_batches
+            }
+
+            successful_count = 0
+            for cf in as_completed(commit_futures):
+                b_size = commit_futures[cf]
+                try:
+                    if cf.result():
+                        successful_count += b_size
+                except Exception as ce:
+                    logger.warning("Commit batch error: %s", ce)
+
+            now = time.time()
+            if successful_count > 0:
+                offset += successful_count
                 with state.lock:
-                    state.total_uploaded += chunk_size
+                    state.total_uploaded += successful_count
                     state.current_live_count = state.initial_count + state.total_uploaded
-                    state.last_batch_time = time.time()
-                    elapsed = time.time() - state.start_time
-                    state.speed_rxns_sec = round(state.total_uploaded / elapsed, 1) if elapsed > 0 else 0.0
+                    state.last_batch_time = now
+                    state.rolling_history.append((now, successful_count))
+
+                    # Compute accurate rolling rate over sliding window
+                    if len(state.rolling_history) > 1:
+                        oldest_t, _ = state.rolling_history[0]
+                        total_window = sum(cnt for _, cnt in state.rolling_history)
+                        dt = now - oldest_t
+                        state.speed_rxns_sec = round(total_window / dt, 1) if dt > 0 else 0.0
+                    else:
+                        elapsed = now - state.start_time
+                        state.speed_rxns_sec = round(state.total_uploaded / elapsed, 1) if elapsed > 0 else 0.0
+
                     state.status = "STREAMING"
                     state.last_error = None
-                
-                # Log progress every 5 batches (1,000 reactions)
-                if (state.total_uploaded // chunk_size) % 5 == 0:
-                    logger.info("⚡ Cloud Seeder Progress: +%d uploaded this session | Live Firestore: %d | Speed: %.1f rxns/sec",
-                                state.total_uploaded, state.current_live_count, state.speed_rxns_sec)
 
-                # Modest pacing: 50ms between batches to maintain healthy throughput while preventing 429
+                logger.info("⚡ Cloud Seeder Progress: +%d uploaded (Session: +%d) | Live Firestore: %d | Speed: %.1f rxns/sec",
+                            successful_count, state.total_uploaded, state.current_live_count, state.speed_rxns_sec)
+
                 time.sleep(0.05)
             else:
                 with state.lock:
@@ -129,15 +193,13 @@ def background_seeder_worker():
                     state.status = "QUOTA_BACKOFF"
                 else:
                     state.status = "ERROR_BACKOFF"
-            
-            # Backoff before retrying
             time.sleep(5.0)
 
 @app.on_event("startup")
 def start_seeder():
     t = threading.Thread(target=background_seeder_worker, daemon=True)
     t.start()
-    logger.info("Worker thread spawned successfully.")
+    logger.info("Hybrid multi-worker background thread spawned successfully.")
 
 @app.get("/health")
 @app.get("/status")
@@ -154,6 +216,8 @@ def get_status():
             "speed_reactions_per_sec": state.speed_rxns_sec,
             "speed_reactions_per_hour": round(state.speed_rxns_sec * 3600),
             "batch_size": state.batch_size,
+            "cpu_workers": state.cpu_workers,
+            "io_workers": state.io_workers,
             "category_mode": state.category_mode,
             "uptime_seconds": elapsed_sec,
             "last_error": state.last_error,
@@ -187,6 +251,8 @@ def index_dashboard():
         speed = state.speed_rxns_sec
         hourly_rate = round(speed * 3600)
         uptime = int(time.time() - state.start_time)
+        cpu_w = state.cpu_workers
+        io_w = state.io_workers
         hrs = uptime // 3600
         mins = (uptime % 3600) // 60
         secs = uptime % 60
@@ -310,7 +376,7 @@ def index_dashboard():
     <div class="header">
       <div>
         <h1 class="title">Quantum Forge 24/7 Seeder</h1>
-        <div class="subtitle">Cloud Run Autonomous Database Scaling Engine</div>
+        <div class="subtitle">Cloud Run Hybrid Multi-Worker Database Scaling Engine</div>
       </div>
       <div class="status-badge"><span class="pulse"></span>{status}</div>
     </div>
@@ -329,12 +395,12 @@ def index_dashboard():
       <div class="metric">
         <div class="metric-label">Upload Speed</div>
         <div class="metric-value">{speed} <span style="font-size: 1rem; font-weight: 400; color: #94a3b8;">rxns/sec</span></div>
-        <div class="metric-sub">~{hourly_rate:,} rxns / hour</div>
+        <div class="metric-sub">~{hourly_rate:,} rxns / hour (Rolling)</div>
       </div>
       <div class="metric">
-        <div class="metric-label">Container Uptime</div>
+        <div class="metric-label">Workers & Uptime</div>
         <div class="metric-value">{hrs:02d}:{mins:02d}:{secs:02d}</div>
-        <div class="metric-sub">Auto-refreshes every 3s</div>
+        <div class="metric-sub">CPU: {cpu_w} processes | IO: {io_w} threads</div>
       </div>
     </div>
 
@@ -351,3 +417,4 @@ def index_dashboard():
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", "8080"))
     uvicorn.run(app, host="0.0.0.0", port=port)
+

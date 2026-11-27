@@ -130,5 +130,66 @@ class EnsemblePredictor:
         uncertainty_kcal = raw_std_ev * 23.0605 * self.temperature
         return float(mean_ev), float(uncertainty_kcal)
 
+    def predict_batch_with_uncertainty(
+        self, molecules: list[dict]
+    ) -> list[tuple[float, float]]:
+        """Vectorized batched forward pass through ensemble committee returning (mean_ev, uncertainty_kcal).
+        
+        Args:
+            molecules: List of dicts with 'atomic_numbers' and 'positions'
+        """
+        if not molecules:
+            return []
+        if not self.models:
+            raise RuntimeError("Ensemble has no loaded models")
+
+        B = len(molecules)
+        max_atoms = max(len(m["atomic_numbers"]) for m in molecules)
+
+        z = torch.zeros((B, max_atoms), dtype=torch.long, device=self.device)
+        pos = torch.zeros((B, max_atoms, 3), dtype=torch.float32, device=self.device)
+        mask = torch.zeros((B, max_atoms), dtype=torch.float32, device=self.device)
+
+        for i, mol in enumerate(molecules):
+            at_nums = mol["atomic_numbers"]
+            positions = mol["positions"]
+            n = len(at_nums)
+            z[i, :n] = torch.tensor(at_nums, dtype=torch.long, device=self.device)
+            pos[i, :n] = torch.tensor(positions, dtype=torch.float32, device=self.device)
+            mask[i, :n] = 1.0
+
+        member_outputs = []
+        with torch.no_grad():
+            for m in self.models:
+                if isinstance(m, PaiNNLite):
+                    e_batch = m(z, pos, mask)  # Shape: (B,)
+                else:
+                    # Fallback for models without batched mask
+                    e_list = [
+                        m(
+                            z[i : i + 1, : len(molecules[i]["atomic_numbers"])],
+                            pos[i : i + 1, : len(molecules[i]["atomic_numbers"])],
+                        )
+                        for i in range(B)
+                    ]
+                    e_batch = torch.stack(e_list).squeeze(-1)
+                member_outputs.append(e_batch)
+
+        # Shape: (num_members, B)
+        stacked = torch.stack(member_outputs, dim=0)
+        mean_ev = stacked.mean(dim=0)  # Shape: (B,)
+
+        if len(self.models) > 1:
+            raw_std_ev = stacked.std(dim=0, unbiased=True)
+        else:
+            raw_std_ev = torch.full((B,), 0.05, device=self.device)
+
+        uncertainty_kcal = raw_std_ev * 23.0605 * self.temperature
+
+        results = []
+        for i in range(B):
+            results.append((float(mean_ev[i].item()), float(uncertainty_kcal[i].item())))
+        return results
+
     def name(self) -> str:
         return "tx1-v2"

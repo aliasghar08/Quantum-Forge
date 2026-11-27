@@ -157,9 +157,11 @@ class AutonomousDaemon:
 
         # Flush all buffered reaction records into massive_reactions.json in one single atomic write
         self.ingester.flush_massive_reactions_json()
+        self.harvester.flush_ledger()
 
         if not extracted_paths:
             logger.warning("No valid structures extracted from pending papers.")
+            self.harvester.flush_ledger()
             return False
 
         # Build zero-leakage training and validation splits with replay buffer (once per batch)
@@ -195,11 +197,13 @@ class AutonomousDaemon:
             logger.info("✅ Training completed successfully. Marking papers as trained in ledger.")
             for doi in processed_dois:
                 self.harvester.update_paper_status(doi, "trained")
+            self.harvester.flush_ledger()
             return True
         else:
             logger.info("Training cycle skipped or deferred; marking %d papers as ingested and verified in ledger.", len(processed_dois))
             for doi in processed_dois:
                 self.harvester.update_paper_status(doi, "ingested")
+            self.harvester.flush_ledger()
             return True
 
     def start_loop(self) -> None:

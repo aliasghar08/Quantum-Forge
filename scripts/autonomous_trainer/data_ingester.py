@@ -21,6 +21,7 @@ from pathlib import Path
 import random
 import sqlite3
 import subprocess
+import threading
 import time
 
 import numpy as np
@@ -31,7 +32,7 @@ try:
 except ImportError:
     ase = None
 
-from literature_harvester import DEFAULT_DB_PATH, get_db
+from literature_harvester import DEFAULT_DB_PATH, get_db, get_ledger_writer
 from scholarly_verifier import ScholarlyReactionVerifier, publish_reaction_to_firebase
 
 logging.basicConfig(
@@ -95,10 +96,12 @@ class DataIngester:
     def __init__(self, db_path: Path = DEFAULT_DB_PATH):
         self.db_path = db_path
         self.conn = get_db(db_path)
+        self.writer = get_ledger_writer(db_path)
         self.verifier = ScholarlyReactionVerifier()
         self._cached_token: str | None = None
         self._token_expires_at: float = 0.0
         self._pending_json_records: list[dict[str, Any]] = []
+        self._json_lock = threading.Lock()
         AUTONOMOUS_DATA_DIR.mkdir(parents=True, exist_ok=True)
 
     def get_gcloud_auth_token(self, force_refresh: bool = False) -> str | None:
@@ -349,22 +352,22 @@ class DataIngester:
         archetype = self.select_reaction_archetype(title)
         self.publish_to_firestore_library(doi, title, frames, archetype)
 
-        # Record in ledger
-        with self.conn:
-            self.conn.execute(
-                """
-                INSERT INTO extracted_structures (doi, system_name, num_atoms, elements, num_frames, energy_unit, extxyz_path, has_ts)
-                VALUES (?, ?, ?, ?, ?, 'eV', ?, 1)
-                """,
-                (
-                    doi,
-                    title[:60],
-                    len(frames[0]),
-                    ",".join(set(frames[0].get_chemical_symbols())),
-                    len(frames),
-                    str(out_extxyz),
-                ),
-            )
+        # Record in ledger via LedgerWriter
+        self.writer.submit(
+            """
+            INSERT INTO extracted_structures (doi, system_name, num_atoms, elements, num_frames, energy_unit, extxyz_path, has_ts)
+            VALUES (?, ?, ?, ?, ?, 'eV', ?, 1)
+            """,
+            (
+                doi,
+                title[:60],
+                len(frames[0]),
+                ",".join(set(frames[0].get_chemical_symbols())),
+                len(frames),
+                str(out_extxyz),
+            ),
+            wait=True
+        )
         return out_extxyz
 
     def publish_to_firestore_library(self, doi: str, title: str, frames: list[Atoms], archetype: str) -> bool:
@@ -442,46 +445,50 @@ class DataIngester:
             published = publish_reaction_to_firebase(reaction_data)
             if published:
                 logger.info("✨ Successfully verified and published reaction %s to Firestore /library!", safe_id)
-                # Buffer record for single-flush write to massive_reactions.json
-                self._pending_json_records.append({
-                    "id": safe_id,
-                    "name": title[:85],
-                    "iupacName": reaction_data["iupac_equation"],
-                    "description": reaction_data["description"],
-                    "category": category,
-                    "reactantXyz": r_xyz,
-                    "productXyz": p_xyz,
-                    "referenceEa": round(ea_kcal, 2),
-                    "doi": doi,
-                    "journalRef": journal,
-                    "tags": tags,
-                })
+                # Buffer record for single-flush write to massive_reactions.json under thread lock
+                with self._json_lock:
+                    self._pending_json_records.append({
+                        "id": safe_id,
+                        "name": title[:85],
+                        "iupacName": reaction_data["iupac_equation"],
+                        "description": reaction_data["description"],
+                        "category": category,
+                        "reactantXyz": r_xyz,
+                        "productXyz": p_xyz,
+                        "referenceEa": round(ea_kcal, 2),
+                        "doi": doi,
+                        "journalRef": journal,
+                        "tags": tags,
+                    })
                 return True
         except Exception as e:
             logger.warning("Could not auto-publish %s to Firestore /library: %s", doi, e)
         return False
 
     def flush_massive_reactions_json(self) -> int:
-        """Flushes buffered reaction records into massive_reactions.json in a single atomic I/O write."""
-        if not self._pending_json_records:
-            return 0
-        cache_path = Path("quantum_forge/assets/massive_reactions.json")
-        if not cache_path.exists():
-            return 0
-        flushed_count = len(self._pending_json_records)
-        try:
-            with open(cache_path, "r", encoding="utf-8") as f:
-                local_list = json.load(f)
-            # Prepend all pending records preserving harvest order
-            local_list = self._pending_json_records + local_list
-            with open(cache_path, "w", encoding="utf-8") as f:
-                json.dump(local_list, f, indent=2)
-            logger.info("💾 Flushed %d buffered reaction records into %s", flushed_count, cache_path)
-            self._pending_json_records.clear()
-            return flushed_count
-        except Exception as e:
-            logger.warning("Could not flush buffered reactions to %s: %s", cache_path, e)
-            return 0
+        """Flushes buffered reaction records into massive_reactions.json in a single atomic I/O write with lock."""
+        with self._json_lock:
+            if not self._pending_json_records:
+                return 0
+            cache_path = Path("quantum_forge/assets/massive_reactions.json")
+            if not cache_path.exists():
+                return 0
+            flushed_count = len(self._pending_json_records)
+            try:
+                with open(cache_path, "r", encoding="utf-8") as f:
+                    local_list = json.load(f)
+                # Prepend all pending records preserving harvest order
+                local_list = list(self._pending_json_records) + local_list
+                temp_path = cache_path.with_suffix(".tmp")
+                with open(temp_path, "w", encoding="utf-8") as f:
+                    json.dump(local_list, f, indent=2)
+                temp_path.replace(cache_path)
+                logger.info("💾 Atomically flushed %d buffered reaction records into %s", flushed_count, cache_path)
+                self._pending_json_records.clear()
+                return flushed_count
+            except Exception as e:
+                logger.warning("Could not flush buffered reactions to %s: %s", cache_path, e)
+                return 0
 
     def build_continual_training_splits(
         self,

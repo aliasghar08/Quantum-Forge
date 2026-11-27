@@ -37,3 +37,16 @@ def test_ensemble_mock_prediction(tmp_path):
     assert isinstance(uncert_kcal, float)
     assert uncert_kcal >= 0.0
     assert ens.name() == "tx1-v2"
+
+    # Test vectorized batch prediction
+    molecules = [
+        {"atomic_numbers": z, "positions": pos},
+        {"atomic_numbers": [8, 1, 1], "positions": [[0.0, 0.0, 0.0], [0.8, 0.6, 0.0], [-0.8, 0.6, 0.0]]},
+    ]
+    batch_res = ens.predict_batch_with_uncertainty(molecules)
+    assert len(batch_res) == 2
+    for b_mean, b_uncert in batch_res:
+        assert isinstance(b_mean, float)
+        assert isinstance(b_uncert, float)
+        assert b_uncert >= 0.0
+    assert math.isclose(batch_res[0][0], mean_ev, rel_tol=1e-4)

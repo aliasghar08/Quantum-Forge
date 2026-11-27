@@ -257,45 +257,53 @@ class FirestoreLibraryRepository {
     }
   }
 
+  static Map<ReactionCategory?, int>? _cachedCategoryCounts;
+  static DateTime? _categoryCountsCacheTime;
+  static const Duration _countsCacheTtl = Duration(seconds: 30);
+
   /// Real per-category document counts from Firestore aggregation queries.
   ///
-  /// Firestore `.count()` is a metadata-only aggregation — billed as **one
-  /// document read per 1,000 matched index entries**, not one read per
-  /// document. The 13 concurrent queries below therefore cost roughly the
-  /// same as a single page fetch, and return exact totals that match
-  /// [getTotalCount] — keeping the category badges in sync with the header.
-  ///
-  /// Requires `cloud_firestore: ^4.9.0+` (same version that enables
-  /// [getTotalCount]).
-  ///
-  /// The returned map uses `null` as the key for the "All Reactions" total.
-  ///
-  /// Throws on failure so the caller ([LibraryScreen._fetchCategoryCounts])
-  /// can fall back to a local estimate. Returning `{}` here would show all
-  /// badges as `0`, which is worse than an explicit stale fallback.
-  Future<Map<ReactionCategory?, int>> getCategoryCounts() async {
+  /// Uses a 30-second in-memory TTL cache and chunks requests in batches of 10
+  /// to eliminate HTTP/2 stream bottlenecks and redundant aggregation costs.
+  Future<Map<ReactionCategory?, int>> getCategoryCounts({bool forceRefresh = false}) async {
+    if (!forceRefresh &&
+        _cachedCategoryCounts != null &&
+        _categoryCountsCacheTime != null &&
+        DateTime.now().difference(_categoryCountsCacheTime!) < _countsCacheTtl) {
+      return Map<ReactionCategory?, int>.from(_cachedCategoryCounts!);
+    }
+
     // [0] — "All Reactions" total across the whole `library` collection.
     final AggregateQuery totalQuery = _col.count();
     final AggregateQuerySnapshot totalSnap = await totalQuery.get();
     final int total = totalSnap.count ?? 0;
 
-    // [1..N] — one aggregation per enum value, all in parallel.
+    // [1..N] — aggregated in chunks of 10 to avoid HTTP/2 stream limits.
     final Map<ReactionCategory, int> perCategory = <ReactionCategory, int>{};
-    await Future.wait<void>(
-      ReactionCategory.values.map((ReactionCategory cat) async {
-        final Query<Object?> q =
-            _col.where('category', isEqualTo: cat.name);
-        final AggregateQuery agg = q.count();
-        final AggregateQuerySnapshot snap = await agg.get();
-        perCategory[cat] = snap.count ?? 0;
-      }),
-    );
+    final allCategories = ReactionCategory.values.toList();
+    const int chunkSize = 10;
+    for (int i = 0; i < allCategories.length; i += chunkSize) {
+      final chunk = allCategories.sublist(i, (i + chunkSize).clamp(0, allCategories.length));
+      await Future.wait<void>(
+        chunk.map((ReactionCategory cat) async {
+          final Query<Object?> q =
+              _col.where('category', isEqualTo: cat.name);
+          final AggregateQuery agg = q.count();
+          final AggregateQuerySnapshot snap = await agg.get();
+          perCategory[cat] = snap.count ?? 0;
+        }),
+      );
+    }
 
-    return <ReactionCategory?, int>{
+    final result = <ReactionCategory?, int>{
       null: total,
       for (final MapEntry<ReactionCategory, int> e in perCategory.entries)
         e.key: e.value,
     };
+
+    _cachedCategoryCounts = result;
+    _categoryCountsCacheTime = DateTime.now();
+    return result;
   }
 
   /// Fetches a specific reaction template by document ID or URL slug.
