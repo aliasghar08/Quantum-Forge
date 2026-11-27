@@ -72,6 +72,20 @@ class QualityBudget {
   final bool enableBackgroundPrefetch;
   final int maxImageCacheBytes;
 
+  /// Number of categories aggregated in parallel during cloud count synchronization.
+  int get aggregationChunkSize => switch (tier) {
+    QualityTier.ultra || QualityTier.high => 12,
+    QualityTier.balanced => 8,
+    QualityTier.performance || QualityTier.lite => 4,
+  };
+
+  /// Debounce delay before background count reconciliation queries execute.
+  Duration get countDebounceDuration => switch (tier) {
+    QualityTier.ultra || QualityTier.high => const Duration(seconds: 3),
+    QualityTier.balanced => const Duration(seconds: 5),
+    QualityTier.performance || QualityTier.lite => const Duration(seconds: 10),
+  };
+
   const QualityBudget({
     required this.tier,
     required this.maxWebGlPixelRatio,

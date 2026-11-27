@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:http/http.dart' as http;
 import 'package:quantum_forge/core/config/api_endpoints.dart';
+import 'package:quantum_forge/core/performance/adaptive_quality_governor.dart';
 import 'package:quantum_forge/core/services/app_storage.dart';
 import 'package:quantum_forge/features/reaction_library/data/reaction_templates.dart';
 import 'package:quantum_forge/features/reaction_library/data/library_search_tokenizer.dart';
@@ -661,10 +662,10 @@ class FirestoreLibraryRepository {
     final int medTotal = totalSnaps[1].count ?? 0;
     final int total = libTotal + medTotal;
 
-    // [1..N] — aggregated in chunks of 10 to avoid HTTP/2 stream limits.
+    // [1..N] — aggregated in chunks governed by device capability to avoid HTTP/2 stream limits.
     final Map<ReactionCategory, int> perCategory = <ReactionCategory, int>{};
     final allCategories = ReactionCategory.values.toList();
-    const int chunkSize = 10;
+    final int chunkSize = AdaptiveQualityGovernor.instance.currentBudget.aggregationChunkSize;
     for (int i = 0; i < allCategories.length; i += chunkSize) {
       final chunk = allCategories.sublist(i, (i + chunkSize).clamp(0, allCategories.length));
       await Future.wait<void>(

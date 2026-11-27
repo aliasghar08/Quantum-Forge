@@ -70,7 +70,8 @@ class _LibraryScreenState extends State<LibraryScreen> {
 
   void _scheduleBackgroundCountSync() {
     _countSyncDebounce?.cancel();
-    _countSyncDebounce = Timer(const Duration(seconds: 5), () async {
+    final debounceDuration = AdaptiveQualityGovernor.instance.currentBudget.countDebounceDuration;
+    _countSyncDebounce = Timer(debounceDuration, () async {
       if (!mounted) return;
       await Future.wait([
         _fetchCloudCount(),

@@ -30,6 +30,12 @@ import urllib.parse
 import urllib.request
 from typing import Any, Dict, List, Optional, Tuple
 
+from adaptive_governor import (
+    AdaptiveMedicationPipelineGovernor,
+    HostAIMDController,
+    LedgerWriter,
+)
+
 import numpy as np
 
 # Ensure repository root and backends are in sys.path
@@ -1304,22 +1310,24 @@ def preflight_batch_check_existing(
     return existing_ids
 
 
-# ── Batched Firestore Commit ──────────────────────────────────────────────────
+# ── Batched Firestore Commit Governed by Adaptive Batch Sizing ───────────────
 def batch_commit_to_firestore(
     documents_to_commit: list[dict[str, Any]],
     collection_name: str = "medications",
     project_id: str = PROJECT_ID,
 ) -> int:
-    """Commits prepared medication documents in batches of up to 500 via Firestore documents:commit RPC."""
+    """Commits prepared medication documents via Firestore documents:commit RPC governed by AIMD batch sizing."""
     if not documents_to_commit:
         return 0
 
+    governor = AdaptiveMedicationPipelineGovernor.instance()
     url = f"https://firestore.googleapis.com/v1/projects/{project_id}/databases/(default)/documents:commit"
     committed_count = 0
-    chunk_size = 500
+    idx = 0
 
-    for i in range(0, len(documents_to_commit), chunk_size):
-        chunk = documents_to_commit[i:i + chunk_size]
+    while idx < len(documents_to_commit):
+        chunk_size = governor.get_commit_batch_size()
+        chunk = documents_to_commit[idx:idx + chunk_size]
         writes = []
         for doc in chunk:
             doc_id = doc["id"]
@@ -1354,18 +1362,29 @@ def batch_commit_to_firestore(
             try:
                 t0 = time.monotonic()
                 with urllib.request.urlopen(req, timeout=30) as resp:
+                    latency_sec = time.monotonic() - t0
                     if resp.status in (200, 201):
-                        latency_ms = (time.monotonic() - t0) * 1000.0
+                        governor.host_controllers["firestore"].record_outcome(resp.status, latency_sec)
                         committed_count += len(chunk)
-                        logger.info("Successfully committed batch of %d medications to /%s (latency: %.1f ms)", len(chunk), collection_name, latency_ms)
+                        logger.info("Successfully committed batch of %d medications to /%s (latency: %.1f ms)", len(chunk), collection_name, latency_sec * 1000.0)
+                        for doc in chunk:
+                            governor.record_in_local_ledger(
+                                doc_id=doc["id"],
+                                generic_name=doc.get("drug", doc["id"]),
+                                pdb_id=doc.get("pdb", ""),
+                                doi=doc.get("doi", ""),
+                            )
                         success = True
                         break
             except urllib.error.HTTPError as he:
+                latency_sec = time.monotonic() - t0
+                governor.host_controllers["firestore"].record_outcome(he.code, latency_sec)
                 if he.code == 401 and attempt == 0:
                     token = get_auth_token(force_refresh=True)
                     continue
                 elif he.code in (429, 503):
-                    logger.warning("HTTP %d during batch commit; backing off %.1fs (attempt %d/%d)", he.code, backoff, attempt + 1, max_retries)
+                    governor.split_commit_batch_on_error()
+                    logger.warning("HTTP %d during batch commit; dynamically resizing batch and backing off %.1fs (attempt %d/%d)", he.code, backoff, attempt + 1, max_retries)
                     time.sleep(backoff)
                     backoff *= 2.0
                 else:
@@ -1378,6 +1397,7 @@ def batch_commit_to_firestore(
 
         if not success:
             logger.error("Failed to commit batch chunk of %d documents.", len(chunk))
+        idx += len(chunk)
 
     return committed_count
 
@@ -1484,6 +1504,7 @@ def rebuild_catalogs_once():
 # ── Ingest Pipeline Executor ───────────────────────────────────────────────────
 def run_ingestion(drugs: list[str] | None = None, force: bool = False, collection_name: str = "medications") -> list[dict[str, Any]]:
     """Runs ingestion with preflight deduplication, parallel RDKit generation, and single batch commit."""
+    governor = AdaptiveMedicationPipelineGovernor.instance()
     target_keys = []
     if drugs:
         for d in drugs:
@@ -1505,15 +1526,46 @@ def run_ingestion(drugs: list[str] | None = None, force: bool = False, collectio
 
     results = []
 
-    # 1. Preflight Firestore batchGet Deduplication
+    # 1. Hybrid Preflight Deduplication (Local SQLite WAL Ledger + Firestore batchGet)
     candidate_map = {f"rx_med_{EVERYDAY_MEDICINE_REGISTRY[k]['inn']}": k for k in target_keys if k in EVERYDAY_MEDICINE_REGISTRY}
+    existing_ids = set()
+
     if not force:
         t_pre = time.monotonic()
-        existing_ids = preflight_batch_check_existing(list(candidate_map.keys()), collection_name=collection_name, project_id=PROJECT_ID)
+        # Fast local SQLite check
+        ledger_hits = 0
+        remote_candidates = []
+        for doc_id in candidate_map:
+            if governor.is_in_local_ledger(doc_id):
+                existing_ids.add(doc_id)
+                ledger_hits += 1
+            else:
+                remote_candidates.append(doc_id)
+
+        # Batch check remaining candidates against remote Firestore
+        if remote_candidates:
+            remote_existing = preflight_batch_check_existing(remote_candidates, collection_name=collection_name, project_id=PROJECT_ID)
+            for r_id in remote_existing:
+                existing_ids.add(r_id)
+                k = candidate_map[r_id]
+                med = EVERYDAY_MEDICINE_REGISTRY[k]
+                governor.record_in_local_ledger(
+                    doc_id=r_id,
+                    generic_name=med["generic_name"],
+                    pdb_id=med.get("pdb_accession", ""),
+                    doi=med.get("primary_doi", ""),
+                )
+            governor.flush()
+
         pre_duration = time.monotonic() - t_pre
-        logger.info("Preflight batchGet found %d / %d drugs already present in Firestore /%s (took %.2f s)", len(existing_ids), len(candidate_map), collection_name, pre_duration)
-    else:
-        existing_ids = set()
+        logger.info(
+            "Preflight check completed: %d / %d drugs already present (%d via local SQLite ledger, %d via Firestore batchGet, took %.2f s)",
+            len(existing_ids),
+            len(candidate_map),
+            ledger_hits,
+            len(existing_ids) - ledger_hits,
+            pre_duration,
+        )
 
     to_process = []
     for doc_id, k in candidate_map.items():
@@ -1537,14 +1589,23 @@ def run_ingestion(drugs: list[str] | None = None, force: bool = False, collectio
 
     if not to_process:
         logger.info("All %d candidate medicines already verified and present in Firestore /%s.", len(candidate_map), collection_name)
+        telemetry = governor.get_telemetry_summary()
+        logger.info("Adaptive Governor Live Telemetry: %s", telemetry)
         return results
 
-    logger.info("Concurrently processing %d new medicines through RDKit 3D force-field and monograph pipeline...", len(to_process))
+    # 2. Parallel RDKit Generation Governed by Adaptive Concurrency
+    active_cpu_workers = governor.get_active_cpu_workers()
+    logger.info(
+        "Concurrently processing %d new medicines through RDKit 3D force-field and monograph pipeline (allocated CPU workers: %d, container constrained: %s)...",
+        len(to_process),
+        active_cpu_workers,
+        governor.is_container_constrained,
+    )
     t_cpu_start = time.monotonic()
     processed_docs = []
 
     try:
-        with concurrent.futures.ProcessPoolExecutor() as executor:
+        with concurrent.futures.ProcessPoolExecutor(max_workers=active_cpu_workers) as executor:
             futures = [executor.submit(process_single_drug_rdkit, item) for item in to_process]
             for f in concurrent.futures.as_completed(futures):
                 res = f.result()
@@ -1552,7 +1613,8 @@ def run_ingestion(drugs: list[str] | None = None, force: bool = False, collectio
                     processed_docs.append(res)
     except Exception as pool_err:
         logger.warning("ProcessPoolExecutor fallback to ThreadPool: %s", pool_err)
-        with concurrent.futures.ThreadPoolExecutor(max_workers=min(12, len(to_process))) as executor:
+        io_workers = min(governor.max_io_workers, len(to_process))
+        with concurrent.futures.ThreadPoolExecutor(max_workers=io_workers) as executor:
             futures = [executor.submit(process_single_drug_rdkit, item) for item in to_process]
             for f in concurrent.futures.as_completed(futures):
                 res = f.result()
@@ -1579,7 +1641,12 @@ def run_ingestion(drugs: list[str] | None = None, force: bool = False, collectio
                 "doi": doc["doi"],
             })
 
-    # 4. Single End-of-Run Index Rebuild
+    # 4. Flush Ledger & Emit Telemetry Summary
+    governor.flush()
+    telemetry = governor.get_telemetry_summary()
+    logger.info("Adaptive Governor Live Telemetry: %s", telemetry)
+
+    # 5. Single End-of-Run Index Rebuild
     if any(r["status"] == "published" for r in results):
         rebuild_catalogs_once()
 
