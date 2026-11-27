@@ -43,6 +43,23 @@ except ImportError:
 import requests
 from requests.adapters import HTTPAdapter
 
+try:
+    from search_tokenizer import build_search_metadata
+except ImportError:
+    try:
+        from scripts.database_and_firestore_seeding.search_tokenizer import build_search_metadata
+    except ImportError:
+        def build_search_metadata(record):
+            return {
+                "search_tokens": [w.lower() for w in str(record.get("name", "")).split()[:20]],
+                "name_lower": str(record.get("name", "")).lower(),
+                "is_mbbs": True,
+                "is_pharm_d": True,
+                "is_dvm": False,
+                "is_polymer": False,
+                "specialty": "general",
+            }
+
 PROJECT_ID = "quantom-forge"
 
 logging.basicConfig(
@@ -610,6 +627,18 @@ def commit_batch(token: str, docs: List[Dict[str, Any]], session: Optional[reque
             "tags": {"arrayValue": {"values": [{"stringValue": t} for t in d.get("tags", [])]}},
             "isDerived": {"booleanValue": bool(d.get("isDerived", True))}
         }
+
+        search_meta = build_search_metadata(d)
+        fields["search_tokens"] = {
+            "arrayValue": {"values": [{"stringValue": t} for t in search_meta["search_tokens"]]}
+        }
+        fields["name_lower"] = {"stringValue": search_meta["name_lower"]}
+        fields["is_mbbs"] = {"booleanValue": search_meta["is_mbbs"]}
+        fields["is_pharm_d"] = {"booleanValue": search_meta["is_pharm_d"]}
+        fields["is_dvm"] = {"booleanValue": search_meta["is_dvm"]}
+        fields["is_polymer"] = {"booleanValue": search_meta["is_polymer"]}
+        fields["specialty"] = {"stringValue": search_meta["specialty"]}
+
         if d.get("defaultCatalystName"):
             fields["defaultCatalystName"] = {"stringValue": d["defaultCatalystName"]}
             fields["hasLiteratureCatalyst"] = {"booleanValue": True}

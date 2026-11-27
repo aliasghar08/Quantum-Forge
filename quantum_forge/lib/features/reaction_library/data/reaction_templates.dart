@@ -9,6 +9,7 @@ import 'package:quantum_forge/features/pharmacopeia/data/medicine_pharmacology_p
 import 'package:quantum_forge/features/reaction_library/data/medical_reaction_templates.dart';
 import 'package:quantum_forge/features/reaction_library/data/polymer_reaction_templates.dart';
 import 'package:quantum_forge/features/reaction_library/data/veterinary_reaction_templates.dart';
+import 'package:quantum_forge/features/reaction_library/data/library_search_tokenizer.dart';
 
 enum ReactionCategory {
   polymer,
@@ -460,6 +461,9 @@ class ReactionTemplate {
         'pharmacology_profile': pharmacologyProfile!.toJson(),
     };
   }
+
+  /// Exports reaction representation enriched with inverted search tokens and curriculum facets for Firestore.
+  Map<String, dynamic> toFirestore() => buildFirestorePayload(this);
 }
 
 const _easReactant = '''14

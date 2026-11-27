@@ -6,6 +6,17 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:quantum_forge/core/services/app_storage.dart';
 import 'package:quantum_forge/features/reaction_library/data/reaction_templates.dart';
+import 'package:quantum_forge/features/reaction_library/data/library_search_tokenizer.dart';
+
+/// In-memory LRU cache entry with a 5-minute TTL.
+class _LruCacheEntry {
+  final LibraryPage page;
+  final DateTime createdAt;
+  _LruCacheEntry(this.page) : createdAt = DateTime.now();
+
+  bool get isExpired =>
+      DateTime.now().difference(createdAt) > const Duration(minutes: 5);
+}
 
 /// Result page returned by paginated queries.
 class LibraryPage {
@@ -35,6 +46,35 @@ class FirestoreLibraryRepository {
   /// Number of cards loaded per page. Small enough for fast first-paint,
   /// large enough that the user rarely needs to scroll before the next load.
   static const int pageSize = 24;
+
+  // ── LRU Search & Page Cache (100 entries, 5-minute TTL) ────────────────────
+  static final Map<String, _LruCacheEntry> _lruCache = <String, _LruCacheEntry>{};
+  static const int _maxLruEntries = 100;
+
+  static void _cachePut(String key, LibraryPage page) {
+    if (_lruCache.length >= _maxLruEntries) {
+      final oldestKey = _lruCache.keys.first;
+      _lruCache.remove(oldestKey);
+    }
+    _lruCache[key] = _LruCacheEntry(page);
+  }
+
+  static LibraryPage? _cacheGet(String key) {
+    final entry = _lruCache[key];
+    if (entry == null) return null;
+    if (entry.isExpired) {
+      _lruCache.remove(key);
+      return null;
+    }
+    // Refresh LRU recency
+    _lruCache.remove(key);
+    _lruCache[key] = entry;
+    return entry.page;
+  }
+
+  static void _invalidateCache() {
+    _lruCache.clear();
+  }
 
   // ── Composite Query Builders ──────────────────────────────────────────────
 
@@ -140,107 +180,136 @@ class FirestoreLibraryRepository {
     }
   }
 
-  // ── Search ─────────────────────────────────────────────────────────────────
+  // ── Search & Inverted Token Cursor Pagination ───────────────────────────────
 
-  /// Name-prefix search against Firestore indexes.
-  ///
-  /// Firestore index required:
-  ///   Collection: library
-  ///   Fields: category ASC, name ASC    (for category + query)
-  ///           name ASC                  (for query only)
-  ///
-  /// NOTE: Firestore does NOT support full-text search. This is a prefix match
-  /// on the `name` field, which covers the vast majority of use cases (e.g.
-  /// "Diels" → "Diels-Alder Reaction"). For tag search we use the `tags` array
-  /// contains query as a separate fallback.
+  /// Cursor-paginated multi-token search utilizing Firestore `search_tokens` array-contains-any,
+  /// scalar curriculum facets, composite indexing, and client-side BM25 re-ranking.
+  Future<LibraryPage> searchPage(
+    String query, {
+    ReactionCategory? category,
+    bool? isMbbs,
+    bool? isPharmD,
+    bool? isDvm,
+    bool? isDerived,
+    DocumentSnapshot? after,
+    int limit = pageSize,
+  }) async {
+    final cleanQuery = query.trim();
+    if (cleanQuery.isEmpty) {
+      return getPage(category: category, after: after);
+    }
+
+    final cacheKey =
+        'search_${cleanQuery}_${category?.name}_${isMbbs}_${isPharmD}_${isDvm}_${isDerived}_${after?.id}_$limit';
+    final cached = _cacheGet(cacheKey);
+    if (cached != null) {
+      return cached;
+    }
+
+    final queryTokens = tokenizeQuery(cleanQuery);
+    if (queryTokens.isEmpty) {
+      return getPage(category: category, after: after);
+    }
+
+    try {
+      final results = <ReactionTemplate>[];
+      final seen = <String>{};
+
+      // 0. Direct lookup for clinical medicine document IDs (rx_med_*) on initial page
+      if (after == null) {
+        final cleanQ = cleanQuery.toLowerCase().replaceAll(' ', '_').replaceAll('-', '_');
+        final candidateIds = [
+          if (!cleanQ.startsWith('rx_med_')) 'rx_med_$cleanQ',
+          cleanQ,
+          cleanQuery,
+        ];
+        for (final cid in candidateIds) {
+          try {
+            final directDoc = await _col.doc(cid).get();
+            if (directDoc.exists && directDoc.data() != null) {
+              if (seen.add(directDoc.id)) {
+                results.add(ReactionTemplate.fromJson(
+                    directDoc.data() as Map<String, dynamic>, directDoc.id));
+              }
+            }
+          } catch (_) {}
+        }
+      }
+
+      // 1. Array-contains-any on search_tokens combined with scalar facets
+      Query<Object?> q = _col.where('search_tokens', arrayContainsAny: queryTokens);
+
+      if (category != null) {
+        q = q.where('category', isEqualTo: category.name);
+      }
+      if (isMbbs == true) {
+        q = q.where('is_mbbs', isEqualTo: true);
+      }
+      if (isPharmD == true) {
+        q = q.where('is_pharm_d', isEqualTo: true);
+      }
+      if (isDvm == true) {
+        q = q.where('is_dvm', isEqualTo: true);
+      }
+      if (isDerived != null) {
+        q = q.where('is_derived', isEqualTo: isDerived);
+      }
+
+      // Ordering matches composite indexes: search_tokens + citation_count DESC
+      q = q.orderBy('citation_count', descending: true);
+
+      if (after != null) {
+        q = q.startAfterDocument(after);
+      }
+      q = q.limit(limit);
+
+      QuerySnapshot<Object?> snap;
+      try {
+        snap = await q.get();
+      } catch (queryErr) {
+        debugPrint('[FirestoreLibraryRepository] Composite index query fallback: $queryErr');
+        // Graceful fallback if composite index is building or missing
+        Query<Object?> fallbackQ = _col
+            .where('search_tokens', arrayContainsAny: queryTokens)
+            .limit(limit);
+        if (category != null) {
+          fallbackQ = fallbackQ.where('category', isEqualTo: category.name);
+        }
+        if (after != null) {
+          fallbackQ = fallbackQ.startAfterDocument(after);
+        }
+        snap = await fallbackQ.get();
+      }
+
+      for (final d in snap.docs) {
+        if (seen.add(d.id)) {
+          results.add(ReactionTemplate.fromJson(
+              d.data() as Map<String, dynamic>, d.id));
+        }
+      }
+
+      // Client-side BM25 + exact-prefix + provenance re-ranking
+      final ranked = rankSearchResults(results, cleanQuery);
+
+      final nextCursor = snap.docs.length == limit ? snap.docs.last : null;
+      final page = LibraryPage(items: ranked, nextCursor: nextCursor);
+
+      _cachePut(cacheKey, page);
+      return page;
+    } catch (e) {
+      debugPrint('FirestoreLibraryRepository.searchPage error: $e');
+      return LibraryPage(items: []);
+    }
+  }
+
+  /// Backward-compatible search method returning full template list.
   Future<List<ReactionTemplate>> search(
     String query, {
     ReactionCategory? category,
     int limit = pageSize,
   }) async {
-    if (query.trim().isEmpty) {
-      final page = await getPage(category: category);
-      return page.items;
-    }
-    final q = query.trim();
-    final cleanQ = q.toLowerCase().replaceAll(' ', '_').replaceAll('-', '_');
-    try {
-      final results = <ReactionTemplate>[];
-      final seen = <String>{};
-
-      // 0. Direct lookup for clinical medicine document IDs (rx_med_*)
-      final candidateIds = [
-        if (!cleanQ.startsWith('rx_med_')) 'rx_med_$cleanQ',
-        cleanQ,
-        q,
-      ];
-      for (final cid in candidateIds) {
-        try {
-          final directDoc = await _col.doc(cid).get();
-          if (directDoc.exists && directDoc.data() != null) {
-            if (seen.add(directDoc.id)) {
-              results.add(ReactionTemplate.fromJson(
-                  directDoc.data() as Map<String, dynamic>, directDoc.id));
-            }
-          }
-        } catch (_) {}
-      }
-
-      // 1. Prefix match on name (original casing and title casing)
-      final titleCaseQ = q.isNotEmpty ? (q[0].toUpperCase() + q.substring(1)) : q;
-      final searchQueries = {q, titleCaseQ};
-
-      for (final sq in searchQueries) {
-        if (results.length >= limit) break;
-        Query<Object?> nameQ = _col
-            .where('name', isGreaterThanOrEqualTo: sq)
-            .where('name', isLessThanOrEqualTo: '$sq\uf8ff')
-            .limit(limit);
-        if (category != null) {
-          nameQ = nameQ.where('category', isEqualTo: category.name);
-        }
-        final nameSnap = await nameQ.get();
-        for (final d in nameSnap.docs) {
-          if (seen.add(d.id)) {
-            results.add(ReactionTemplate.fromJson(
-                d.data() as Map<String, dynamic>, d.id));
-          }
-        }
-      }
-
-      // 2. Tag array-contains (checking lowercase and title-case tags)
-      if (results.length < limit) {
-        for (final tq in {q.toLowerCase(), titleCaseQ}) {
-          if (results.length >= limit) break;
-          Query<Object?> tagQ =
-              _col.where('tags', arrayContains: tq).limit(limit);
-          if (category != null) {
-            tagQ = tagQ.where('category', isEqualTo: category.name);
-          }
-          final tagSnap = await tagQ.get();
-          for (final d in tagSnap.docs) {
-            if (seen.add(d.id)) {
-              results.add(ReactionTemplate.fromJson(
-                  d.data() as Map<String, dynamic>, d.id));
-            }
-          }
-        }
-      }
-
-      // Prioritize clinical medicine documents (rx_med_*) at the top
-      results.sort((a, b) {
-        final aIsRx = a.id.startsWith('rx_med_');
-        final bIsRx = b.id.startsWith('rx_med_');
-        if (aIsRx && !bIsRx) return -1;
-        if (!aIsRx && bIsRx) return 1;
-        return 0;
-      });
-
-      return results;
-    } catch (e) {
-      debugPrint('FirestoreLibraryRepository.search error: $e');
-      return [];
-    }
+    final page = await searchPage(query, category: category, limit: limit);
+    return page.items;
   }
 
   // ── Count ──────────────────────────────────────────────────────────────────
@@ -423,9 +492,10 @@ class FirestoreLibraryRepository {
   Future<bool> saveReaction(ReactionTemplate template) async {
     // 1. Immediately save to persistent local storage so the reaction is never lost
     saveToLocalStorage(template);
+    _invalidateCache();
 
     // 2. Prepare payload sanitized for Firestore Security Rules
-    final payload = Map<String, dynamic>.from(template.toJson());
+    final payload = Map<String, dynamic>.from(template.toFirestore());
     payload['id'] = template.id;
     payload['authorId'] = FirebaseAuth.instance.currentUser?.uid ?? 'anonymous';
     payload['created_by'] = FirebaseAuth.instance.currentUser?.uid ?? 'anonymous';

@@ -65,3 +65,4 @@ scratch/
 
 *.sqlite-shm
 *.sqlite-wal
+backfill_checkpoint.json

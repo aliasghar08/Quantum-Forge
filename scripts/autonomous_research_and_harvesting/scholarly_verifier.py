@@ -471,6 +471,20 @@ def publish_reaction_to_firebase(
 
     tags = reaction_data.get("tags", ["MBBS", "Pharm-D", "Verified-DOI"])
     fields["tags"] = {"arrayValue": {"values": [{"stringValue": str(t)} for t in tags]}}
+
+    try:
+        from search_tokenizer import build_search_metadata
+        search_meta = build_search_metadata(reaction_data)
+        fields["search_tokens"] = {"arrayValue": {"values": [{"stringValue": t} for t in search_meta["search_tokens"]]}}
+        fields["name_lower"] = {"stringValue": search_meta["name_lower"]}
+        fields["is_mbbs"] = {"booleanValue": search_meta["is_mbbs"]}
+        fields["is_pharm_d"] = {"booleanValue": search_meta["is_pharm_d"]}
+        fields["is_dvm"] = {"booleanValue": search_meta["is_dvm"]}
+        fields["is_polymer"] = {"booleanValue": search_meta["is_polymer"]}
+        fields["specialty"] = {"stringValue": search_meta["specialty"]}
+    except Exception as e:
+        logger.warning("Could not build search metadata in scholarly_verifier: %s", e)
+
     body = json.dumps({"fields": fields}).encode("utf-8")
 
     max_retries = 3

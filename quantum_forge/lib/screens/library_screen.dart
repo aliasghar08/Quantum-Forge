@@ -109,8 +109,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
     final pos = _scrollController.position;
     if (pos.pixels >= pos.maxScrollExtent - 300 &&
         !_isLoadingMore &&
-        _hasMore &&
-        _query.isEmpty) {
+        _hasMore) {
       _loadNextPage();
     }
   }
@@ -187,10 +186,16 @@ class _LibraryScreenState extends State<LibraryScreen> {
     if (_isLoadingMore || !_hasMore || _nextCursor == null) return;
     setState(() => _isLoadingMore = true);
     try {
-      final page = await _repo.getPage(
-        category: _filterCategory,
-        after: _nextCursor,
-      );
+      final page = _query.isNotEmpty
+          ? await _repo.searchPage(
+              _query,
+              category: _filterCategory,
+              after: _nextCursor,
+            )
+          : await _repo.getPage(
+              category: _filterCategory,
+              after: _nextCursor,
+            );
       if (!mounted) return;
       setState(() {
         _items = [..._items, ...page.items];
@@ -206,9 +211,10 @@ class _LibraryScreenState extends State<LibraryScreen> {
 
   Future<void> _runSearch(String query) async {
     try {
-      final results = await _repo.search(query, category: _filterCategory);
+      final page = await _repo.searchPage(query, category: _filterCategory);
       if (!mounted) return;
 
+      final results = page.items;
       final qLower = query.toLowerCase();
       final localMatches = kReactionTemplates.where((t) {
         final matchesCat =
@@ -242,8 +248,8 @@ class _LibraryScreenState extends State<LibraryScreen> {
 
       setState(() {
         _items = combined;
-        _nextCursor = null;
-        _hasMore = false;
+        _nextCursor = page.nextCursor;
+        _hasMore = page.hasMore;
         _isFirstLoad = false;
       });
     } catch (e) {

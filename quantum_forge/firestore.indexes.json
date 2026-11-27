@@ -81,7 +81,109 @@
         { "fieldPath": "tags", "arrayConfig": "CONTAINS" },
         { "fieldPath": "reference_ea", "order": "DESCENDING" }
       ]
+    },
+    {
+      "collectionGroup": "library",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "search_tokens", "arrayConfig": "CONTAINS" },
+        { "fieldPath": "citation_count", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "library",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "category", "order": "ASCENDING" },
+        { "fieldPath": "search_tokens", "arrayConfig": "CONTAINS" },
+        { "fieldPath": "citation_count", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "library",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "category", "order": "ASCENDING" },
+        { "fieldPath": "search_tokens", "arrayConfig": "CONTAINS" },
+        { "fieldPath": "reference_ea", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "library",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "category", "order": "ASCENDING" },
+        { "fieldPath": "search_tokens", "arrayConfig": "CONTAINS" },
+        { "fieldPath": "reference_ea", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "library",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "is_derived", "order": "ASCENDING" },
+        { "fieldPath": "search_tokens", "arrayConfig": "CONTAINS" },
+        { "fieldPath": "citation_count", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "library",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "is_mbbs", "order": "ASCENDING" },
+        { "fieldPath": "search_tokens", "arrayConfig": "CONTAINS" },
+        { "fieldPath": "citation_count", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "library",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "is_pharm_d", "order": "ASCENDING" },
+        { "fieldPath": "search_tokens", "arrayConfig": "CONTAINS" },
+        { "fieldPath": "citation_count", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "library",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "is_dvm", "order": "ASCENDING" },
+        { "fieldPath": "search_tokens", "arrayConfig": "CONTAINS" },
+        { "fieldPath": "citation_count", "order": "DESCENDING" }
+      ]
     }
   ],
-  "fieldOverrides": []
+  "fieldOverrides": [
+    {
+      "collectionGroup": "library",
+      "fieldPath": "reactant_xyz",
+      "indexes": []
+    },
+    {
+      "collectionGroup": "library",
+      "fieldPath": "reactantXyz",
+      "indexes": []
+    },
+    {
+      "collectionGroup": "library",
+      "fieldPath": "ts_xyz",
+      "indexes": []
+    },
+    {
+      "collectionGroup": "library",
+      "fieldPath": "product_xyz",
+      "indexes": []
+    },
+    {
+      "collectionGroup": "library",
+      "fieldPath": "productXyz",
+      "indexes": []
+    },
+    {
+      "collectionGroup": "library",
+      "fieldPath": "iupac_equation",
+      "indexes": []
+    }
+  ]
 }
