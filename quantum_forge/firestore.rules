@@ -139,11 +139,14 @@ service cloud.firestore {
           'tags', 'defaults', 'isDerived', 'derivedFrom', 'defaultCatalystName',
           'catalystXyz', 'literatureBarrierKcalMol', 'hasLiteratureCatalyst',
           'literatureDoi', 'id', 'created_at', 'created_by', 'authorId',
-          'spectroscopy', 'conformerEnsemble', 'calibratedBarrier', 'status'
+          'spectroscopy', 'conformerEnsemble', 'calibratedBarrier', 'status',
+          'slug', 'pharmacology_profile'
         ]) &&
         data.name is string && data.name.size() > 0 && data.name.size() <= 200 &&
         data.reactantXyz is string && data.reactantXyz.size() > 0 && data.reactantXyz.size() <= 500000 &&
         data.productXyz is string && data.productXyz.size() > 0 && data.productXyz.size() <= 500000 &&
+        (!('slug' in data) || (data.slug is string && data.slug.size() <= 200)) &&
+        (!('pharmacology_profile' in data) || data.pharmacology_profile is map) &&
         (!('iupacName' in data) || (data.iupacName is string && data.iupacName.size() <= 500)) &&
         (!('description' in data) || (data.description is string && data.description.size() <= 5000)) &&
         (!('category' in data) || (data.category is string && data.category.size() <= 100)) &&

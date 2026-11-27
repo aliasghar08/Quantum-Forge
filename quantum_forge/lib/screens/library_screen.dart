@@ -1003,7 +1003,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
             ),
             FilledButton.icon(
               icon: const Icon(Icons.cloud_upload_outlined, size: 16),
-              label: const Text('Save to Firebase'),
+              label: const Text('Save to Library'),
               style: FilledButton.styleFrom(
                 backgroundColor: const Color(0xFF00E676),
                 foregroundColor: Colors.black,
@@ -1058,7 +1058,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text(
-                          'Saved "${template.name}" to Firebase Library!'),
+                          'Saved "${template.name}" to Library!'),
                       backgroundColor: const Color(0xFF00E676),
                     ),
                   );
