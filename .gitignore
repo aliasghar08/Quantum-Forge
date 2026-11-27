@@ -67,3 +67,5 @@ scratch/
 *.sqlite-shm
 *.sqlite-wal
 backfill_checkpoint.json
+.pytest_cache/
+**/.pytest_cache/

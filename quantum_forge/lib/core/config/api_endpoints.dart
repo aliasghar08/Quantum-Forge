@@ -68,6 +68,24 @@ class ApiEndpoints {
     defaultValue: 'https://nephrolab-backend-227207155336.us-central1.run.app',
   );
 
+  /// Dedicated Google Cloud Run Neural & Hybrid Search Backend
+  static const String searchBackendUrl = String.fromEnvironment(
+    'SEARCH_API_BASE_URL',
+    defaultValue: 'https://quantum-forge-search-227207155336.us-central1.run.app',
+  );
+
+  /// Semantic Search API URL (routed via Firebase Hosting or direct Cloud Run)
+  static String get semanticSearchUrl =>
+      '${sanitize(searchBackendUrl)}/api/search/semantic';
+
+  /// Hybrid Search API URL
+  static String get hybridSearchUrl =>
+      '${sanitize(searchBackendUrl)}/api/search/hybrid';
+
+  /// Self-Healing Search Repair URL
+  static String get searchSelfHealUrl =>
+      '${sanitize(searchBackendUrl)}/api/search/self-heal';
+
   /// NephroLab Glomerular Hemodynamics & Starling Filtration URL
   static String get nephroHemodynamicsUrl =>
       '${sanitize(nephrolabBackendUrl)}/api/nephro/hemodynamics';

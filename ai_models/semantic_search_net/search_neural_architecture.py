@@ -1,12 +1,14 @@
 """
-PharmaChemSearchNet — Neural Bi-Encoder and Cross-Reranker for Quantum Forge
------------------------------------------------------------------------------
-Two-stage lightweight neural search engine:
-Stage 1: PharmaChemBiEncoder maps queries and reaction texts to 128-d L2-normalized vectors
-         via character 3-grams (4096 hash buckets) + clinical subwords + 1D Residual CNN + Attention.
-Stage 2: PharmaChemCrossReranker scores top-60 candidates based on cosine similarity, exact prefix,
-         token overlap, log-citations, and Verified-DOI provenance.
+PharmaChemSearchNet — Neural Retrieval Architecture
+---------------------------------------------------
+Stage 1: PharmaChemBiEncoder (PyTorch): Hashed char 3-gram (4096 hash buckets) +
+         clinical subword tokenizer -> Embedding -> 2-layer Residual 1D-CNN +
+         Attention Pooling -> 128-d L2-normalized vector (float16 / float32 export).
+Stage 2: PharmaChemCrossReranker: Lightweight MLP scoring:
+         (cosine_sim, exact_prefix, token_jaccard, log_citations, is_verified_doi, category_match).
 """
+
+from __future__ import annotations
 
 import math
 import re
@@ -60,24 +62,21 @@ def tokenize_text(text: str, max_len: int = MAX_SEQ_LEN) -> List[int]:
     for word in words:
         if not word:
             continue
-        # 1. Check for clinical subword match
-        matched_subword = False
+        # 1. Clinical subword match
         for sw, sw_id in SUBWORD_MAP.items():
             if sw in word:
                 tokens.append(sw_id)
-                matched_subword = True
                 break
 
         # 2. Extract character 3-grams with boundary markers
         padded_w = f"^{word}$"
         for i in range(len(padded_w) - 2):
-            tri = padded_w[i:i+3]
+            tri = padded_w[i:i + 3]
             tokens.append(hash_trigram(tri))
 
     if not tokens:
         tokens = [UNK_ID]
 
-    # Pad or truncate to max_len
     if len(tokens) < max_len:
         tokens.extend([PAD_ID] * (max_len - len(tokens)))
     else:
@@ -97,12 +96,11 @@ class AttentionPooling(nn.Module):
         )
 
     def forward(self, x: torch.Tensor, mask: Optional[torch.Tensor] = None) -> torch.Tensor:
-        # x: (batch_size, seq_len, embed_dim)
-        scores = self.attn(x) # (batch_size, seq_len, 1)
+        scores = self.attn(x)
         if mask is not None:
             scores = scores.masked_fill(~mask.unsqueeze(-1), -1e9)
-        weights = F.softmax(scores, dim=1) # (batch_size, seq_len, 1)
-        pooled = (x * weights).sum(dim=1) # (batch_size, embed_dim)
+        weights = F.softmax(scores, dim=1)
+        pooled = (x * weights).sum(dim=1)
         return pooled
 
 
@@ -127,18 +125,16 @@ class PharmaChemBiEncoder(nn.Module):
         )
 
     def forward(self, token_ids: torch.Tensor) -> torch.Tensor:
-        # token_ids: (batch_size, seq_len)
         mask = (token_ids != PAD_ID)
-        emb = self.embedding(token_ids) # (batch_size, seq_len, embed_dim)
+        emb = self.embedding(token_ids)
 
-        # 1D-CNN over sequence
-        h = emb.transpose(1, 2) # (batch_size, embed_dim, seq_len)
+        h = emb.transpose(1, 2)
         res1 = h
         h = F.gelu(self.bn1(self.conv1(h)))
-        h = self.bn2(self.conv2(h)) + res1 # Residual connection
+        h = self.bn2(self.conv2(h)) + res1
         h = F.gelu(h)
 
-        h = h.transpose(1, 2) # (batch_size, seq_len, embed_dim)
+        h = h.transpose(1, 2)
         pooled = self.pool(h, mask=mask)
         out = self.proj(pooled)
         return F.normalize(out, p=2, dim=-1)
@@ -162,7 +158,6 @@ class PharmaChemCrossReranker(nn.Module):
         )
 
     def forward(self, features: torch.Tensor) -> torch.Tensor:
-        # features: (batch_size, 6)
         return self.mlp(features).squeeze(-1)
 
 
@@ -179,23 +174,16 @@ def compute_match_features(
     q_lower = query.lower().strip()
     t_lower = target_name.lower().strip()
 
-    # 1. Exact prefix match
     exact_prefix = 1.0 if t_lower.startswith(q_lower) or any(w.startswith(q_lower) for w in t_lower.split()) else 0.0
 
-    # 2. Token Jaccard overlap
     q_words = set(re.findall(r'[a-zA-Z0-9]+', q_lower))
     t_words = set(re.findall(r'[a-zA-Z0-9]+', t_lower))
     intersection = len(q_words & t_words)
     union = len(q_words | t_words) or 1
     jaccard = intersection / union
 
-    # 3. Log citations
     log_citations = math.log1p(max(0, citation_count)) / 10.0
-
-    # 4. Verified DOI provenance
     doi_feat = 1.0 if is_verified_doi else 0.0
-
-    # 5. Category match
     cat_match = 1.0 if (not query_category or query_category == target_category) else 0.0
 
     return [float(cosine_sim), float(exact_prefix), float(jaccard), float(log_citations), float(doi_feat), float(cat_match)]

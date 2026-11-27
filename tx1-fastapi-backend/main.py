@@ -18,7 +18,6 @@ from collections import OrderedDict
 from datetime import datetime, timezone
 import asyncio
 
-import numpy as np
 import torch
 
 # Apple Silicon (MPS) fallback for operations not supported natively on MPS.
@@ -42,12 +41,6 @@ from app.legacy_gnn import (
 )
 from app.mlip_registry import registry
 from safety_filter import screen_chemical_input
-from app.search_model import (
-    PharmaChemBiEncoder,
-    PharmaChemCrossReranker,
-    tokenize_text,
-    compute_match_features,
-)
 
 # Transition metals atomic numbers for Domain-of-Applicability (DoA) guardrails
 TRANSITION_METALS = {
@@ -123,125 +116,9 @@ def load_model() -> None:
         print(f"Error loading model: {model_error}")
 
 
-# ==========================================
-# NEURAL SEMANTIC SEARCH ENGINE (PharmaChemSearchNet)
-# ==========================================
-SEARCH_MODEL_PATH = Path(__file__).resolve().parent / "models" / "pharma_search_encoder_v1.pt"
-SEMANTIC_CATALOG_PATH = Path(__file__).resolve().parent / "data" / "semantic_catalog.npz"
-
-
-class SemanticSearchEngine:
-    def __init__(self):
-        self.bi_encoder: PharmaChemBiEncoder | None = None
-        self.reranker: PharmaChemCrossReranker | None = None
-        self.catalog_ids: np.ndarray | None = None
-        self.catalog_names: np.ndarray | None = None
-        self.catalog_categories: np.ndarray | None = None
-        self.catalog_dois: np.ndarray | None = None
-        self.catalog_citations: np.ndarray | None = None
-        self.catalog_embeddings: np.ndarray | None = None
-        self.loaded = False
-
-    def load(self) -> None:
-        if not SEARCH_MODEL_PATH.exists() or not SEMANTIC_CATALOG_PATH.exists():
-            print(f"[SemanticSearch] Checkpoint or catalog not found: {SEARCH_MODEL_PATH} / {SEMANTIC_CATALOG_PATH}")
-            return
-        try:
-            device = torch.device("cpu")
-            bi = PharmaChemBiEncoder()
-            re_model = PharmaChemCrossReranker()
-            ckpt = torch.load(SEARCH_MODEL_PATH, map_location=device, weights_only=False)
-            bi.load_state_dict(ckpt["bi_encoder"])
-            re_model.load_state_dict(ckpt["reranker"])
-            bi.eval()
-            re_model.eval()
-            self.bi_encoder = bi
-            self.reranker = re_model
-
-            cat = np.load(SEMANTIC_CATALOG_PATH, allow_pickle=True)
-            self.catalog_ids = cat["ids"]
-            self.catalog_names = cat["names"]
-            self.catalog_categories = cat["categories"]
-            self.catalog_dois = cat["dois"]
-            self.catalog_citations = cat["citations"]
-            self.catalog_embeddings = cat["embeddings"]
-            self.loaded = True
-            print(f"[SemanticSearch] Loaded {len(self.catalog_ids)} semantic catalog records and neural models.")
-        except Exception as e:
-            print(f"[SemanticSearch] Failed to load search engine: {e}")
-
-    def search(self, query: str, category: str | None = None, top_k: int = 20) -> list[dict[str, Any]]:
-        if not self.loaded or self.bi_encoder is None or self.catalog_embeddings is None:
-            return []
-
-        tokens = tokenize_text(query)
-        inp = torch.tensor([tokens], dtype=torch.long)
-        with torch.no_grad():
-            q_emb = self.bi_encoder(inp).numpy()[0]
-
-        sims = np.dot(self.catalog_embeddings, q_emb)
-
-        valid_indices = np.arange(len(sims))
-        if category and category.lower() != "all":
-            mask = np.char.lower(self.catalog_categories.astype(str)) == category.lower()
-            if np.any(mask):
-                valid_indices = valid_indices[mask]
-                sims = sims[mask]
-            else:
-                return []
-
-        k_cand = min(60, len(valid_indices))
-        if k_cand == 0:
-            return []
-        top_cand_sub = np.argpartition(sims, -k_cand)[-k_cand:]
-        top_cand_sub = top_cand_sub[np.argsort(-sims[top_cand_sub])]
-
-        actual_indices = valid_indices[top_cand_sub]
-        top_sims = sims[top_cand_sub]
-
-        features_list = []
-        for idx, sim in zip(actual_indices, top_sims):
-            t_name = str(self.catalog_names[idx])
-            t_cat = str(self.catalog_categories[idx])
-            cit = int(self.catalog_citations[idx])
-            doi = str(self.catalog_dois[idx])
-            feats = compute_match_features(
-                query=query,
-                target_name=t_name,
-                cosine_sim=float(sim),
-                citation_count=cit,
-                is_verified_doi=bool(doi and doi != "none" and len(doi) > 3),
-                query_category=category,
-                target_category=t_cat,
-            )
-            features_list.append(feats)
-
-        with torch.no_grad():
-            feat_tensor = torch.tensor(features_list, dtype=torch.float32)
-            rerank_scores = self.reranker(feat_tensor).numpy()
-
-        order = np.argsort(-rerank_scores)
-        results = []
-        for i in order[:top_k]:
-            orig_idx = actual_indices[i]
-            results.append({
-                "id": str(self.catalog_ids[orig_idx]),
-                "name": str(self.catalog_names[orig_idx]),
-                "category": str(self.catalog_categories[orig_idx]),
-                "score": float(rerank_scores[i]),
-                "doi": str(self.catalog_dois[orig_idx]) if self.catalog_dois[orig_idx] else None,
-                "citations": int(self.catalog_citations[orig_idx]),
-            })
-        return results
-
-
-search_engine = SemanticSearchEngine()
-
-
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     load_model()
-    search_engine.load()
     yield
 
 # Origins allowed to call this API from a browser. Override with
@@ -1616,55 +1493,6 @@ def evaluate_pharmacogenomics(req: PharmacogenomicsRequest):
         "clinical_color": clinical_color,
         "fda_disclaimer": "Educational Simulation Only — Not for Clinical Diagnosis, Prescribing, or Patient Care. Computed Ea shifts for CYP450 variants are theoretical machine-learning approximations, not clinical pharmacokinetic predictions."
     }
-
-
-# ==========================================
-# NEURAL SEMANTIC SEARCH ENDPOINT
-# ==========================================
-class SemanticSearchRequest(BaseModel):
-    query: str
-    category: str | None = None
-    top_k: int = 20
-
-
-class SemanticSearchResultItem(BaseModel):
-    id: str
-    name: str
-    category: str
-    score: float
-    doi: str | None = None
-    citations: int = 0
-
-
-class SemanticSearchResponse(BaseModel):
-    query: str
-    total: int
-    results: list[SemanticSearchResultItem]
-
-
-@app.post("/api/search/semantic", response_model=SemanticSearchResponse)
-async def semantic_search_endpoint(req: SemanticSearchRequest):
-    """
-    Sub-35ms neural semantic search across 15,000+ chemical & clinical catalog records.
-    Recovers clinical intent and severe typos via PharmaChemSearchNet (Bi-Encoder + Cross-Reranker).
-    """
-    clean_q = req.query.strip()
-    if not clean_q:
-        return SemanticSearchResponse(query=req.query, total=0, results=[])
-
-    raw_results = search_engine.search(query=clean_q, category=req.category, top_k=req.top_k)
-    items = [
-        SemanticSearchResultItem(
-            id=r["id"],
-            name=r["name"],
-            category=r["category"],
-            score=round(float(r["score"]), 4),
-            doi=r.get("doi"),
-            citations=r.get("citations", 0),
-        )
-        for r in raw_results
-    ]
-    return SemanticSearchResponse(query=clean_q, total=len(items), results=items)
 
 
 if __name__ == "__main__":

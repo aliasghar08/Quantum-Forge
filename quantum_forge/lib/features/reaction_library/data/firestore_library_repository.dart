@@ -304,6 +304,15 @@ class FirestoreLibraryRepository {
         }).catchError((err) {
           debugPrint('[LazyReadRepair] Error updating ${docSnap.id}: $err');
         });
+
+        // Also notify self-heal endpoint on search microservice
+        try {
+          http.post(
+            Uri.parse(ApiEndpoints.searchSelfHealUrl),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({'document_ids': [docSnap.id]}),
+          ).catchError((_) => http.Response('', 500));
+        } catch (_) {}
       }
     } catch (_) {}
   }
@@ -410,7 +419,7 @@ class FirestoreLibraryRepository {
     int limit = pageSize,
   }) async {
     try {
-      final uri = Uri.parse('${ApiEndpoints.productionBaseUrl}/api/search/semantic');
+      final uri = Uri.parse(ApiEndpoints.semanticSearchUrl);
       final resp = await http.post(
         uri,
         headers: {'Content-Type': 'application/json'},

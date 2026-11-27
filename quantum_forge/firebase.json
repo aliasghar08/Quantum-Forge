@@ -99,6 +99,13 @@
     ],
     "rewrites": [
       {
+        "source": "/api/search/**",
+        "run": {
+          "serviceId": "quantum-forge-search",
+          "region": "us-central1"
+        }
+      },
+      {
         "source": "/api/cardiac/**",
         "run": {
           "serviceId": "cardiocath-backend",
