@@ -227,7 +227,7 @@ class _CardiacFullScreenHeartTheaterState
   Widget build(BuildContext context) {
     final palette = ThemeNotifier.paletteOf(context);
     final size = MediaQuery.of(context).size;
-    final isMobile = size.width < 768;
+    final isMobile = !kIsWeb && size.width < 768;
 
     if (kIsWeb && _threeBridge == null) {
       _threeBridge = CardioCathThreeBridge.latestFullScreenHeartBridge;

@@ -238,7 +238,7 @@ class _QuantumForgeAppState extends State<QuantumForgeApp> {
                 // never compress desktop workstations, multi-panel rails, or 3D canvases
                 // into narrow 375-430px columns. If a browser viewport is < 1280px,
                 // wrap in a horizontal SingleChildScrollView with a minimum width of 1280px
-                // and supply a desktop-sized MediaQuery to all descendants.
+                // and supply a desktop-sized MediaQuery to all descendants (including dialog overlays).
                 if (kIsWeb) {
                   final isUnderMin = media.size.width < 1280.0;
                   final effectiveWidth = math.max(1280.0, media.size.width);
@@ -246,8 +246,13 @@ class _QuantumForgeAppState extends State<QuantumForgeApp> {
                     size: Size(effectiveWidth, media.size.height),
                   );
 
+                  Widget wrappedContent = MediaQuery(
+                    data: desktopMedia,
+                    child: appContent,
+                  );
+
                   if (isUnderMin) {
-                    appContent = SingleChildScrollView(
+                    wrappedContent = SingleChildScrollView(
                       scrollDirection: Axis.horizontal,
                       physics: const ClampingScrollPhysics(),
                       child: ConstrainedBox(
@@ -258,7 +263,7 @@ class _QuantumForgeAppState extends State<QuantumForgeApp> {
                         child: SizedBox(
                           width: 1280.0,
                           height: media.size.height,
-                          child: appContent,
+                          child: wrappedContent,
                         ),
                       ),
                     );
@@ -268,7 +273,7 @@ class _QuantumForgeAppState extends State<QuantumForgeApp> {
                     data: desktopMedia,
                     child: Stack(
                       children: [
-                        appContent,
+                        wrappedContent,
                         const FloatingCopyrightWatermark(),
                       ],
                     ),

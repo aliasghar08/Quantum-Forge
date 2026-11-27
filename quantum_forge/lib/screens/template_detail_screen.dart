@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'package:flutter/foundation.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:quantum_forge/core/utils/xyz_parser.dart';
@@ -729,7 +730,7 @@ class _TemplateDetailScreenState extends State<TemplateDetailScreen> {
             // ── Static Molecule Viewers ──────────────────────────────────
             LayoutBuilder(
               builder: (context, constraints) {
-                if (constraints.maxWidth < 600) {
+                if (!kIsWeb && constraints.maxWidth < 600) {
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [

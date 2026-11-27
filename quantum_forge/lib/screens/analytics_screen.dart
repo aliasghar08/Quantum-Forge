@@ -162,10 +162,9 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
             _updateMetrics(settings, reactionStatus);
             return LayoutBuilder(
               builder: (context, constraints) {
-                // Adjust grid columns based on screen width for responsiveness
-                int crossAxisCount = 4;
-                if (constraints.maxWidth < 800) crossAxisCount = 2;
-                if (constraints.maxWidth < 500) crossAxisCount = 1;
+                // Adjust grid columns based on screen width for responsiveness.
+                // Enforce desktop 4-column layout on kIsWeb.
+                int crossAxisCount = (kIsWeb || constraints.maxWidth >= 800) ? 4 : (constraints.maxWidth < 500 ? 1 : 2);
 
                 return SingleChildScrollView(
                   padding: const EdgeInsets.all(24.0),
