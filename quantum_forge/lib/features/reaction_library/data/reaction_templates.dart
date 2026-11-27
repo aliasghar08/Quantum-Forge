@@ -398,6 +398,52 @@ class ReactionTemplate {
     }).toList();
   }
 
+  ReactionTemplate copyWith({
+    String? id,
+    String? name,
+    String? iupacName,
+    String? description,
+    ReactionCategory? category,
+    String? reactantXyz,
+    String? productXyz,
+    double? referenceEa,
+    String? doi,
+    String? journalRef,
+    List<String>? tags,
+    QuantumDefaults? defaults,
+    bool? isDerived,
+    String? derivedFrom,
+    String? defaultCatalystName,
+    String? catalystXyz,
+    double? literatureBarrierKcalMol,
+    bool? hasLiteratureCatalyst,
+    String? literatureDoi,
+    MedicinePharmacologyProfile? pharmacologyProfile,
+  }) {
+    return ReactionTemplate(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      iupacName: iupacName ?? this.iupacName,
+      description: description ?? this.description,
+      category: category ?? this.category,
+      reactantXyz: reactantXyz ?? this.reactantXyz,
+      productXyz: productXyz ?? this.productXyz,
+      referenceEa: referenceEa ?? this.referenceEa,
+      doi: doi ?? this.doi,
+      journalRef: journalRef ?? this.journalRef,
+      tags: tags ?? this.tags,
+      defaults: defaults ?? this.defaults,
+      isDerived: isDerived ?? this.isDerived,
+      derivedFrom: derivedFrom ?? this.derivedFrom,
+      defaultCatalystName: defaultCatalystName ?? this.defaultCatalystName,
+      catalystXyz: catalystXyz ?? this.catalystXyz,
+      literatureBarrierKcalMol: literatureBarrierKcalMol ?? this.literatureBarrierKcalMol,
+      hasLiteratureCatalyst: hasLiteratureCatalyst ?? this.hasLiteratureCatalyst,
+      literatureDoi: literatureDoi ?? this.literatureDoi,
+      pharmacologyProfile: pharmacologyProfile ?? this.pharmacologyProfile,
+    );
+  }
+
   factory ReactionTemplate.fromJson(Map<String, dynamic> json, String id) {
     return ReactionTemplate(
       id: id,
@@ -408,11 +454,11 @@ class ReactionTemplate {
         (e) => e.name == json['category'],
         orElse: () => ReactionCategory.thermal,
       ),
-      reactantXyz: json['reactantXyz'] as String? ?? '',
-      productXyz: json['productXyz'] as String? ?? '',
-      referenceEa: (json['referenceEa'] as num?)?.toDouble() ?? 0.0,
+      reactantXyz: json['reactantXyz'] as String? ?? json['reactant_xyz'] as String? ?? '',
+      productXyz: json['productXyz'] as String? ?? json['product_xyz'] as String? ?? '',
+      referenceEa: (json['referenceEa'] as num?)?.toDouble() ?? (json['reference_ea'] as num?)?.toDouble() ?? 0.0,
       doi: json['doi'] as String? ?? '',
-      journalRef: json['journalRef'] as String? ?? '',
+      journalRef: json['journalRef'] as String? ?? json['journal_ref'] as String? ?? '',
       tags: (json['tags'] as List<dynamic>?)?.map((e) => e as String).toList() ?? [],
       defaults: json['defaults'] != null
           ? QuantumDefaults.fromJson(json['defaults'] as Map<String, dynamic>)

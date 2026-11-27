@@ -139,10 +139,12 @@ class _LibraryGridState extends State<LibraryGrid>
                 ),
               ),
             ),
-            child: ReactionCardWidget(
-              key: ValueKey(item.id),
-              template: item,
-              onLoad: () => widget.onTemplateSelected(item),
+            child: RepaintBoundary(
+              child: ReactionCardWidget(
+                key: ValueKey(item.id),
+                template: item,
+                onLoad: () => widget.onTemplateSelected(item),
+              ),
             ),
           );
         },

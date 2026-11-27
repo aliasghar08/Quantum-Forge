@@ -78,6 +78,23 @@
             "value": "max-age=31536000, immutable"
           }
         ]
+      },
+      {
+        "source": "**/data/public_hot_index.json.gz",
+        "headers": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Content-Encoding",
+            "value": "gzip"
+          },
+          {
+            "key": "Cache-Control",
+            "value": "public, max-age=86400, stale-while-revalidate=604800"
+          }
+        ]
       }
     ],
     "rewrites": [

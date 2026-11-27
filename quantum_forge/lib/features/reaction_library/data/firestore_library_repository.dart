@@ -408,6 +408,34 @@ class FirestoreLibraryRepository {
     return null;
   }
 
+  /// Lazy-loads 3D coordinates (reactantXyz, productXyz, catalystXyz) on demand
+  /// whenever a user selects a lightweight search card to open in the 3D workspace.
+  Future<ReactionTemplate> fetchReactionGeometry(String reactionId) async {
+    try {
+      final doc = await _col.doc(reactionId).get();
+      if (doc.exists && doc.data() != null) {
+        final data = doc.data() as Map<String, dynamic>;
+        final reactant = (data['reactant_xyz'] ?? data['reactantXyz'] ?? '') as String;
+        final product = (data['product_xyz'] ?? data['productXyz'] ?? '') as String;
+        final catalyst = (data['catalyst_xyz'] ?? data['catalystXyz'] ?? '') as String?;
+
+        final existing = await getTemplateBySlugOrId(reactionId);
+        if (existing != null) {
+          return existing.copyWith(
+            reactantXyz: reactant.isNotEmpty ? reactant : existing.reactantXyz,
+            productXyz: product.isNotEmpty ? product : existing.productXyz,
+            catalystXyz: (catalyst != null && catalyst.isNotEmpty) ? catalyst : existing.catalystXyz,
+          );
+        }
+        return ReactionTemplate.fromJson(data, reactionId);
+      }
+    } catch (e) {
+      debugPrint('FirestoreLibraryRepository.fetchReactionGeometry error: $e');
+    }
+    final fallback = await getTemplateBySlugOrId(reactionId);
+    return fallback ?? kReactionTemplates.first;
+  }
+
   // ── Seeding (admin / first-run only) ──────────────────────────────────────
 
   /// Writes [templates] to Firestore in snappy 100-document batches with timeouts

@@ -2,7 +2,6 @@
 // GlassCard — shared frosted-glass card wrapper used across all dashboard cards
 // ============================================================================
 
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 
@@ -33,22 +32,9 @@ class GlassCard extends StatelessWidget {
       child: child,
     );
 
-    if (isMobileWeb) {
-      return ClipRRect(
-        borderRadius: BorderRadius.circular(16),
-        child: material,
-      );
-    }
-
     return ClipRRect(
       borderRadius: BorderRadius.circular(16),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-        // A `Material` (not a `Container`/`BoxDecoration`) is the ink surface,
-        // so nested ListTiles/ExpansionTiles keep visible ripples instead of
-        // tripping the "background color may be invisible" assertion.
-        child: material,
-      ),
+      child: material,
     );
   }
 }
