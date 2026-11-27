@@ -117,6 +117,20 @@
         }
       },
       {
+        "source": "/api/tx1/**",
+        "run": {
+          "serviceId": "tx1-fastapi-backend",
+          "region": "us-central1"
+        }
+      },
+      {
+        "source": "/api/gnn/**",
+        "run": {
+          "serviceId": "quantom-forge-gnn",
+          "region": "us-central1"
+        }
+      },
+      {
         "source": "/app",
         "destination": "/app/index.html"
       },

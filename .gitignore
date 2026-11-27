@@ -63,3 +63,5 @@ data/autonomous_training/*.sqlite-shm
 data/autonomous_training/*.sqlite-wal
 scratch/
 
+*.sqlite-shm
+*.sqlite-wal
