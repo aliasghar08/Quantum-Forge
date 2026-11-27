@@ -14,6 +14,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY seed_massive_firebase.py .
+COPY search_tokenizer.py .
 COPY assets/ ./assets/
 COPY server.py .
 
