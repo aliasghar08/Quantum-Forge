@@ -1,7 +1,9 @@
 steps:
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['build', '-t', 'gcr.io/$PROJECT_ID/quantum-forge-harvester:latest', '-f', 'pipelines/reactions/Dockerfile', '.']
+    args: ['build', '-t', '$_IMAGE_URI', '-f', 'pipelines/reactions/Dockerfile', '.']
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', 'gcr.io/$PROJECT_ID/quantum-forge-harvester:latest']
+    args: ['push', '$_IMAGE_URI']
 images:
-  - 'gcr.io/$PROJECT_ID/quantum-forge-harvester:latest'
+  - '$_IMAGE_URI'
+substitutions:
+  _IMAGE_URI: 'us-central1-docker.pkg.dev/quantom-forge/quantom-forge-repo/quantum-forge-harvester:latest'

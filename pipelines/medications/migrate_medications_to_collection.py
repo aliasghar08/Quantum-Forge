@@ -40,45 +40,89 @@ def get_auth_token() -> str | None:
             return None
 
 def fetch_medication_documents_from_library(token: str) -> list[dict[str, Any]]:
-    """Runs a structured query on /library to retrieve all rx_med_* and medical records."""
+    """Runs structured queries on /library to retrieve all rx_med_* and medical records."""
     url = f"https://firestore.googleapis.com/v1/projects/{PROJECT_ID}/databases/(default)/documents:runQuery"
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Content-Type": "application/json"
+    }
     
-    query = {
+    docs_by_name = {}
+
+    # Query 1: Direct ID prefix range for all rx_med_* documents
+    rx_med_query = {
         "structuredQuery": {
             "from": [{"collectionId": "library"}],
             "where": {
-                "fieldFilter": {
-                    "field": {"fieldPath": "category"},
-                    "op": "EQUAL",
-                    "value": {"stringValue": "pharmaceutical"}
+                "compositeFilter": {
+                    "op": "AND",
+                    "filters": [
+                        {
+                            "fieldFilter": {
+                                "field": {"fieldPath": "__name__"},
+                                "op": "GREATER_THAN_OR_EQUAL",
+                                "value": {"referenceValue": f"projects/{PROJECT_ID}/databases/(default)/documents/library/rx_med_"},
+                            }
+                        },
+                        {
+                            "fieldFilter": {
+                                "field": {"fieldPath": "__name__"},
+                                "op": "LESS_THAN",
+                                "value": {"referenceValue": f"projects/{PROJECT_ID}/databases/(default)/documents/library/rx_med_\uffff"},
+                            }
+                        },
+                    ],
                 }
             },
-            "limit": 1000
+            "limit": 5000,
         }
     }
-    
-    req = urllib.request.Request(
-        url,
-        data=json.dumps(query).encode("utf-8"),
-        headers={
-            "Authorization": f"Bearer {token}",
-            "Content-Type": "application/json"
-        },
-        method="POST"
-    )
-    
-    docs = []
     try:
-        with urllib.request.urlopen(req, timeout=30) as resp:
+        req = urllib.request.Request(url, data=json.dumps(rx_med_query).encode("utf-8"), headers=headers, method="POST")
+        with urllib.request.urlopen(req, timeout=45) as resp:
             data = json.loads(resp.read().decode("utf-8"))
             for item in data:
                 if "document" in item:
-                    docs.append(item["document"])
+                    d = item["document"]
+                    docs_by_name[d["name"]] = d
+        logger.info("Retrieved %d rx_med_* documents from /library", len(docs_by_name))
     except Exception as e:
-        logger.error("Error querying /library: %s", e)
+        logger.warning("Error querying rx_med_* from /library: %s", e)
+
+    # Query 2: All pharmaceutical records across /library (paginated in chunks of 1000)
+    for offset in range(0, 5000, 1000):
+        query = {
+            "structuredQuery": {
+                "from": [{"collectionId": "library"}],
+                "where": {
+                    "fieldFilter": {
+                        "field": {"fieldPath": "category"},
+                        "op": "EQUAL",
+                        "value": {"stringValue": "pharmaceutical"}
+                    }
+                },
+                "offset": offset,
+                "limit": 1000
+            }
+        }
+        try:
+            req = urllib.request.Request(url, data=json.dumps(query).encode("utf-8"), headers=headers, method="POST")
+            with urllib.request.urlopen(req, timeout=45) as resp:
+                data = json.loads(resp.read().decode("utf-8"))
+                batch_count = 0
+                for item in data:
+                    if "document" in item:
+                        d = item["document"]
+                        docs_by_name[d["name"]] = d
+                        batch_count += 1
+                if batch_count == 0:
+                    break
+        except Exception as e:
+            logger.error("Error querying /library at offset %d: %s", offset, e)
+            break
         
-    logger.info("Found %d candidate pharmaceutical/medication documents in /library", len(docs))
-    return docs
+    logger.info("Found total %d unique candidate pharmaceutical/medication documents in /library", len(docs_by_name))
+    return list(docs_by_name.values())
 
 def commit_batch_to_medications(docs: list[dict[str, Any]], token: str) -> int:
     """Writes documents to /medications using batched :commit endpoint."""
