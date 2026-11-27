@@ -62,6 +62,9 @@ class LibraryFilterBar extends StatelessWidget {
   final String? selectedSpecialty;
   final ValueChanged<String?>? onSpecialtyChanged;
 
+  final RecordTypeFilter recordTypeFilter;
+  final ValueChanged<RecordTypeFilter>? onRecordTypeChanged;
+
   final VoidCallback? onResetFilters;
   final bool hasActiveFilters;
   final int? filteredCount;
@@ -97,6 +100,8 @@ class LibraryFilterBar extends StatelessWidget {
     this.onCatalystFilterChanged,
     this.provenanceFilter = ProvenanceFilter.all,
     this.onProvenanceFilterChanged,
+    this.recordTypeFilter = RecordTypeFilter.all,
+    this.onRecordTypeChanged,
     this.onResetFilters,
     this.hasActiveFilters = false,
     this.filteredCount,
@@ -165,6 +170,93 @@ class LibraryFilterBar extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          // ── Record Type Segmented Pill Group (All | Medications | Reactions) ──
+          if (onRecordTypeChanged != null) ...[
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              physics: const BouncingScrollPhysics(),
+              child: Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(right: 10),
+                    child: Text(
+                      'Record Type:',
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.5),
+                        fontSize: isMobile ? 11 : 12,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ),
+                  ...RecordTypeFilter.values.map((type) {
+                    final isSelected = recordTypeFilter == type;
+                    final color = switch (type) {
+                      RecordTypeFilter.all => Colors.white,
+                      RecordTypeFilter.medications => const Color(0xFF00E676),
+                      RecordTypeFilter.reactions => const Color(0xFF00E5FF),
+                    };
+                    final iconStr = switch (type) {
+                      RecordTypeFilter.all => '🌐',
+                      RecordTypeFilter.medications => '💊',
+                      RecordTypeFilter.reactions => '⚗️',
+                    };
+                    final labelText = switch (type) {
+                      RecordTypeFilter.all => 'All',
+                      RecordTypeFilter.medications => 'Medications',
+                      RecordTypeFilter.reactions => 'Reactions',
+                    };
+
+                    return Padding(
+                      padding: EdgeInsets.only(right: isMobile ? 6 : 8),
+                      child: InkWell(
+                        onTap: () => onRecordTypeChanged!(type),
+                        borderRadius: BorderRadius.circular(isMobile ? 10 : 16),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 180),
+                          padding: EdgeInsets.symmetric(
+                            horizontal: isMobile ? 10 : 14,
+                            vertical: isMobile ? 5 : 7,
+                          ),
+                          decoration: BoxDecoration(
+                            color: isSelected
+                                ? color.withValues(alpha: 0.22)
+                                : Colors.white.withValues(alpha: 0.05),
+                            borderRadius: BorderRadius.circular(isMobile ? 10 : 16),
+                            border: Border.all(
+                              color: isSelected
+                                  ? color
+                                  : Colors.white.withValues(alpha: 0.15),
+                              width: isSelected ? 1.4 : 1.0,
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(iconStr, style: const TextStyle(fontSize: 11)),
+                              const SizedBox(width: 5),
+                              Text(
+                                labelText,
+                                style: TextStyle(
+                                  color: isSelected
+                                      ? (type == RecordTypeFilter.all ? Colors.white : color)
+                                      : Colors.white.withValues(alpha: 0.75),
+                                  fontSize: isMobile ? 11 : 12,
+                                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    );
+                  }),
+                ],
+              ),
+            ),
+            const SizedBox(height: 10),
+          ],
+
           // ── Category Pills Strip with Badges ──
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,

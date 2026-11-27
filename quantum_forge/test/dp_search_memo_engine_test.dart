@@ -17,11 +17,17 @@ class FakeFirestoreLibraryRepository extends FirestoreLibraryRepository {
   Future<LibraryPage> getPage({
     ReactionCategory? category,
     dynamic after,
+    RecordTypeFilter recordType = RecordTypeFilter.all,
   }) async {
     getPageCalls++;
     var filtered = mockCatalog;
     if (category != null) {
       filtered = filtered.where((t) => t.category == category).toList();
+    }
+    if (recordType == RecordTypeFilter.medications) {
+      filtered = filtered.where((t) => t.isMedication).toList();
+    } else if (recordType == RecordTypeFilter.reactions) {
+      filtered = filtered.where((t) => !t.isMedication).toList();
     }
     return LibraryPage(items: filtered, nextCursor: null);
   }
@@ -30,6 +36,7 @@ class FakeFirestoreLibraryRepository extends FirestoreLibraryRepository {
   Future<LibraryPage> searchPage(
     String query, {
     ReactionCategory? category,
+    RecordTypeFilter recordType = RecordTypeFilter.all,
     bool? isMbbs,
     bool? isPharmD,
     bool? isDvm,
@@ -47,7 +54,12 @@ class FakeFirestoreLibraryRepository extends FirestoreLibraryRepository {
           t.id.toLowerCase().contains(qLower) ||
           t.tags.any((tag) => tag.toLowerCase().contains(qLower));
       final matchesCat = category == null || t.category == category;
-      return matchesQ && matchesCat;
+      final matchesType = switch (recordType) {
+        RecordTypeFilter.all => true,
+        RecordTypeFilter.medications => t.isMedication,
+        RecordTypeFilter.reactions => !t.isMedication,
+      };
+      return matchesQ && matchesCat && matchesType;
     }).toList();
 
     return LibraryPage(items: filtered, nextCursor: null);

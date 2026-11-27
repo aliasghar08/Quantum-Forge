@@ -47,6 +47,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
   String _query = '';
   ReactionCategory? _filterCategory;
   String? _filterSpecialty;
+  RecordTypeFilter _recordTypeFilter = RecordTypeFilter.all;
   ReactionSortOrder _sortOrder = ReactionSortOrder.defaultOrder;
   CatalystFilter _catalystFilter = CatalystFilter.all;
   ProvenanceFilter _provenanceFilter = ProvenanceFilter.all;
@@ -157,6 +158,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
       final bundle = await _dpEngine.search(
         query: _query,
         category: _filterCategory,
+        recordType: _recordTypeFilter,
         specialty: _filterSpecialty,
         provenance: _provenanceFilter,
         sortOrder: _sortOrder,
@@ -168,7 +170,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
 
       final items = List<ReactionTemplate>.from(bundle.items);
 
-      if (_filterCategory == null && items.isNotEmpty) {
+      if (_filterCategory == null && items.isNotEmpty && _recordTypeFilter != RecordTypeFilter.reactions) {
         final existingIds = items.map((e) => e.id).toSet();
         final medicalToPrepend = kReactionTemplates
             .where((t) =>
@@ -180,11 +182,15 @@ class _LibraryScreenState extends State<LibraryScreen> {
       }
 
       if (items.isEmpty) {
-        final fallback = _filterCategory == null
-            ? kReactionTemplates
-            : kReactionTemplates
-                .where((t) => t.category == _filterCategory)
-                .toList();
+        final fallback = kReactionTemplates.where((t) {
+          final matchesCat = _filterCategory == null || t.category == _filterCategory;
+          final matchesType = switch (_recordTypeFilter) {
+            RecordTypeFilter.all => true,
+            RecordTypeFilter.medications => t.isMedication,
+            RecordTypeFilter.reactions => !t.isMedication,
+          };
+          return matchesCat && matchesType;
+        }).toList();
         setState(() {
           _items = fallback;
           _isFirstLoad = false;
@@ -201,11 +207,15 @@ class _LibraryScreenState extends State<LibraryScreen> {
       });
     } catch (e) {
       if (!mounted) return;
-      final fallback = _filterCategory == null
-          ? kReactionTemplates
-          : kReactionTemplates
-              .where((t) => t.category == _filterCategory)
-              .toList();
+      final fallback = kReactionTemplates.where((t) {
+        final matchesCat = _filterCategory == null || t.category == _filterCategory;
+        final matchesType = switch (_recordTypeFilter) {
+          RecordTypeFilter.all => true,
+          RecordTypeFilter.medications => t.isMedication,
+          RecordTypeFilter.reactions => !t.isMedication,
+        };
+        return matchesCat && matchesType;
+      }).toList();
       setState(() {
         _items = fallback;
         _error = '';
@@ -224,6 +234,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
         final page = await _repo.searchPage(
           _query,
           category: _filterCategory,
+          recordType: _recordTypeFilter,
           after: null,
         );
         if (!mounted) return;
@@ -246,6 +257,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
       final bundle = await _dpEngine.search(
         query: _query,
         category: _filterCategory,
+        recordType: _recordTypeFilter,
         specialty: _filterSpecialty,
         provenance: _provenanceFilter,
         sortOrder: _sortOrder,
@@ -276,6 +288,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
       final bundle = await _dpEngine.search(
         query: query,
         category: _filterCategory,
+        recordType: _recordTypeFilter,
         specialty: _filterSpecialty,
         provenance: _provenanceFilter,
         sortOrder: _sortOrder,
@@ -293,12 +306,17 @@ class _LibraryScreenState extends State<LibraryScreen> {
       final localMatches = kReactionTemplates.where((t) {
         final matchesCat =
             _filterCategory == null || t.category == _filterCategory;
+        final matchesType = switch (_recordTypeFilter) {
+          RecordTypeFilter.all => true,
+          RecordTypeFilter.medications => t.isMedication,
+          RecordTypeFilter.reactions => !t.isMedication,
+        };
         final matchesText = t.name.toLowerCase().contains(qLower) ||
             t.description.toLowerCase().contains(qLower) ||
             t.subfield.toLowerCase().contains(qLower) ||
             t.academicTrackBadges.any((b) => b.label.toLowerCase().contains(qLower)) ||
             t.tags.any((tag) => tag.toLowerCase().contains(qLower));
-        return matchesCat && matchesText;
+        return matchesCat && matchesText && matchesType;
       }).toList();
 
       final combined = <ReactionTemplate>[...results];
@@ -1536,8 +1554,20 @@ class _LibraryScreenState extends State<LibraryScreen> {
     _loadFirstPage();
   }
 
+  void _onRecordTypeChanged(RecordTypeFilter filter) {
+    if (_recordTypeFilter == filter) return;
+    setState(() => _recordTypeFilter = filter);
+    _loadFirstPage();
+  }
+
   List<ReactionTemplate> get _filteredAndSortedItems {
     var list = List<ReactionTemplate>.from(_items);
+
+    if (_recordTypeFilter == RecordTypeFilter.medications) {
+      list = list.where((t) => t.isMedication).toList();
+    } else if (_recordTypeFilter == RecordTypeFilter.reactions) {
+      list = list.where((t) => !t.isMedication).toList();
+    }
 
     if (_filterCategory != null) {
       list = list.where((t) => t.category == _filterCategory).toList();
@@ -1613,6 +1643,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
   bool get _hasActiveFilters =>
       _filterCategory != null ||
       _filterSpecialty != null ||
+      _recordTypeFilter != RecordTypeFilter.all ||
       _sortOrder != ReactionSortOrder.defaultOrder ||
       _catalystFilter != CatalystFilter.all ||
       _provenanceFilter != ProvenanceFilter.all;
@@ -1621,6 +1652,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
     setState(() {
       _filterCategory = null;
       _filterSpecialty = null;
+      _recordTypeFilter = RecordTypeFilter.all;
       _sortOrder = ReactionSortOrder.defaultOrder;
       _catalystFilter = CatalystFilter.all;
       _provenanceFilter = ProvenanceFilter.all;
@@ -1677,6 +1709,8 @@ class _LibraryScreenState extends State<LibraryScreen> {
             onCategoryChanged: _onCategoryChanged,
             selectedSpecialty: _filterSpecialty,
             onSpecialtyChanged: (s) => setState(() => _filterSpecialty = s),
+            recordTypeFilter: _recordTypeFilter,
+            onRecordTypeChanged: _onRecordTypeChanged,
             categoryCounts: _cloudCategoryCounts,
             sortOrder: _sortOrder,
             onSortChanged: (s) => setState(() => _sortOrder = s),

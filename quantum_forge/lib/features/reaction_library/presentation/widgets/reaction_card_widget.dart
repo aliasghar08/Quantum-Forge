@@ -314,11 +314,51 @@ class _ReactionCardWidgetState extends State<ReactionCardWidget> {
                     ),
                     SizedBox(height: isMobile ? 6 : 10),
 
-                    // ── Refined Tags: Subfields (Cardiology, Neurology) + Academic (MBBS, Pharm-D) + Mechanism ──
+                    // ── Refined Tags: Record Type (Medication vs Reaction) + Subfield + Academic + Mechanism ──
                     Wrap(
                       spacing: 5,
                       runSpacing: 4,
                       children: [
+                        // 0. Prominent Leading Record Type Badge (💊 Medication vs ⚗️ Reaction)
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: (template.isMedication
+                                    ? const Color(0xFF00E676)
+                                    : const Color(0xFF00E5FF))
+                                .withValues(alpha: 0.16),
+                            borderRadius: BorderRadius.circular(4),
+                            border: Border.all(
+                              color: (template.isMedication
+                                      ? const Color(0xFF00E676)
+                                      : const Color(0xFF00E5FF))
+                                  .withValues(alpha: 0.5),
+                              width: 0.8,
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                template.isMedication ? '💊' : '⚗️',
+                                style: const TextStyle(fontSize: 8),
+                              ),
+                              const SizedBox(width: 3),
+                              Text(
+                                template.recordTypeLabel,
+                                style: TextStyle(
+                                  color: template.isMedication
+                                      ? const Color(0xFF00E676)
+                                      : const Color(0xFF00E5FF),
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: 0.2,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
                         // 1. Primary Subfield Tag (Cardiology, Neurology, Nephrology, etc.)
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),

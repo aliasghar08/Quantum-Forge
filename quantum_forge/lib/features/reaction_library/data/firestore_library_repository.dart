@@ -140,19 +140,28 @@ class FirestoreLibraryRepository {
 
   // ── Pagination ─────────────────────────────────────────────────────────────
 
-  /// First page of templates, optionally filtered by [category].
+  /// First page of templates, optionally filtered by [category] and [recordType].
   ///
-  /// Firestore index required:
-  ///   Collection: library
-  ///   Fields: category ASC, name ASC    (composite, for category-filtered pages)
-  ///           name ASC                  (single-field, for unfiltered pages)
+  /// When [recordType] is:
+  ///   - [RecordTypeFilter.medications]: queries only `/medications` (skips `/library`).
+  ///   - [RecordTypeFilter.reactions]: queries only `/library` (skips `/medications`).
+  ///   - [RecordTypeFilter.all]: federates both collections.
   Future<LibraryPage> getPage({
     ReactionCategory? category,
     DocumentSnapshot? after,
+    RecordTypeFilter recordType = RecordTypeFilter.all,
   }) async {
     // 0. On initial page (after == null), prepend any locally saved custom reactions
     final localCustom = after == null
-        ? loadLocalCustomReactions().where((r) => category == null || r.category == category).toList()
+        ? loadLocalCustomReactions().where((r) {
+            final matchesCat = category == null || r.category == category;
+            final matchesType = switch (recordType) {
+              RecordTypeFilter.all => true,
+              RecordTypeFilter.medications => r.isMedication,
+              RecordTypeFilter.reactions => !r.isMedication,
+            };
+            return matchesCat && matchesType;
+          }).toList()
         : <ReactionTemplate>[];
 
     try {
@@ -160,27 +169,53 @@ class FirestoreLibraryRepository {
       final seen = <String>{};
 
       // 1. Initial page federation: when unfiltered or medical categories, prepend /medications
-      final shouldFederateMedications = (after == null &&
-          (category == null ||
-              category == ReactionCategory.pharmaceutical ||
-              category == ReactionCategory.biochemical ||
-              category == ReactionCategory.veterinary));
+      final shouldFederateMedications = recordType != RecordTypeFilter.reactions &&
+          (after == null &&
+              (category == null ||
+                  category == ReactionCategory.pharmaceutical ||
+                  category == ReactionCategory.biochemical ||
+                  category == ReactionCategory.veterinary ||
+                  recordType == RecordTypeFilter.medications));
 
+      DocumentSnapshot? medCursor;
       if (shouldFederateMedications) {
         try {
           Query<Object?> medQ = _medCol.orderBy('name').limit(pageSize);
           if (category != null) {
             medQ = _medCol.where('category', isEqualTo: category.name).orderBy('name').limit(pageSize);
           }
+          if (after != null && recordType == RecordTypeFilter.medications) {
+            medQ = medQ.startAfterDocument(after);
+          }
           final medSnap = await medQ.get();
           for (final d in medSnap.docs) {
             if (seen.add(d.id)) {
-              items.add(ReactionTemplate.fromJson(d.data() as Map<String, dynamic>, d.id));
+              items.add(ReactionTemplate.fromJson(
+                d.data() as Map<String, dynamic>,
+                d.id,
+                sourceCollection: 'medications',
+              ));
             }
+          }
+          if (recordType == RecordTypeFilter.medications && medSnap.docs.length == pageSize) {
+            medCursor = medSnap.docs.last;
           }
         } catch (e) {
           debugPrint('Error federating /medications in getPage: $e');
         }
+      }
+
+      // If user selected medications only, return without querying /library
+      if (recordType == RecordTypeFilter.medications) {
+        if (localCustom.isNotEmpty) {
+          final existingIds = items.map((e) => e.id).toSet();
+          for (final custom in localCustom) {
+            if (!existingIds.contains(custom.id)) {
+              items.insert(0, custom);
+            }
+          }
+        }
+        return LibraryPage(items: items, nextCursor: medCursor);
       }
 
       Query<Object?> q = _col.orderBy('name').limit(pageSize);
@@ -195,7 +230,11 @@ class FirestoreLibraryRepository {
       final snap = await q.get();
       for (final d in snap.docs) {
         if (seen.add(d.id)) {
-          items.add(ReactionTemplate.fromJson(d.data() as Map<String, dynamic>, d.id));
+          items.add(ReactionTemplate.fromJson(
+            d.data() as Map<String, dynamic>,
+            d.id,
+            sourceCollection: 'library',
+          ));
         }
       }
 
@@ -223,6 +262,7 @@ class FirestoreLibraryRepository {
   Future<LibraryPage> searchPage(
     String query, {
     ReactionCategory? category,
+    RecordTypeFilter recordType = RecordTypeFilter.all,
     bool? isMbbs,
     bool? isPharmD,
     bool? isDvm,
@@ -232,11 +272,11 @@ class FirestoreLibraryRepository {
   }) async {
     final cleanQuery = query.trim();
     if (cleanQuery.isEmpty) {
-      return getPage(category: category, after: after);
+      return getPage(category: category, after: after, recordType: recordType);
     }
 
     final cacheKey =
-        'search_${cleanQuery}_${category?.name}_${isMbbs}_${isPharmD}_${isDvm}_${isDerived}_${after?.id}_$limit';
+        'search_${cleanQuery}_${category?.name}_${recordType.name}_${isMbbs}_${isPharmD}_${isDvm}_${isDerived}_${after?.id}_$limit';
     final cached = _cacheGet(cacheKey);
     if (cached != null) {
       return cached;
@@ -244,7 +284,7 @@ class FirestoreLibraryRepository {
 
     final queryTokens = tokenizeQuery(cleanQuery);
     if (queryTokens.isEmpty) {
-      return getPage(category: category, after: after);
+      return getPage(category: category, after: after, recordType: recordType);
     }
 
     try {
@@ -260,26 +300,36 @@ class FirestoreLibraryRepository {
           cleanQuery,
         ];
         for (final cid in candidateIds) {
-          try {
-            // Check /medications first
-            final medDoc = await _medCol.doc(cid).get();
-            if (medDoc.exists && medDoc.data() != null) {
-              if (seen.add(medDoc.id)) {
-                results.add(ReactionTemplate.fromJson(
-                    medDoc.data() as Map<String, dynamic>, medDoc.id));
+          if (recordType != RecordTypeFilter.reactions) {
+            try {
+              // Check /medications first
+              final medDoc = await _medCol.doc(cid).get();
+              if (medDoc.exists && medDoc.data() != null) {
+                if (seen.add(medDoc.id)) {
+                  results.add(ReactionTemplate.fromJson(
+                    medDoc.data() as Map<String, dynamic>,
+                    medDoc.id,
+                    sourceCollection: 'medications',
+                  ));
+                }
               }
-            }
-          } catch (_) {}
-          try {
-            // Check /library fallback
-            final directDoc = await _col.doc(cid).get();
-            if (directDoc.exists && directDoc.data() != null) {
-              if (seen.add(directDoc.id)) {
-                results.add(ReactionTemplate.fromJson(
-                    directDoc.data() as Map<String, dynamic>, directDoc.id));
+            } catch (_) {}
+          }
+          if (recordType != RecordTypeFilter.medications) {
+            try {
+              // Check /library fallback
+              final directDoc = await _col.doc(cid).get();
+              if (directDoc.exists && directDoc.data() != null) {
+                if (seen.add(directDoc.id)) {
+                  results.add(ReactionTemplate.fromJson(
+                    directDoc.data() as Map<String, dynamic>,
+                    directDoc.id,
+                    sourceCollection: 'library',
+                  ));
+                }
               }
-            }
-          } catch (_) {}
+            } catch (_) {}
+          }
         }
       }
 
@@ -314,6 +364,13 @@ class FirestoreLibraryRepository {
             results.add(item);
           }
         }
+      }
+
+      // Filter by recordType if specified
+      if (recordType == RecordTypeFilter.medications) {
+        results.retainWhere((t) => t.isMedication);
+      } else if (recordType == RecordTypeFilter.reactions) {
+        results.retainWhere((t) => !t.isMedication);
       }
 
       // Client-side BM25 + exact-prefix + provenance re-ranking
@@ -894,13 +951,18 @@ class FirestoreLibraryRepository {
   /// Saves or updates a single reaction template directly into Firestore /library
   /// and synchronizes it to local persistence as a robust fallback.
   Future<bool> saveReaction(ReactionTemplate template) async {
+    // 0. Ensure explicit 'Reaction' tag is stamped if neither 'Reaction' nor 'Medication' exists
+    final stampedTemplate = (template.tags.contains('Reaction') || template.tags.contains('Medication'))
+        ? template
+        : template.copyWith(tags: [...template.tags, 'Reaction']);
+
     // 1. Immediately save to persistent local storage so the reaction is never lost
-    saveToLocalStorage(template);
+    saveToLocalStorage(stampedTemplate);
     _invalidateCache();
 
     // 2. Prepare payload sanitized for Firestore Security Rules
-    final payload = Map<String, dynamic>.from(template.toFirestore());
-    payload['id'] = template.id;
+    final payload = Map<String, dynamic>.from(stampedTemplate.toFirestore());
+    payload['id'] = stampedTemplate.id;
     payload['authorId'] = FirebaseAuth.instance.currentUser?.uid ?? 'anonymous';
     payload['created_by'] = FirebaseAuth.instance.currentUser?.uid ?? 'anonymous';
 
@@ -916,10 +978,10 @@ class FirestoreLibraryRepository {
       }
 
       await _col
-          .doc(template.id)
+          .doc(stampedTemplate.id)
           .set(payload, SetOptions(merge: true))
           .timeout(const Duration(seconds: 8));
-      debugPrint('FirestoreLibraryRepository: Saved ${template.id} to cloud library.');
+      debugPrint('FirestoreLibraryRepository: Saved ${stampedTemplate.id} to cloud library.');
       return true;
     } catch (e) {
       debugPrint('FirestoreLibraryRepository.saveReaction cloud sync warning: $e');
@@ -931,21 +993,26 @@ class FirestoreLibraryRepository {
   /// Saves or updates an everyday clinical or veterinary medication directly into
   /// Firestore /medications and synchronizes it to local persistence as a robust fallback.
   Future<bool> saveMedication(ReactionTemplate medication) async {
+    // 0. Ensure explicit 'Medication' tag is stamped into medication tags
+    final stampedMedication = medication.tags.contains('Medication')
+        ? medication
+        : medication.copyWith(tags: [...medication.tags, 'Medication']);
+
     // 1. Immediately save to persistent local storage so the medication is never lost
-    saveToLocalStorage(medication);
+    saveToLocalStorage(stampedMedication);
     _invalidateCache();
 
     // 2. Offload validation and search tokens generation to a background compute() isolate
     Map<String, dynamic> payload;
     try {
-      final rawJson = medication.toJson()..['id'] = medication.id;
+      final rawJson = stampedMedication.toJson()..['id'] = stampedMedication.id;
       payload = await compute(prepareMedicationPayloadIsolate, rawJson);
     } catch (computeErr) {
       debugPrint('[saveMedication] background compute isolate fallback: $computeErr');
-      payload = Map<String, dynamic>.from(medication.toFirestore());
+      payload = Map<String, dynamic>.from(stampedMedication.toFirestore());
     }
 
-    payload['id'] = medication.id;
+    payload['id'] = stampedMedication.id;
     payload['authorId'] = FirebaseAuth.instance.currentUser?.uid ?? 'anonymous';
     payload['created_by'] = FirebaseAuth.instance.currentUser?.uid ?? 'anonymous';
 
@@ -961,18 +1028,18 @@ class FirestoreLibraryRepository {
       }
 
       await _medCol
-          .doc(medication.id)
+          .doc(stampedMedication.id)
           .set(payload, SetOptions(merge: true))
           .timeout(const Duration(seconds: 8));
-      debugPrint('FirestoreLibraryRepository: Saved ${medication.id} to cloud /medications.');
+      debugPrint('FirestoreLibraryRepository: Saved ${stampedMedication.id} to cloud /medications.');
 
       // 3. Immediately hydrate L1 DP table, L2 browser cache, and active hot catalog (< 1 ms resolution)
-      DPSearchMemoEngine.instance.injectAndInvalidate(medication);
+      DPSearchMemoEngine.instance.injectAndInvalidate(stampedMedication);
 
       return true;
     } catch (e) {
       debugPrint('FirestoreLibraryRepository.saveMedication cloud sync warning: $e');
-      DPSearchMemoEngine.instance.injectAndInvalidate(medication);
+      DPSearchMemoEngine.instance.injectAndInvalidate(stampedMedication);
       return true;
     }
   }

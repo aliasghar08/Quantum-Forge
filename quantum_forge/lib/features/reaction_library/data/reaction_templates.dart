@@ -105,6 +105,9 @@ class ReactionTemplate {
   /// Optional clinical & veterinary pharmacology profile (7-tab monograph + verified sources).
   final MedicinePharmacologyProfile? pharmacologyProfile;
 
+  /// Underlying Firestore root collection ('medications' or 'library') when federated.
+  final String? sourceCollection;
+
   const ReactionTemplate({
     required this.id,
     required this.name,
@@ -126,8 +129,21 @@ class ReactionTemplate {
     bool? hasLiteratureCatalyst,
     this.literatureDoi,
     this.pharmacologyProfile,
+    this.sourceCollection,
   }) : hasLiteratureCatalyst = hasLiteratureCatalyst ??
             (defaultCatalystName != null && defaultCatalystName != '');
+
+  /// Deterministic classifier for medications vs elementary chemical reactions.
+  bool get isMedication =>
+      sourceCollection == 'medications' ||
+      id.startsWith('rx_med_') ||
+      id.startsWith('med-') ||
+      id.startsWith('vet-') ||
+      pharmacologyProfile != null ||
+      tags.contains('Medication');
+
+  /// High-contrast human-readable record type label.
+  String get recordTypeLabel => isMedication ? 'Medication' : 'Reaction';
 
   double get effectiveLiteratureBarrier =>
       literatureBarrierKcalMol ?? referenceEa;
@@ -419,6 +435,7 @@ class ReactionTemplate {
     bool? hasLiteratureCatalyst,
     String? literatureDoi,
     MedicinePharmacologyProfile? pharmacologyProfile,
+    String? sourceCollection,
   }) {
     return ReactionTemplate(
       id: id ?? this.id,
@@ -441,10 +458,11 @@ class ReactionTemplate {
       hasLiteratureCatalyst: hasLiteratureCatalyst ?? this.hasLiteratureCatalyst,
       literatureDoi: literatureDoi ?? this.literatureDoi,
       pharmacologyProfile: pharmacologyProfile ?? this.pharmacologyProfile,
+      sourceCollection: sourceCollection ?? this.sourceCollection,
     );
   }
 
-  factory ReactionTemplate.fromJson(Map<String, dynamic> json, String id) {
+  factory ReactionTemplate.fromJson(Map<String, dynamic> json, String id, {String? sourceCollection}) {
     return ReactionTemplate(
       id: id,
       name: json['name'] as String? ?? '',
@@ -478,6 +496,7 @@ class ReactionTemplate {
               ? MedicinePharmacologyProfile.fromJson(
                   Map<String, dynamic>.from(json['pharmacologyProfile'] as Map))
               : null),
+      sourceCollection: sourceCollection ?? json['sourceCollection'] as String?,
     );
   }
 
@@ -505,11 +524,22 @@ class ReactionTemplate {
       if (literatureDoi != null) 'literatureDoi': literatureDoi,
       if (pharmacologyProfile != null)
         'pharmacology_profile': pharmacologyProfile!.toJson(),
+      if (sourceCollection != null) 'sourceCollection': sourceCollection,
     };
   }
 
   /// Exports reaction representation enriched with inverted search tokens and curriculum facets for Firestore.
   Map<String, dynamic> toFirestore() => buildFirestorePayload(this);
+}
+
+/// Filter classification for partitioning between medicines and standard reactions.
+enum RecordTypeFilter {
+  all('All Records'),
+  medications('Medications'),
+  reactions('Reactions');
+
+  final String label;
+  const RecordTypeFilter(this.label);
 }
 
 const _easReactant = '''14

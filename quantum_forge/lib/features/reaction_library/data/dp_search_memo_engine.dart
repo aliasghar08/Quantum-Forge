@@ -31,6 +31,7 @@ class SearchStateKey {
   factory SearchStateKey({
     required String query,
     ReactionCategory? category,
+    RecordTypeFilter recordType = RecordTypeFilter.all,
     String? specialty,
     ProvenanceFilter provenance = ProvenanceFilter.all,
     ReactionSortOrder sortOrder = ReactionSortOrder.defaultOrder,
@@ -43,6 +44,7 @@ class SearchStateKey {
     final cleanQ = query.trim().toLowerCase();
     final sig = [
       'cat:${category?.name ?? "all"}',
+      'rec:${recordType.name}',
       'spec:${specialty ?? "all"}',
       'prov:${provenance.name}',
       'sort:${sortOrder.name}',
@@ -241,6 +243,12 @@ class DPSearchMemoTable {
   List<ReactionTemplate> _filterItemsByTargetSignature(
       List<ReactionTemplate> source, String filterSig) {
     var filtered = source;
+    // Record type check
+    if (filterSig.contains('rec:medications')) {
+      filtered = filtered.where((t) => t.isMedication).toList();
+    } else if (filterSig.contains('rec:reactions')) {
+      filtered = filtered.where((t) => !t.isMedication).toList();
+    }
     // Category check
     final catMatch = RegExp(r'cat:([a-zA-Z0-9_]+)').firstMatch(filterSig);
     if (catMatch != null && catMatch.group(1) != 'all') {
@@ -516,6 +524,7 @@ class DPSearchMemoEngine {
   Future<SearchResultBundle> search({
     required String query,
     ReactionCategory? category,
+    RecordTypeFilter recordType = RecordTypeFilter.all,
     String? specialty,
     ProvenanceFilter provenance = ProvenanceFilter.all,
     ReactionSortOrder sortOrder = ReactionSortOrder.defaultOrder,
@@ -531,6 +540,7 @@ class DPSearchMemoEngine {
     final stateKey = SearchStateKey(
       query: query,
       category: category,
+      recordType: recordType,
       specialty: specialty,
       provenance: provenance,
       sortOrder: sortOrder,
@@ -595,10 +605,15 @@ class DPSearchMemoEngine {
       if (_l3SeedCatalog.isNotEmpty && stateKey.normalizedQuery.isNotEmpty) {
         final matches = _l1Table._filterItemsLocally(_l3SeedCatalog, stateKey.normalizedQuery);
         if (matches.isNotEmpty) {
-          // Apply category filter if set
-          final filtered = category != null
+          // Apply category and record type filter if set
+          var filtered = category != null
               ? matches.where((t) => t.category == category).toList()
               : matches;
+          if (recordType == RecordTypeFilter.medications) {
+            filtered = filtered.where((t) => t.isMedication).toList();
+          } else if (recordType == RecordTypeFilter.reactions) {
+            filtered = filtered.where((t) => !t.isMedication).toList();
+          }
 
           if (filtered.isNotEmpty) {
             // Seed L1 table so subsequent typing prunes this set instantly
@@ -625,10 +640,11 @@ class DPSearchMemoEngine {
     final coalescingKey = '${stateKey.toString()}_${after?.id ?? "start"}';
     return _coalescer.run(coalescingKey, () async {
       final page = stateKey.normalizedQuery.isEmpty
-          ? await _repository.getPage(category: category, after: after)
+          ? await _repository.getPage(category: category, after: after, recordType: recordType)
           : await _repository.searchPage(
               stateKey.normalizedQuery,
               category: category,
+              recordType: recordType,
               isMbbs: isMbbs,
               isPharmD: isPharmD,
               isDvm: isDvm,

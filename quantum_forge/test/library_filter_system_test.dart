@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:quantum_forge/features/reaction_library/data/reaction_templates.dart';
 import 'package:quantum_forge/features/reaction_library/presentation/widgets/library_filter_bar.dart';
+import 'package:quantum_forge/features/reaction_library/presentation/widgets/reaction_card_widget.dart';
 
 void main() {
   group('Library Filter System & Category Counts', () {
@@ -156,6 +157,172 @@ void main() {
       await tester.tap(find.text('🐾 DVM / Vet Med'));
       await tester.pump();
       expect(selectedSpecialty, isNull);
+    });
+
+    test('ReactionTemplate isMedication and recordTypeLabel classification logic', () {
+      final med1 = ReactionTemplate(
+        id: 'rx_med_semaglutide',
+        name: 'Semaglutide',
+        iupacName: 'Semaglutide',
+        description: 'GLP-1 receptor agonist',
+        category: ReactionCategory.pharmaceutical,
+        reactantXyz: '1\n\nC 0 0 0',
+        productXyz: '1\n\nC 0 0 0',
+        referenceEa: 14.5,
+        doi: '10.1016/j.celrep.2021.109374',
+        journalRef: 'Cell Rep',
+      );
+      expect(med1.isMedication, isTrue);
+      expect(med1.recordTypeLabel, equals('Medication'));
+
+      final med2 = ReactionTemplate(
+        id: 'med-paracetamol-001',
+        name: 'Paracetamol',
+        iupacName: 'N-(4-hydroxyphenyl)acetamide',
+        description: 'Antipyretic',
+        category: ReactionCategory.pharmaceutical,
+        reactantXyz: '1\n\nC 0 0 0',
+        productXyz: '1\n\nC 0 0 0',
+        referenceEa: 21.5,
+        doi: '',
+        journalRef: '',
+      );
+      expect(med2.isMedication, isTrue);
+
+      final med3 = ReactionTemplate(
+        id: 'custom-entry-1',
+        name: 'Custom Curated Drug',
+        iupacName: 'Custom',
+        description: 'Curated medication',
+        category: ReactionCategory.pharmaceutical,
+        reactantXyz: '1\n\nC 0 0 0',
+        productXyz: '1\n\nC 0 0 0',
+        referenceEa: 10.0,
+        doi: '',
+        journalRef: '',
+        sourceCollection: 'medications',
+      );
+      expect(med3.isMedication, isTrue);
+
+      final rx1 = ReactionTemplate(
+        id: 'diels-alder-cycloaddition',
+        name: 'Diels-Alder Cycloaddition',
+        iupacName: 'Cyclohexene formation',
+        description: '[4+2] cycloaddition',
+        category: ReactionCategory.pericyclic,
+        reactantXyz: '1\n\nC 0 0 0',
+        productXyz: '1\n\nC 0 0 0',
+        referenceEa: 22.0,
+        doi: '10.1000/182',
+        journalRef: 'JACS',
+      );
+      expect(rx1.isMedication, isFalse);
+      expect(rx1.recordTypeLabel, equals('Reaction'));
+    });
+
+    testWidgets('ReactionCardWidget displays prominent Medication and Reaction pills', (tester) async {
+      final med = ReactionTemplate(
+        id: 'rx_med_tirzepatide',
+        name: 'Tirzepatide (GIP/GLP-1)',
+        iupacName: 'Tirzepatide',
+        description: 'Dual GIP and GLP-1 receptor agonist',
+        category: ReactionCategory.pharmaceutical,
+        reactantXyz: '1\n\nC 0.0 0.0 0.0',
+        productXyz: '1\n\nC 0.0 0.0 0.0',
+        referenceEa: 14.2,
+        doi: '10.1056/NEJMoa2107519',
+        journalRef: 'NEJM',
+        tags: const ['Medication', 'Endocrinology', 'Pharm-D'],
+      );
+
+      final rx = ReactionTemplate(
+        id: 'rx_polymer_nylon66',
+        name: 'Nylon 6,6 Condensation',
+        iupacName: 'Poly(hexamethylene adipamide)',
+        description: 'Polyamide step-growth condensation',
+        category: ReactionCategory.polymer,
+        reactantXyz: '1\n\nC 0.0 0.0 0.0',
+        productXyz: '1\n\nC 0.0 0.0 0.0',
+        referenceEa: 25.8,
+        doi: '10.1021/ja01234',
+        journalRef: 'Macromolecules',
+        tags: const ['Reaction', 'Polymer'],
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SingleChildScrollView(
+              child: Column(
+                children: [
+                  SizedBox(
+                    height: 320,
+                    child: ReactionCardWidget(
+                      template: med,
+                      onLoad: () {},
+                    ),
+                  ),
+                  SizedBox(
+                    height: 320,
+                    child: ReactionCardWidget(
+                      template: rx,
+                      onLoad: () {},
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+
+      expect(find.text('Medication'), findsOneWidget);
+      expect(find.text('Reaction'), findsOneWidget);
+      expect(find.text('⚗️'), findsOneWidget);
+      expect(find.text('💊'), findsNWidgets(2)); // Record type pill + Pharm-D academic badge
+    });
+
+    testWidgets('LibraryFilterBar displays Record Type segmented pill group and toggles on tap', (tester) async {
+      RecordTypeFilter recordType = RecordTypeFilter.all;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: StatefulBuilder(
+              builder: (context, setState) {
+                return LibraryFilterBar(
+                  selectedCategory: null,
+                  onCategoryChanged: (_) {},
+                  recordTypeFilter: recordType,
+                  onRecordTypeChanged: (type) => setState(() => recordType = type),
+                );
+              },
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+
+      expect(find.text('Record Type:'), findsOneWidget);
+      expect(find.text('All'), findsOneWidget);
+      expect(find.text('Medications'), findsOneWidget);
+      expect(find.text('Reactions'), findsOneWidget);
+
+      // Tap Medications
+      await tester.tap(find.text('Medications'));
+      await tester.pump();
+      expect(recordType, equals(RecordTypeFilter.medications));
+
+      // Tap Reactions
+      await tester.tap(find.text('Reactions'));
+      await tester.pump();
+      expect(recordType, equals(RecordTypeFilter.reactions));
+
+      // Tap All
+      await tester.tap(find.text('All'));
+      await tester.pump();
+      expect(recordType, equals(RecordTypeFilter.all));
     });
   });
 }
