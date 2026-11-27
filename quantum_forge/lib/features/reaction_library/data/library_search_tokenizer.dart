@@ -49,6 +49,30 @@ const Map<String, String> _soundexMap = {
   'R': '6'
 };
 
+/// Stop words stripped from search query and indexing tokens
+const Set<String> stopWords = {
+  'of', 'the', 'and', 'in', 'to', 'for', 'with', 'via',
+  'reaction', 'synthesis', 'mechanism', 'pathway', 'derivative',
+};
+
+/// Pharmacological suffix stems for biochemical/drug family identification
+const List<String> pharmacologicalSuffixes = [
+  'statin', 'cillin', 'mycin', 'floxacin', 'prazole', 'olol', 'pril', 'sartan',
+  'dipine', 'pam', 'lam', 'vir', 'mab', 'nib', 'tide', 'zole', 'gliflozin', 'gliptin',
+];
+
+/// Extracts recognized pharmacological suffix stems if word has sufficient length.
+List<String> extractSuffixStems(String word) {
+  final stems = <String>[];
+  final wLower = word.toLowerCase();
+  for (final sfx in pharmacologicalSuffixes) {
+    if (wLower.length > sfx.length + 2 && wLower.endsWith(sfx)) {
+      stems.add(sfx);
+    }
+  }
+  return stems;
+}
+
 /// Computes standard 4-character American Soundex key prefixed with phx_ (e.g. phx_Q315).
 String computeSoundex(String word) {
   final clean = word.toUpperCase().replaceAll(RegExp(r'[^A-Z]'), '');
@@ -77,18 +101,23 @@ String computeSoundex(String word) {
 }
 
 /// Splits text into lowercase alphanumeric words.
-List<String> extractQueryWords(String text) {
+List<String> extractQueryWords(String text, {bool filterStopWords = false}) {
   if (text.isEmpty) return [];
   final spaced = text.replaceAll('-', ' ').replaceAll('_', ' ').replaceAll('/', ' ');
-  return RegExp(r'[a-zA-Z0-9]+')
+  final words = RegExp(r'[a-zA-Z0-9]+')
       .allMatches(spaced)
       .map((m) => m.group(0)!.toLowerCase())
       .where((w) => w.length >= 2)
       .toList();
+  if (filterStopWords) {
+    final filtered = words.where((w) => !stopWords.contains(w)).toList();
+    return filtered.isNotEmpty ? filtered : words;
+  }
+  return words;
 }
 
-/// Generates prefix edge n-grams (3 to 7 chars).
-List<String> generateEdgeNgrams(String token, {int minLen = 3, int maxLen = 7}) {
+/// Generates prefix edge n-grams (2 to 12 chars).
+List<String> generateEdgeNgrams(String token, {int minLen = 2, int maxLen = 12}) {
   if (token.length < minLen) return [];
   final ngrams = <String>[];
   final upper = math.min(token.length, maxLen);
@@ -98,15 +127,15 @@ List<String> generateEdgeNgrams(String token, {int minLen = 3, int maxLen = 7}) 
   return ngrams;
 }
 
-/// Tokenizes, expands synonyms, attaches Soundex keys, and caps to 10 terms for Firestore.
-List<String> tokenizeQuery(String rawQuery) {
-  final words = extractQueryWords(rawQuery);
+/// Tokenizes, expands synonyms, attaches Soundex keys, and caps to 25 terms for Firestore.
+List<String> tokenizeQuery(String rawQuery, {int maxTokens = 25}) {
+  final words = extractQueryWords(rawQuery, filterStopWords: true);
   if (words.isEmpty) return [];
 
   final result = <String>[];
 
   void addToken(String t) {
-    if (!result.contains(t) && result.length < 10) {
+    if (!result.contains(t) && result.length < maxTokens) {
       result.add(t);
     }
   }
@@ -116,7 +145,14 @@ List<String> tokenizeQuery(String rawQuery) {
     addToken(w);
   }
 
-  // 2. Phonetic soundex keys for typo tolerance
+  // 2. Pharmacological suffix stems
+  for (final w in words) {
+    for (final stem in extractSuffixStems(w)) {
+      addToken(stem);
+    }
+  }
+
+  // 3. Phonetic soundex keys for typo tolerance
   for (final w in words) {
     if (w.length >= 4 && !RegExp(r'^[0-9]+$').hasMatch(w)) {
       final phx = computeSoundex(w);
@@ -124,26 +160,60 @@ List<String> tokenizeQuery(String rawQuery) {
     }
   }
 
-  // 3. Synonym expansions
+  // 4. Synonym expansions
   for (final w in words) {
     final synonyms = _synonymMap[w];
     if (synonyms != null) {
       for (final syn in synonyms) {
-        for (final sw in extractQueryWords(syn)) {
+        for (final sw in extractQueryWords(syn, filterStopWords: true)) {
           addToken(sw);
         }
       }
     }
   }
 
-  // 4. Edge n-grams for prefix matching
+  // 5. Edge n-grams for prefix matching (2 to 10 chars)
   for (final w in words) {
-    for (final ng in generateEdgeNgrams(w, minLen: 3, maxLen: 6)) {
+    for (final ng in generateEdgeNgrams(w, minLen: 2, maxLen: 10)) {
       addToken(ng);
     }
   }
 
-  return result.take(10).toList();
+  return result.take(maxTokens).toList();
+}
+
+/// Evaluates whether a ReactionTemplate matches the given rawQuery locally.
+bool matchesQuery(ReactionTemplate template, String rawQuery) {
+  final cleanQ = rawQuery.trim().toLowerCase();
+  if (cleanQ.isEmpty) return true;
+
+  final nameLower = template.name.toLowerCase();
+  if (nameLower.contains(cleanQ)) return true;
+
+  final iupacLower = template.iupacName.toLowerCase();
+  if (iupacLower.contains(cleanQ)) return true;
+
+  final descLower = template.description.toLowerCase();
+  if (descLower.contains(cleanQ)) return true;
+
+  for (final tag in template.tags) {
+    if (tag.toLowerCase().contains(cleanQ)) return true;
+  }
+
+  final queryWords = extractQueryWords(cleanQ, filterStopWords: true);
+  if (queryWords.isEmpty) return false;
+
+  final corpus = '$nameLower $iupacLower $descLower ${template.tags.join(" ").toLowerCase()}';
+  for (final qw in queryWords) {
+    if (corpus.contains(qw)) return true;
+    final syns = _synonymMap[qw];
+    if (syns != null) {
+      for (final s in syns) {
+        if (corpus.contains(s.toLowerCase())) return true;
+      }
+    }
+  }
+  return false;
 }
 
 /// Calculates client-side BM25 + exact-prefix + provenance score and ranks candidates.
@@ -210,14 +280,21 @@ Map<String, dynamic> buildFirestorePayload(ReactionTemplate template) {
     tokenSet.add(w);
   }
 
-  // 2. Title edge n-grams
+  // 2. Title edge n-grams (2 to 12)
   for (final w in nameWords) {
-    for (final ng in generateEdgeNgrams(w, minLen: 3, maxLen: 7)) {
+    for (final ng in generateEdgeNgrams(w, minLen: 2, maxLen: 12)) {
       tokenSet.add(ng);
     }
   }
 
-  // 3. Synonyms
+  // 3. Pharmacological suffix stems
+  for (final w in nameWords) {
+    for (final stem in extractSuffixStems(w)) {
+      tokenSet.add(stem);
+    }
+  }
+
+  // 4. Synonyms
   for (final w in nameWords) {
     final syns = _synonymMap[w];
     if (syns != null) {
@@ -229,7 +306,7 @@ Map<String, dynamic> buildFirestorePayload(ReactionTemplate template) {
     }
   }
 
-  // 4. Soundex keys
+  // 5. Soundex keys
   for (final w in nameWords) {
     if (w.length >= 4 && !RegExp(r'^[0-9]+$').hasMatch(w)) {
       final phx = computeSoundex(w);
@@ -237,7 +314,7 @@ Map<String, dynamic> buildFirestorePayload(ReactionTemplate template) {
     }
   }
 
-  // 5. Metadata words (tags, catalyst, doi)
+  // 6. Metadata words (tags, catalyst, doi)
   for (final tag in template.tags) {
     for (final w in extractQueryWords(tag)) {
       tokenSet.add(w);
@@ -274,7 +351,7 @@ Map<String, dynamic> buildFirestorePayload(ReactionTemplate template) {
 
   final isPolymer = template.category == ReactionCategory.polymer || combined.contains('polymer');
 
-  base['search_tokens'] = tokenSet.take(40).toList();
+  base['search_tokens'] = tokenSet.take(50).toList();
   base['name_lower'] = template.name.trim().toLowerCase();
   base['is_mbbs'] = isMbbs;
   base['is_pharm_d'] = isPharmD;

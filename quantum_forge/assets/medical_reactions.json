@@ -1141,5 +1141,28 @@
       "VRE",
       "Nephrotoxicity"
     ]
+  },
+  {
+    "id": "med-quetiapine-01",
+    "name": "Quetiapine (Seroquel) D2/5-HT2A Receptor Antagonism & CYP3A4 Metabolism",
+    "iupacName": "2-(2-(4-(dibenzo[b,f][1,4]thiazepin-11-yl)piperazin-1-yl)ethoxy)ethanol",
+    "category": "pharmaceutical",
+    "description": "Atypical second-generation antipsychotic indicated for schizophrenia, bipolar disorder, and adjunctive therapy for major depressive disorder (MDD). Acts as an antagonist at dopamine D2 receptors and serotonin 5-HT2A receptors with low extrapyramidal symptom liability. Extensively metabolized by hepatic CYP3A4 via sulfoxidation to inactive quetiapine sulfoxide and N-dealkylation to active metabolite norquetiapine.",
+    "reactantXyz": "29\nAspirin (Acetylsalicylic Acid) Synthesis & COX Acetylation - Reactants\nO      2.4232    -1.1712    -1.2598\nC      1.8300    -0.1942    -0.8426\nO      2.3936     1.0308    -0.8995\nC      0.4750    -0.1829    -0.2396\nC     -0.1904    -1.4144    -0.1385\nC     -1.4697    -1.4845     0.4181\nC     -2.0935    -0.3258     0.8775\nC     -1.4404     0.9030     0.7815\nC     -0.1630     0.9749     0.2260\nO      0.3949     2.2237     0.1754\nH      3.2665     0.8486    -1.3156\nH      0.2858    -2.3269    -0.4936\nH     -1.9784    -2.4428     0.4927\nH     -3.0892    -0.3777     1.3112\nH     -1.9261     1.8072     1.1395\nH      1.2818     2.1323    -0.2326\nC      1.7110     0.2517    -0.4515\nC      2.8215    -0.4324     0.2934\nO      2.6211    -1.3121     1.1158\nO      4.0046     0.0966    -0.1127\nC      5.1388    -0.3945     0.4502\nO      5.2551    -1.2690     1.2941\nC      6.3167     0.3269    -0.1398\nH      1.7170     1.3213    -0.2266\nH      1.8251     0.0826    -1.5253\nH      0.7503    -0.1645    -0.1345\nH      7.2390    -0.0586     0.3046\nH      6.3538     0.1566    -1.2189\nH      6.2458     1.3953     0.0799\n",
+    "productXyz": "29\nAspirin (Acetylsalicylic Acid) Synthesis & COX Acetylation - Products\nC     -2.6530    -2.2025    -0.0709\nC     -1.8247    -0.9960     0.2552\nO     -1.9093    -0.3594     1.2977\nO     -0.9858    -0.7224    -0.8194\nC     -0.1111     0.3372    -0.5618\nC     -0.4625     1.5852    -1.0865\nC      0.3799     2.6777    -0.8905\nC      1.5722     2.5200    -0.1846\nC      1.9297     1.2662     0.3225\nC      1.0933     0.1550     0.1332\nC      1.4807    -1.1863     0.6441\nO      0.8872    -2.2358     0.4771\nO      2.6245    -1.1573     1.3553\nH     -3.3052    -1.9850    -0.9201\nH     -3.2732    -2.4595     0.7926\nH     -2.0017    -3.0517    -0.2924\nH     -1.3911     1.7069    -1.6371\nH      0.1068     3.6531    -1.2860\nH      2.2282     3.3735    -0.0293\nH      2.8687     1.1689     0.8628\nH      2.7464    -2.0877     1.6383\nC      3.0665    -0.0601    -0.2304\nC      4.4936     0.2789     0.0469\nO      5.0325     1.3566    -0.1361\nO      5.1814    -0.7645     0.5462\nH      2.5573     0.8203    -0.6327\nH      2.5695    -0.3576     0.6963\nH      3.0133    -0.8625    -0.9702\nH      6.0859    -0.4112     0.6800\n",
+    "referenceEa": 19.4,
+    "doi": "10.1016/S0140-6736(00)02409-5",
+    "journalRef": "Lancet 2000; 355: 2011-2016",
+    "tags": [
+      "MBBS",
+      "Pharm-D",
+      "Psychiatry",
+      "Antipsychotic",
+      "Quetiapine",
+      "Seroquel",
+      "Dopamine",
+      "Serotonin",
+      "CYP3A4"
+    ]
   }
 ]

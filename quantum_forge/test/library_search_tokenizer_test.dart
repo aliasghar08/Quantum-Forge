@@ -26,7 +26,36 @@ void main() {
       final tokens = tokenizeQuery('acetaminophen');
       expect(tokens, contains('acetaminophen'));
       expect(tokens, contains('paracetamol'));
-      expect(tokens.length, lessThanOrEqualTo(10));
+      expect(tokens.length, lessThanOrEqualTo(25));
+    });
+
+    test('Pharmacological suffix stem extraction', () {
+      final stems = extractSuffixStems('atorvastatin');
+      expect(stems, contains('statin'));
+      final prazoleStems = extractSuffixStems('omeprazole');
+      expect(prazoleStems, contains('prazole'));
+    });
+
+    test('matchesQuery checks name, iupac, description, tags, and synonyms', () {
+      const template = ReactionTemplate(
+        id: 'rx_med_quetiapine',
+        name: 'Quetiapine (Seroquel) Antipsychotic Action',
+        iupacName: '2-(2-(4-(dibenzo[b,f][1,4]thiazepin-11-yl)piperazin-1-yl)ethoxy)ethanol',
+        description: 'D2 and 5-HT2A antagonist for schizophrenia',
+        category: ReactionCategory.pharmaceutical,
+        reactantXyz: '1\n\nC 0 0 0',
+        productXyz: '1\n\nC 0 0 0',
+        referenceEa: 19.4,
+        doi: '10.1016/S0140-6736',
+        journalRef: 'Lancet 2000',
+        tags: ['antipsychotic', 'dopamine', 'psychiatry'],
+      );
+
+      expect(matchesQuery(template, 'quetiapine'), isTrue);
+      expect(matchesQuery(template, 'seroquel'), isTrue);
+      expect(matchesQuery(template, 'schizophrenia'), isTrue);
+      expect(matchesQuery(template, 'dopamine'), isTrue);
+      expect(matchesQuery(template, 'unrelated antibiotic penicillin'), isFalse);
     });
 
     test('Edge n-grams generation', () {

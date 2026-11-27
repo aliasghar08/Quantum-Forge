@@ -6,8 +6,10 @@ __pycache__
 .venv
 venv
 data/
+!data/semantic_catalog.npz
 tests/
 *.pt
 !t1x_model_checkpoint*.pt
 !models/ensemble_v2/*.pt
+!models/pharma_search_encoder_v1.pt
 !ml_models/tx1_painn_ensemble/checkpoints/*.pt

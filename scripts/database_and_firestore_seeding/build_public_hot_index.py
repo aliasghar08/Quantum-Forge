@@ -64,7 +64,7 @@ def parse_firestore_fields(fields: Dict[str, Any]) -> Dict[str, Any]:
     return out
 
 
-def fetch_verified_reactions_from_firestore(token: str, max_items: int = 15000) -> List[Dict[str, Any]]:
+def fetch_verified_reactions_from_firestore(token: str, max_items: int = 25000) -> List[Dict[str, Any]]:
     logger.info("Querying Firestore for up to %d verified / curated literature records...", max_items)
     url = f"https://firestore.googleapis.com/v1/projects/{PROJECT_ID}/databases/(default)/documents:runQuery"
     headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
@@ -197,7 +197,7 @@ def load_local_curated_templates() -> List[Dict[str, Any]]:
 
 def main():
     token = get_gcloud_token()
-    records = fetch_verified_reactions_from_firestore(token, max_items=15000)
+    records = fetch_verified_reactions_from_firestore(token, max_items=25000)
 
     # Merge with local curated templates, ensuring uniqueness by ID
     local_curated = load_local_curated_templates()

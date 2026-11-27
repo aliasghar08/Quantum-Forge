@@ -182,9 +182,9 @@ class DPSearchMemoTable {
   MemoizedSearchNode? findOptimalSubstructureAncestor(SearchStateKey target) {
     final q = target.normalizedQuery;
 
-    // 1. Prefix Pruning: walk backwards through prefixes q[0..k-1] down to 1
-    if (q.length >= 2) {
-      for (int len = q.length - 1; len >= 1; len--) {
+    // 1. Prefix Pruning: walk backwards through prefixes q[0..k-1] down to 3 chars
+    if (q.length >= 4) {
+      for (int len = q.length - 1; len >= 3; len--) {
         final ancestorKey = target.withPrefix(len);
         final node = get(ancestorKey);
         if (node != null && node.isExhaustive && !node.isExpired) {
@@ -222,33 +222,7 @@ class DPSearchMemoTable {
   }
 
   List<ReactionTemplate> _filterItemsLocally(List<ReactionTemplate> source, String query) {
-    final qLower = query.toLowerCase();
-    final queryTokens = tokenizeQuery(qLower);
-    final soundexQ = computeSoundex(qLower);
-
-    final matches = source.where((t) {
-      final nameLower = t.name.toLowerCase();
-      if (nameLower.contains(qLower)) return true;
-      if (t.id.toLowerCase().contains(qLower)) return true;
-      if (t.subfield.toLowerCase().contains(qLower)) return true;
-      if (t.tags.any((tag) => tag.toLowerCase().contains(qLower))) return true;
-
-      // Phonetic Soundex match
-      if (soundexQ.isNotEmpty) {
-        final words = extractQueryWords(t.name);
-        for (final w in words) {
-          if (computeSoundex(w) == soundexQ) return true;
-        }
-      }
-
-      // Token intersection
-      for (final tok in queryTokens) {
-        if (nameLower.contains(tok)) return true;
-      }
-
-      return false;
-    }).toList();
-
+    final matches = source.where((t) => matchesQuery(t, query)).toList();
     return rankSearchResults(matches, query);
   }
 
@@ -559,7 +533,8 @@ class DPSearchMemoEngine {
               limit: limit,
             );
 
-      final isExhaustive = page.items.length < limit || !page.hasMore;
+      final isExhaustive = (page.items.length < limit || !page.hasMore) &&
+          stateKey.normalizedQuery.length >= 3;
       final node = MemoizedSearchNode(
         items: page.items,
         nextCursor: page.nextCursor,
