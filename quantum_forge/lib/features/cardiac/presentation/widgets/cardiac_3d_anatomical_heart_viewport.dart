@@ -3017,11 +3017,11 @@ class CardiacHexaxialGizmo extends StatelessWidget {
 
   double _getMeanElectricalAxisDeg() {
     if (scenario.id.contains('inferior_mi')) {
-      return 115.0; // Right Axis Deviation (+115°)
+      return 110.0; // Right Axis Deviation (+110°) typical of LPFB / RVH
     } else if (scenario.id.contains('anterior_mi') || scenario.id.contains('critical_lm')) {
-      return -40.0; // Left Axis Deviation (-40°)
+      return -45.0; // Left Axis Deviation (-45°) typical of LAFB / LBBB
     }
-    return 58.0; // Normal Axis (+58°)
+    return 60.0; // Normal Axis (+60°)
   }
 
   String _getAxisClassification() {

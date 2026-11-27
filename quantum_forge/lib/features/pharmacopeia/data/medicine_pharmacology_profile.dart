@@ -131,6 +131,15 @@ class DossierSourceProvenance {
   }
 }
 
+/// Pharmacological mechanism of target engagement.
+enum TargetEngagementType {
+  covalentMetabolicReaction('Covalent / Metabolic Transformation'),
+  nonCovalentReceptorBinding('Non-Covalent Receptor / Ligand Binding');
+
+  final String label;
+  const TargetEngagementType(this.label);
+}
+
 /// Comprehensive research-level profile for a clinical or veterinary medicine.
 @immutable
 class MedicinePharmacologyProfile {
@@ -141,6 +150,7 @@ class MedicinePharmacologyProfile {
   final List<TargetDiscipline> targetDisciplines;
   final PharmacologicalSpecialty specialty;
   final String chemicalClass;
+  final TargetEngagementType engagementType;
   
   // 1. Why it was used:
   final String therapeuticIndications;
@@ -163,17 +173,24 @@ class MedicinePharmacologyProfile {
   final double eliminationHalfLifeHours;
   final String comparativeSpeciesPharmacology;
 
-  // 5. Quantum Reaction & Transition State:
+  // 5. Quantum Reaction, Free Energy & Binding:
   final String transitionStateDescription;
   final double activationBarrierKcalMol;
   final String catalyticResidues;
   final String associatedReactionId;
+  final double? bindingFreeEnergyDeltaGKcalMol;
+  final String? bindingAffinityKiOrIc50;
+  final String? activeSitePocketResidues;
+  final double? pKa;
+  final double? ionizedFractionAtPh74;
+  final String? pharmaceuticalSaltForm;
 
   // 6. Toxicology, Contraindications & DDI:
   final String contraindications;
   final String adverseEffectsAndToxicity;
   final String blackBoxWarning;
   final String antidoteAndRescue;
+  final List<String> majorDrugInteractions;
 
   // 7. Evidence & Guidelines:
   final List<String> clinicalGuidelines;
@@ -200,6 +217,7 @@ class MedicinePharmacologyProfile {
     required this.targetDisciplines,
     required this.specialty,
     required this.chemicalClass,
+    this.engagementType = TargetEngagementType.covalentMetabolicReaction,
     required this.therapeuticIndications,
     required this.clinicalStaging,
     required this.sourceAndOrigin,
@@ -217,10 +235,17 @@ class MedicinePharmacologyProfile {
     required this.activationBarrierKcalMol,
     required this.catalyticResidues,
     required this.associatedReactionId,
+    this.bindingFreeEnergyDeltaGKcalMol,
+    this.bindingAffinityKiOrIc50,
+    this.activeSitePocketResidues,
+    this.pKa,
+    this.ionizedFractionAtPh74,
+    this.pharmaceuticalSaltForm,
     required this.contraindications,
     required this.adverseEffectsAndToxicity,
     required this.blackBoxWarning,
     required this.antidoteAndRescue,
+    this.majorDrugInteractions = const [],
     required this.clinicalGuidelines,
     required this.primaryDoi,
     required this.pubmedId,
@@ -363,6 +388,10 @@ class MedicinePharmacologyProfile {
         orElse: () => PharmacologicalSpecialty.cardiology,
       ),
       chemicalClass: json['chemicalClass'] as String? ?? '',
+      engagementType: TargetEngagementType.values.firstWhere(
+        (e) => e.name == json['engagementType'],
+        orElse: () => TargetEngagementType.covalentMetabolicReaction,
+      ),
       therapeuticIndications: json['therapeuticIndications'] as String? ?? '',
       clinicalStaging: json['clinicalStaging'] as String? ?? '',
       sourceAndOrigin: json['sourceAndOrigin'] as String? ?? '',
@@ -380,10 +409,17 @@ class MedicinePharmacologyProfile {
       activationBarrierKcalMol: (json['activationBarrierKcalMol'] as num?)?.toDouble() ?? 15.0,
       catalyticResidues: json['catalyticResidues'] as String? ?? '',
       associatedReactionId: json['associatedReactionId'] as String? ?? '',
+      bindingFreeEnergyDeltaGKcalMol: (json['bindingFreeEnergyDeltaGKcalMol'] as num?)?.toDouble(),
+      bindingAffinityKiOrIc50: json['bindingAffinityKiOrIc50'] as String?,
+      activeSitePocketResidues: json['activeSitePocketResidues'] as String?,
+      pKa: (json['pKa'] as num?)?.toDouble(),
+      ionizedFractionAtPh74: (json['ionizedFractionAtPh74'] as num?)?.toDouble(),
+      pharmaceuticalSaltForm: json['pharmaceuticalSaltForm'] as String?,
       contraindications: json['contraindications'] as String? ?? '',
       adverseEffectsAndToxicity: json['adverseEffectsAndToxicity'] as String? ?? '',
       blackBoxWarning: json['blackBoxWarning'] as String? ?? '',
       antidoteAndRescue: json['antidoteAndRescue'] as String? ?? '',
+      majorDrugInteractions: (json['majorDrugInteractions'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? const [],
       clinicalGuidelines: (json['clinicalGuidelines'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [],
       primaryDoi: json['primaryDoi'] as String? ?? '',
       pubmedId: json['pubmedId'] as String? ?? '',
@@ -414,6 +450,7 @@ class MedicinePharmacologyProfile {
       'targetDisciplines': targetDisciplines.map((e) => e.name).toList(),
       'specialty': specialty.name,
       'chemicalClass': chemicalClass,
+      'engagementType': engagementType.name,
       'therapeuticIndications': therapeuticIndications,
       'clinicalStaging': clinicalStaging,
       'sourceAndOrigin': sourceAndOrigin,
@@ -431,10 +468,17 @@ class MedicinePharmacologyProfile {
       'activationBarrierKcalMol': activationBarrierKcalMol,
       'catalyticResidues': catalyticResidues,
       'associatedReactionId': associatedReactionId,
+      'bindingFreeEnergyDeltaGKcalMol': bindingFreeEnergyDeltaGKcalMol,
+      'bindingAffinityKiOrIc50': bindingAffinityKiOrIc50,
+      'activeSitePocketResidues': activeSitePocketResidues,
+      'pKa': pKa,
+      'ionizedFractionAtPh74': ionizedFractionAtPh74,
+      'pharmaceuticalSaltForm': pharmaceuticalSaltForm,
       'contraindications': contraindications,
       'adverseEffectsAndToxicity': adverseEffectsAndToxicity,
       'blackBoxWarning': blackBoxWarning,
       'antidoteAndRescue': antidoteAndRescue,
+      'majorDrugInteractions': majorDrugInteractions,
       'clinicalGuidelines': clinicalGuidelines,
       'primaryDoi': primaryDoi,
       'pubmedId': pubmedId,

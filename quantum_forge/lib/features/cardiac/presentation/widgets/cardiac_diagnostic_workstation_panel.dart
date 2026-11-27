@@ -1754,6 +1754,7 @@ class _CardiacDiagnosticWorkstationPanelState
                 emax: _contractilityEmax,
                 ea: _afterloadEa,
                 cardiacPhase: widget.cardiacPhase,
+                isMitralRegurgitation: _echoPhenotype == EchoHemodynamicPhenotype.severeMr,
               ),
               child: Container(),
             ),
@@ -2910,6 +2911,7 @@ class _PvLoopPainter extends CustomPainter {
   final double emax;
   final double ea;
   final double cardiacPhase;
+  final bool isMitralRegurgitation;
 
   _PvLoopPainter({
     required this.edv,
@@ -2919,6 +2921,7 @@ class _PvLoopPainter extends CustomPainter {
     required this.emax,
     required this.ea,
     required this.cardiacPhase,
+    this.isMitralRegurgitation = false,
   });
 
   @override
@@ -3024,10 +3027,31 @@ class _PvLoopPainter extends CustomPainter {
 
     final loopPath = Path()
       ..moveTo(pA.dx, pA.dy)
-      ..quadraticBezierTo(toCanvas((esv + edv) * 0.5, edp * 0.75).dx, toCanvas((esv + edv) * 0.5, edp * 0.75).dy, pB.dx, pB.dy)
-      ..lineTo(pC.dx, pC.dy)
+      ..quadraticBezierTo(toCanvas((esv + edv) * 0.5, edp * 0.75).dx, toCanvas((esv + edv) * 0.5, edp * 0.75).dy, pB.dx, pB.dy);
+
+    if (isMitralRegurgitation) {
+      // Acute Mitral Regurgitation: IVC is abolished due to early systolic regurgitant
+      // unloading into compliant LA (generating giant LA v-waves on PCWP). Leftward tilt.
+      final pMidIvc = toCanvas(edv - 20.0, (edp + esp * 0.68) * 0.5);
+      loopPath.quadraticBezierTo(pMidIvc.dx, pMidIvc.dy, pC.dx, pC.dy);
+    } else {
+      // Strictly vertical Isovolumetric Contraction (ΔV = 0)
+      loopPath.lineTo(pC.dx, pC.dy);
+    }
+
+    loopPath
       ..quadraticBezierTo(pPeak.dx, pPeak.dy, pD.dx, pD.dy)
-      ..close();
+      ..close(); // Strictly vertical Isovolumetric Relaxation (ΔV = 0)
+
+    if (isMitralRegurgitation) {
+      _drawText(
+        canvas,
+        '⚡ Abolished IVC: Regurgitant LA Unloading (Giant v-Wave)',
+        Offset(padLeft + 8, padTop + 14),
+        const Color(0xFFFF5252),
+        9.0,
+      );
+    }
 
     canvas.drawPath(
       loopPath,

@@ -259,6 +259,33 @@ class CardiacHemodynamicEcgStrip extends StatefulWidget {
       return v;
     }
 
+    // 3b. Left Bundle Branch Block (LBBB):
+    // Broad, notched monophasic R wave (>140 ms: phi 0.210 to 0.350) with secondary discordant ST-T shifts
+    if (rhythm == OscilloscopeRhythmType.lbbb) {
+      if (phi >= 0.08 && phi <= 0.17) {
+        v = 0.14 * math.sin((phi - 0.08) / 0.09 * math.pi); // Normal P wave
+      } else if (phi > 0.17 && phi < 0.210) {
+        v = 0.0;
+      } else if (phi >= 0.210 && phi <= 0.350) {
+        // Broad notched R wave (M-shaped notch at phi 0.275)
+        final tau = (phi - 0.210) / 0.140;
+        final baseR = 1.15 * math.sin(tau * math.pi);
+        final notch = 0.18 * math.exp(-math.pow(tau - 0.48, 2) / 0.015);
+        v = baseR - notch;
+      } else if (phi > 0.350 && phi <= 0.450) {
+        // Secondary discordant ST depression (-0.16 mV)
+        final tau = (phi - 0.350) / 0.100;
+        v = -0.16 * math.sin((1.0 - tau) * math.pi * 0.5);
+      } else if (phi > 0.450 && phi <= 0.620) {
+        // Asymmetric discordant T-wave inversion (-0.30 mV)
+        final tau = (phi - 0.450) / 0.170;
+        v = -0.30 * math.sin(tau * math.pi);
+      } else {
+        v = 0.0;
+      }
+      return v;
+    }
+
     // 4. Acute Myocardial Infarction (STEMI with Pathological Q-Waves):
     // Pathological deep, wide Q waves (-0.38 mV, >40 ms width: phi 0.210 to 0.255) + coved ST elevation (+0.45 mV).
     if (rhythm == OscilloscopeRhythmType.stemi) {
@@ -531,10 +558,12 @@ class CardiacHemodynamicEcgStrip extends StatefulWidget {
         leadStMm = 3.6;
       } else if (lead == 'V5') {
         leadStMm = 1.2;
+      } else if (lead == 'II') {
+        leadStMm = -1.2; // True reciprocal ST depression in inferior Lead II
       } else if (lead == 'III') {
-        leadStMm = -1.8;
+        leadStMm = -1.8; // Reciprocal ST depression in inferior Lead III
       } else if (lead == 'aVF') {
-        leadStMm = -1.5;
+        leadStMm = -1.5; // Reciprocal ST depression in inferior Lead aVF
       } else if (lead == 'I' || lead == 'aVL') {
         leadStMm = 0.8;
       }
@@ -542,13 +571,15 @@ class CardiacHemodynamicEcgStrip extends StatefulWidget {
       if (lead == 'II') {
         leadStMm = 3.2;
       } else if (lead == 'III') {
-        leadStMm = 4.5;
+        leadStMm = 4.5; // Lead III > Lead II indicates RCA culprit lesion
       } else if (lead == 'aVF') {
         leadStMm = 3.8;
       } else if (lead == 'I') {
-        leadStMm = -2.2;
+        leadStMm = -2.2; // High lateral reciprocal ST depression
       } else if (lead == 'aVL') {
-        leadStMm = -2.5;
+        leadStMm = -2.5; // High lateral reciprocal ST depression (earliest sign)
+      } else if (lead == 'V4R') {
+        leadStMm = 1.8; // Concomitant right ventricular infarction (proximal RCA occlusion)
       }
     } else if (isLm) {
       if (lead == 'aVR') {
@@ -557,6 +588,15 @@ class CardiacHemodynamicEcgStrip extends StatefulWidget {
         leadStMm = 1.0;
       } else {
         leadStMm = -2.0;
+      }
+    } else if (rhythm == OscilloscopeRhythmType.lbbb) {
+      // Sgarbossa criteria baseline discordance:
+      // Positive QRS leads (I, aVL, V5, V6) show discordant ST depression (-1.5 mm)
+      // Negative QRS leads (V1, V2, V3) show discordant ST elevation (+2.0 mm)
+      if (lead == 'I' || lead == 'aVL' || lead == 'V5' || lead == 'V6') {
+        leadStMm = -1.5;
+      } else if (lead == 'V1' || lead == 'V2' || lead == 'V3') {
+        leadStMm = 2.0;
       }
     }
 

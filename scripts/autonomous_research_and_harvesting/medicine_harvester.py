@@ -167,6 +167,18 @@ EVERYDAY_MEDICINE_REGISTRY: dict[str, dict[str, Any]] = {
         "metabolism_elimination": "Extensive hepatic metabolism mediated predominantly by CYP3A4 into quetiapine sulfoxide and N-desalkylquetiapine (norquetiapine). Elimination half-life ~6-7 hours. <5% excreted unchanged in urine.",
         "half_life_hours": 6.5,
         "comparative_species": "Human: primary clinical use for bipolar/schizophrenia. Feline/Canine: occasionally used under veterinary specialist consultation for severe behavioral agitation; highly sensitive to sedation and hypotension.",
+        "engagement_type": "nonCovalentReceptorBinding",
+        "delta_g_bind_kcal_mol": -11.2,
+        "binding_affinity": "Ki(5-HT2A) = 101 nM, Ki(D2) = 245 nM, Ki(H1) = 11 nM",
+        "active_site_pocket_residues": "D2: Asp-114, Val-115, Ser-193, Phe-389, His-393; 5-HT2A: Asp-155, Val-156, Ser-239, Phe-340",
+        "pKa": 6.8,
+        "ionized_fraction_ph74": 20.1,
+        "salt_form": "Quetiapine Hemifumarate (MW 883.09 g/mol salt; free base MW 383.51 g/mol)",
+        "major_drug_interactions": [
+            "Strong CYP3A4 inhibitors (Ketoconazole, Clarithromycin) increase quetiapine AUC 5-fold; CYP3A4 inducers (Carbamazepine, Phenytoin) reduce AUC by 80%",
+            "QTc-prolonging drugs (Amiodarone, Haloperidol, Sotalol) heighten Torsades de Pointes risk",
+            "Antihypertensives: additive orthostatic hypotension via alpha-1 adrenergic antagonism"
+        ],
         "ts_description": "Electrophilic monooxygenation of the thiazepine sulfur atom by CYP3A4 oxo-iron(IV) porphyrin (Compound I) forming an activated sulfoxide transition state.",
         "activation_barrier_kcal_mol": 16.4,
         "catalytic_residues": "CYP3A4 Phe-304, Ile-369, Ala-305, and Fe=O heme porphyrin center.",
@@ -212,6 +224,18 @@ EVERYDAY_MEDICINE_REGISTRY: dict[str, dict[str, Any]] = {
         "metabolism_elimination": "Hepatic N-demethylation primarily catalyzed by CYP2B6, with contributions from CYP2C19, CYP2C9, and CYP3A4, producing N-desmethylsertraline (50-fold less potent at SERT). Elimination half-life ~26 hours (desmethylsertraline ~66 hours).",
         "half_life_hours": 26.0,
         "comparative_species": "Human: major first-line antidepressant. Canine/Feline: used in veterinary behavioral medicine for separation anxiety, thunderstorm phobia, and feline compulsive grooming; careful dosing required to prevent serotonin syndrome.",
+        "engagement_type": "nonCovalentReceptorBinding",
+        "delta_g_bind_kcal_mol": -12.4,
+        "binding_affinity": "Ki(SERT) = 0.29 nM, IC50 = 0.4 nM (high selectivity over NET Ki=420nM, DAT Ki=25nM)",
+        "active_site_pocket_residues": "SERT: Tyr-95, Asp-98, Ala-169, Ile-172, Phe-335, Ser-438, Gly-442",
+        "pKa": 9.47,
+        "ionized_fraction_ph74": 99.2,
+        "salt_form": "Sertraline Hydrochloride (MW 342.69 g/mol salt; free base MW 306.23 g/mol)",
+        "major_drug_interactions": [
+            "HIGH-RISK: Linezolid, MAOIs, Methylene Blue precipitate life-threatening Serotonin Syndrome (hyperreflexia, clonus, autonomic instability)",
+            "NSAIDs & Antiplatelets (Aspirin, Clopidogrel): additive upper GI bleed risk due to platelet serotonin depletion",
+            "Tricyclic Antidepressants (TCAs): CYP2D6 inhibition elevates TCA levels"
+        ],
         "ts_description": "Cytochrome P450-mediated oxidative alpha-hydrogen abstraction from the N-methyl group, collapsing through a carbinolamine intermediate into N-desmethylsertraline and formaldehyde.",
         "activation_barrier_kcal_mol": 18.2,
         "catalytic_residues": "CYP2B6 Phe-206, Leu-363, Val-367, and oxo-ferryl porphyrin center.",
@@ -257,6 +281,18 @@ EVERYDAY_MEDICINE_REGISTRY: dict[str, dict[str, Any]] = {
         "metabolism_elimination": "Major metabolic pathways: hepatic glucuronidation (45-55%) via UGT1A1/UGT1A6 and sulfation (20-30%) via SULT1A1. Minor pathway (~5-10%): CYP2E1 oxidation into reactive electrophile N-acetyl-p-benzoquinone imine (NAPQI), detoxified by glutathione. Urinary excretion >90% as conjugates. Half-life ~2-3 hours.",
         "half_life_hours": 2.5,
         "comparative_species": "Human: well-tolerated at <=4g/day. FELINE CONTRAINDICATION: Cats are deficient in glucuronyl transferase (UGT1A6 pseudogene); therapeutic doses cause fatal methemoglobinemia, Heinz body hemolytic anemia, and hepatic necrosis. Canine: susceptible to toxicity at >100 mg/kg.",
+        "engagement_type": "covalentMetabolicReaction",
+        "delta_g_bind_kcal_mol": None,
+        "binding_affinity": "IC50(POX site) ~ 20-100 uM (covalent NAPQI generation drives toxicity)",
+        "active_site_pocket_residues": "COX-1/2 POX site: Tyr-385, Trp-387, His-388; CYP2E1: Thr-303, Phe-478",
+        "pKa": 9.38,
+        "ionized_fraction_ph74": 1.0,
+        "salt_form": "Neutral Free Compound (MW 151.16 g/mol)",
+        "major_drug_interactions": [
+            "Ethanol: Chronic use induces CYP2E1 and depletes glutathione, lowering hepatotoxic threshold",
+            "Isoniazid & Carbamazepine: CYP2E1/CYP3A4 inducers increase toxic NAPQI formation",
+            "Warfarin: Daily paracetamol (>2g/day) inhibits vitamin K epoxide reductase, elevating INR"
+        ],
         "ts_description": "Cytochrome P450 2E1 two-electron oxidation of paracetamol yielding the highly reactive hepatotoxic electrophile N-acetyl-p-benzoquinone imine (NAPQI) and water.",
         "activation_barrier_kcal_mol": 21.5,
         "catalytic_residues": "CYP2E1 Thr-303, Phe-478, and heme Compound I ferryl-oxygen.",
@@ -302,6 +338,18 @@ EVERYDAY_MEDICINE_REGISTRY: dict[str, dict[str, Any]] = {
         "metabolism_elimination": "Extensively metabolized in the liver via CYP3A4, CYP2D6, and carboxylesterases. Major metabolite deacetyldiltiazem is pharmacologically active (25-50% potency of parent). Terminal half-life ~3.5-4.5 hours.",
         "half_life_hours": 4.0,
         "comparative_species": "Human: rate control in atrial fibrillation and angina. Feline: first-line medical therapy for Feline Hypertrophic Cardiomyopathy (HCM) to enhance diastolic ventricular relaxation and prevent thromboembolism.",
+        "engagement_type": "nonCovalentReceptorBinding",
+        "delta_g_bind_kcal_mol": -10.8,
+        "binding_affinity": "Kd(Cav1.2) = 32 nM, IC50 = 50 nM (frequency-dependent state binding)",
+        "active_site_pocket_residues": "Cav1.2 pore: Tyr-1463, Ile-1467, Met-1470, Thr-1471, Phe-1112",
+        "pKa": 7.7,
+        "ionized_fraction_ph74": 66.6,
+        "salt_form": "Diltiazem Hydrochloride (MW 450.98 g/mol salt; free base MW 414.52 g/mol)",
+        "major_drug_interactions": [
+            "CRITICAL: Moderate CYP3A4 inhibitor: raises serum concentrations of Tacrolimus, Cyclosporine, and Apixaban/Rivaroxaban (bleeding and nephrotoxicity risk)",
+            "Beta-blockers (Metoprolol, Atenolol): additive negative chronotropy and inotropy precipitating severe bradycardia and AV nodal arrest",
+            "Statins (Simvastatin, Lovastatin): CYP3A4 inhibition elevates statin AUC 3- to 5-fold, increasing rhabdomyolysis risk"
+        ],
         "ts_description": "Enzymatic hydrolysis of the 3-O-acetyl ester moiety by hepatic carboxylesterases and CYP3A4 yielding deacetyldiltiazem and acetic acid.",
         "activation_barrier_kcal_mol": 14.8,
         "catalytic_residues": "Cav1.2 pore residues Tyr-1463, Ile-1467, Met-1470, and carboxylesterase Ser-203.",
@@ -347,6 +395,18 @@ EVERYDAY_MEDICINE_REGISTRY: dict[str, dict[str, Any]] = {
         "metabolism_elimination": "Primarily metabolized by CYP3A4 (90%) and to a lesser extent CYP2C8 (10%) into inactive aromatic metabolites. Elimination half-life ~2-3 hours. Renal excretion ~80% (as metabolites), fecal excretion ~20%.",
         "half_life_hours": 2.5,
         "comparative_species": "Human: approved for diabetic CKD cardiorenal risk reduction. Preclinical Canine/Murine models: demonstrated profound attenuation of cardiorenal fibrosis without anti-androgenic side effects.",
+        "engagement_type": "nonCovalentReceptorBinding",
+        "delta_g_bind_kcal_mol": -12.9,
+        "binding_affinity": "IC50(MR) = 18 nM, Ki = 1.3 nM (>500-fold selectivity over GR, AR, PR)",
+        "active_site_pocket_residues": "MR LBD: Met-852, Ser-810, Cys-942, Thr-945, Phe-956, Ala-773",
+        "pKa": 13.8,
+        "ionized_fraction_ph74": 0.0,
+        "salt_form": "Neutral Free Base (MW 378.42 g/mol)",
+        "major_drug_interactions": [
+            "CONTRAINDICATED: Strong CYP3A4 inhibitors (Itraconazole, Clarithromycin, Ritonavir) increase finerenone AUC >500%, precipitating life-threatening hyperkalemia",
+            "Potassium-sparing diuretics (Amiloride, Triamterene) and ACEi/ARBs: synergistic potassium retention requires intensive monitoring",
+            "Moderate CYP3A4 inducers (Efavirenz, St. John's Wort) reduce efficacy"
+        ],
         "ts_description": "Cytochrome P450 3A4-catalyzed two-electron oxidative dehydrogenation of the 1,4-dihydronaphthyridine ring system to the fully aromatic naphthyridine metabolite.",
         "activation_barrier_kcal_mol": 17.3,
         "catalytic_residues": "MR ligand pocket Met-852, Ser-810, Cys-942, and CYP3A4 Compound I.",
@@ -392,6 +452,18 @@ EVERYDAY_MEDICINE_REGISTRY: dict[str, dict[str, Any]] = {
         "metabolism_elimination": "Less than 0.1% metabolized systemically. Fecal excretion accounts for >96% of the administered dose, essentially entirely as unchanged drug. Trace absorbed fraction undergoes 25-deacetylation. Half-life ~5.6 hours.",
         "half_life_hours": 5.6,
         "comparative_species": "Human: landmark therapy for hepatic encephalopathy and IBS-D. Canine: used in veterinary gastroenterology for antibiotic-responsive enteropathy and hepatic encephalopathy secondary to portosystemic shunts.",
+        "engagement_type": "nonCovalentReceptorBinding",
+        "delta_g_bind_kcal_mol": -13.5,
+        "binding_affinity": "Kd(RNAP beta) = 5.2 nM, MIC = 0.25-1.0 ug/mL against enteric pathogens",
+        "active_site_pocket_residues": "RNAP beta: His-442, Asp-445, Arg-448, Ser-450, Leu-452",
+        "pKa": 7.0,
+        "ionized_fraction_ph74": 28.5,
+        "salt_form": "Neutral Zwitterion / Polymorph Alpha (MW 785.88 g/mol)",
+        "major_drug_interactions": [
+            "Minimal systemic interactions due to <0.4% bioavailability; gut-selective topical action",
+            "P-glycoprotein inhibitors (Cyclosporine) can modestly increase systemic exposure but clinically well-tolerated",
+            "Does not induce hepatic CYP3A4 clinically at recommended doses due to negligible systemic absorption"
+        ],
         "ts_description": "Enzymatic or gut microbial esterase cleavage of the C-25 acetate ester, producing the microbiologically active 25-deacetylrifaximin metabolite and acetic acid.",
         "activation_barrier_kcal_mol": 19.5,
         "catalytic_residues": "Bacterial RNA polymerase beta-subunit residues His-442, Asp-445, Arg-448, and Ser-450.",
@@ -704,6 +776,10 @@ def generate_3d_reaction_coordinates(
     from rdkit import Chem
     from rdkit.Chem import AllChem
 
+    # Strip disconnected spectator counterions (e.g. .Cl, .[Na+], .HCl) to preserve active neutral moiety
+    if "." in smiles:
+        smiles = max(smiles.split("."), key=len)
+
     mol = Chem.MolFromSmiles(smiles)
     if not mol:
         raise ValueError(f"Invalid SMILES for {drug_key}: {smiles}")
@@ -854,6 +930,7 @@ def assemble_clinical_monograph(drug_key: str, data: dict[str, Any]) -> dict[str
         "targetDisciplines": ["mbbs", "pharmD", "specialist"],
         "specialty": data["specialty"],
         "chemicalClass": data["chemical_class"],
+        "engagementType": data.get("engagement_type", "covalentMetabolicReaction"),
         "therapeuticIndications": data["indications"],
         "clinicalStaging": data["clinical_staging"],
         "sourceAndOrigin": data["source_and_origin"],
@@ -871,10 +948,17 @@ def assemble_clinical_monograph(drug_key: str, data: dict[str, Any]) -> dict[str
         "activationBarrierKcalMol": float(data["activation_barrier_kcal_mol"]),
         "catalyticResidues": data["catalytic_residues"],
         "associatedReactionId": f"rx_med_{data['inn']}",
+        "bindingFreeEnergyDeltaGKcalMol": data.get("delta_g_bind_kcal_mol"),
+        "bindingAffinityKiOrIc50": data.get("binding_affinity"),
+        "activeSitePocketResidues": data.get("active_site_pocket_residues"),
+        "pKa": data.get("pKa"),
+        "ionizedFractionAtPh74": data.get("ionized_fraction_ph74"),
+        "pharmaceuticalSaltForm": data.get("salt_form"),
         "contraindications": data["contraindications"],
         "adverseEffectsAndToxicity": data["adverse_effects"],
         "blackBoxWarning": data["black_box_warning"],
         "antidoteAndRescue": data["antidote_rescue"],
+        "majorDrugInteractions": data.get("major_drug_interactions", []),
         "clinicalGuidelines": data["guidelines"],
         "primaryDoi": data["primary_doi"],
         "pubmedId": data["pubmed_id"],

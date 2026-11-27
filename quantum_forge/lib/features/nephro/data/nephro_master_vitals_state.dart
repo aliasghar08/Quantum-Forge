@@ -19,6 +19,7 @@
 // Strictly Educational In-Silico Simulation — SaMD 7-Pillar Legal Shield.
 // ============================================================================
 
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 /// 5-Phase 120-Frame Renal Physiological Cycle
@@ -334,6 +335,8 @@ class NephroMasterVitalsState extends ChangeNotifier {
   double _sodiumMeqL = 140.0;
   double _chlorideMeqL = 102.0;
   double _albuminGDl = 4.0;
+  double _glucoseMgDl = 100.0;
+  double _measuredOsmolality = 290.0;
 
   // 120-Frame Physiological Kinematics & Multi-Species Particle Trajectories
   int _currentFrame = 0;
@@ -420,9 +423,80 @@ class NephroMasterVitalsState extends ChangeNotifier {
   }
 
   double get albuminGDl => _albuminGDl;
+  double get glucoseMgDl => _glucoseMgDl;
+  set glucoseMgDl(double v) {
+    _glucoseMgDl = v;
+    notifyListeners();
+  }
+
+  double get measuredOsmolality => _measuredOsmolality;
+  set measuredOsmolality(double v) {
+    _measuredOsmolality = v;
+    notifyListeners();
+  }
 
   bool get isRenalArteryStenosis => _rppMmHg < 65.0 && _activeSituation == NephroClinicalSituation.cardiorenalAki;
   bool get isAkiActive => _egfrMlMin < 40.0;
+
+  // ── Glomerular Starling Filtration Dynamics ─────────────────────────────────
+  // GFR = Kf * [ (P_GC - P_BS) - (pi_GC - pi_BS) ]
+  static const double kfUltrafiltrationCoefficient = 4.2; // mL/min/mmHg
+  static const double bowmanHydrostaticPressureMmHg = 14.0; // P_BS
+  static const double glomerularOncoticPressureMmHg = 28.0; // pi_GC
+  static const double bowmanOncoticPressureMmHg = 0.0; // pi_BS
+
+  double get glomerularCapillaryHydrostaticPressureMmHg {
+    final basePgc = (_rppMmHg * 0.60).clamp(20.0, 65.0);
+    return basePgc * _afferentTone / _efferentTone;
+  }
+
+  double get netUltrafiltrationPressureMmHg {
+    return (glomerularCapillaryHydrostaticPressureMmHg - bowmanHydrostaticPressureMmHg) -
+        (glomerularOncoticPressureMmHg - bowmanOncoticPressureMmHg);
+  }
+
+  double get calculatedStarlingGfr {
+    return math.max(5.0, kfUltrafiltrationCoefficient * math.max(0.0, netUltrafiltrationPressureMmHg) * 3.8);
+  }
+
+  void applyAceiArbEffect({bool isBilateralStenosis = false}) {
+    _efferentTone = 1.35; // Dilates efferent arteriole -> drops P_GC
+    if (isBilateralStenosis || isRenalArteryStenosis) {
+      _egfrMlMin = math.max(10.0, _egfrMlMin * 0.40);
+      _serumCreatinineMgDl += 1.8;
+      _potassiumMeqL += 0.8;
+    } else {
+      _egfrMlMin = math.max(15.0, _egfrMlMin * 0.88);
+    }
+    notifyListeners();
+  }
+
+  void applyNsaidEffect() {
+    _afferentTone = 0.72; // Blocks PGE2/PGI2 -> afferent constriction -> drops P_GC
+    _egfrMlMin = math.max(12.0, _egfrMlMin * 0.75);
+    _serumCreatinineMgDl += 0.6;
+    _potassiumMeqL += 0.4;
+    notifyListeners();
+  }
+
+  void applySglt2iEffect() {
+    _afferentTone = 0.88; // Restores TGF adenosine -> afferent constriction -> blunts hyperfiltration
+    _egfrMlMin = math.max(20.0, _egfrMlMin * 0.92);
+    notifyListeners();
+  }
+
+  // ── DVM Comparative Toxicology Alerts ───────────────────────────────────────
+  static const String felineUgt1a6ParacetamolAlert =
+      '🐾 FELINE CRITICAL ALERT: Felines possess an evolutionary pseudogene defect in UGT1A6 glucuronosyltransferase. Paracetamol (acetaminophen) is shunted to CYP-mediated NAPQI, precipitating fatal methemoglobinemia ("chocolate brown blood"), Heinz bodies, facial edema, and acute centrilobular hepatic necrosis. Antidote: IV N-Acetylcysteine + Methylene Blue.';
+
+  static const String canineMdr1IvermectinAlert =
+      '🐾 CANINE MDR1 (ABCB1-1Δ) ALERT: Herding breeds (Collies, Australian Shepherds) homozygous for ABCB1-1Δ mutation lack functional P-glycoprotein efflux transport at the blood-brain barrier. Substrates (Ivermectin, Moxidectin, Loperamide, Vincristine) accumulate in CNS causing severe neurotoxicity, ataxia, coma, and respiratory arrest.';
+
+  static const String equineRightDorsalColitisNsaidAlert =
+      '🐾 EQUINE NSAID TOXICITY: Phenylbutazone and Flunixin meglumine inhibit mucosal PGE2 microvascular perfusion, causing Right Dorsal Colitis, severe protein-losing enteropathy, hypoalbuminemia, and renal crest/papillary necrosis.';
+
+  static const String felineCisplatinPulmonaryEdemaAlert =
+      '🐾 FELINE CISPLATIN CONTRAINDICATION ("Cisplatin splats cats"): In cats, cisplatin triggers fulminant, fatal non-cardiogenic pulmonary edema with hydrothorax within hours of administration; Carboplatin is the tolerated alternative.';
 
   // ── Derived Acid-Base Calculations ──────────────────────────────────────────
 
@@ -445,6 +519,13 @@ class NephroMasterVitalsState extends ChangeNotifier {
     final deltaAg = correctedAnionGap - 12.0;
     return deltaAg / deltaHco3;
   }
+
+  /// Calculated Serum Osmolality: 2 * Na + Glucose/18 + BUN/2.8
+  double get calculatedOsmolality => 2.0 * _sodiumMeqL + (_glucoseMgDl / 18.0) + (_bunMgDl / 2.8);
+
+  /// Serum Osmolar Gap: Measured Osmolality - Calculated Osmolality (Normal < 10 mOsm/kg)
+  double get osmolarGap => _measuredOsmolality - calculatedOsmolality;
+  bool get isElevatedOsmolarGap => osmolarGap > 10.0;
 
   bool get isOliguric => _urineOutputMlKgH < 0.5;
   bool get isSevereAki => _egfrMlMin < 30.0;

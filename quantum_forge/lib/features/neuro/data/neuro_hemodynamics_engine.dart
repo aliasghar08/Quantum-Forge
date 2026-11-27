@@ -398,11 +398,15 @@ class NeuroHemodynamicsEngine {
     final isHighIcp = effIcp > 20.0;
     final isCushing = isHighIcp && meanArterialPressure >= 130.0 && heartRateBpm <= 55.0;
 
+    // Classic Lassen (1959) Cerebral Autoregulation Curve:
+    // CBF maintains an autoregulatory plateau at ~50 mL/100g/min across CPP 50–150 mmHg.
+    // Below 50 mmHg: pressure-passive hypoperfusion (ischemic threshold ~18-20, infarction <10).
+    // Above 150 mmHg: break of autoregulation with forced vasodilation, hyperperfusion & vasogenic edema.
     double cbf = 50.0;
-    if (cpp < 60.0) {
-      cbf = math.max(4.0, (cpp / 60.0) * 50.0);
-    } else if (cpp > 140.0) {
-      cbf = 50.0 + (cpp - 140.0) * 0.35;
+    if (cpp < 50.0) {
+      cbf = math.max(4.0, (cpp / 50.0) * 50.0);
+    } else if (cpp > 150.0) {
+      cbf = 50.0 + (cpp - 150.0) * 0.45;
     }
     if (hasNimodipine && hasAneurysm) {
       cbf = math.min(60.0, cbf * 1.25);
@@ -423,6 +427,18 @@ class NeuroHemodynamicsEngine {
       }
     }
 
+    String advisory;
+    final isReperfusionDanger = (isThrombectomized || hasTpa) && meanArterialPressure >= 125.0;
+    if (isReperfusionDanger) {
+      advisory = 'CRITICAL ALERT: Post-Recanalization Reperfusion Hyperemia (TICI 3)! Elevated perfusion pressure (MAP >= 125 mmHg / SBP > 180 mmHg) risks lethal hemorrhagic transformation. Target SBP < 180 mmHg (or < 140 mmHg post-EVT) with IV Nicardipine / Labetalol immediately.';
+    } else if (isCushing) {
+      advisory = 'EMERGENCY: Cushing Triad Triggered (Severe ICP > 20 mmHg, Systolic Hypertension, Reflex Bradycardia). Impending transtentorial/uncal herniation. Administer 23.4% NaCl or Mannitol 20% stat.';
+    } else if (isHighIcp) {
+      advisory = 'Intracranial hypertension detected (ICP > 20 mmHg with P2 > P1 compliance loss). Maintain CPP >= 60-70 mmHg and initiate osmotherapy.';
+    } else {
+      advisory = 'Intracranial compliance and cerebral perfusion pressure within target physiological range.';
+    }
+
     return CloudHemodynamicsResult(
       scenarioId: scenarioId,
       icpMmHg: double.parse(effIcp.toStringAsFixed(1)),
@@ -440,9 +456,7 @@ class NeuroHemodynamicsEngine {
         'Left MCA (M1 Trunk)': (hasM1Occlusion && !isThrombectomized && !hasTpa) ? 'Occluded (Thrombus)' : 'Patent (Revascularized)',
         'Anterior Communicating (ACom)': (hasAneurysm && !isCoiled) ? 'Saccular Aneurysm' : (isCoiled ? 'Coiled & Occluded' : 'Normal Patent'),
       },
-      clinicalAdvisory: isHighIcp
-          ? 'Intracranial hypertension detected. Monitor CPP and consider osmotherapy.'
-          : 'Intracranial pressures within compensatory range.',
+      clinicalAdvisory: advisory,
     );
   }
 

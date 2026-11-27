@@ -69,7 +69,8 @@ enum OscilloscopeRhythmType {
   vtach('vtach', 'Ventricular Tachycardia (VT)', 'V-TACH', 165, 72, 46, 86, 22, 'Monomorphic wide-complex VT (>120 ms); emergency cardioversion/defib.'),
   torsades('torsades', 'Torsades de Pointes (TdP)', 'TORSADES', 210, 52, 32, 76, 16, 'Polymorphic VT with twisting axis and prolonged QTc; IV Magnesium 2g.'),
   vfib('vfib', 'Ventricular Fibrillation (VF)', 'V-FIB', 0, 15, 14, 0, 7, 'Chaotic fibrillatory waves with no cardiac output; deliver 200J Biphasic Defibrillation!'),
-  asystole('asystole', 'Ventricular Standstill (Asystole)', 'ASYSTOLE', 0, 10, 10, 0, 4, 'Cardiac arrest flatline; high-quality CPR, IV Epinephrine 1mg q3-5min.');
+  asystole('asystole', 'Ventricular Standstill (Asystole)', 'ASYSTOLE', 0, 10, 10, 0, 4, 'Cardiac arrest flatline; high-quality CPR, IV Epinephrine 1mg q3-5min.'),
+  lbbb('lbbb', 'Left Bundle Branch Block (LBBB)', 'LBBB', 75, 118, 76, 98, 38, 'Broad notched R-wave (>120 ms) in I, aVL, V5-V6, deep QS in V1-V3 with secondary discordant ST-T changes. Sgarbossa criteria required for STEMI diagnosis.');
 
   final String id;
   final String label;
@@ -191,9 +192,11 @@ class ComputationalHemodynamicsEngine {
     required bool iabpActive,
     required AcuteComplicationState complication,
     required CoronaryDominance dominance,
+    bool hasTandemStenosis = false,
+    bool isDistalStented = false,
     int sampleCount = 100,
   }) {
-    return '${scenario.id}_${bpm.toStringAsFixed(1)}_${catheter.name}_${wire.name}_${isHyperemic}_${isRevascularized}_${isRotablated}_${iabpActive}_${complication.name}_${dominance.name}_$sampleCount';
+    return '${scenario.id}_${bpm.toStringAsFixed(1)}_${catheter.name}_${wire.name}_${isHyperemic}_${isRevascularized}_${isRotablated}_${iabpActive}_${complication.name}_${dominance.name}_${hasTandemStenosis}_${isDistalStented}_$sampleCount';
   }
 
   static CoronaryPhysiologyResult solve({
@@ -207,6 +210,8 @@ class ComputationalHemodynamicsEngine {
     required bool iabpActive,
     required AcuteComplicationState complication,
     required CoronaryDominance dominance,
+    bool hasTandemStenosis = false,
+    bool isDistalStented = false,
     int sampleCount = 100,
   }) {
     final key = _buildHemoKey(
@@ -220,6 +225,8 @@ class ComputationalHemodynamicsEngine {
       iabpActive: iabpActive,
       complication: complication,
       dominance: dominance,
+      hasTandemStenosis: hasTandemStenosis,
+      isDistalStented: isDistalStented,
       sampleCount: sampleCount,
     );
 
@@ -237,6 +244,8 @@ class ComputationalHemodynamicsEngine {
       iabpActive: iabpActive,
       complication: complication,
       dominance: dominance,
+      hasTandemStenosis: hasTandemStenosis,
+      isDistalStented: isDistalStented,
       sampleCount: sampleCount,
     );
 
@@ -258,6 +267,8 @@ class ComputationalHemodynamicsEngine {
     required bool iabpActive,
     required AcuteComplicationState complication,
     required CoronaryDominance dominance,
+    bool hasTandemStenosis = false,
+    bool isDistalStented = false,
     int sampleCount = 100,
   }) {
     final beatDuration = 60.0 / bpm;
@@ -286,7 +297,12 @@ class ComputationalHemodynamicsEngine {
     const lengthM = 0.015; // 15 mm lesion
 
     double qMean = (75.0 * 1e-6 / 60.0); // m³/s
-    if (isHyperemic) qMean *= 3.2; // Hyperemia CFR
+    if (isHyperemic) {
+      // Serial/tandem stenosis crosstalk: distal lesion blunts hyperemic flow (q * 0.65)
+      // Stenting distal restores full hyperemic flow and unmasks true proximal ischemia
+      final hyperemicMultiplier = (hasTandemStenosis && !isDistalStented) ? 2.08 : 3.2;
+      qMean *= hyperemicMultiplier;
+    }
     if (isNoReflow) qMean *= 0.22;
 
     const kv = 32.0;
@@ -325,12 +341,17 @@ class ComputationalHemodynamicsEngine {
       // Wave-free period for iFR (mid-to-late diastole)
       final isWfp = phi >= 0.52 && phi <= 0.94;
 
-      // Aortic pressure synthesis
+      // Aortic / Catheter pressure synthesis
       double pa;
       if (isVentricularized) {
-        pa = (phi < 0.30)
-            ? 15.0 + (sbp - 25.0) * math.sin(phi / 0.30 * math.pi)
-            : 15.0 + 10.0 * math.exp(-(phi - 0.30) * 4.0);
+        // True ostial ventricularization: steep diastolic plunge to LVEDP (~16 mmHg), loss of dicrotic notch
+        const lvedp = 16.0;
+        if (phi < 0.28) {
+          pa = lvedp + (sbp - lvedp) * math.sin(phi / 0.28 * math.pi);
+        } else {
+          final tDiast = (phi - 0.28) / 0.72;
+          pa = lvedp + 8.0 * math.exp(-tDiast * 5.0);
+        }
       } else if (phi < systoleFraction) {
         final tau = phi / systoleFraction;
         pa = dbp + (sbp - dbp) * math.sin(tau * math.pi * 0.85);
@@ -440,11 +461,17 @@ class ComputationalHemodynamicsEngine {
     } else if (isNoReflow) {
       rec = 'ALERT: No-Reflow Phenomenon. Administer intracoronary Adenosine (100-200 mcg) or Nitroprusside.';
     } else if (isVentricularized) {
-      rec = 'WARNING: Ostial Ventricularization (Catheter Damping). Disengage guide immediately to prevent dissection.';
+      rec = 'WARNING: Ostial Ventricularization (Catheter Damping). Steep diastolic dip to LVEDP (~16 mmHg) and lost dicrotic notch. Disengage guide immediately.';
+    } else if (hasTandemStenosis && !isDistalStented) {
+      rec = 'TANDEM STENOSIS CROSSTALK: Distal lesion blunts hyperemic flow (q_hyperemic x 0.65), falsely underestimating proximal lesion severity (FFR ${ffr.toStringAsFixed(2)}). Stent distal or perform FFR pullback.';
+    } else if (hasTandemStenosis && isDistalStented && (ffr <= 0.80 || ifr <= 0.89)) {
+      rec = 'POST-DISTAL STENTING UNMASKED: Hyperemic flow restored. True proximal ischemia unmasked with FFR = ${ffr.toStringAsFixed(2)} (<= 0.80). Stenting of proximal lesion now indicated.';
     } else if (isRevascularized) {
       rec = 'POST-PCI SUCCESS: TIMI 3 restored. Target FFR achieved (${ffr.toStringAsFixed(2)} > 0.90).';
     } else if (scenario.id.contains('critical') && !isRotablated) {
       rec = 'HEAVY CALCIFICATION (>180° arc): Perform Rotational Atherectomy (Rotablator 160,000 RPM) prior to stenting.';
+    } else if (dominance == CoronaryDominance.leftDominant && (scenario.id.contains('inferior') || scenario.id.contains('lcx'))) {
+      rec = 'LEFT DOMINANT CORONARY ANATOMY: PDA and AV nodal artery originate from LCx. Culprit LCx occlusion precipitates inferolateral STEMI with AV nodal conduction block. FFR = ${ffr.toStringAsFixed(2)}.';
     } else if (ffr <= 0.80 || ifr <= 0.89) {
       rec = 'HEMODYNAMICALLY SIGNIFICANT ISCHEMIA: FFR = ${ffr.toStringAsFixed(2)} (<= 0.80), iFR = ${ifr.toStringAsFixed(2)} (<= 0.89). Revascularization with DES Stent indicated.';
     } else {

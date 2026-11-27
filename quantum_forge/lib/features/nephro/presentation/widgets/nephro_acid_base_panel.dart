@@ -281,6 +281,48 @@ class _NephroAcidBasePanelState extends State<NephroAcidBasePanel> {
                   'Δ/Δ = (Corrected AG - 12) / (24 - HCO₃⁻)',
                   style: const TextStyle(fontSize: 8.5, color: Color(0xFF64748B)),
                 ),
+
+                const Divider(height: 14, color: Color(0xFF1E293B)),
+
+                // 4. Serum Osmolar Gap
+                Row(
+                  children: [
+                    const Icon(Icons.science_rounded, size: 14, color: Color(0xFF38BDF8)),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        'Serum Osmolar Gap: ${v.osmolarGap.toStringAsFixed(1)} mOsm/kg (Calc: ${v.calculatedOsmolality.round()} | Meas: ${v.measuredOsmolality.round()})',
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 10.5,
+                          fontWeight: FontWeight.bold,
+                          color: v.isElevatedOsmolarGap ? const Color(0xFFFF5252) : const Color(0xFF00E676),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      v.isElevatedOsmolarGap ? 'ELEVATED (>10)' : 'NORMAL GAP (<10)',
+                      style: TextStyle(
+                        fontSize: 8.5,
+                        fontWeight: FontWeight.bold,
+                        color: v.isElevatedOsmolarGap ? const Color(0xFFFF5252) : const Color(0xFF00E676),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Calc Osm = 2×Na⁺ + Glucose/18 + BUN/2.8 = ${v.calculatedOsmolality.toStringAsFixed(1)} mOsm/kg',
+                  style: const TextStyle(fontSize: 8.5, color: Color(0xFF64748B)),
+                ),
+                if (v.isElevatedOsmolarGap) ...[
+                  const SizedBox(height: 4),
+                  const Text(
+                    '⚠️ Elevated Osmolar Gap > 10 mOsm/kg: Strongly suggests unmeasured osmotically active toxin (Ethylene Glycol, Methanol, Propylene Glycol). Administer Fomepizole stat.',
+                    style: TextStyle(fontSize: 8.5, color: Color(0xFFFFB300), fontWeight: FontWeight.w600),
+                  ),
+                ],
               ],
             ),
           ),

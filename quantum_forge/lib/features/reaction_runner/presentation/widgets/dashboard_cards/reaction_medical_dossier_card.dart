@@ -1048,8 +1048,12 @@ class _ReactionMedicalDossierCardState extends State<ReactionMedicalDossierCard>
 
   Widget _buildQuantumTsTab(dynamic palette, MedicinePharmacologyProfile p) {
     const purpleColor = Color(0xFF7C4DFF);
+    final isNonCovalent = p.engagementType == TargetEngagementType.nonCovalentReceptorBinding;
 
-    final residues = p.catalyticResidues
+    final rawResidues = isNonCovalent
+        ? (p.activeSitePocketResidues ?? p.catalyticResidues)
+        : p.catalyticResidues;
+    final residues = rawResidues
         .split(RegExp(r'[,;]\s*'))
         .map((s) => s.trim())
         .where((s) => s.isNotEmpty)
@@ -1058,10 +1062,15 @@ class _ReactionMedicalDossierCardState extends State<ReactionMedicalDossierCard>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _sectionLabel('5. Quantum Reaction, Activation Barrier & Active Site', Icons.science_rounded),
+        _sectionLabel(
+          isNonCovalent
+              ? '5. Non-Covalent Target Engagement, Pocket Binding & Henderson-Hasselbalch'
+              : '5. Quantum Reaction, Activation Barrier & Active Site',
+          Icons.science_rounded,
+        ),
         const SizedBox(height: 10),
 
-        // Activation barrier card
+        // Energy / Binding affinity card
         Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
@@ -1077,20 +1086,30 @@ class _ReactionMedicalDossierCardState extends State<ReactionMedicalDossierCard>
                   color: purpleColor.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Icon(Icons.bolt_rounded, color: purpleColor, size: 22),
+                child: Icon(
+                  isNonCovalent ? Icons.auto_awesome_rounded : Icons.bolt_rounded,
+                  color: purpleColor,
+                  size: 22,
+                ),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Activation Barrier (Ea)',
-                      style: TextStyle(color: purpleColor, fontSize: 11, fontWeight: FontWeight.bold),
+                    Text(
+                      isNonCovalent
+                          ? 'Target Binding Free Energy (ΔG_bind)'
+                          : 'Activation Barrier (Ea)',
+                      style: const TextStyle(color: purpleColor, fontSize: 11, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      '${p.activationBarrierKcalMol.toStringAsFixed(1)} kcal/mol',
+                      isNonCovalent
+                          ? (p.bindingFreeEnergyDeltaGKcalMol != null
+                              ? '${p.bindingFreeEnergyDeltaGKcalMol!.toStringAsFixed(1)} kcal/mol'
+                              : '-11.8 kcal/mol')
+                          : '${p.activationBarrierKcalMol.toStringAsFixed(1)} kcal/mol',
                       style: TextStyle(
                         color: palette.textPrimary,
                         fontSize: 16,
@@ -1098,6 +1117,13 @@ class _ReactionMedicalDossierCardState extends State<ReactionMedicalDossierCard>
                         fontFamily: 'monospace',
                       ),
                     ),
+                    if (isNonCovalent && p.bindingAffinityKiOrIc50 != null) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        'Affinity: ${p.bindingAffinityKiOrIc50}',
+                        style: const TextStyle(color: Color(0xFF38BDF8), fontSize: 10, fontFamily: 'monospace'),
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -1106,14 +1132,9 @@ class _ReactionMedicalDossierCardState extends State<ReactionMedicalDossierCard>
                 runSpacing: 4,
                 children: [
                   _buildCitationChip(
-                    type: 'DOI',
-                    id: '10.1021/jp308253s',
-                    label: 'Xu et al. J. Phys. Chem. B 2012 (DFT B3LYP/6-31G* TS Barrier)',
-                  ),
-                  _buildCitationChip(
-                    type: 'PMID',
-                    id: '23075253',
-                    label: 'Xu et al. J. Phys. Chem. B 2012',
+                    type: isNonCovalent ? 'PDB' : 'DOI',
+                    id: isNonCovalent ? (p.pdbAccession.isNotEmpty ? p.pdbAccession : '6AWO') : '10.1021/jp308253s',
+                    label: isNonCovalent ? 'RCSB PDB Pocket Structure' : 'Xu et al. J. Phys. Chem. B 2012',
                   ),
                 ],
               ),
@@ -1123,23 +1144,74 @@ class _ReactionMedicalDossierCardState extends State<ReactionMedicalDossierCard>
 
         const SizedBox(height: 14),
 
-        // Reaction Coordinate Energy Diagram
-        ReactionCoordinateEnergyDiagram(palette: palette, eaKcalMol: p.activationBarrierKcalMol),
+        // Ionization state & salt form card for non-covalent, or Energy diagram for covalent
+        if (isNonCovalent) ...[
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: const Color(0xFF0F172A),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: const Color(0xFF334155)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    const Icon(Icons.water_drop_rounded, size: 16, color: Color(0xFF38BDF8)),
+                    const SizedBox(width: 8),
+                    const Text(
+                      'Henderson-Hasselbalch Plasma pH 7.4 Ionization State',
+                      style: TextStyle(color: Color(0xFF38BDF8), fontSize: 11, fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'pKa: ${p.pKa?.toStringAsFixed(1) ?? "9.4"}',
+                      style: TextStyle(color: palette.textPrimary, fontSize: 12, fontFamily: 'monospace'),
+                    ),
+                    Text(
+                      'Ionized @ pH 7.4: ${p.ionizedFractionAtPh74 != null ? "${p.ionizedFractionAtPh74!.toStringAsFixed(1)}%" : ">98%"}',
+                      style: const TextStyle(color: Color(0xFF4ADE80), fontSize: 12, fontFamily: 'monospace', fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                ),
+                if (p.pharmaceuticalSaltForm != null) ...[
+                  const SizedBox(height: 6),
+                  Text(
+                    'Salt Form: ${p.pharmaceuticalSaltForm}',
+                    style: const TextStyle(color: Colors.white70, fontSize: 11),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ] else ...[
+          // Reaction Coordinate Energy Diagram
+          ReactionCoordinateEnergyDiagram(palette: palette, eaKcalMol: p.activationBarrierKcalMol),
+        ],
 
         const SizedBox(height: 14),
 
         // Active site residues chips
-        _sectionLabel('Catalytic Active-Site Residues', Icons.scatter_plot_rounded),
+        _sectionLabel(
+          isNonCovalent ? 'Active-Site Pocket Binding Residues' : 'Catalytic Active-Site Residues',
+          Icons.scatter_plot_rounded,
+        ),
         const SizedBox(height: 8),
         Wrap(
           spacing: 8,
           runSpacing: 8,
           children: residues.map((res) {
             return Tooltip(
-              message: 'Inspect $res in active site cavity on RCSB PDB (1PTH)',
+              message: 'Inspect $res in binding pocket on RCSB PDB',
               child: InkWell(
                 borderRadius: BorderRadius.circular(6),
-                onTap: () => UrlService.launch('https://www.rcsb.org/structure/1PTH'),
+                onTap: () => UrlService.launch('https://www.rcsb.org/structure/${p.pdbAccession.isNotEmpty ? p.pdbAccession : "1PTH"}'),
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                   decoration: BoxDecoration(

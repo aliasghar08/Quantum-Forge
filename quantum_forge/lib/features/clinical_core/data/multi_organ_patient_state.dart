@@ -210,10 +210,46 @@ class MultiOrganPatientState extends ChangeNotifier {
   /// Renal to Cardio/Neuro Cascades (Hyperkalemia arrhythmogenesis)
   void _cascadeFromNephro() {
     final k = nephroVitals.potassiumMeqL;
-    if (k >= 6.8) {
-      // Severe hyperkalemia triggers wide-complex rhythm & bradycardia in heart
+    if (k >= 7.5) {
+      // Severe life-threatening hyperkalemia: widened QRS / sine-wave pattern & severe bradycardia
       cardiacVitals.applyRhythmOverride(OscilloscopeRhythmType.hyperkalemia);
+      cardiacVitals.setHeartRate(42.0);
+    } else if (k >= 6.5) {
+      // Moderate-to-severe hyperkalemia: PR prolongation, flattened P wave, widened QRS
+      cardiacVitals.applyRhythmOverride(OscilloscopeRhythmType.hyperkalemia);
+      cardiacVitals.setHeartRate(54.0);
+    } else if (k >= 5.5) {
+      // Mild hyperkalemia: tall peaked tented T-waves
+      cardiacVitals.applyRhythmOverride(OscilloscopeRhythmType.hyperkalemia);
+    } else if (cardiacVitals.targetRhythm == OscilloscopeRhythmType.hyperkalemia && k < 5.2) {
+      cardiacVitals.applyRhythmOverride(OscilloscopeRhythmType.nsr);
     }
+  }
+
+  /// Emergency Hyperkalemia Interventions
+  void administerCalciumGluconate() {
+    // 1. Membrane Stabilization:
+    // Antagonizes hyperkalemic cardiac myocyte membrane excitability without lowering serum K+.
+    cardiacVitals.applyRhythmOverride(OscilloscopeRhythmType.nsr);
+    notifyListeners();
+  }
+
+  void administerInsulinAndGlucose() {
+    // 2. Intracellular Shift:
+    // Regular Insulin + D50W activates Na+/K+-ATPase, shifting potassium into cells (drops serum K by ~1.0-1.2 mEq/L).
+    final currentK = nephroVitals.potassiumMeqL;
+    final shiftedK = math.max(3.8, currentK - 1.2);
+    nephroVitals.setManualValues(potassium: shiftedK);
+    _cascadeFromNephro();
+    notifyListeners();
+  }
+
+  void administerDialysisOrLokelma() {
+    // 3. Total Body Elimination:
+    // Hemodialysis or oral potassium binder (Sodium Zirconium Cyclosilicate / Lokelma) eliminates K+ from body.
+    nephroVitals.setManualValues(potassium: 4.2);
+    _cascadeFromNephro();
+    notifyListeners();
   }
 
   /// Pulmonary to Cardio, Neuro, and Renal Cascades
