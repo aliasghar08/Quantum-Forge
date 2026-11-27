@@ -9,6 +9,7 @@ class ReactionLibraryMobileView extends StatelessWidget {
   final ReactionCategory? selectedCategory;
   final ValueChanged<ReactionCategory?> onCategorySelected;
   final VoidCallback onAddReaction;
+  final VoidCallback? onAddMedication;
   final VoidCallback onAutoGenerate;
   final VoidCallback onSyncFirebase;
   final List<ReactionTemplate> reactions;
@@ -23,6 +24,7 @@ class ReactionLibraryMobileView extends StatelessWidget {
     required this.selectedCategory,
     required this.onCategorySelected,
     required this.onAddReaction,
+    this.onAddMedication,
     required this.onAutoGenerate,
     required this.onSyncFirebase,
     required this.reactions,
@@ -131,6 +133,22 @@ class ReactionLibraryMobileView extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 8),
+                if (onAddMedication != null) ...[
+                  ElevatedButton.icon(
+                    onPressed: onAddMedication,
+                    icon: const Icon(Icons.medication_liquid_outlined, size: 15),
+                    label: const Text('Add Med', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF00E676),
+                      foregroundColor: Colors.black,
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                      minimumSize: Size.zero,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                ],
                 // Compact Primary Action
                 ElevatedButton.icon(
                   onPressed: onAddReaction,

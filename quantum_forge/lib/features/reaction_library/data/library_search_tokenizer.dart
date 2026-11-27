@@ -474,6 +474,8 @@ Map<String, dynamic> buildFirestorePayload(ReactionTemplate template) {
   base['is_pharm_d'] = isPharmD;
   base['is_dvm'] = isDvm;
   base['is_polymer'] = isPolymer;
+  base['is_derived'] = template.isDerived;
+  base['reference_ea'] = template.referenceEa;
   base['specialty'] = template.subfield.toLowerCase().replaceAll(' ', '_');
 
   return base;

@@ -82,6 +82,25 @@ def build_catalog(model: Optional[PharmaChemBiEncoder] = None):
                     records.append(item)
                     seen_ids.add(item["id"])
 
+    # 4. Everyday Prescribed Medicine Registry (/medications)
+    try:
+        from pipelines.medications.medicine_harvester import EVERYDAY_MEDICINE_REGISTRY
+        for drug_key, data in EVERYDAY_MEDICINE_REGISTRY.items():
+            doc_id = f"rx_med_{data['inn']}"
+            if doc_id not in seen_ids:
+                records.append({
+                    "id": doc_id,
+                    "name": f"{data['generic_name']} ({data['molecular_target'].split('(')[0].strip()})",
+                    "category": "pharmaceutical",
+                    "description": data.get("indications", ""),
+                    "tags": data.get("tags", []),
+                    "doi": data.get("primary_doi", ""),
+                    "citation_count": 125,
+                })
+                seen_ids.add(doc_id)
+    except Exception as exc:
+        logger.warning("Could not load EVERYDAY_MEDICINE_REGISTRY: %s", exc)
+
     logger.info("Loaded %d unique records for semantic catalog.", len(records))
 
     ids = []

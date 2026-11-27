@@ -202,7 +202,20 @@ class FirestoreReactionRepository implements ReactionRepository {
         query = query.where('category', isEqualTo: categoryName);
       }
       final AggregateQuerySnapshot snapshot = await query.count().get();
-      return snapshot.count ?? 0;
+      int total = snapshot.count ?? 0;
+
+      if (categoryName == null || categoryName.isEmpty || categoryName == 'pharmaceutical') {
+        try {
+          Query<Map<String, dynamic>> medQ = _firestore.collection('medications');
+          if (categoryName != null && categoryName.isNotEmpty) {
+            medQ = medQ.where('category', isEqualTo: categoryName);
+          }
+          final medSnap = await medQ.count().get();
+          total += (medSnap.count ?? 0);
+        } catch (_) {}
+      }
+
+      return total;
     } catch (_) {
       return 0;
     }

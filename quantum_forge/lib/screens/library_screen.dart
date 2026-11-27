@@ -10,6 +10,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:quantum_forge/core/performance/adaptive_quality_governor.dart';
 import 'package:quantum_forge/core/theme/theme_provider.dart';
+import 'package:quantum_forge/features/pharmacopeia/data/medicine_pharmacology_profile.dart';
 import 'package:quantum_forge/features/reaction_library/data/reaction_templates.dart';
 import 'package:quantum_forge/features/reaction_library/data/reaction_template_generator.dart';
 import 'package:quantum_forge/features/reaction_library/presentation/widgets/library_header.dart';
@@ -1201,6 +1202,372 @@ class _LibraryScreenState extends State<LibraryScreen> {
     );
   }
 
+  void _showAddMedicationDialog() {
+    final genericCtrl = TextEditingController();
+    final brandsCtrl = TextEditingController();
+    final targetCtrl = TextEditingController();
+    final indicationsCtrl = TextEditingController();
+    final doiCtrl = TextEditingController();
+    final pmidCtrl = TextEditingController();
+    final reactantCtrl = TextEditingController();
+    final productCtrl = TextEditingController();
+    final tagsCtrl = TextEditingController(text: 'Pharm-D, MBBS, Clinical-Pharmacopeia');
+    var selectedCat = ReactionCategory.pharmaceutical;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDlgState) => AlertDialog(
+          backgroundColor: const Color(0xFF161B22),
+          title: const Row(
+            children: [
+              Icon(Icons.medication_liquid_outlined, color: Color(0xFF00E676)),
+              SizedBox(width: 8),
+              Text(
+                'Add Medication to /medications',
+                style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+          content: SingleChildScrollView(
+            child: SizedBox(
+              width: 520,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Contribute a doctor-prescribed clinical or veterinary drug to the dedicated /medications collection.',
+                    style: TextStyle(color: Colors.white60, fontSize: 13),
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: genericCtrl,
+                    style: const TextStyle(color: Colors.white),
+                    decoration: const InputDecoration(
+                      labelText: 'Generic Drug Name *',
+                      labelStyle: TextStyle(color: Colors.white70),
+                      hintText: 'e.g. Semaglutide, Metoprolol, Quetiapine',
+                      hintStyle: TextStyle(color: Colors.white30),
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: brandsCtrl,
+                    style: const TextStyle(color: Colors.white),
+                    decoration: const InputDecoration(
+                      labelText: 'Brand Names (comma-separated)',
+                      labelStyle: TextStyle(color: Colors.white70),
+                      hintText: 'e.g. Ozempic, Wegovy, Rybelsus',
+                      hintStyle: TextStyle(color: Colors.white30),
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: targetCtrl,
+                    style: const TextStyle(color: Colors.white),
+                    decoration: const InputDecoration(
+                      labelText: 'Molecular Target & PDB ID *',
+                      labelStyle: TextStyle(color: Colors.white70),
+                      hintText: 'e.g. GLP-1 Receptor (PDB: 7KI0)',
+                      hintStyle: TextStyle(color: Colors.white30),
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  DropdownButtonFormField<ReactionCategory>(
+                    initialValue: selectedCat,
+                    dropdownColor: const Color(0xFF21262D),
+                    style: const TextStyle(color: Colors.white),
+                    decoration: const InputDecoration(
+                      labelText: 'Curriculum & Specialty *',
+                      labelStyle: TextStyle(color: Colors.white70),
+                      border: OutlineInputBorder(),
+                    ),
+                    items: const [
+                      DropdownMenuItem(
+                        value: ReactionCategory.pharmaceutical,
+                        child: Text('💊 Pharm-D (Pharmaceutical Chemistry)'),
+                      ),
+                      DropdownMenuItem(
+                        value: ReactionCategory.biochemical,
+                        child: Text('🩺 MBBS (Clinical Biochemistry & Pharmacology)'),
+                      ),
+                      DropdownMenuItem(
+                        value: ReactionCategory.veterinary,
+                        child: Text('🐾 DVM (Veterinary Medicine)'),
+                      ),
+                    ],
+                    onChanged: (val) {
+                      if (val != null) setDlgState(() => selectedCat = val);
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: doiCtrl,
+                          style: const TextStyle(color: Colors.white),
+                          decoration: const InputDecoration(
+                            labelText: 'DOI',
+                            labelStyle: TextStyle(color: Colors.white70),
+                            hintText: 'e.g. 10.1016/j.cell.2021.03.008',
+                            hintStyle: TextStyle(color: Colors.white30),
+                            border: OutlineInputBorder(),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: TextField(
+                          controller: pmidCtrl,
+                          style: const TextStyle(color: Colors.white),
+                          decoration: const InputDecoration(
+                            labelText: 'PMID',
+                            labelStyle: TextStyle(color: Colors.white70),
+                            hintText: 'e.g. 33831374',
+                            hintStyle: TextStyle(color: Colors.white30),
+                            border: OutlineInputBorder(),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: indicationsCtrl,
+                    maxLines: 3,
+                    style: const TextStyle(color: Colors.white),
+                    decoration: const InputDecoration(
+                      labelText: 'Clinical Indications & Mechanism of Action *',
+                      labelStyle: TextStyle(color: Colors.white70),
+                      hintText: 'Approved indications, receptor selectivity, clinical staging…',
+                      hintStyle: TextStyle(color: Colors.white30),
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: reactantCtrl,
+                    maxLines: 2,
+                    style: const TextStyle(color: Colors.white, fontFamily: 'monospace'),
+                    decoration: const InputDecoration(
+                      labelText: 'Reactant XYZ Coordinates',
+                      labelStyle: TextStyle(color: Colors.white70),
+                      hintText: 'Paste XYZ block or leave blank for default…',
+                      hintStyle: TextStyle(color: Colors.white30),
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: productCtrl,
+                    maxLines: 2,
+                    style: const TextStyle(color: Colors.white, fontFamily: 'monospace'),
+                    decoration: const InputDecoration(
+                      labelText: 'Product XYZ Coordinates',
+                      labelStyle: TextStyle(color: Colors.white70),
+                      hintText: 'Paste XYZ block or leave blank for default…',
+                      hintStyle: TextStyle(color: Colors.white30),
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: tagsCtrl,
+                    style: const TextStyle(color: Colors.white),
+                    decoration: const InputDecoration(
+                      labelText: 'Tags (comma-separated)',
+                      labelStyle: TextStyle(color: Colors.white70),
+                      hintText: 'Pharm-D, MBBS, Cardiology, Verified-DOI',
+                      hintStyle: TextStyle(color: Colors.white30),
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: const Text('Cancel', style: TextStyle(color: Colors.white60)),
+            ),
+            FilledButton.icon(
+              icon: const Icon(Icons.cloud_upload_outlined, size: 16),
+              label: const Text('Save to /medications'),
+              style: FilledButton.styleFrom(
+                backgroundColor: const Color(0xFF00E676),
+                foregroundColor: Colors.black,
+              ),
+              onPressed: () async {
+                final genericName = genericCtrl.text.trim();
+                if (genericName.isEmpty) return;
+                Navigator.of(ctx).pop();
+
+                final slug = ReactionTemplate.toSlug(genericName);
+                final docId = 'rx_med_$slug';
+                final brands = brandsCtrl.text
+                    .split(',')
+                    .map((s) => s.trim())
+                    .where((s) => s.isNotEmpty)
+                    .toList();
+                final tags = tagsCtrl.text
+                    .split(',')
+                    .map((s) => s.trim())
+                    .where((s) => s.isNotEmpty)
+                    .toList();
+
+                final target = targetCtrl.text.trim().isNotEmpty
+                    ? targetCtrl.text.trim()
+                    : 'Target Receptor';
+                final indications = indicationsCtrl.text.trim().isNotEmpty
+                    ? indicationsCtrl.text.trim()
+                    : 'Clinical pharmacology indications';
+                final doi = doiCtrl.text.trim();
+                final pmid = pmidCtrl.text.trim();
+
+                final verifiedSources = <DossierSourceProvenance>[
+                  if (pmid.isNotEmpty)
+                    DossierSourceProvenance(
+                      id: 'src_pmid_$pmid',
+                      title: '$genericName Pharmacology Index',
+                      journalOrSource: 'NCBI PubMed',
+                      pmid: pmid,
+                      url: 'https://pubmed.ncbi.nlm.nih.gov/$pmid/',
+                      repositoryType: VerifiedRepositoryType.pubmed,
+                      authorityTier: AuthorityTier.tier1RegulatoryPeerReviewed,
+                      publicationYear: 2022,
+                      isPeerReviewed: true,
+                      retrievedAt: DateTime.now(),
+                      semanticMatchHash: 'tok_${pmid.hashCode.abs()}',
+                    ),
+                  if (doi.isNotEmpty)
+                    DossierSourceProvenance(
+                      id: 'src_doi_${doi.replaceAll("/", "_")}',
+                      title: '$genericName Primary Literature',
+                      journalOrSource: 'Peer-Reviewed Literature',
+                      doi: doi,
+                      url: 'https://doi.org/$doi',
+                      repositoryType: VerifiedRepositoryType.crossref,
+                      authorityTier: AuthorityTier.tier1RegulatoryPeerReviewed,
+                      publicationYear: 2021,
+                      isPeerReviewed: true,
+                      retrievedAt: DateTime.now(),
+                      semanticMatchHash: 'tok_${doi.hashCode.abs()}',
+                    ),
+                ];
+
+                final profile = MedicinePharmacologyProfile(
+                  id: docId,
+                  genericName: genericName,
+                  iupacName: genericName,
+                  brandNames: brands,
+                  targetDisciplines: [
+                    if (selectedCat == ReactionCategory.pharmaceutical) TargetDiscipline.pharmD,
+                    if (selectedCat == ReactionCategory.biochemical) TargetDiscipline.mbbs,
+                    if (selectedCat == ReactionCategory.veterinary) TargetDiscipline.dvm,
+                  ],
+                  specialty: selectedCat == ReactionCategory.veterinary
+                      ? PharmacologicalSpecialty.veterinaryMedicine
+                      : PharmacologicalSpecialty.cardiology,
+                  chemicalClass: 'Prescription Drug',
+                  engagementType: TargetEngagementType.covalentMetabolicReaction,
+                  therapeuticIndications: indications,
+                  clinicalStaging: 'Guideline-directed medical therapy (GDMT)',
+                  sourceAndOrigin: 'Synthetic / Clinical Pharmacopeia',
+                  discoveryHistory: 'Curated medicinal chemistry portfolio',
+                  syntheticRoute: 'Multi-step organic synthesis',
+                  molecularTarget: target,
+                  pdbAccession: target.contains('PDB:')
+                      ? target.split('PDB:').last.replaceAll(')', '').trim()
+                      : '',
+                  modeOfAction: indications,
+                  downstreamSignaling: 'Signaling cascade & enzyme modulation',
+                  absorptionAndDistribution: 'Oral bioavailability with physiological distribution',
+                  metabolismAndElimination: 'Hepatic metabolism and renal clearance',
+                  eliminationHalfLifeHours: 6.0,
+                  comparativeSpeciesPharmacology: 'Extrapolated across mammalian species',
+                  transitionStateDescription: 'Enzymatic transition state',
+                  activationBarrierKcalMol: 15.0,
+                  catalyticResidues: 'Active site residues',
+                  associatedReactionId: docId,
+                  contraindications: 'Hypersensitivity to active compound',
+                  adverseEffectsAndToxicity: 'Dose-dependent adverse reactions',
+                  blackBoxWarning: 'Use under licensed clinical supervision',
+                  antidoteAndRescue: 'Supportive care and standard protocols',
+                  clinicalGuidelines: const ['Standard Clinical Practice Guidelines'],
+                  primaryDoi: doi,
+                  pubmedId: pmid,
+                  highYieldExamPearls: const [
+                    'High-yield clinical and pharmacology exam pearl'
+                  ],
+                  verifiedSources: verifiedSources,
+                );
+
+                final template = ReactionTemplate(
+                  id: docId,
+                  name: '$genericName ($target)',
+                  iupacName: genericName,
+                  description: indications,
+                  category: selectedCat,
+                  reactantXyz: reactantCtrl.text.trim().isNotEmpty
+                      ? reactantCtrl.text.trim()
+                      : '1\nAtoms\nC 0.0 0.0 0.0',
+                  productXyz: productCtrl.text.trim().isNotEmpty
+                      ? productCtrl.text.trim()
+                      : '1\nAtoms\nC 1.5 0.0 0.0',
+                  referenceEa: 15.0,
+                  doi: doi,
+                  journalRef: 'Verified Clinical Literature',
+                  tags: tags,
+                  isDerived: false,
+                  pharmacologyProfile: profile,
+                );
+
+                final saved = await _repo.saveMedication(template);
+                if (!mounted) return;
+                if (saved) {
+                  setState(() {
+                    _items.insert(0, template);
+                    if (_cloudCount != null && _cloudCount! >= 0) {
+                      _cloudCount = _cloudCount! + 1;
+                    }
+                    if (_cloudCategoryCounts != null) {
+                      _cloudCategoryCounts![null] =
+                          (_cloudCategoryCounts![null] ?? 0) + 1;
+                      _cloudCategoryCounts![template.category] =
+                          (_cloudCategoryCounts![template.category] ?? 0) + 1;
+                    }
+                  });
+                  _scheduleBackgroundCountSync();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                          'Saved "$genericName" to Firestore /medications!'),
+                      backgroundColor: const Color(0xFF00E676),
+                    ),
+                  );
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content:
+                          Text('Failed to save to /medications. Check connection.'),
+                      backgroundColor: Colors.redAccent,
+                    ),
+                  );
+                }
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   // ── Event handlers ─────────────────────────────────────────────────────────
 
   void _onSearchChanged(String value) {
@@ -1363,6 +1730,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
             onAutoGenerate: _showAutoGenerateDialog,
             onSyncMedical: _syncMedicalToFirebase,
             onAddReaction: _showAddReactionDialog,
+            onAddMedication: _showAddMedicationDialog,
           ),
           LibraryFilterBar(
             selectedCategory: _filterCategory,

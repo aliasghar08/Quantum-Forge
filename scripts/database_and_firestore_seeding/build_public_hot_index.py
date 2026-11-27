@@ -139,42 +139,44 @@ def fetch_verified_reactions_from_firestore(token: str, max_items: int = 25000) 
             }
             results.append(record)
 
-    # 1. First fetch all clinical everyday medicines (rx_med_*)
-    med_query = {
-        "from": [{"collectionId": "library"}],
-        "select": {"fields": select_fields},
-        "where": {
-            "compositeFilter": {
-                "op": "AND",
-                "filters": [
-                    {
-                        "fieldFilter": {
-                            "field": {"fieldPath": "__name__"},
-                            "op": "GREATER_THAN_OR_EQUAL",
-                            "value": {"referenceValue": f"projects/{PROJECT_ID}/databases/(default)/documents/library/rx_med_"},
-                        }
-                    },
-                    {
-                        "fieldFilter": {
-                            "field": {"fieldPath": "__name__"},
-                            "op": "LESS_THAN",
-                            "value": {"referenceValue": f"projects/{PROJECT_ID}/databases/(default)/documents/library/rx_med_\uffff"},
-                        }
-                    },
-                ],
+    # 1. First fetch all clinical everyday medicines from /medications (and /library fallback)
+    for col_id in ["medications", "library"]:
+        med_query = {
+            "from": [{"collectionId": col_id}],
+            "select": {"fields": select_fields},
+            "limit": 500,
+        }
+        if col_id == "library":
+            med_query["where"] = {
+                "compositeFilter": {
+                    "op": "AND",
+                    "filters": [
+                        {
+                            "fieldFilter": {
+                                "field": {"fieldPath": "__name__"},
+                                "op": "GREATER_THAN_OR_EQUAL",
+                                "value": {"referenceValue": f"projects/{PROJECT_ID}/databases/(default)/documents/library/rx_med_"},
+                            }
+                        },
+                        {
+                            "fieldFilter": {
+                                "field": {"fieldPath": "__name__"},
+                                "op": "LESS_THAN",
+                                "value": {"referenceValue": f"projects/{PROJECT_ID}/databases/(default)/documents/library/rx_med_\uffff"},
+                            }
+                        },
+                    ],
+                }
             }
-        },
-        "limit": 500,
-    }
-    try:
-        med_body = json.dumps({"structuredQuery": med_query}).encode("utf-8")
-        med_req = urllib.request.Request(url, data=med_body, headers=headers, method="POST")
-        with urllib.request.urlopen(med_req, timeout=30) as resp:
-            data = json.loads(resp.read().decode("utf-8"))
-            parse_docs(data)
-            logger.info("Pre-loaded %d clinical medicine records (rx_med_*).", len(results))
-    except Exception as exc:
-        logger.warning("Could not pre-fetch clinical medicines: %s", exc)
+        try:
+            med_body = json.dumps({"structuredQuery": med_query}).encode("utf-8")
+            med_req = urllib.request.Request(url, data=med_body, headers=headers, method="POST")
+            with urllib.request.urlopen(med_req, timeout=30) as resp:
+                data = json.loads(resp.read().decode("utf-8"))
+                parse_docs(data)
+                logger.info("Loaded records from /%s (total so far: %d).", col_id, len(results))
+        except Exception as exc:
+            logger.warning("Could not fetch records from /%s: %s", col_id, exc)
 
     # 2. General verified literature reactions query
     structured_query = {

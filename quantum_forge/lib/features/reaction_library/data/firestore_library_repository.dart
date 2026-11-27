@@ -41,7 +41,11 @@ class FirestoreLibraryRepository {
 
   FirebaseFirestore get _firestore => _injected ?? FirebaseFirestore.instance;
 
-  CollectionReference get _col => _firestore.collection('library');
+  static const String kLibraryCollection = 'library';
+  static const String kMedicationsCollection = 'medications';
+
+  CollectionReference get _col => _firestore.collection(kLibraryCollection);
+  CollectionReference get _medCol => _firestore.collection(kMedicationsCollection);
 
   // ── Page size ──────────────────────────────────────────────────────────────
 
@@ -150,6 +154,33 @@ class FirestoreLibraryRepository {
         : <ReactionTemplate>[];
 
     try {
+      final items = <ReactionTemplate>[];
+      final seen = <String>{};
+
+      // 1. Initial page federation: when unfiltered or medical categories, prepend /medications
+      final shouldFederateMedications = (after == null &&
+          (category == null ||
+              category == ReactionCategory.pharmaceutical ||
+              category == ReactionCategory.biochemical ||
+              category == ReactionCategory.veterinary));
+
+      if (shouldFederateMedications) {
+        try {
+          Query<Object?> medQ = _medCol.orderBy('name').limit(pageSize);
+          if (category != null) {
+            medQ = _medCol.where('category', isEqualTo: category.name).orderBy('name').limit(pageSize);
+          }
+          final medSnap = await medQ.get();
+          for (final d in medSnap.docs) {
+            if (seen.add(d.id)) {
+              items.add(ReactionTemplate.fromJson(d.data() as Map<String, dynamic>, d.id));
+            }
+          }
+        } catch (e) {
+          debugPrint('Error federating /medications in getPage: $e');
+        }
+      }
+
       Query<Object?> q = _col.orderBy('name').limit(pageSize);
       if (category != null) {
         q = _col
@@ -160,10 +191,11 @@ class FirestoreLibraryRepository {
       if (after != null) q = q.startAfterDocument(after);
 
       final snap = await q.get();
-      final items = snap.docs
-          .map((d) =>
-              ReactionTemplate.fromJson(d.data() as Map<String, dynamic>, d.id))
-          .toList();
+      for (final d in snap.docs) {
+        if (seen.add(d.id)) {
+          items.add(ReactionTemplate.fromJson(d.data() as Map<String, dynamic>, d.id));
+        }
+      }
 
       if (localCustom.isNotEmpty) {
         final existingIds = items.map((e) => e.id).toSet();
@@ -227,6 +259,17 @@ class FirestoreLibraryRepository {
         ];
         for (final cid in candidateIds) {
           try {
+            // Check /medications first
+            final medDoc = await _medCol.doc(cid).get();
+            if (medDoc.exists && medDoc.data() != null) {
+              if (seen.add(medDoc.id)) {
+                results.add(ReactionTemplate.fromJson(
+                    medDoc.data() as Map<String, dynamic>, medDoc.id));
+              }
+            }
+          } catch (_) {}
+          try {
+            // Check /library fallback
             final directDoc = await _col.doc(cid).get();
             if (directDoc.exists && directDoc.data() != null) {
               if (seen.add(directDoc.id)) {
@@ -317,7 +360,8 @@ class FirestoreLibraryRepository {
     } catch (_) {}
   }
 
-  Future<List<ReactionTemplate>> _executeLeg1Tokens({
+  Future<List<ReactionTemplate>> _queryTokensOnCollection(
+    CollectionReference col, {
     required List<String> queryTokens,
     ReactionCategory? category,
     bool? isMbbs,
@@ -328,7 +372,7 @@ class FirestoreLibraryRepository {
     int limit = pageSize,
   }) async {
     try {
-      Query<Object?> q = _col.where('search_tokens', arrayContainsAny: queryTokens.take(10).toList());
+      Query<Object?> q = col.where('search_tokens', arrayContainsAny: queryTokens.take(10).toList());
       if (category != null) q = q.where('category', isEqualTo: category.name);
       if (isMbbs == true) q = q.where('is_mbbs', isEqualTo: true);
       if (isPharmD == true) q = q.where('is_pharm_d', isEqualTo: true);
@@ -342,7 +386,7 @@ class FirestoreLibraryRepository {
       try {
         snap = await q.get();
       } catch (e) {
-        Query<Object?> fallbackQ = _col
+        Query<Object?> fallbackQ = col
             .where('search_tokens', arrayContainsAny: queryTokens.take(10).toList())
             .limit(limit);
         if (category != null) fallbackQ = fallbackQ.where('category', isEqualTo: category.name);
@@ -354,9 +398,61 @@ class FirestoreLibraryRepository {
           .map((d) => ReactionTemplate.fromJson(d.data() as Map<String, dynamic>, d.id))
           .toList();
     } catch (e) {
-      debugPrint('[Leg 1 Tokens error]: $e');
+      debugPrint('[Tokens query error on ${col.path}]: $e');
       return [];
     }
+  }
+
+  Future<List<ReactionTemplate>> _executeLeg1Tokens({
+    required List<String> queryTokens,
+    ReactionCategory? category,
+    bool? isMbbs,
+    bool? isPharmD,
+    bool? isDvm,
+    bool? isDerived,
+    DocumentSnapshot? after,
+    int limit = pageSize,
+  }) async {
+    final shouldFederate = (category == null ||
+        category == ReactionCategory.pharmaceutical ||
+        category == ReactionCategory.biochemical ||
+        category == ReactionCategory.veterinary);
+
+    final futures = <Future<List<ReactionTemplate>>>[
+      _queryTokensOnCollection(
+        _col,
+        queryTokens: queryTokens,
+        category: category,
+        isMbbs: isMbbs,
+        isPharmD: isPharmD,
+        isDvm: isDvm,
+        isDerived: isDerived,
+        after: after,
+        limit: limit,
+      ),
+      if (shouldFederate && after == null)
+        _queryTokensOnCollection(
+          _medCol,
+          queryTokens: queryTokens,
+          category: category,
+          isMbbs: isMbbs,
+          isPharmD: isPharmD,
+          isDvm: isDvm,
+          isDerived: isDerived,
+          after: null,
+          limit: limit,
+        ),
+    ];
+
+    final resultsList = await Future.wait(futures);
+    final combined = <ReactionTemplate>[];
+    final seen = <String>{};
+    for (final list in resultsList) {
+      for (final t in list) {
+        if (seen.add(t.id)) combined.add(t);
+      }
+    }
+    return combined;
   }
 
   Future<List<ReactionTemplate>> _executeLeg2Prefix({
@@ -366,18 +462,42 @@ class FirestoreLibraryRepository {
   }) async {
     try {
       final lowerPrefix = cleanQuery.toLowerCase();
-      Query<Object?> q = _col
-          .where('name_lower', isGreaterThanOrEqualTo: lowerPrefix)
-          .where('name_lower', isLessThanOrEqualTo: '$lowerPrefix\uf8ff')
-          .limit(limit);
-      if (category != null) q = q.where('category', isEqualTo: category.name);
-      final snap = await q.get();
+      final shouldFederate = (category == null ||
+          category == ReactionCategory.pharmaceutical ||
+          category == ReactionCategory.biochemical ||
+          category == ReactionCategory.veterinary);
 
+      final futures = <Future<QuerySnapshot<Object?>>>[
+        (() {
+          Query<Object?> q = _col
+              .where('name_lower', isGreaterThanOrEqualTo: lowerPrefix)
+              .where('name_lower', isLessThanOrEqualTo: '$lowerPrefix\uf8ff')
+              .limit(limit);
+          if (category != null) q = q.where('category', isEqualTo: category.name);
+          return q.get();
+        })(),
+        if (shouldFederate)
+          (() {
+            Query<Object?> q = _medCol
+                .where('name_lower', isGreaterThanOrEqualTo: lowerPrefix)
+                .where('name_lower', isLessThanOrEqualTo: '$lowerPrefix\uf8ff')
+                .limit(limit);
+            if (category != null) q = q.where('category', isEqualTo: category.name);
+            return q.get();
+          })(),
+      ];
+
+      final snaps = await Future.wait(futures);
       final docs = <ReactionTemplate>[];
-      for (final d in snap.docs) {
-        final data = d.data() as Map<String, dynamic>;
-        _lazyReadRepair(d, data);
-        docs.add(ReactionTemplate.fromJson(data, d.id));
+      final seen = <String>{};
+      for (final snap in snaps) {
+        for (final d in snap.docs) {
+          if (seen.add(d.id)) {
+            final data = d.data() as Map<String, dynamic>;
+            _lazyReadRepair(d, data);
+            docs.add(ReactionTemplate.fromJson(data, d.id));
+          }
+        }
       }
       return docs;
     } catch (e) {
@@ -395,16 +515,36 @@ class FirestoreLibraryRepository {
       final words = extractQueryWords(cleanQuery, filterStopWords: true);
       if (words.isEmpty) return [];
       final firstTag = words.first;
+      final shouldFederate = (category == null ||
+          category == ReactionCategory.pharmaceutical ||
+          category == ReactionCategory.biochemical ||
+          category == ReactionCategory.veterinary);
 
-      Query<Object?> q = _col.where('tags', arrayContains: firstTag).limit(limit);
-      if (category != null) q = q.where('category', isEqualTo: category.name);
-      final snap = await q.get();
+      final futures = <Future<QuerySnapshot<Object?>>>[
+        (() {
+          Query<Object?> q = _col.where('tags', arrayContains: firstTag).limit(limit);
+          if (category != null) q = q.where('category', isEqualTo: category.name);
+          return q.get();
+        })(),
+        if (shouldFederate)
+          (() {
+            Query<Object?> q = _medCol.where('tags', arrayContains: firstTag).limit(limit);
+            if (category != null) q = q.where('category', isEqualTo: category.name);
+            return q.get();
+          })(),
+      ];
 
+      final snaps = await Future.wait(futures);
       final docs = <ReactionTemplate>[];
-      for (final d in snap.docs) {
-        final data = d.data() as Map<String, dynamic>;
-        _lazyReadRepair(d, data);
-        docs.add(ReactionTemplate.fromJson(data, d.id));
+      final seen = <String>{};
+      for (final snap in snaps) {
+        for (final d in snap.docs) {
+          if (seen.add(d.id)) {
+            final data = d.data() as Map<String, dynamic>;
+            _lazyReadRepair(d, data);
+            docs.add(ReactionTemplate.fromJson(data, d.id));
+          }
+        }
       }
       return docs;
     } catch (e) {
@@ -478,12 +618,18 @@ class FirestoreLibraryRepository {
 
   // ── Count ──────────────────────────────────────────────────────────────────
 
-  /// Total documents in the library collection via Firestore aggregation.
-  /// One read, zero documents downloaded.
+  /// Total documents across both /library and /medications collections via Firestore aggregation.
+  /// One read per collection, zero documents downloaded.
   Future<int> getTotalCount() async {
     try {
-      final result = await _col.count().get();
-      return result.count ?? 0;
+      final futures = [
+        _col.count().get(),
+        _medCol.count().get(),
+      ];
+      final results = await Future.wait(futures);
+      final c1 = results[0].count ?? 0;
+      final c2 = results[1].count ?? 0;
+      return c1 + c2;
     } catch (e) {
       debugPrint('FirestoreLibraryRepository.getTotalCount error: $e');
       return -1;
@@ -506,10 +652,13 @@ class FirestoreLibraryRepository {
       return Map<ReactionCategory?, int>.from(_cachedCategoryCounts!);
     }
 
-    // [0] — "All Reactions" total across the whole `library` collection.
-    final AggregateQuery totalQuery = _col.count();
-    final AggregateQuerySnapshot totalSnap = await totalQuery.get();
-    final int total = totalSnap.count ?? 0;
+    // [0] — Totals across `library` and `medications` collections.
+    final totalQuery = _col.count();
+    final medTotalQuery = _medCol.count();
+    final totalSnaps = await Future.wait([totalQuery.get(), medTotalQuery.get()]);
+    final int libTotal = totalSnaps[0].count ?? 0;
+    final int medTotal = totalSnaps[1].count ?? 0;
+    final int total = libTotal + medTotal;
 
     // [1..N] — aggregated in chunks of 10 to avoid HTTP/2 stream limits.
     final Map<ReactionCategory, int> perCategory = <ReactionCategory, int>{};
@@ -523,7 +672,13 @@ class FirestoreLibraryRepository {
               _col.where('category', isEqualTo: cat.name);
           final AggregateQuery agg = q.count();
           final AggregateQuerySnapshot snap = await agg.get();
-          perCategory[cat] = snap.count ?? 0;
+          int catCount = snap.count ?? 0;
+
+          // For pharmaceutical or medical categories, add counts from /medications
+          if (cat == ReactionCategory.pharmaceutical) {
+            catCount += medTotal;
+          }
+          perCategory[cat] = catCount;
         }),
       );
     }
@@ -541,7 +696,17 @@ class FirestoreLibraryRepository {
 
   /// Fetches a specific reaction template by document ID or URL slug.
   Future<ReactionTemplate?> getTemplateBySlugOrId(String slugOrId) async {
-    // 1. Try direct document lookup
+    // 1. Try direct document lookup (checking /medications first for rx_med_*)
+    final isMedId = slugOrId.startsWith('rx_med_');
+    if (isMedId) {
+      try {
+        final medDoc = await _medCol.doc(slugOrId).get();
+        if (medDoc.exists && medDoc.data() != null) {
+          return ReactionTemplate.fromJson(medDoc.data() as Map<String, dynamic>, medDoc.id);
+        }
+      } catch (_) {}
+    }
+
     try {
       final doc = await _col.doc(slugOrId).get();
       if (doc.exists && doc.data() != null) {
@@ -549,9 +714,26 @@ class FirestoreLibraryRepository {
       }
     } catch (_) {}
 
+    if (!isMedId) {
+      try {
+        final medDoc = await _medCol.doc(slugOrId).get();
+        if (medDoc.exists && medDoc.data() != null) {
+          return ReactionTemplate.fromJson(medDoc.data() as Map<String, dynamic>, medDoc.id);
+        }
+      } catch (_) {}
+    }
+
     final cleanSlug = ReactionTemplate.toSlug(slugOrId);
 
     // 2. Query by 'slug' field
+    try {
+      final qMed = await _medCol.where('slug', isEqualTo: cleanSlug).limit(1).get();
+      if (qMed.docs.isNotEmpty) {
+        final d = qMed.docs.first;
+        return ReactionTemplate.fromJson(d.data() as Map<String, dynamic>, d.id);
+      }
+    } catch (_) {}
+
     try {
       final q = await _col.where('slug', isEqualTo: cleanSlug).limit(1).get();
       if (q.docs.isNotEmpty) {
@@ -561,6 +743,14 @@ class FirestoreLibraryRepository {
     } catch (_) {}
 
     // 3. Query by 'name' field
+    try {
+      final qNameMed = await _medCol.where('name', isEqualTo: slugOrId).limit(1).get();
+      if (qNameMed.docs.isNotEmpty) {
+        final d = qNameMed.docs.first;
+        return ReactionTemplate.fromJson(d.data() as Map<String, dynamic>, d.id);
+      }
+    } catch (_) {}
+
     try {
       final qName = await _col.where('name', isEqualTo: slugOrId).limit(1).get();
       if (qName.docs.isNotEmpty) {
@@ -594,7 +784,14 @@ class FirestoreLibraryRepository {
 
   Future<ReactionTemplate> _doFetchReactionGeometry(String reactionId) async {
     try {
-      final doc = await _col.doc(reactionId).get();
+      final targetCol = reactionId.startsWith('rx_med_') ? _medCol : _col;
+      final fallbackCol = reactionId.startsWith('rx_med_') ? _col : _medCol;
+
+      var doc = await targetCol.doc(reactionId).get();
+      if (!doc.exists || doc.data() == null) {
+        doc = await fallbackCol.doc(reactionId).get();
+      }
+
       if (doc.exists && doc.data() != null) {
         final data = doc.data() as Map<String, dynamic>;
         final reactant = (data['reactant_xyz'] ?? data['reactantXyz'] ?? '') as String;
@@ -730,6 +927,42 @@ class FirestoreLibraryRepository {
     } catch (e) {
       debugPrint('FirestoreLibraryRepository.saveReaction cloud sync warning: $e');
       // Even if cloud write fails or times out, the reaction has already been safely saved locally!
+      return true;
+    }
+  }
+
+  /// Saves or updates an everyday clinical or veterinary medication directly into
+  /// Firestore /medications and synchronizes it to local persistence as a robust fallback.
+  Future<bool> saveMedication(ReactionTemplate medication) async {
+    // 1. Immediately save to persistent local storage so the medication is never lost
+    saveToLocalStorage(medication);
+    _invalidateCache();
+
+    // 2. Prepare payload sanitized for Firestore Security Rules
+    final payload = Map<String, dynamic>.from(medication.toFirestore());
+    payload['id'] = medication.id;
+    payload['authorId'] = FirebaseAuth.instance.currentUser?.uid ?? 'anonymous';
+    payload['created_by'] = FirebaseAuth.instance.currentUser?.uid ?? 'anonymous';
+
+    try {
+      if (FirebaseAuth.instance.currentUser == null) {
+        try {
+          await FirebaseAuth.instance
+              .signInAnonymously()
+              .timeout(const Duration(seconds: 4));
+        } catch (authErr) {
+          debugPrint('FirestoreLibraryRepository.saveMedication: anonymous auth fallback skipped ($authErr)');
+        }
+      }
+
+      await _medCol
+          .doc(medication.id)
+          .set(payload, SetOptions(merge: true))
+          .timeout(const Duration(seconds: 8));
+      debugPrint('FirestoreLibraryRepository: Saved ${medication.id} to cloud /medications.');
+      return true;
+    } catch (e) {
+      debugPrint('FirestoreLibraryRepository.saveMedication cloud sync warning: $e');
       return true;
     }
   }

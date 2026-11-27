@@ -89,6 +89,7 @@ class LibraryHeader extends StatelessWidget {
   final ValueChanged<String> onSearchChanged;
   final VoidCallback? onRefreshCount;
   final VoidCallback? onAddReaction;
+  final VoidCallback? onAddMedication;
   final VoidCallback? onSyncMedical;
   final VoidCallback? onAutoGenerate;
 
@@ -99,6 +100,7 @@ class LibraryHeader extends StatelessWidget {
     required this.onSearchChanged,
     this.onRefreshCount,
     this.onAddReaction,
+    this.onAddMedication,
     this.onSyncMedical,
     this.onAutoGenerate,
   });
@@ -136,6 +138,25 @@ class LibraryHeader extends StatelessWidget {
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  if (onAddMedication != null) ...[
+                    ElevatedButton.icon(
+                      onPressed: onAddMedication,
+                      icon: const Icon(Icons.medication_liquid_outlined, size: 14),
+                      label: const Text(
+                        'Add Med',
+                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF00E676),
+                        foregroundColor: Colors.black,
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 7),
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                  ],
                   if (onAddReaction != null)
                     ElevatedButton.icon(
                       onPressed: onAddReaction,
@@ -364,6 +385,21 @@ class LibraryHeader extends StatelessWidget {
               style: OutlinedButton.styleFrom(
                 side: BorderSide(color: const Color(0xFF00E676).withValues(alpha: 0.4)),
                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              ),
+            ),
+          if (onAddMedication != null)
+            FilledButton.icon(
+              onPressed: onAddMedication,
+              icon: const Icon(Icons.medication_liquid_outlined, size: 16),
+              label: const Text(
+                'Add Medication',
+                style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+              ),
+              style: FilledButton.styleFrom(
+                backgroundColor: const Color(0xFF00E676),
+                foregroundColor: Colors.black,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
               ),
             ),

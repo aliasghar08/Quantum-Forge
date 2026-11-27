@@ -45,6 +45,23 @@ rules_version = '2';
 //   - created_by: string (optional, max 100 chars) - Creator UID
 //   - authorId: string (optional, max 100 chars) - Creator UID
 //
+// Collection: medications/{medicationId}
+// Document ID: Unique medication identifier (e.g. 'aspirin-hydrolysis', 'cyp3a4-midazolam')
+// Description: Curated pharmacological and clinical medication pathways with SaMD safety bounds.
+// Fields:
+//   - name: string (required, 1-200 chars) - Medication title
+//   - reactant_xyz or reactantXyz: string (required, 1-500,000 chars) - Reactant Cartesian coordinates
+//   - product_xyz or productXyz: string (required, 1-500,000 chars) - Product Cartesian coordinates
+//   - ts_xyz or tsXyz: string (optional, max 500,000 chars) - Transition state Cartesian coordinates
+//   - pharmacology_profile: map (optional) - ADME/PK/PD and receptor binding profile
+//   - verifiedSources: list of strings (optional, max 100 items) - Peer-reviewed citation links
+//   - search_tokens: list of strings (optional, max 300 items) - Fast lookup tokens
+//   - status: map (optional) - SaMD validation and computation status
+//   - is_mbbs, is_pharm_d, is_dvm: bool (optional) - Clinical curriculum flags
+//   - citation_count, reference_ea, referenceEa: number (optional) - Numerical metrics
+//   - category, description, doi, journal_ref, journalRef, slug, id: string (optional) - Metadata strings
+
+//
 // Collection: shared_reactions/{shareId}
 // Document ID: Alphanumeric share snapshot token (e.g. 12-char ID)
 // Description: Public snapshots of reaction calculations and trajectories.
@@ -140,7 +157,10 @@ service cloud.firestore {
           'catalystXyz', 'literatureBarrierKcalMol', 'hasLiteratureCatalyst',
           'literatureDoi', 'id', 'created_at', 'created_by', 'authorId',
           'spectroscopy', 'conformerEnsemble', 'calibratedBarrier', 'status',
-          'slug', 'pharmacology_profile'
+          'slug', 'pharmacology_profile',
+          'reactant_xyz', 'product_xyz', 'ts_xyz', 'iupac_equation',
+          'search_tokens', 'citation_count', 'is_derived', 'is_mbbs',
+          'is_pharm_d', 'is_dvm', 'verifiedSources'
         ]) &&
         data.name is string && data.name.size() > 0 && data.name.size() <= 200 &&
         data.reactantXyz is string && data.reactantXyz.size() > 0 && data.reactantXyz.size() <= 500000 &&
@@ -170,6 +190,64 @@ service cloud.firestore {
         (!('spectroscopy' in data) || data.spectroscopy is map) &&
         (!('conformerEnsemble' in data) || data.conformerEnsemble is list) &&
         (!('calibratedBarrier' in data) || data.calibratedBarrier is number) &&
+        (!('status' in data) || data.status is map) &&
+        (!('reactant_xyz' in data) || (data.reactant_xyz is string && data.reactant_xyz.size() <= 500000)) &&
+        (!('product_xyz' in data) || (data.product_xyz is string && data.product_xyz.size() <= 500000)) &&
+        (!('ts_xyz' in data) || (data.ts_xyz is string && data.ts_xyz.size() <= 500000)) &&
+        (!('iupac_equation' in data) || (data.iupac_equation is string && data.iupac_equation.size() <= 500)) &&
+        (!('search_tokens' in data) || (data.search_tokens is list && data.search_tokens.size() <= 300)) &&
+        (!('citation_count' in data) || data.citation_count is number) &&
+        (!('is_derived' in data) || data.is_derived is bool) &&
+        (!('is_mbbs' in data) || data.is_mbbs is bool) &&
+        (!('is_pharm_d' in data) || data.is_pharm_d is bool) &&
+        (!('is_dvm' in data) || data.is_dvm is bool) &&
+        (!('verifiedSources' in data) || (data.verifiedSources is list && data.verifiedSources.size() <= 100));
+    }
+
+    // Validates medications collection document structure, constraints, and bounds
+    function isValidMedication(data) {
+      return data.keys().hasOnly([
+          'id', 'name', 'reactant_xyz', 'reactantXyz', 'ts_xyz', 'tsXyz', 'product_xyz', 'productXyz',
+          'iupac_equation', 'iupacName', 'description', 'category', 'reference_ea', 'referenceEa',
+          'doi', 'journal_ref', 'journalRef', 'citation_count', 'is_derived', 'isDerived', 'tags',
+          'created_at', 'created_by', 'authorId', 'pharmacology_profile', 'verifiedSources',
+          'slug', 'search_tokens', 'is_mbbs', 'is_pharm_d', 'is_dvm', 'status'
+        ]) &&
+        ('name' in data && data.name is string && data.name.size() > 0 && data.name.size() <= 200) &&
+        ((('reactant_xyz' in data) && data.reactant_xyz is string && data.reactant_xyz.size() > 0 && data.reactant_xyz.size() <= 500000) ||
+         (('reactantXyz' in data) && data.reactantXyz is string && data.reactantXyz.size() > 0 && data.reactantXyz.size() <= 500000)) &&
+        ((('product_xyz' in data) && data.product_xyz is string && data.product_xyz.size() > 0 && data.product_xyz.size() <= 500000) ||
+         (('productXyz' in data) && data.productXyz is string && data.productXyz.size() > 0 && data.productXyz.size() <= 500000)) &&
+        (!('id' in data) || (data.id is string && data.id.size() <= 100)) &&
+        (!('reactant_xyz' in data) || (data.reactant_xyz is string && data.reactant_xyz.size() <= 500000)) &&
+        (!('reactantXyz' in data) || (data.reactantXyz is string && data.reactantXyz.size() <= 500000)) &&
+        (!('ts_xyz' in data) || (data.ts_xyz is string && data.ts_xyz.size() <= 500000)) &&
+        (!('tsXyz' in data) || (data.tsXyz is string && data.tsXyz.size() <= 500000)) &&
+        (!('product_xyz' in data) || (data.product_xyz is string && data.product_xyz.size() <= 500000)) &&
+        (!('productXyz' in data) || (data.productXyz is string && data.productXyz.size() <= 500000)) &&
+        (!('iupac_equation' in data) || (data.iupac_equation is string && data.iupac_equation.size() <= 500)) &&
+        (!('iupacName' in data) || (data.iupacName is string && data.iupacName.size() <= 500)) &&
+        (!('description' in data) || (data.description is string && data.description.size() <= 5000)) &&
+        (!('category' in data) || (data.category is string && data.category.size() <= 100)) &&
+        (!('reference_ea' in data) || data.reference_ea is number) &&
+        (!('referenceEa' in data) || data.referenceEa is number) &&
+        (!('doi' in data) || (data.doi is string && data.doi.size() <= 300)) &&
+        (!('journal_ref' in data) || (data.journal_ref is string && data.journal_ref.size() <= 500)) &&
+        (!('journalRef' in data) || (data.journalRef is string && data.journalRef.size() <= 500)) &&
+        (!('citation_count' in data) || data.citation_count is number) &&
+        (!('is_derived' in data) || data.is_derived is bool) &&
+        (!('isDerived' in data) || data.isDerived is bool) &&
+        (!('tags' in data) || (data.tags is list && data.tags.size() <= 100)) &&
+        (!('created_at' in data) || data.created_at is timestamp) &&
+        (!('created_by' in data) || (data.created_by is string && data.created_by.size() <= 100)) &&
+        (!('authorId' in data) || (data.authorId is string && data.authorId.size() <= 100)) &&
+        (!('pharmacology_profile' in data) || data.pharmacology_profile is map) &&
+        (!('verifiedSources' in data) || (data.verifiedSources is list && data.verifiedSources.size() <= 100)) &&
+        (!('slug' in data) || (data.slug is string && data.slug.size() <= 200)) &&
+        (!('search_tokens' in data) || (data.search_tokens is list && data.search_tokens.size() <= 300)) &&
+        (!('is_mbbs' in data) || data.is_mbbs is bool) &&
+        (!('is_pharm_d' in data) || data.is_pharm_d is bool) &&
+        (!('is_dvm' in data) || data.is_dvm is bool) &&
         (!('status' in data) || data.status is map);
     }
 
@@ -198,6 +276,20 @@ service cloud.firestore {
       allow create: if isValidTemplate(request.resource.data);
       allow update: if (isAuthenticated() || isAdmin()) &&
                        isValidTemplate(request.resource.data);
+      allow delete: if isAdmin();
+    }
+
+    // Dedicated medications collection for pharmacology, pharmacogenomics,
+    // and clinical SaMD pathways.
+    // Readable by everyone.
+    // Creation enforces schema, type safety, and size limits via isValidMedication.
+    // Updates require authentication or admin privileges and valid schema.
+    // Deletions are restricted strictly to administrators.
+    match /medications/{medicationId} {
+      allow read: if true;
+      allow create: if isValidMedication(request.resource.data);
+      allow update: if (isAuthenticated() || isAdmin()) &&
+                       isValidMedication(request.resource.data);
       allow delete: if isAdmin();
     }
 
