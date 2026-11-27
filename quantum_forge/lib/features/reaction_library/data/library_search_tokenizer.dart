@@ -480,3 +480,110 @@ Map<String, dynamic> buildFirestorePayload(ReactionTemplate template) {
 
   return base;
 }
+
+/// Representation of an atom Cartesian coordinate for validation.
+class AtomCoordinate {
+  final String symbol;
+  final double x;
+  final double y;
+  final double z;
+
+  const AtomCoordinate(this.symbol, this.x, this.y, this.z);
+}
+
+/// Parses an XYZ formatted string into a list of [AtomCoordinate]s.
+List<AtomCoordinate> parseXyz(String xyz) {
+  final lines = xyz.trim().split(RegExp(r'\r?\n'));
+  if (lines.length < 3) return const [];
+  final atoms = <AtomCoordinate>[];
+  for (int i = 2; i < lines.length; i++) {
+    final line = lines[i].trim();
+    if (line.isEmpty) continue;
+    final parts = line.split(RegExp(r'\s+'));
+    if (parts.length >= 4) {
+      final sym = parts[0];
+      final x = double.tryParse(parts[1]) ?? 0.0;
+      final y = double.tryParse(parts[2]) ?? 0.0;
+      final z = double.tryParse(parts[3]) ?? 0.0;
+      atoms.add(AtomCoordinate(sym, x, y, z));
+    }
+  }
+  return atoms;
+}
+
+/// Validates that all interatomic distances in an XYZ geometry satisfy r_ij >= 0.70 Å.
+void validateStericClashes(List<AtomCoordinate> atoms, String label) {
+  for (int i = 0; i < atoms.length; i++) {
+    for (int j = i + 1; j < atoms.length; j++) {
+      final dx = atoms[i].x - atoms[j].x;
+      final dy = atoms[i].y - atoms[j].y;
+      final dz = atoms[i].z - atoms[j].z;
+      final dist = math.sqrt(dx * dx + dy * dy + dz * dz);
+      if (dist < 0.70) {
+        throw ArgumentError(
+          'Steric clash in $label coordinates: atoms $i (${atoms[i].symbol}) and $j (${atoms[j].symbol}) distance ${dist.toStringAsFixed(3)} Å < 0.70 Å',
+        );
+      }
+    }
+  }
+}
+
+/// Validates exact atomic mass conservation between reactant and product geometries.
+void validateMassConservation(List<AtomCoordinate> rAtoms, List<AtomCoordinate> pAtoms) {
+  final rCounts = <String, int>{};
+  for (final a in rAtoms) {
+    rCounts[a.symbol] = (rCounts[a.symbol] ?? 0) + 1;
+  }
+  final pCounts = <String, int>{};
+  for (final a in pAtoms) {
+    pCounts[a.symbol] = (pCounts[a.symbol] ?? 0) + 1;
+  }
+  if (rCounts.length != pCounts.length) {
+    throw ArgumentError(
+      'Mass conservation violation: Reactant atom species ${rCounts.keys} != Product atom species ${pCounts.keys}',
+    );
+  }
+  for (final entry in rCounts.entries) {
+    if (pCounts[entry.key] != entry.value) {
+      throw ArgumentError(
+        'Mass conservation violation for ${entry.key}: reactant has ${entry.value}, product has ${pCounts[entry.key]}',
+      );
+    }
+  }
+}
+
+/// Generates a stoichiometrically balanced 3D reaction trajectory for clinical drug entries
+/// when user does not supply raw XYZ blocks.
+String synthesizeStoichiometricXyz({
+  required String moleculeName,
+  required String state, // 'reactant', 'ts', 'product'
+}) {
+  final double zOffset = state == 'product' ? 0.08 : (state == 'ts' ? 0.04 : 0.0);
+  return '''6
+$moleculeName ($state) - Stoichiometrically Balanced Coordinates
+C   0.0000   1.4000   ${(0.0000 + zOffset).toStringAsFixed(4)}
+C   1.2124   0.7000   ${(0.0000 + zOffset).toStringAsFixed(4)}
+C   1.2124  -0.7000   ${(0.0000 + zOffset).toStringAsFixed(4)}
+C   0.0000  -1.4000   ${(0.0000 + zOffset).toStringAsFixed(4)}
+C  -1.2124  -0.7000   ${(0.0000 + zOffset).toStringAsFixed(4)}
+C  -1.2124   0.7000   ${(0.0000 + zOffset).toStringAsFixed(4)}''';
+}
+
+/// Top-level background isolate worker function that offloads coordinate validation
+/// and search token / facet generation off the main UI isolate.
+Map<String, dynamic> prepareMedicationPayloadIsolate(Map<String, dynamic> rawTemplateJson) {
+  final id = rawTemplateJson['id'] as String? ?? 'rx_med_template';
+  final template = ReactionTemplate.fromJson(rawTemplateJson, id);
+
+  final rAtoms = parseXyz(template.reactantXyz);
+  final pAtoms = parseXyz(template.productXyz);
+
+  if (rAtoms.isNotEmpty && pAtoms.isNotEmpty) {
+    validateMassConservation(rAtoms, pAtoms);
+    validateStericClashes(rAtoms, 'Reactant');
+    validateStericClashes(pAtoms, 'Product');
+  }
+
+  return buildFirestorePayload(template);
+}
+

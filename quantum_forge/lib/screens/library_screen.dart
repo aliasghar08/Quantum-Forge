@@ -4,7 +4,6 @@
 // ============================================================================
 
 import 'dart:async';
-import 'dart:math' as math;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -19,12 +18,11 @@ import 'package:quantum_forge/features/reaction_library/presentation/widgets/lib
 import 'package:quantum_forge/features/reaction_library/presentation/widgets/pubmed_panel.dart';
 import 'package:quantum_forge/features/reaction_library/data/firestore_library_repository.dart';
 import 'package:quantum_forge/features/reaction_library/data/dp_search_memo_engine.dart';
+import 'package:quantum_forge/features/reaction_library/data/library_search_tokenizer.dart';
 import 'package:quantum_forge/core/state/quantum_provider.dart';
 import 'package:quantum_forge/core/services/auth_service.dart';
 import 'package:quantum_forge/core/widgets/adsense_banner_web.dart';
 import 'package:quantum_forge/core/utils/avogadro_bridge.dart';
-
-const String _kReactionLibraryCollection = 'library';
 
 class LibraryScreen extends StatefulWidget {
   final void Function(ReactionTemplate template) onTemplateSelected;
@@ -72,10 +70,12 @@ class _LibraryScreenState extends State<LibraryScreen> {
 
   void _scheduleBackgroundCountSync() {
     _countSyncDebounce?.cancel();
-    _countSyncDebounce = Timer(const Duration(seconds: 5), () {
+    _countSyncDebounce = Timer(const Duration(seconds: 5), () async {
       if (!mounted) return;
-      _fetchCloudCount();
-      _fetchCategoryCounts();
+      await Future.wait([
+        _fetchCloudCount(),
+        _fetchCategoryCounts(forceRefresh: true),
+      ]);
     });
   }
 
@@ -382,75 +382,15 @@ class _LibraryScreenState extends State<LibraryScreen> {
     }
 
     try {
-      final CollectionReference<Map<String, dynamic>> col =
-          FirebaseFirestore.instance.collection(_kReactionLibraryCollection);
-
-      // 1) Total root collection count
-      int total = _cloudCount ?? -1;
-      if (total < 0) {
-        try {
-          total = await _repo.getTotalCount();
-        } catch (_) {
-          try {
-            final AggregateQuerySnapshot totalSnap = await col.count().get();
-            total = totalSnap.count ?? 0;
-          } catch (_) {
-            total = _items.length;
-          }
-        }
-      }
-
-      // 2) Per-category isolated aggregation queries in chunks of 10
-      final Map<ReactionCategory?, int> perCategory = <ReactionCategory?, int>{
-        null: total,
-      };
-
-      final allCategories = ReactionCategory.values.toList();
-      const int chunkSize = 10;
-      for (int i = 0; i < allCategories.length; i += chunkSize) {
-        final chunk = allCategories.sublist(
-            i, math.min(i + chunkSize, allCategories.length));
-        await Future.wait<void>(
-          chunk.map((ReactionCategory cat) async {
-            int count = 0;
-            try {
-              // Check standard lowercase name
-              final AggregateQuerySnapshot snap =
-                  await col.where('category', isEqualTo: cat.name).count().get();
-              count = snap.count ?? 0;
-
-              // If 0, check capitalized (e.g. "Pharmaceutical")
-              if (count == 0) {
-                final capName =
-                    '${cat.name[0].toUpperCase()}${cat.name.substring(1)}';
-                final AggregateQuerySnapshot capSnap =
-                    await col.where('category', isEqualTo: capName).count().get();
-                if ((capSnap.count ?? 0) > 0) {
-                  count = capSnap.count ?? 0;
-                } else {
-                  // Check fully-qualified enum string
-                  final AggregateQuerySnapshot enumSnap =
-                      await col.where('category', isEqualTo: cat.toString()).count().get();
-                  count = enumSnap.count ?? 0;
-                }
-              }
-            } catch (e) {
-              debugPrint('[LibraryScreen] Count query for ${cat.name} failed: $e');
-              count = _items.where((t) => t.category == cat).length;
-            }
-            perCategory[cat] = count;
-          }),
-        );
-      }
-
+      final perCategory = await _repo.getCategoryCounts(forceRefresh: forceRefresh);
       _categoryCountCache = perCategory;
       _categoryCountCacheTime = DateTime.now();
 
       if (!mounted) return;
       setState(() {
         _cloudCategoryCounts = perCategory;
-        if (total >= 0 && (_cloudCount == null || _cloudCount! < 0)) {
-          _cloudCount = total;
+        if (perCategory[null] != null && (_cloudCount == null || _cloudCount! < 0)) {
+          _cloudCount = perCategory[null];
         }
       });
     } catch (e) {
@@ -1516,10 +1456,12 @@ class _LibraryScreenState extends State<LibraryScreen> {
                   category: selectedCat,
                   reactantXyz: reactantCtrl.text.trim().isNotEmpty
                       ? reactantCtrl.text.trim()
-                      : '1\nAtoms\nC 0.0 0.0 0.0',
+                      : synthesizeStoichiometricXyz(
+                          moleculeName: genericName, state: 'reactant'),
                   productXyz: productCtrl.text.trim().isNotEmpty
                       ? productCtrl.text.trim()
-                      : '1\nAtoms\nC 1.5 0.0 0.0',
+                      : synthesizeStoichiometricXyz(
+                          moleculeName: genericName, state: 'product'),
                   referenceEa: 15.0,
                   doi: doi,
                   journalRef: 'Verified Clinical Literature',
@@ -1533,15 +1475,12 @@ class _LibraryScreenState extends State<LibraryScreen> {
                 if (saved) {
                   setState(() {
                     _items.insert(0, template);
-                    if (_cloudCount != null && _cloudCount! >= 0) {
-                      _cloudCount = _cloudCount! + 1;
-                    }
-                    if (_cloudCategoryCounts != null) {
-                      _cloudCategoryCounts![null] =
-                          (_cloudCategoryCounts![null] ?? 0) + 1;
-                      _cloudCategoryCounts![template.category] =
-                          (_cloudCategoryCounts![template.category] ?? 0) + 1;
-                    }
+                    _cloudCount = (_cloudCount ?? 0) + 1;
+                    _cloudCategoryCounts ??= <ReactionCategory?, int>{};
+                    _cloudCategoryCounts![null] =
+                        (_cloudCategoryCounts![null] ?? (_cloudCount ?? 0)) + 1;
+                    _cloudCategoryCounts![template.category] =
+                        (_cloudCategoryCounts![template.category] ?? 0) + 1;
                   });
                   _scheduleBackgroundCountSync();
                   ScaffoldMessenger.of(context).showSnackBar(

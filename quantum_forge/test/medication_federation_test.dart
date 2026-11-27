@@ -3,6 +3,7 @@ import 'package:quantum_forge/features/pharmacopeia/data/medicine_pharmacology_p
 import 'package:quantum_forge/features/reaction_library/data/firestore_library_repository.dart';
 import 'package:quantum_forge/features/reaction_library/data/reaction_templates.dart';
 import 'package:quantum_forge/features/reaction_library/data/library_search_tokenizer.dart';
+import 'package:quantum_forge/features/reaction_library/data/dp_search_memo_engine.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -158,6 +159,85 @@ void main() {
       FirestoreLibraryRepository.saveToLocalStorage(customMed);
       final loaded = FirestoreLibraryRepository.loadLocalCustomReactions();
       expect(loaded.any((r) => r.id == 'rx_med_custom_test_drug'), isTrue);
+    });
+
+    test('synthesizeStoichiometricXyz generates valid non-clashing mass-conserving 3D coordinates', () {
+      final rXyz = synthesizeStoichiometricXyz(moleculeName: 'Semaglutide', state: 'reactant');
+      final pXyz = synthesizeStoichiometricXyz(moleculeName: 'Semaglutide', state: 'product');
+
+      final rAtoms = parseXyz(rXyz);
+      final pAtoms = parseXyz(pXyz);
+
+      expect(rAtoms.length, equals(6));
+      expect(pAtoms.length, equals(6));
+
+      // Should not throw
+      validateMassConservation(rAtoms, pAtoms);
+      validateStericClashes(rAtoms, 'Reactant');
+      validateStericClashes(pAtoms, 'Product');
+    });
+
+    test('prepareMedicationPayloadIsolate validates coordinates and builds facets', () {
+      final rXyz = synthesizeStoichiometricXyz(moleculeName: 'Metoprolol', state: 'reactant');
+      final pXyz = synthesizeStoichiometricXyz(moleculeName: 'Metoprolol', state: 'product');
+
+      final med = ReactionTemplate(
+        id: 'rx_med_metoprolol_iso_test',
+        name: 'Metoprolol Tartrate',
+        iupacName: '1-(isopropylamino)-3-[4-(2-methoxyethyl)phenoxy]propan-2-ol',
+        description: 'Cardioselective beta-1 blocker',
+        category: ReactionCategory.pharmaceutical,
+        reactantXyz: rXyz,
+        productXyz: pXyz,
+        referenceEa: 14.5,
+        doi: '10.1016/j.cell.2021.03.008',
+        journalRef: 'Cell',
+        tags: const ['Cardiology', 'Beta-Blocker'],
+      );
+
+      final payload = prepareMedicationPayloadIsolate(med.toJson()..['id'] = med.id);
+      expect(payload['search_tokens'], isA<List>());
+      expect(payload['is_pharm_d'], isTrue);
+      expect(payload['reactantXyz'], equals(rXyz));
+      expect(payload['productXyz'], equals(pXyz));
+    });
+
+    test('DPSearchMemoEngine injectAndInvalidate hydrates hot catalog and purges empty caches', () async {
+      final engine = DPSearchMemoEngine();
+      final med = ReactionTemplate(
+        id: 'rx_med_instant_test',
+        name: 'InstantTestDrug (GLP-1)',
+        iupacName: 'Instant Drug',
+        description: 'Test drug for sub-millisecond cache hydration',
+        category: ReactionCategory.pharmaceutical,
+        reactantXyz: synthesizeStoichiometricXyz(moleculeName: 'InstantDrug', state: 'reactant'),
+        productXyz: synthesizeStoichiometricXyz(moleculeName: 'InstantDrug', state: 'product'),
+        referenceEa: 12.0,
+        doi: '10.1000/182',
+        journalRef: 'Lancet',
+        tags: const ['Pharm-D'],
+      );
+
+      // Pre-seed an empty node for stale query
+      final staleKey = SearchStateKey(query: 'stale_query_term', category: ReactionCategory.pharmaceutical);
+      engine.l1Table.put(staleKey, MemoizedSearchNode(items: const [], isExhaustive: true, cachedAt: DateTime.now()));
+
+      // Inject
+      engine.injectAndInvalidate(med);
+
+      // Stale empty node was purged
+      expect(engine.l1Table.get(staleKey), isNull);
+
+      // L1 exact hit node is primed for immediate O(1) retrieval
+      final exactKey = SearchStateKey(query: med.name, category: med.category);
+      final hit = engine.l1Table.get(exactKey);
+      expect(hit, isNotNull);
+      expect(hit!.items.length, equals(1));
+      expect(hit.items.first.id, equals('rx_med_instant_test'));
+
+      // Sub-millisecond search returns the injected medication
+      final searchResult = await engine.search(query: 'InstantTestDrug', category: ReactionCategory.pharmaceutical);
+      expect(searchResult.items.any((t) => t.id == 'rx_med_instant_test'), isTrue);
     });
   });
 }

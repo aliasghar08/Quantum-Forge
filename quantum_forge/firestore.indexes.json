@@ -575,6 +575,38 @@
           "order": "DESCENDING"
         }
       ]
+    },
+    {
+      "collectionGroup": "medications",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "specialty",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "created_at",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "medications",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "category",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "specialty",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "created_at",
+          "order": "DESCENDING"
+        }
+      ]
     }
   ],
   "fieldOverrides": [
@@ -591,6 +623,11 @@
     {
       "collectionGroup": "library",
       "fieldPath": "ts_xyz",
+      "indexes": []
+    },
+    {
+      "collectionGroup": "library",
+      "fieldPath": "tsXyz",
       "indexes": []
     },
     {
@@ -621,6 +658,11 @@
     {
       "collectionGroup": "medications",
       "fieldPath": "ts_xyz",
+      "indexes": []
+    },
+    {
+      "collectionGroup": "medications",
+      "fieldPath": "tsXyz",
       "indexes": []
     },
     {

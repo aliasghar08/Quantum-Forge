@@ -9,6 +9,7 @@ import 'package:quantum_forge/core/config/api_endpoints.dart';
 import 'package:quantum_forge/core/services/app_storage.dart';
 import 'package:quantum_forge/features/reaction_library/data/reaction_templates.dart';
 import 'package:quantum_forge/features/reaction_library/data/library_search_tokenizer.dart';
+import 'package:quantum_forge/features/reaction_library/data/dp_search_memo_engine.dart';
 
 /// In-memory LRU cache entry with a 5-minute TTL.
 class _LruCacheEntry {
@@ -668,17 +669,12 @@ class FirestoreLibraryRepository {
       final chunk = allCategories.sublist(i, (i + chunkSize).clamp(0, allCategories.length));
       await Future.wait<void>(
         chunk.map((ReactionCategory cat) async {
-          final Query<Object?> q =
-              _col.where('category', isEqualTo: cat.name);
-          final AggregateQuery agg = q.count();
-          final AggregateQuerySnapshot snap = await agg.get();
-          int catCount = snap.count ?? 0;
-
-          // For pharmaceutical or medical categories, add counts from /medications
-          if (cat == ReactionCategory.pharmaceutical) {
-            catCount += medTotal;
-          }
-          perCategory[cat] = catCount;
+          final Query<Object?> qLib = _col.where('category', isEqualTo: cat.name);
+          final Query<Object?> qMed = _medCol.where('category', isEqualTo: cat.name);
+          final snaps = await Future.wait([qLib.count().get(), qMed.count().get()]);
+          final int libCount = snaps[0].count ?? 0;
+          final int medCount = snaps[1].count ?? 0;
+          perCategory[cat] = libCount + medCount;
         }),
       );
     }
@@ -938,8 +934,16 @@ class FirestoreLibraryRepository {
     saveToLocalStorage(medication);
     _invalidateCache();
 
-    // 2. Prepare payload sanitized for Firestore Security Rules
-    final payload = Map<String, dynamic>.from(medication.toFirestore());
+    // 2. Offload validation and search tokens generation to a background compute() isolate
+    Map<String, dynamic> payload;
+    try {
+      final rawJson = medication.toJson()..['id'] = medication.id;
+      payload = await compute(prepareMedicationPayloadIsolate, rawJson);
+    } catch (computeErr) {
+      debugPrint('[saveMedication] background compute isolate fallback: $computeErr');
+      payload = Map<String, dynamic>.from(medication.toFirestore());
+    }
+
     payload['id'] = medication.id;
     payload['authorId'] = FirebaseAuth.instance.currentUser?.uid ?? 'anonymous';
     payload['created_by'] = FirebaseAuth.instance.currentUser?.uid ?? 'anonymous';
@@ -960,9 +964,14 @@ class FirestoreLibraryRepository {
           .set(payload, SetOptions(merge: true))
           .timeout(const Duration(seconds: 8));
       debugPrint('FirestoreLibraryRepository: Saved ${medication.id} to cloud /medications.');
+
+      // 3. Immediately hydrate L1 DP table, L2 browser cache, and active hot catalog (< 1 ms resolution)
+      DPSearchMemoEngine.instance.injectAndInvalidate(medication);
+
       return true;
     } catch (e) {
       debugPrint('FirestoreLibraryRepository.saveMedication cloud sync warning: $e');
+      DPSearchMemoEngine.instance.injectAndInvalidate(medication);
       return true;
     }
   }

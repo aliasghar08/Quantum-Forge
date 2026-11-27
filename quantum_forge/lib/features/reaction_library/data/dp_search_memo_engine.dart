@@ -258,6 +258,28 @@ class DPSearchMemoTable {
     return filtered;
   }
 
+  /// Purges stale empty nodes and any cached search results matching the newly added template.
+  void purgeMatchingOrEmpty(ReactionTemplate template) {
+    final keysToRemove = <SearchStateKey>[];
+    final templateWords = extractQueryWords(template.name);
+    for (final entry in _table.entries) {
+      if (entry.value.items.isEmpty) {
+        keysToRemove.add(entry.key);
+        continue;
+      }
+      final q = entry.key.normalizedQuery;
+      if (q.isNotEmpty &&
+          (template.name.toLowerCase().contains(q) ||
+              templateWords.any((w) => w.startsWith(q)) ||
+              template.id.toLowerCase().contains(q))) {
+        keysToRemove.add(entry.key);
+      }
+    }
+    for (final k in keysToRemove) {
+      _table.remove(k);
+    }
+  }
+
   void clear() => _table.clear();
 }
 
@@ -301,6 +323,23 @@ class PublicPersistentMemoStore {
     } catch (e) {
       debugPrint('[PublicPersistentMemoStore] restoreCategoryPage error: $e');
       return null;
+    }
+  }
+
+  /// Inserts or updates a template at index 0 of the persistent category cache.
+  static void prependToCategoryPage(ReactionCategory? category, ReactionTemplate item) {
+    try {
+      final existing = restoreCategoryPage(category);
+      final updated = existing != null ? List<ReactionTemplate>.from(existing) : <ReactionTemplate>[];
+      final idx = updated.indexWhere((t) => t.id == item.id);
+      if (idx >= 0) {
+        updated[idx] = item;
+      } else {
+        updated.insert(0, item);
+      }
+      persistCategoryPage(category, updated);
+    } catch (e) {
+      debugPrint('[PublicPersistentMemoStore] prependToCategoryPage error: $e');
     }
   }
 
@@ -352,6 +391,9 @@ class PublicPersistentMemoStore {
 /// Orchestrator combining L1 (In-Memory DP), L2 (Browser Storage), L3 (Global CDN Seed),
 /// Single-Flight Coalescing, and Firestore Cursor Pagination.
 class DPSearchMemoEngine {
+  static DPSearchMemoEngine? _sharedInstance;
+  static DPSearchMemoEngine get instance => _sharedInstance ??= DPSearchMemoEngine();
+
   final FirestoreLibraryRepository _repository;
   final DPSearchMemoTable _l1Table = DPSearchMemoTable(maxCapacity: 250);
   final SingleFlightCoalescer _coalescer = SingleFlightCoalescer();
@@ -362,9 +404,44 @@ class DPSearchMemoEngine {
 
   DPSearchMemoEngine({FirestoreLibraryRepository? repository})
       : _repository = repository ?? FirestoreLibraryRepository() {
+    _sharedInstance = this;
     AdaptiveQualityGovernor.instance.budgetNotifier.addListener(_onBudgetChanged);
     AdaptiveQualityGovernor.instance.addStepDownListener(_onStepDown);
     _onBudgetChanged();
+  }
+
+  /// Injects a newly saved medication into the active in-memory hot index and
+  /// purges stale empty/matching cache nodes across L1 and L2 memo tiers.
+  void injectAndInvalidate(ReactionTemplate medication) {
+    // 1. In L3 CDN / In-Memory Hot Catalog: upsert at index 0
+    final existingIdx = _l3SeedCatalog.indexWhere((t) => t.id == medication.id);
+    if (existingIdx >= 0) {
+      _l3SeedCatalog[existingIdx] = medication;
+    } else {
+      _l3SeedCatalog.insert(0, medication);
+    }
+    _isL3Loaded = true;
+
+    // 2. In L1 DP Memo Table: purge empty queries and matching prefix nodes
+    _l1Table.purgeMatchingOrEmpty(medication);
+
+    // 3. In L2 Persistent Browser Cache: prepend to category and 'all' views
+    PublicPersistentMemoStore.prependToCategoryPage(medication.category, medication);
+    PublicPersistentMemoStore.prependToCategoryPage(null, medication);
+
+    // 4. Pre-populate L1 exact hit node (< 1 ms resolution)
+    final exactKey = SearchStateKey(
+      query: medication.name,
+      category: medication.category,
+    );
+    _l1Table.put(
+      exactKey,
+      MemoizedSearchNode(
+        items: [medication],
+        isExhaustive: true,
+        cachedAt: DateTime.now(),
+      ),
+    );
   }
 
   void _onBudgetChanged() {
