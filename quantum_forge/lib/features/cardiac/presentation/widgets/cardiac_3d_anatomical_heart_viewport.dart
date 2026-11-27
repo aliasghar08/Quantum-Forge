@@ -200,12 +200,13 @@ class _Cardiac3DAnatomicalHeartViewportState
       }
     }
 
-    return Container(
-      decoration: BoxDecoration(
-        color: palette.panel,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: palette.border),
-      ),
+    return RepaintBoundary(
+      child: Container(
+        decoration: BoxDecoration(
+          color: palette.panel,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: palette.border),
+        ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(12),
         child: Stack(
@@ -652,7 +653,8 @@ class _Cardiac3DAnatomicalHeartViewportState
           ],
         ),
       ),
-    );
+    ),
+  );
   }
 
   String _liveValveStatusLabel(double phase) {

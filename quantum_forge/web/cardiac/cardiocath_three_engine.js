@@ -2223,9 +2223,10 @@
           this.conductionSparks.forEach((spark, idx) => {
             if (hisPhase >= 0.0) {
               spark.visible = true;
+              if (!this._scratchHisPt) this._scratchHisPt = new THREE.Vector3();
               const u = Math.min(1.0, Math.max(0.0, hisPhase - idx * 0.03));
-              const pt = this.hisCurve.getPointAt(u);
-              spark.position.copy(pt);
+              this.hisCurve.getPointAt(u, this._scratchHisPt);
+              spark.position.copy(this._scratchHisPt);
             } else {
               spark.visible = false;
             }
@@ -2291,8 +2292,9 @@
             p.userData.progress = 0.0;
           }
 
-          const pt = curve.getPointAt(p.userData.progress);
-          p.position.copy(pt);
+          if (!this._scratchFlowPt) this._scratchFlowPt = new THREE.Vector3();
+          curve.getPointAt(p.userData.progress, this._scratchFlowPt);
+          p.position.copy(this._scratchFlowPt);
 
           // Contrast dye override
           if (isContrastActive && p.userData.type === 'coronary') {
@@ -2610,8 +2612,13 @@
       const width = this.container.clientWidth || 800;
       const height = this.container.clientHeight || 600;
       const results = [];
-      const tempVec = new THREE.Vector3();
-      const camPos = this.camera.position.clone();
+      if (!this._cachedTempVec) this._cachedTempVec = new THREE.Vector3();
+      if (!this._cachedCamPos) this._cachedCamPos = new THREE.Vector3();
+      if (!this._cachedToCam) this._cachedToCam = new THREE.Vector3();
+
+      const tempVec = this._cachedTempVec;
+      const camPos = this._cachedCamPos.copy(this.camera.position);
+      const toCam = this._cachedToCam;
       const isCutaway = (this.cutawayDepth > 0.12) || (this.viewMode === 'chambers');
 
       for (let i = 0; i < this.landmarks.length; i++) {
@@ -2623,7 +2630,7 @@
           tempVec.applyMatrix4(this.heartGroup.matrixWorld);
         }
 
-        const toCam = camPos.clone().sub(tempVec).normalize();
+        toCam.copy(camPos).sub(tempVec).normalize();
         const normalDot = lm.normal ? lm.normal.dot(toCam) : 1.0;
         const isOccluded = (!isCutaway && normalDot < -0.22);
 
@@ -3639,8 +3646,13 @@
       const width = this.container.clientWidth || 800;
       const height = this.container.clientHeight || 600;
       const results = [];
-      const tempVec = new THREE.Vector3();
-      const camPos = this.camera.position.clone();
+      if (!this._cachedTempVec) this._cachedTempVec = new THREE.Vector3();
+      if (!this._cachedCamPos) this._cachedCamPos = new THREE.Vector3();
+      if (!this._cachedToCam) this._cachedToCam = new THREE.Vector3();
+
+      const tempVec = this._cachedTempVec;
+      const camPos = this._cachedCamPos.copy(this.camera.position);
+      const toCam = this._cachedToCam;
       const isCutaway = (this.cutawayDepth > 0.12) || (this.viewMode === 'chambers');
 
       for (let i = 0; i < this.landmarks.length; i++) {
@@ -3652,7 +3664,7 @@
           tempVec.applyMatrix4(this.heartGroup.matrixWorld);
         }
 
-        const toCam = camPos.clone().sub(tempVec).normalize();
+        toCam.copy(camPos).sub(tempVec).normalize();
         const normalDot = lm.normal ? lm.normal.dot(toCam) : 1.0;
         const isOccluded = (!isCutaway && normalDot < -0.22);
 

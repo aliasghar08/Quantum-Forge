@@ -16,6 +16,7 @@
 // ============================================================================
 
 import 'dart:math' as math;
+import 'package:flutter/foundation.dart';
 import 'cardiac_pathology_models.dart';
 
 enum GuideCatheterType {
@@ -170,7 +171,83 @@ class CoronaryPhysiologyResult {
 class ComputationalHemodynamicsEngine {
   const ComputationalHemodynamicsEngine._();
 
+  // LRU / Memoized caches for trajectory and physiology results
+  static final Map<String, CardiacFsiTrajectory> _trajectoryCache = {};
+  static final Map<String, CoronaryPhysiologyResult> _hemoCache = {};
+
+  static void clearCaches() {
+    _trajectoryCache.clear();
+    _hemoCache.clear();
+  }
+
+  static String _buildHemoKey({
+    required CardiacPathologyScenario scenario,
+    required double bpm,
+    required GuideCatheterType catheter,
+    required InterventionalWireType wire,
+    required bool isHyperemic,
+    required bool isRevascularized,
+    required bool isRotablated,
+    required bool iabpActive,
+    required AcuteComplicationState complication,
+    required CoronaryDominance dominance,
+    int sampleCount = 100,
+  }) {
+    return '${scenario.id}_${bpm.toStringAsFixed(1)}_${catheter.name}_${wire.name}_${isHyperemic}_${isRevascularized}_${isRotablated}_${iabpActive}_${complication.name}_${dominance.name}_$sampleCount';
+  }
+
   static CoronaryPhysiologyResult solve({
+    required CardiacPathologyScenario scenario,
+    required double bpm,
+    required GuideCatheterType catheter,
+    required InterventionalWireType wire,
+    required bool isHyperemic,
+    required bool isRevascularized,
+    required bool isRotablated,
+    required bool iabpActive,
+    required AcuteComplicationState complication,
+    required CoronaryDominance dominance,
+    int sampleCount = 100,
+  }) {
+    final key = _buildHemoKey(
+      scenario: scenario,
+      bpm: bpm,
+      catheter: catheter,
+      wire: wire,
+      isHyperemic: isHyperemic,
+      isRevascularized: isRevascularized,
+      isRotablated: isRotablated,
+      iabpActive: iabpActive,
+      complication: complication,
+      dominance: dominance,
+      sampleCount: sampleCount,
+    );
+
+    final cached = _hemoCache[key];
+    if (cached != null) return cached;
+
+    final result = _solveInternal(
+      scenario: scenario,
+      bpm: bpm,
+      catheter: catheter,
+      wire: wire,
+      isHyperemic: isHyperemic,
+      isRevascularized: isRevascularized,
+      isRotablated: isRotablated,
+      iabpActive: iabpActive,
+      complication: complication,
+      dominance: dominance,
+      sampleCount: sampleCount,
+    );
+
+    if (_hemoCache.length > 64) {
+      _hemoCache.remove(_hemoCache.keys.first);
+    }
+    _hemoCache[key] = result;
+    return result;
+  }
+
+  static CoronaryPhysiologyResult _solveInternal({
     required CardiacPathologyScenario scenario,
     required double bpm,
     required GuideCatheterType catheter,
@@ -393,7 +470,82 @@ class ComputationalHemodynamicsEngine {
   /// 120-Frame Fluid-Structure Interaction (FSI) Biomechanical Trajectory.
   /// Couples Sagawa time-varying elastance E(t), 3-Element Windkessel,
   /// ventricular deformation strain, valve dynamics, and coronary hemodynamics.
+  /// Memoized and instant (O(1)) for repeated frames / scenarios.
   static CardiacFsiTrajectory solveFsiTrajectory({
+    required CardiacPathologyScenario scenario,
+    CoronaryDominance dominance = CoronaryDominance.rightDominant,
+    bool isRevascularized = false,
+    double? ladStenosis,
+    double? rcaStenosis,
+    double bpm = 72.0,
+    int framesCount = 120,
+  }) {
+    final key = '${scenario.id}_${dominance.name}_${isRevascularized}_${ladStenosis?.toStringAsFixed(1)}_${rcaStenosis?.toStringAsFixed(1)}_${bpm.toStringAsFixed(1)}_$framesCount';
+    final cached = _trajectoryCache[key];
+    if (cached != null) return cached;
+
+    final trajectory = _solveFsiTrajectoryInternal(
+      scenario: scenario,
+      dominance: dominance,
+      isRevascularized: isRevascularized,
+      ladStenosis: ladStenosis,
+      rcaStenosis: rcaStenosis,
+      bpm: bpm,
+      framesCount: framesCount,
+    );
+
+    if (_trajectoryCache.length > 32) {
+      _trajectoryCache.remove(_trajectoryCache.keys.first);
+    }
+    _trajectoryCache[key] = trajectory;
+    return trajectory;
+  }
+
+  /// Asynchronously solves FSI trajectory on a background thread (or Isolate on native, microtask worker on web).
+  static Future<CardiacFsiTrajectory> solveFsiTrajectoryAsync({
+    required CardiacPathologyScenario scenario,
+    CoronaryDominance dominance = CoronaryDominance.rightDominant,
+    bool isRevascularized = false,
+    double? ladStenosis,
+    double? rcaStenosis,
+    double bpm = 72.0,
+    int framesCount = 120,
+  }) async {
+    final key = '${scenario.id}_${dominance.name}_${isRevascularized}_${ladStenosis?.toStringAsFixed(1)}_${rcaStenosis?.toStringAsFixed(1)}_${bpm.toStringAsFixed(1)}_$framesCount';
+    final cached = _trajectoryCache[key];
+    if (cached != null) return cached;
+
+    // Use Isolate / compute on native platforms; compute falls back gracefully on web
+    final result = await compute(_solveFsiTrajectoryFromMap, {
+      'scenario': scenario,
+      'dominance': dominance,
+      'isRevascularized': isRevascularized,
+      'ladStenosis': ladStenosis,
+      'rcaStenosis': rcaStenosis,
+      'bpm': bpm,
+      'framesCount': framesCount,
+    });
+
+    if (_trajectoryCache.length > 32) {
+      _trajectoryCache.remove(_trajectoryCache.keys.first);
+    }
+    _trajectoryCache[key] = result;
+    return result;
+  }
+
+  static CardiacFsiTrajectory _solveFsiTrajectoryFromMap(Map<String, dynamic> params) {
+    return _solveFsiTrajectoryInternal(
+      scenario: params['scenario'] as CardiacPathologyScenario,
+      dominance: params['dominance'] as CoronaryDominance,
+      isRevascularized: params['isRevascularized'] as bool,
+      ladStenosis: params['ladStenosis'] as double?,
+      rcaStenosis: params['rcaStenosis'] as double?,
+      bpm: params['bpm'] as double,
+      framesCount: params['framesCount'] as int,
+    );
+  }
+
+  static CardiacFsiTrajectory _solveFsiTrajectoryInternal({
     required CardiacPathologyScenario scenario,
     CoronaryDominance dominance = CoronaryDominance.rightDominant,
     bool isRevascularized = false,
