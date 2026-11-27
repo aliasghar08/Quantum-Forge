@@ -756,6 +756,175 @@ EVERYDAY_MEDICINE_REGISTRY: dict[str, dict[str, Any]] = {
         "reaction_description": "Enzymatic carboxylesterase hydrolysis of levetiracetam acetamide to the inactive carboxylic acid metabolite (ucb L057).",
         "iupac_equation": "levetiracetam + H2O → ucb-L057 + NH3",
         "tags": ["Pharm-D", "MBBS", "Clinical-Pharmacopeia", "Verified-DOI", "Neurology", "Antiepileptic", "Anticonvulsant", "Epilepsy", "Levetiracetam", "Keppra"]
+    },
+
+    "semaglutide": {
+        "generic_name": "Semaglutide",
+        "brand_names": ["Ozempic", "Wegovy", "Rybelsus"],
+        "inn": "semaglutide",
+        "specialty": "endocrinology",
+        "chemical_class": "Acylated Glucagon-Like Peptide-1 (GLP-1) Receptor Agonist",
+        "smiles": "CCC(C)C(C(=O)NC(C)C(=O)NC(CC1=CNC2=CC=CC=C21)C(=O)NC(CC(C)C)C(=O)NC(C(C)C)C(=O)NC(CCCNC(=N)N)C(=O)NCC(=O)NC(CCCNC(=N)N)C(=O)NCC(=O)O)NC(=O)C(CC3=CC=CC=C3)NC(=O)C(CCC(=O)O)NC(=O)C(CCCCNC(=O)COCCOCCNC(=O)COCCOCCNC(=O)CCC(C(=O)O)NC(=O)CCCCCCCCCCCCCCCCC(=O)O)NC(=O)C(C)NC(=O)C(C)NC(=O)C(CCC(=O)N)NC(=O)CNC(=O)C(CCC(=O)O)NC(=O)C(CC(C)C)NC(=O)C(CC4=CC=C(C=C4)O)NC(=O)C(CO)NC(=O)C(CO)NC(=O)C(C(C)C)NC(=O)C(CC(=O)O)NC(=O)C(CO)NC(=O)C(C(C)O)NC(=O)C(CC5=CC=CC=C5)NC(=O)C(C(C)O)NC(=O)CNC(=O)C(CCC(=O)O)NC(=O)C(C)(C)NC(=O)C(CC6=CN=CN6)N",
+        "iupac_name": "Semaglutide [Aib8,Arg34]GLP-1(7-37)-(Lys26-N-epsilon-(gamma-Glu-OEG-OEG-octadecanedioic acid))",
+        "molecular_target": "GLP-1 Receptor (GLP1R) G-Protein Coupled Receptor",
+        "pdb_accession": "7KI0",
+        "mode_of_action": "Selective, long-acting synthetic GLP-1 receptor agonist sharing 94% sequence homology with native human GLP-1(7-37). Features an alpha-aminoisobutyric acid (Aib) substitution at position 8 providing resistance to dipeptidyl peptidase-4 (DPP-4) enzymatic degradation, and a C-18 fatty diacid spacer at Lys-26 driving high-affinity reversible albumin binding, extending elimination half-life to ~1 week. Potentiates glucose-dependent insulin secretion, suppresses glucagon, delays gastric emptying, and activates hypothalamic satiety centers.",
+        "downstream_signaling": "Binds pancreatic beta-cell GLP-1 receptor, activating heterotrimeric G-protein Gs alpha, stimulating adenylyl cyclase and raising intracellular cAMP. Activates Protein Kinase A (PKA) and Epac2, closing ATP-sensitive K+ channels, triggering Ca2+ influx and exocytosis of insulin storage granules.",
+        "indications": "Type 2 Diabetes Mellitus (glycemic control and MACE cardiovascular risk reduction; SUSTAIN-6), Chronic Weight Management in obesity (BMI >= 30 or >= 27 with comorbidities; STEP trials), Heart Failure with Preserved Ejection Fraction in obesity (STEP-HFpEF), and Chronic Kidney Disease in T2D (FLOW trial).",
+        "clinical_staging": "First-line injectable/oral incretin mimetic therapy for T2D with established ASCVD or high cardiovascular risk, and landmark disease-modifying therapy for obesity and cardiorenal metabolic syndrome.",
+        "source_and_origin": "Engineered by Novo Nordisk scientists by recombinant DNA expression in yeast (Saccharomyces cerevisiae) followed by site-selective Lys-26 acylation (FDA approved 2017).",
+        "discovery_history": "Evolved from liraglutide by introducing an Aib8 non-proteinogenic amino acid to shield against DPP-4 cleavage, and upgrading the fatty acid side-chain from C-16 monoacid to C-18 diacid with a hydrophilic bis-aminodiethoxyacetyl (OEG-OEG) linker for superior albumin retention.",
+        "synthetic_route": "Recombinant fermentation of precursor peptide backbone followed by liquid-phase chemo-selective conjugation of octadecanedioic acid-gamma-Glu-AEEA-AEEA linker to the Lys-26 epsilon-amino group.",
+        "absorption_distribution": "Subcutaneous bioavailability ~89%. Tmax 1-3 days. Plasma protein binding >99% bound to serum albumin. Apparent Vd ~12.5 L. Oral formulation (Rybelsus) co-formulated with SNAC (sodium N-[8-(2-hydroxybenzoyl)amino]caprylate) for transcellular gastric mucosal absorption.",
+        "metabolism_elimination": "Extensively proteolyzed via general peptide endopeptidase cleavage and beta-oxidation of the fatty acid side-chain. Does not undergo hepatic cytochrome P450 metabolism. Elimination half-life ~168 hours (7 days). Excretion: ~3% unchanged drug in urine/feces.",
+        "half_life_hours": 168.0,
+        "comparative_species": "Human: pivotal GLP-1 receptor agonist for diabetes, obesity, and cardiovascular protection. Veterinary: feline diabetes mellitus research is investigating incretin-based therapies as once-weekly alternatives to daily glargine insulin.",
+        "engagement_type": "nonCovalentReceptorBinding",
+        "delta_g_bind_kcal_mol": -14.8,
+        "binding_affinity": "Kd = 0.38 nM at GLP-1R, EC50 = 0.012 nM (cAMP activation)",
+        "active_site_pocket_residues": "GLP1R: Leu-32, Trp-39, Asp-67, Tyr-69, Arg-121, Lys-197, Met-204, Tyr-205, Trp-297, Arg-380",
+        "pKa": 4.5,
+        "ionized_fraction_ph74": 99.9,
+        "salt_form": "Semaglutide Free Base / Acetate (MW 4113.58 g/mol)",
+        "major_drug_interactions": [
+            "Insulin and Insulin Secretagogues (Sulfonylureas): increased risk of severe hypoglycemia; dose reduction of sulfonylurea/insulin required upon initiation",
+            "Oral medications: delayed gastric emptying may temporarily slow absorption rate (Cmax/Tmax) of orally administered co-medications",
+            "Warfarin: monitor INR upon semaglutide initiation due to potential absorption fluctuation"
+        ],
+        "ts_description": "Agonist-induced transmembrane bundle rearrangement of the GLP-1 receptor 7TM helices (TM5 and TM6 outward swing) engaging intracellular heterotrimeric Gs protein.",
+        "activation_barrier_kcal_mol": 14.5,
+        "catalytic_residues": "GLP1R Arg-190, Lys-197, Asp-198, Arg-380, and semaglutide His-7 N-terminal amine.",
+        "contraindications": "Personal or family history of Medullary Thyroid Carcinoma (MTC), Multiple Endocrine Neoplasia syndrome type 2 (MEN 2), known serious hypersensitivity to semaglutide.",
+        "adverse_effects": "Nausea, vomiting, diarrhea, abdominal pain, constipation, gastroesophageal reflux, cholelithiasis, pancreatitis, acute kidney injury secondary to dehydration, injection site erythema.",
+        "black_box_warning": "Risk of thyroid C-cell tumors: dose-dependent and treatment-duration-dependent thyroid C-cell adenomas and carcinomas in rodents. Contraindicated in patients with personal/family history of MTC or MEN 2.",
+        "antidote_rescue": "No specific antidote. Supportive therapy, IV hydration, and antiemetics (ondansetron). In case of concurrent sulfonylurea-induced hypoglycemia: IV dextrose or glucagon.",
+        "guidelines": ["ADA Standards of Care in Diabetes", "EASD Consensus Statement on Type 2 Diabetes Management", "ACC Expert Consensus Decision Pathway for Cardiovascular Risk Reduction in T2D", "AACE Comprehensive Type 2 Diabetes Management Algorithm"],
+        "exam_pearls": [
+            "DPP-4 resistance is conferred by non-natural amino acid Aib (alpha-aminoisobutyric acid) at position 8 replacing native L-alanine.",
+            "FLOW Trial landmark finding: first GLP-1RA demonstrated to halt kidney disease progression (50% eGFR decline, kidney failure, or death) in diabetic nephropathy.",
+            "Subcutaneous weekly dosing is enabled by C-18 fatty diacid spacer reversible albumin binding, extending half-life to 168 hours (7 days)."
+        ],
+        "primary_doi": "10.1016/j.celrep.2021.109374",
+        "pubmed_id": "34289354",
+        "citations": [
+            {"title": "Cryo-EM structure of human GLP-1 receptor bound to semaglutide", "journal": "Cell Reports", "doi": "10.1016/j.celrep.2021.109374", "pmid": "34289354"},
+            {"title": "Crystal structure of GLP-1 receptor extracellular domain in complex with peptide agonist", "journal": "J Biol Chem", "doi": "10.1074/jbc.M115.653451", "pmid": "26002901"},
+            {"title": "Semaglutide and Cardiovascular Outcomes in Patients with Type 2 Diabetes (SUSTAIN-6)", "journal": "New England Journal of Medicine", "doi": "10.1056/NEJMoa1607141", "pmid": "27633186"}
+        ],
+        "reaction_description": "Binding of semaglutide N-terminus to the orthosteric pocket of the GLP-1 receptor inducing active G-protein coupled conformational transition.",
+        "iupac_equation": "semaglutide + GLP1R(inactive) → semaglutide·GLP1R(active·Gs)",
+        "tags": ["Pharm-D", "MBBS", "Clinical-Pharmacopeia", "Verified-DOI", "Endocrinology", "Cardiology", "Nephrology", "GLP-1", "Diabetes", "Obesity", "Semaglutide", "Ozempic", "Wegovy", "Rybelsus", "Incretin"]
+    },
+
+    "tirzepatide": {
+        "generic_name": "Tirzepatide",
+        "brand_names": ["Mounjaro", "Zepbound"],
+        "inn": "tirzepatide",
+        "specialty": "endocrinology",
+        "chemical_class": "Dual GIP and GLP-1 Receptor Agonist (Twincretin)",
+        "smiles": "CCC(C)C(C(=O)NC(C)C(=O)NC(CCC(=O)N)C(=O)NC(CCCCNC(=O)COCCOCCNC(=O)COCCOCCNC(=O)CCC(C(=O)O)NC(=O)CCCCCCCCCCCCCCCCCCC(=O)O)C(=O)NC(C)C(=O)NC(CC1=CC=CC=C1)C(=O)NC(C(C)C)C(=O)NC(CCC(=O)N)C(=O)NC(CC2=CNC3=CC=CC=C32)C(=O)NC(CC(C)C)C(=O)NC(C(C)CC)C(=O)NC(C)C(=O)NCC(=O)NCC(=O)N4CCCC4C(=O)NC(CO)C(=O)NC(CO)C(=O)NCC(=O)NC(C)C(=O)N5CCCC5C(=O)N6CCCC6C(=O)N7CCCC7C(=O)NC(CO)C(=O)N)NC(=O)C(CCCCN)NC(=O)C(CC(=O)O)NC(=O)C(CC(C)C)NC(=O)C(C)(C)NC(=O)C(C(C)CC)NC(=O)C(CO)NC(=O)C(CC8=CC=C(C=C8)O)NC(=O)C(CC(=O)O)NC(=O)C(CO)NC(=O)C(C(C)O)NC(=O)C(CC9=CC=CC=C9)NC(=O)C(C(C)O)NC(=O)CNC(=O)C(CCC(=O)O)NC(=O)C(C)(C)NC(=O)C(CC1=CC=C(C=C1)O)N",
+        "iupac_name": "Tirzepatide GIP/GLP-1 dual incretin mimetic (39-amino acid peptide with C20 fatty diacid)",
+        "molecular_target": "GIP Receptor (GIPR) and GLP-1 Receptor (GLP1R)",
+        "pdb_accession": "7RGP",
+        "mode_of_action": "First-in-class dual glucose-dependent insulinotropic polypeptide (GIP) and GLP-1 receptor agonist ('twincretin'). Features 39 amino acids based on native GIP sequence modified with two non-coded Aib residues and a C-20 fatty diacid moiety on Lys-20. Demonstrates balanced or GIP-biased agonism, driving synergistic enhancement of first- and second-phase insulin secretion, glucagon suppression, adipocyte lipid buffering, and superior appetite regulation.",
+        "downstream_signaling": "Co-stimulates GIPR and GLP1R on pancreatic beta-cells, synergistically elevating cAMP/PKA and Epac2 signaling, enhancing mitochondrial ATP generation and calcium-dependent insulin exocytosis.",
+        "indications": "Type 2 Diabetes Mellitus (SURPASS trials) and Chronic Weight Management for obesity/overweight (SURMOUNT trials).",
+        "clinical_staging": "First-in-class twincretin delivering unparalleled HbA1c reductions (>2.0-2.5%) and substantial weight loss (up to 22.5%).",
+        "source_and_origin": "Developed by Eli Lilly and Company by synthetic peptide solid-phase synthesis followed by fatty diacid acylation (FDA approved 2022).",
+        "discovery_history": "Designed to harness the complementary metabolic benefits of GIP and GLP-1 receptors, overcoming previous doubts about GIP efficacy in diabetic states by continuous dual receptor co-agonism.",
+        "synthetic_route": "Solid-phase peptide synthesis (SPPS) using Fmoc chemistry followed by regioselective Lys-20 acylation with eicosanedioic acid via bis-OEG and gamma-Glu linkers.",
+        "absorption_distribution": "Subcutaneous bioavailability ~80%. Tmax 8-72 hours. Plasma protein binding ~99% (albumin). Vd ~10.3 L.",
+        "metabolism_elimination": "Degraded by proteolytic cleavage and side-chain beta-oxidation. Half-life ~116 hours (5 days), allowing once-weekly dosing. Excreted in urine and feces as peptide fragments.",
+        "half_life_hours": 116.0,
+        "comparative_species": "Human: approved for T2D and obesity. Investigational studies are evaluating GIP/GLP-1 receptor biology across mammalian models.",
+        "engagement_type": "nonCovalentReceptorBinding",
+        "delta_g_bind_kcal_mol": -15.1,
+        "binding_affinity": "Ki(GIPR) = 0.135 nM, Ki(GLP-1R) = 4.23 nM",
+        "active_site_pocket_residues": "GIPR: Arg-183, Tyr-184, Asp-185, Leu-188, Lys-193; GLP1R: Trp-39, Lys-197, Met-204, Trp-297",
+        "pKa": 4.2,
+        "ionized_fraction_ph74": 99.9,
+        "salt_form": "Tirzepatide Free Acid (MW 4813.53 g/mol)",
+        "major_drug_interactions": [
+            "Sulfonylureas / Insulin: additive hypoglycemia risk; reduce background secretagogue doses",
+            "Oral Contraceptives: delayed gastric emptying reduces peak oral contraceptive concentrations; barrier methods advised for 4 weeks after initiation and dose escalations"
+        ],
+        "ts_description": "Dual engagement of the orthosteric binding pockets of GIPR and GLP1R promoting G-protein coupling.",
+        "activation_barrier_kcal_mol": 14.2,
+        "catalytic_residues": "GIPR Arg-183, Lys-193, GLP1R Arg-380, Lys-197.",
+        "contraindications": "Personal/family history of Medullary Thyroid Carcinoma (MTC) or MEN 2; hypersensitivity.",
+        "adverse_effects": "Nausea, diarrhea, decreased appetite, vomiting, constipation, dyspepsia, abdominal pain.",
+        "black_box_warning": "Thyroid C-cell tumors risk in rodents; contraindicated with MTC or MEN 2.",
+        "antidote_rescue": "Supportive management, antiemetics, IV hydration; dextrose for concurrent sulfonylurea-induced hypoglycemia.",
+        "guidelines": ["ADA Standards of Care in Diabetes", "AACE Consensus Statement", "SURPASS and SURMOUNT Clinical Trial Programs"],
+        "exam_pearls": [
+            "Twincretin mechanism: simultaneous activation of GIP and GLP-1 receptors provides greater weight loss and glycemic control than GLP-1 monotherapy.",
+            "Oral contraceptive interaction: counsel patients to switch to non-oral contraception or add a barrier method for 4 weeks post-initiation and dose escalations.",
+            "Has a C-20 (eicosanedioic acid) diacid side chain at Lys-20 for albumin binding, unlike semaglutide's C-18."
+        ],
+        "primary_doi": "10.1056/NEJMoa2107519",
+        "pubmed_id": "34170647",
+        "citations": [
+            {"title": "Tirzepatide versus Semaglutide Once Weekly in Patients with Type 2 Diabetes (SURPASS-2)", "journal": "New England Journal of Medicine", "doi": "10.1056/NEJMoa2107519", "pmid": "34170647"},
+            {"title": "Cryo-EM structures of the human GIP and GLP-1 receptors bound to tirzepatide", "journal": "Nature Communications", "doi": "10.1038/s41467-022-28683-0", "pmid": "35232988"}
+        ],
+        "reaction_description": "Simultaneous receptor recognition and transmembrane activation of GIP and GLP-1 receptors.",
+        "iupac_equation": "tirzepatide + GIPR/GLP1R → tirzepatide·(GIPR+GLP1R)*",
+        "tags": ["Pharm-D", "MBBS", "Clinical-Pharmacopeia", "Verified-DOI", "Endocrinology", "GIP", "GLP-1", "Twincretin", "Diabetes", "Obesity", "Tirzepatide", "Mounjaro", "Zepbound"]
+    },
+
+    "liraglutide": {
+        "generic_name": "Liraglutide",
+        "brand_names": ["Victoza", "Saxenda"],
+        "inn": "liraglutide",
+        "specialty": "endocrinology",
+        "chemical_class": "Long-Acting GLP-1 Receptor Agonist",
+        "smiles": "CCCCCCCCCCCCCCCC(=O)NC(CCC(=O)NCCCCC(C(=O)NC(CCC(=O)O)C(=O)NC(CC1=CC=CC=C1)C(=O)NC(C(C)CC)C(=O)NC(C)C(=O)NC(CC2=CNC3=CC=CC=C32)C(=O)NC(CC(C)C)C(=O)NC(C(C)C)C(=O)NC(CCCNC(=N)N)C(=O)NCC(=O)NC(CCCNC(=N)N)C(=O)NCC(=O)O)NC(=O)C(C)NC(=O)C(C)NC(=O)C(CCC(=O)N)NC(=O)CNC(=O)C(CCC(=O)O)NC(=O)C(CC(C)C)NC(=O)C(CC4=CC=C(C=C4)O)NC(=O)C(CO)NC(=O)C(CO)NC(=O)C(C(C)C)NC(=O)C(CC(=O)O)NC(=O)C(CO)NC(=O)C(C(C)O)NC(=O)C(CC5=CC=CC=C5)NC(=O)C(C(C)O)NC(=O)CNC(=O)C(CCC(=O)O)NC(=O)C(C)NC(=O)C(CC6=CN=CN6)N)C(=O)O",
+        "iupac_name": "Liraglutide [Arg34]GLP-1(7-37)-(Lys26-N-epsilon-(gamma-Glu-palmitic acid))",
+        "molecular_target": "GLP-1 Receptor (GLP1R)",
+        "pdb_accession": "4ZGM",
+        "mode_of_action": "First-generation once-daily acylated human GLP-1 receptor agonist with 97% sequence homology to human GLP-1(7-37). Features a C-16 palmitic acid attached via a gamma-glutamyl spacer to Lys-26, and an Arg-34 substitution. Palmitoyl moiety drives reversible albumin binding and self-association into heptamers, slowing absorption from the subcutaneous depot and retarding renal elimination.",
+        "downstream_signaling": "Activates pancreatic beta-cell GLP-1 receptor, stimulating Gs alpha adenylyl cyclase, raising intracellular cAMP and activating PKA, potentiating glucose-dependent insulin secretion.",
+        "indications": "Type 2 Diabetes Mellitus (Victoza) and Chronic Weight Management (Saxenda).",
+        "clinical_staging": "Pivotal cardiovascular outcomes trial (LEADER) established liraglutide as the first GLP-1RA to significantly reduce cardiovascular mortality in T2D.",
+        "source_and_origin": "Discovered and developed by Novo Nordisk (FDA approved 2010).",
+        "discovery_history": "Pioneered the fatty acid acylation strategy for peptide half-life extension by mimicking nature's albumin-binding mechanism.",
+        "synthetic_route": "Recombinant expression of precursor peptide in yeast followed by chemical acylation with N-palmitoyl-L-glutamic acid alpha-succinimidyl ester.",
+        "absorption_distribution": "Subcutaneous bioavailability ~55%. Tmax 8-12 hours. Vd ~13 L. Protein binding >98%.",
+        "metabolism_elimination": "Endogenous endopeptidase and DPP-4 cleavage. Elimination half-life ~13 hours, requiring once-daily dosing.",
+        "half_life_hours": 13.0,
+        "comparative_species": "Human: once-daily GLP-1RA. Preclinical models established metabolic weight reduction.",
+        "engagement_type": "nonCovalentReceptorBinding",
+        "delta_g_bind_kcal_mol": -13.6,
+        "binding_affinity": "Ki = 0.55 nM, EC50 = 0.061 nM",
+        "active_site_pocket_residues": "GLP1R: Trp-39, Asp-67, Arg-121, Lys-197, Tyr-205, Trp-297",
+        "pKa": 4.6,
+        "ionized_fraction_ph74": 99.8,
+        "salt_form": "Liraglutide Solution for Injection (MW 3751.20 g/mol)",
+        "major_drug_interactions": [
+            "Sulfonylureas/Insulin: hypoglycemia risk",
+            "Delayed gastric emptying may transiently affect oral drug absorption"
+        ],
+        "ts_description": "GLP-1 receptor orthosteric activation by liraglutide N-terminal amino acid core.",
+        "activation_barrier_kcal_mol": 15.2,
+        "catalytic_residues": "GLP1R Arg-190, Lys-197, Arg-380.",
+        "contraindications": "Personal or family history of MTC or MEN 2; pregnancy.",
+        "adverse_effects": "Nausea, diarrhea, vomiting, hypoglycemia, acute pancreatitis, cholelithiasis.",
+        "black_box_warning": "Thyroid C-cell tumor risk in rodents; contraindicated in MTC or MEN 2.",
+        "antidote_rescue": "Supportive care, hydration, antiemetics.",
+        "guidelines": ["ADA Standards of Care in Diabetes", "AACE Diabetes Guidelines", "LEADER Trial"],
+        "exam_pearls": [
+            "LEADER Trial: First GLP-1 receptor agonist proven to reduce cardiovascular mortality in T2D.",
+            "Once-daily dosing: C-16 palmitic acid fatty acid chain confers ~13-hour half-life, whereas semaglutide's C-18 diacid achieves 1-week half-life.",
+            "Retains 97% sequence homology to native GLP-1(7-37), with only Arg-34 substitution."
+        ],
+        "primary_doi": "10.1056/NEJMoa1603827",
+        "pubmed_id": "27295427",
+        "citations": [
+            {"title": "Liraglutide and Cardiovascular Outcomes in Type 2 Diabetes (LEADER)", "journal": "New England Journal of Medicine", "doi": "10.1056/NEJMoa1603827", "pmid": "27295427"}
+        ],
+        "reaction_description": "Orthosteric binding and activation of the GLP-1 receptor by liraglutide.",
+        "iupac_equation": "liraglutide + GLP1R → liraglutide·GLP1R*",
+        "tags": ["Pharm-D", "MBBS", "Clinical-Pharmacopeia", "Verified-DOI", "Endocrinology", "GLP-1", "Diabetes", "Obesity", "Liraglutide", "Victoza", "Saxenda"]
     }
 }
 
@@ -1009,6 +1178,13 @@ def publish_medicine_to_firestore(drug_key: str, data: dict[str, Any], project_i
         "pharmacology_profile": monograph,
         "verifiedSources": monograph["verifiedSources"]
     }
+
+    try:
+        from search_tokenizer import build_search_metadata
+        search_meta = build_search_metadata(fields)
+        fields.update(search_meta)
+    except Exception as exc:
+        logger.warning("Could not compute search metadata: %s", exc)
 
     body = json.dumps({"fields": {k: to_firestore_value(v) for k, v in fields.items()}}).encode("utf-8")
 

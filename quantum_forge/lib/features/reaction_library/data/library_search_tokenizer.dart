@@ -23,7 +23,9 @@ final List<Set<String>> _synonymGroups = [
   {'arb', 'angiotensin receptor blocker'},
   {'nsaid', 'nonsteroidal anti-inflammatory'},
   {'sglt2', 'sglt2 inhibitor', 'gliflozin'},
-  {'glp1', 'glp-1', 'incretin'},
+  {'glp1', 'glp-1', 'incretin', 'semaglutide', 'ozempic', 'wegovy', 'rybelsus'},
+  {'tirzepatide', 'mounjaro', 'zepbound'},
+  {'liraglutide', 'victoza', 'saxenda'},
   {'hmg', 'coa', 'hmg-coa', 'hmgcoa', 'statin'},
   {'ivermectin', 'stromectol'},
   {'fenbendazole', 'panacur'},
@@ -183,57 +185,159 @@ List<String> tokenizeQuery(String rawQuery, {int maxTokens = 25}) {
 }
 
 /// Evaluates whether a ReactionTemplate matches the given rawQuery locally.
-bool matchesQuery(ReactionTemplate template, String rawQuery) {
-  final cleanQ = rawQuery.trim().toLowerCase();
-  if (cleanQ.isEmpty) return true;
+bool matchesQuery(ReactionTemplate template, String rawQuery) =>
+    LibrarySearchTokenizer.matchesQuery(template, rawQuery);
 
-  final nameLower = template.name.toLowerCase();
-  if (nameLower.contains(cleanQ)) return true;
+/// Scores candidate relevance across BM25, exact prefix, citations, and verified DOI.
+double scoreCandidateMatch(ReactionTemplate template, String rawQuery) =>
+    LibrarySearchTokenizer.scoreCandidateMatch(template, rawQuery);
 
-  final iupacLower = template.iupacName.toLowerCase();
-  if (iupacLower.contains(cleanQ)) return true;
+/// Relaxed multi-tier candidate matcher and scorer supporting partial letters,
+/// soft-OR multi-keyword overlap, ordered subsequences, and Levenshtein typo tolerance.
+class LibrarySearchTokenizer {
+  const LibrarySearchTokenizer._();
 
-  final descLower = template.description.toLowerCase();
-  if (descLower.contains(cleanQ)) return true;
+  /// Calculates Levenshtein edit distance between two strings.
+  static int levenshteinDistance(String s1, String s2) {
+    if (s1 == s2) return 0;
+    if (s1.isEmpty) return s2.length;
+    if (s2.isEmpty) return s1.length;
 
-  for (final tag in template.tags) {
-    if (tag.toLowerCase().contains(cleanQ)) return true;
-  }
+    List<int> v0 = List<int>.generate(s2.length + 1, (i) => i);
+    List<int> v1 = List<int>.filled(s2.length + 1, 0);
 
-  final queryWords = extractQueryWords(cleanQ, filterStopWords: true);
-  if (queryWords.isEmpty) return false;
-
-  final corpus = '$nameLower $iupacLower $descLower ${template.tags.join(" ").toLowerCase()}';
-  for (final qw in queryWords) {
-    if (corpus.contains(qw)) return true;
-    final syns = _synonymMap[qw];
-    if (syns != null) {
-      for (final s in syns) {
-        if (corpus.contains(s.toLowerCase())) return true;
+    for (int i = 0; i < s1.length; i++) {
+      v1[0] = i + 1;
+      for (int j = 0; j < s2.length; j++) {
+        final cost = (s1.codeUnitAt(i) == s2.codeUnitAt(j)) ? 0 : 1;
+        v1[j + 1] = math.min(
+          v1[j] + 1,
+          math.min(v0[j + 1] + 1, v0[j] + cost),
+        );
+      }
+      for (int j = 0; j < v0.length; j++) {
+        v0[j] = v1[j];
       }
     }
+    return v1[s2.length];
   }
-  return false;
-}
 
-/// Calculates client-side BM25 + exact-prefix + provenance score and ranks candidates.
-List<ReactionTemplate> rankSearchResults(List<ReactionTemplate> candidates, String rawQuery) {
-  if (candidates.isEmpty) return [];
-  final cleanQ = rawQuery.trim().toLowerCase();
-  final queryTerms = extractQueryWords(cleanQ);
-  if (queryTerms.isEmpty) return candidates;
+  /// Evaluates whether pattern is an ordered letter subsequence of target.
+  static bool isSubsequence(String pattern, String target) {
+    if (pattern.isEmpty) return true;
+    if (pattern.length > target.length) return false;
+    int p = 0;
+    for (int t = 0; t < target.length && p < pattern.length; t++) {
+      if (pattern.codeUnitAt(p) == target.codeUnitAt(t)) {
+        p++;
+      }
+    }
+    return p == pattern.length;
+  }
 
-  final scored = <MapEntry<ReactionTemplate, double>>[];
+  /// Relaxed local matcher combining partial substring, soft-OR keyword overlap,
+  /// synonym clusters, ordered letter subsequences, and Levenshtein typo tolerance.
+  static bool matchesQuery(ReactionTemplate template, String rawQuery) {
+    final cleanQ = rawQuery.trim().toLowerCase();
+    if (cleanQ.isEmpty) return true;
 
-  for (final doc in candidates) {
+    final nameLower = template.name.toLowerCase();
+    final iupacLower = template.iupacName.toLowerCase();
+    final subfieldLower = template.subfield.toLowerCase();
+    final descLower = template.description.toLowerCase();
+    final catLower = (template.defaultCatalystName ?? '').toLowerCase();
+    final doiLower = template.doi.toLowerCase();
+    final tagsJoined = template.tags.join(' ').toLowerCase();
+    final idLower = template.id.toLowerCase();
+
+    // 1. Exact string / partial substring across all primary fields
+    final corpus = '$nameLower $iupacLower $subfieldLower $descLower $catLower $doiLower $tagsJoined $idLower';
+    if (corpus.contains(cleanQ)) return true;
+
+    // 2. Ordered letter subsequence matching on name, IUPAC, or tags (>= 3 chars)
+    if (cleanQ.length >= 3) {
+      if (isSubsequence(cleanQ, nameLower) || isSubsequence(cleanQ, iupacLower)) {
+        return true;
+      }
+      for (final tag in template.tags) {
+        if (isSubsequence(cleanQ, tag.toLowerCase())) return true;
+      }
+    }
+
+    final queryWords = extractQueryWords(cleanQ, filterStopWords: false);
+    if (queryWords.isEmpty) return false;
+
+    // 3. Soft-OR multi-keyword overlap & clinical synonym expansion
+    for (final qw in queryWords) {
+      if (corpus.contains(qw)) return true;
+
+      // Check clinical synonym expansions
+      final syns = _synonymMap[qw];
+      if (syns != null) {
+        for (final s in syns) {
+          if (corpus.contains(s.toLowerCase())) return true;
+        }
+      }
+
+      // Check pharmacological suffix stems
+      for (final stem in extractSuffixStems(qw)) {
+        if (corpus.contains(stem)) return true;
+      }
+
+      // 4. Levenshtein typo tolerance (1-2 character edits for words >= 4 chars)
+      if (qw.length >= 4) {
+        final maxEdits = qw.length <= 5 ? 1 : 2;
+        final corpusWords = extractQueryWords(corpus, filterStopWords: false);
+        for (final cw in corpusWords) {
+          if ((cw.length - qw.length).abs() <= maxEdits) {
+            if (levenshteinDistance(qw, cw) <= maxEdits) {
+              return true;
+            }
+          }
+        }
+      }
+    }
+
+    return false;
+  }
+
+  /// Scores candidate match quality for ranking.
+  static double scoreCandidateMatch(ReactionTemplate doc, String rawQuery) {
+    final cleanQ = rawQuery.trim().toLowerCase();
+    if (cleanQ.isEmpty) return 0.0;
+
     final nameLower = doc.name.toLowerCase();
     final descLower = doc.description.toLowerCase();
     final tagsLower = doc.tags.map((t) => t.toLowerCase()).toSet();
     final iupacLower = doc.iupacName.toLowerCase();
+    final idLower = doc.id.toLowerCase();
+    final catLower = (doc.defaultCatalystName ?? '').toLowerCase();
+    final doiLower = doc.doi.toLowerCase();
 
     double score = 0.0;
 
-    // Term matches across fields
+    // 1. Exact ID or Exact Name match
+    if (idLower == cleanQ || nameLower == cleanQ) {
+      score += 10.0;
+    } else if (nameLower.startsWith(cleanQ)) {
+      score += 5.0;
+    } else if (nameLower.contains(cleanQ)) {
+      score += 3.0;
+    }
+
+    // 2. Clinical brand names and synonyms boost
+    final syns = _synonymMap[cleanQ];
+    if (syns != null) {
+      for (final s in syns) {
+        if (nameLower.contains(s.toLowerCase()) || idLower.contains(s.toLowerCase())) {
+          score += 4.0;
+          break;
+        }
+      }
+    }
+
+    // 3. Multi-keyword overlaps
+    final queryTerms = extractQueryWords(cleanQ, filterStopWords: false);
     for (final term in queryTerms) {
       if (nameLower.contains(term)) {
         score += 2.0;
@@ -241,27 +345,40 @@ List<ReactionTemplate> rankSearchResults(List<ReactionTemplate> candidates, Stri
         score += 1.5;
       } else if (iupacLower.contains(term)) {
         score += 1.0;
+      } else if (catLower.contains(term) || doiLower.contains(term)) {
+        score += 1.0;
       } else if (descLower.contains(term)) {
         score += 0.5;
       }
     }
 
-    // Exact name prefix boost (+3.0)
-    if (nameLower.startsWith(cleanQ)) {
-      score += 3.0;
-    } else if (nameLower.contains(cleanQ)) {
-      score += 1.5;
+    // 4. Clinical medicine prioritization (rx_med_*)
+    if (doc.id.startsWith('rx_med_')) {
+      score += 2.5;
     }
 
-    // Verified DOI / Peer-reviewed literature boost (+2.0)
+    // 5. Verified literature / DOI boost
     if (!doc.isDerived) {
       score += 2.0;
     }
 
-    // Citation count logarithm boost (+0.5 * ln(1 + citation_count))
+    // 6. Citation logarithmic scaling
     final citations = doc.pharmacologyProfile?.citations.length ?? (doc.doi.isNotEmpty ? 1 : 0);
     score += 0.5 * math.log(1.0 + citations);
 
+    return score;
+  }
+}
+
+/// Calculates client-side BM25 + exact-prefix + provenance score and ranks candidates.
+List<ReactionTemplate> rankSearchResults(List<ReactionTemplate> candidates, String rawQuery) {
+  if (candidates.isEmpty) return [];
+  final cleanQ = rawQuery.trim().toLowerCase();
+  if (cleanQ.isEmpty) return candidates;
+
+  final scored = <MapEntry<ReactionTemplate, double>>[];
+  for (final doc in candidates) {
+    final score = LibrarySearchTokenizer.scoreCandidateMatch(doc, cleanQ);
     scored.add(MapEntry(doc, score));
   }
 

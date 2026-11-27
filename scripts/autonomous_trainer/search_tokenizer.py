@@ -31,7 +31,9 @@ SYNONYM_GROUPS: List[Set[str]] = [
     {"arb", "angiotensin receptor blocker"},
     {"nsaid", "nonsteroidal anti-inflammatory"},
     {"sglt2", "sglt2 inhibitor", "gliflozin"},
-    {"glp1", "glp-1", "incretin"},
+    {"glp1", "glp-1", "incretin", "semaglutide", "ozempic", "wegovy", "rybelsus"},
+    {"tirzepatide", "mounjaro", "zepbound"},
+    {"liraglutide", "victoza", "saxenda"},
     {"hmg", "coa", "hmg-coa", "hmgcoa", "statin"},
     {"ivermectin", "stromectol"},
     {"fenbendazole", "panacur"},
@@ -53,6 +55,28 @@ _SOUNDEX_MAP = {
     'M': '5', 'N': '5',
     'R': '6'
 }
+
+# Stop words stripped from search query and indexing tokens
+STOP_WORDS: Set[str] = {
+    "of", "the", "and", "in", "to", "for", "with", "via",
+    "reaction", "synthesis", "mechanism", "pathway", "derivative"
+}
+
+# Pharmacological suffix stems for biochemical/drug family identification
+PHARMACOLOGICAL_SUFFIXES: List[str] = [
+    "statin", "cillin", "mycin", "floxacin", "prazole", "olol", "pril", "sartan",
+    "dipine", "pam", "lam", "vir", "mab", "nib", "tide", "zole", "gliflozin", "gliptin"
+]
+
+
+def extract_suffix_stems(word: str) -> List[str]:
+    """Extracts recognized pharmacological suffix stems if word has sufficient length."""
+    stems = []
+    w_lower = word.lower()
+    for sfx in PHARMACOLOGICAL_SUFFIXES:
+        if len(w_lower) > len(sfx) + 2 and w_lower.endswith(sfx):
+            stems.append(sfx)
+    return stems
 
 
 def compute_soundex(word: str) -> str:
@@ -78,7 +102,7 @@ def compute_soundex(word: str) -> str:
     return f"phx_{soundex_code}"
 
 
-def generate_edge_ngrams(token: str, min_len: int = 3, max_len: int = 8) -> List[str]:
+def generate_edge_ngrams(token: str, min_len: int = 2, max_len: int = 12) -> List[str]:
     """Generates prefix edge n-grams from min_len up to min(max_len, len(token))."""
     if len(token) < min_len:
         return []
@@ -89,14 +113,99 @@ def generate_edge_ngrams(token: str, min_len: int = 3, max_len: int = 8) -> List
     return ngrams
 
 
-def extract_words(text: str) -> List[str]:
-    """Splits text into lowercase alphanumeric words of length >= 2."""
+def extract_words(text: str, filter_stop_words: bool = False) -> List[str]:
+    """Splits text into lowercase alphanumeric words of length >= 2, optionally stripping stop words."""
     if not text:
         return []
     # Replace dashes/underscores with spaces to preserve compound subwords
     spaced = text.replace('-', ' ').replace('_', ' ').replace('/', ' ')
     words = re.findall(r'[a-zA-Z0-9]+', spaced)
-    return [w.lower() for w in words if len(w) >= 2]
+    res = [w.lower() for w in words if len(w) >= 2]
+    if filter_stop_words:
+        res = [w for w in res if w not in STOP_WORDS]
+    return res
+
+
+def tokenize_query(raw_query: str, max_tokens: int = 25) -> List[str]:
+    """Tokenizes, expands synonyms, attaches Soundex keys & suffix stems, capped at max_tokens."""
+    words = extract_words(raw_query, filter_stop_words=True)
+    if not words:
+        words = extract_words(raw_query, filter_stop_words=False)
+    if not words:
+        return []
+
+    result: List[str] = []
+
+    def _add(t: str):
+        if t not in result and len(result) < max_tokens:
+            result.append(t)
+
+    # 1. Exact query terms (highest signal)
+    for w in words:
+        _add(w)
+
+    # 2. Pharmacological suffix stems
+    for w in words:
+        for stem in extract_suffix_stems(w):
+            _add(stem)
+
+    # 3. Phonetic Soundex keys for typo tolerance
+    for w in words:
+        if len(w) >= 4 and not w.isdigit():
+            phx = compute_soundex(w)
+            if phx:
+                _add(phx)
+
+    # 4. Synonym expansions
+    for w in words:
+        if w in _SYNONYM_MAP:
+            for syn in _SYNONYM_MAP[w]:
+                for sw in extract_words(syn, filter_stop_words=True):
+                    _add(sw)
+
+    # 5. Edge n-grams for prefix matching (2 to 10 chars)
+    for w in words:
+        for ng in generate_edge_ngrams(w, min_len=2, max_len=10):
+            _add(ng)
+
+    return result[:max_tokens]
+
+
+def matches_query(record: Dict[str, Any], raw_query: str) -> bool:
+    """Evaluates whether a reaction record satisfies query predicate locally."""
+    clean_q = raw_query.strip().lower()
+    if not clean_q:
+        return True
+
+    name = str(record.get("name", "") or "").lower()
+    if clean_q in name:
+        return True
+    iupac = str(record.get("iupac_name", "") or record.get("iupacName", "") or "").lower()
+    if clean_q in iupac:
+        return True
+    desc = str(record.get("description", "") or "").lower()
+    if clean_q in desc:
+        return True
+
+    raw_tags = record.get("tags", [])
+    tag_str = " ".join(raw_tags).lower() if isinstance(raw_tags, list) else str(raw_tags).lower()
+    if clean_q in tag_str:
+        return True
+
+    words = extract_words(clean_q, filter_stop_words=True)
+    if not words:
+        return False
+
+    corpus = f"{name} {iupac} {desc} {tag_str}"
+    for w in words:
+        if w in corpus:
+            return True
+        if w in _SYNONYM_MAP:
+            for syn in _SYNONYM_MAP[w]:
+                if syn.lower() in corpus:
+                    return True
+
+    return False
 
 
 def build_search_metadata(record: Dict[str, Any]) -> Dict[str, Any]:
@@ -148,14 +257,20 @@ def build_search_metadata(record: Dict[str, Any]) -> Dict[str, Any]:
                 for w in extract_words(syn):
                     synonym_tokens.add(w)
 
-    # 3. Edge N-grams for primary title words (lengths 3 to 7)
+    # 3. Edge N-grams for primary title words (lengths 2 to 12)
     ngram_tokens: Set[str] = set()
     for w in name_words:
-        if len(w) >= 3 and not w.isdigit():
-            for ng in generate_edge_ngrams(w, min_len=3, max_len=7):
+        if len(w) >= 2 and not w.isdigit():
+            for ng in generate_edge_ngrams(w, min_len=2, max_len=12):
                 ngram_tokens.add(ng)
 
-    # 4. Phonetic Soundex keys for words in title and key synonyms
+    # 4. Pharmacological suffix stems
+    stem_tokens: Set[str] = set()
+    for w in list(primary_name_tokens) + list(collected_tokens):
+        for stem in extract_suffix_stems(w):
+            stem_tokens.add(stem)
+
+    # 5. Phonetic Soundex keys for words in title and key synonyms
     phonetic_tokens: Set[str] = set()
     for w in list(primary_name_tokens) + list(synonym_tokens):
         if len(w) >= 4 and not w.isdigit():
@@ -163,29 +278,31 @@ def build_search_metadata(record: Dict[str, Any]) -> Dict[str, Any]:
             if phx:
                 phonetic_tokens.add(phx)
 
-    # 5. Prioritize and cap tokens at 40
+    # 6. Prioritize and cap tokens at 50
     # Prioritization:
     # 1. Exact words from title (highest signal)
-    # 2. Edge n-grams for title words (supports prefix matching anywhere in title)
-    # 3. Direct synonyms (supports alternative drug names)
-    # 4. Phonetic keys (supports typos like qutiapene -> phx_Q315)
-    # 5. Remaining metadata tokens (tags, catalyst, doi)
+    # 2. Pharmacological stems
+    # 3. Edge n-grams for title words
+    # 4. Direct synonyms
+    # 5. Phonetic keys
+    # 6. Remaining metadata tokens (tags, catalyst, doi)
     final_tokens: List[str] = []
 
     def _add_set(token_set: Set[str]):
         for t in sorted(token_set):
             if t not in final_tokens:
                 final_tokens.append(t)
-                if len(final_tokens) >= 40:
+                if len(final_tokens) >= 50:
                     return
 
     _add_set(primary_name_tokens)
+    _add_set(stem_tokens)
     _add_set(ngram_tokens)
     _add_set(synonym_tokens)
     _add_set(phonetic_tokens)
     _add_set(collected_tokens)
 
-    final_tokens = final_tokens[:40]
+    final_tokens = final_tokens[:50]
 
     # 6. Facet Decomposition
     combined_corpus = f"{name} {iupac} {description} {category} {' '.join(tags)}".lower()

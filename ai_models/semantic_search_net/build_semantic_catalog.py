@@ -100,7 +100,7 @@ def build_catalog(model: Optional[PharmaChemBiEncoder] = None):
         doi = r.get("doi") or ""
         cit = r.get("citation_count") or 0
 
-        doc_text = f"{name} {cat} {desc} {tags}"
+        doc_text = f"{name} {tags} {desc} {cat}"
         tokens_batch.append(tokenize_text(doc_text))
         ids.append(rid)
         names.append(name)

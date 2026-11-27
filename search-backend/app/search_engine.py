@@ -165,12 +165,26 @@ def compute_match_features(
     q_lower = query.lower().strip()
     t_lower = target_name.lower().strip()
 
-    exact_prefix = 1.0 if t_lower.startswith(q_lower) or any(w.startswith(q_lower) for w in t_lower.split()) else 0.0
+    try:
+        from search_tokenizer import _SYNONYM_MAP
+        syns = _SYNONYM_MAP.get(q_lower, set())
+    except Exception:
+        syns = set()
+
+    exact_prefix = 1.0 if (
+        t_lower.startswith(q_lower)
+        or any(w.startswith(q_lower) for w in t_lower.split())
+        or any(s in t_lower for s in syns if len(s) >= 4)
+    ) else 0.0
 
     q_words = set(re.findall(r'[a-zA-Z0-9]+', q_lower))
+    expanded_q_words = set(q_words)
+    for s in syns:
+        expanded_q_words.update(re.findall(r'[a-zA-Z0-9]+', s.lower()))
+
     t_words = set(re.findall(r'[a-zA-Z0-9]+', t_lower))
-    intersection = len(q_words & t_words)
-    union = len(q_words | t_words) or 1
+    intersection = len(expanded_q_words & t_words)
+    union = len(expanded_q_words | t_words) or 1
     jaccard = intersection / union
 
     log_citations = math.log1p(max(0, citation_count)) / 10.0
@@ -294,6 +308,20 @@ class SearchEngine:
 
         sims = np.dot(self.catalog_embeddings, q_emb)
 
+        # Candidate pool reinforcement: ensure direct keyword & synonym matches enter candidate pool
+        q_clean = query.lower().strip()
+        try:
+            from search_tokenizer import _SYNONYM_MAP
+            syns = _SYNONYM_MAP.get(q_clean, set())
+        except Exception:
+            syns = set()
+        search_terms = {q_clean} | {s.lower() for s in syns if len(s) >= 4}
+        catalog_names_lower = np.char.lower(self.catalog_names.astype(str))
+        for term in search_terms:
+            hits = np.where(np.char.find(catalog_names_lower, term) >= 0)[0]
+            if len(hits) > 0:
+                sims[hits] = np.maximum(sims[hits], 0.94)
+
         valid_indices = np.arange(len(sims))
         if category and category.lower() != "all":
             mask = np.char.lower(self.catalog_categories.astype(str)) == category.lower()
@@ -333,7 +361,9 @@ class SearchEngine:
             feat_tensor = torch.tensor(features_list, dtype=torch.float32)
             rerank_scores = self.reranker(feat_tensor).numpy()
 
-        order = np.argsort(-rerank_scores)
+        # Balance neural cosine similarity (70%) with cross-reranker fine-grained features (30%)
+        combined_scores = 0.7 * top_sims + 0.3 * rerank_scores
+        order = np.argsort(-combined_scores)
         results = []
         for i in order[:top_k]:
             orig_idx = actual_indices[i]
@@ -341,7 +371,7 @@ class SearchEngine:
                 "id": str(self.catalog_ids[orig_idx]),
                 "name": str(self.catalog_names[orig_idx]),
                 "category": str(self.catalog_categories[orig_idx]),
-                "score": float(rerank_scores[i]),
+                "score": float(combined_scores[i]),
                 "doi": str(self.catalog_dois[orig_idx]) if self.catalog_dois[orig_idx] else None,
                 "citations": int(self.catalog_citations[orig_idx]),
                 "source": "neural_biencoder",

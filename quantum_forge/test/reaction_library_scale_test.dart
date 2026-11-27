@@ -161,7 +161,7 @@ void main() {
       expect(built, lessThan(60));
 
       // Scrolling deep into the list must still work and stay bounded.
-      await tester.fling(find.byType(GridView), const Offset(0, -20000), 20000);
+      await tester.fling(find.byType(Scrollable), const Offset(0, -20000), 20000);
       await tester.pumpAndSettle();
       final afterScroll = find.byType(ReactionCardWidget).evaluate().length;
       debugPrint('cards built after scrolling: $afterScroll');

@@ -182,9 +182,9 @@ class DPSearchMemoTable {
   MemoizedSearchNode? findOptimalSubstructureAncestor(SearchStateKey target) {
     final q = target.normalizedQuery;
 
-    // 1. Prefix Pruning: walk backwards through prefixes q[0..k-1] down to 3 chars
-    if (q.length >= 4) {
-      for (int len = q.length - 1; len >= 3; len--) {
+    // 1. Prefix Pruning: walk backwards through prefixes q[0..k-1] down to 4 chars
+    if (q.length >= 5) {
+      for (int len = q.length - 1; len >= 4; len--) {
         final ancestorKey = target.withPrefix(len);
         final node = get(ancestorKey);
         if (node != null && node.isExhaustive && !node.isExpired) {
@@ -534,7 +534,7 @@ class DPSearchMemoEngine {
             );
 
       final isExhaustive = (page.items.length < limit || !page.hasMore) &&
-          stateKey.normalizedQuery.length >= 3;
+          stateKey.normalizedQuery.length >= 4;
       final node = MemoizedSearchNode(
         items: page.items,
         nextCursor: page.nextCursor,

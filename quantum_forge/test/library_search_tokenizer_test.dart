@@ -27,6 +27,47 @@ void main() {
       expect(tokens, contains('acetaminophen'));
       expect(tokens, contains('paracetamol'));
       expect(tokens.length, lessThanOrEqualTo(25));
+
+      final ozempicTokens = tokenizeQuery('ozempic');
+      expect(ozempicTokens, contains('ozempic'));
+      expect(ozempicTokens, contains('semaglutide'));
+      expect(ozempicTokens, contains('wegovy'));
+
+      final mounjaroTokens = tokenizeQuery('mounjaro');
+      expect(mounjaroTokens, contains('mounjaro'));
+      expect(mounjaroTokens, contains('tirzepatide'));
+      expect(mounjaroTokens, contains('zepbound'));
+    });
+
+    test('LibrarySearchTokenizer matches relaxed letters, synonyms, and Levenshtein typos', () {
+      const semaTemplate = ReactionTemplate(
+        id: 'rx_med_semaglutide',
+        name: 'Semaglutide (Ozempic/Wegovy) GLP-1 Receptor Activation',
+        iupacName: 'Semaglutide recombinant peptide',
+        description: 'GLP-1 receptor agonist for type 2 diabetes and chronic weight management',
+        category: ReactionCategory.pharmaceutical,
+        reactantXyz: '1\n\nC 0 0 0',
+        productXyz: '1\n\nC 0 0 0',
+        referenceEa: 14.5,
+        doi: '10.1016/j.celrep.2021.109374',
+        journalRef: 'Cell Reports 2021',
+        tags: ['semaglutide', 'ozempic', 'wegovy', 'glp-1', 'diabetes', 'obesity'],
+        isDerived: false,
+      );
+
+      // Exact & Brand names
+      expect(LibrarySearchTokenizer.matchesQuery(semaTemplate, 'semaglutide'), isTrue);
+      expect(LibrarySearchTokenizer.matchesQuery(semaTemplate, 'ozempic'), isTrue);
+      expect(LibrarySearchTokenizer.matchesQuery(semaTemplate, 'wegovy'), isTrue);
+      expect(LibrarySearchTokenizer.matchesQuery(semaTemplate, 'rybelsus'), isTrue);
+
+      // Partial letters / subsequences
+      expect(LibrarySearchTokenizer.matchesQuery(semaTemplate, 'glp'), isTrue);
+      expect(LibrarySearchTokenizer.matchesQuery(semaTemplate, 'diab'), isTrue);
+
+      // 1-char Levenshtein typo
+      expect(LibrarySearchTokenizer.matchesQuery(semaTemplate, 'semaglutid'), isTrue);
+      expect(LibrarySearchTokenizer.matchesQuery(semaTemplate, 'ozempk'), isTrue);
     });
 
     test('Pharmacological suffix stem extraction', () {

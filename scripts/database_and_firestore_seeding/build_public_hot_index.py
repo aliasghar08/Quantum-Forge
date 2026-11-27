@@ -65,7 +65,7 @@ def parse_firestore_fields(fields: Dict[str, Any]) -> Dict[str, Any]:
 
 
 def fetch_verified_reactions_from_firestore(token: str, max_items: int = 25000) -> List[Dict[str, Any]]:
-    logger.info("Querying Firestore for up to %d verified / curated literature records...", max_items)
+    logger.info("Querying Firestore for clinical medicines and up to %d verified literature records...", max_items)
     url = f"https://firestore.googleapis.com/v1/projects/{PROJECT_ID}/databases/(default)/documents:runQuery"
     headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
 
@@ -97,6 +97,86 @@ def fetch_verified_reactions_from_firestore(token: str, max_items: int = 25000) 
         {"fieldPath": "search_tokens"},
     ]
 
+    results = []
+    seen_ids = set()
+
+    def parse_docs(data_items):
+        for item in data_items:
+            doc = item.get("document")
+            if not doc:
+                continue
+            doc_id = doc["name"].split("/")[-1]
+            if doc_id in seen_ids:
+                continue
+            seen_ids.add(doc_id)
+            flat = parse_firestore_fields(doc.get("fields", {}))
+
+            ref_ea = flat.get("reference_ea") or flat.get("referenceEa") or 15.0
+            record = {
+                "id": doc_id,
+                "name": flat.get("name") or doc_id,
+                "iupacName": flat.get("iupacName") or "",
+                "description": flat.get("description") or "",
+                "category": flat.get("category") or "pharmaceutical",
+                "reactantXyz": "",  # Coordinate-free for compact payload
+                "productXyz": "",   # Coordinate-free for compact payload
+                "referenceEa": float(ref_ea),
+                "doi": flat.get("doi") or "",
+                "journalRef": flat.get("journal_ref") or flat.get("journalRef") or "",
+                "tags": flat.get("tags") or [],
+                "isDerived": flat.get("is_derived", False),
+                "defaultCatalystName": flat.get("defaultCatalystName") or flat.get("default_catalyst_name"),
+                "catalystXyz": None,
+                "literatureBarrierKcalMol": flat.get("literatureBarrierKcalMol"),
+                "hasLiteratureCatalyst": flat.get("hasLiteratureCatalyst", False),
+                "literatureDoi": flat.get("literatureDoi"),
+                "search_tokens": flat.get("search_tokens", []),
+                "citation_count": flat.get("citation_count", 0),
+                "is_mbbs": flat.get("is_mbbs", False),
+                "is_pharm_d": flat.get("is_pharm_d", False),
+                "is_dvm": flat.get("is_dvm", False),
+                "is_polymer": flat.get("is_polymer", False),
+            }
+            results.append(record)
+
+    # 1. First fetch all clinical everyday medicines (rx_med_*)
+    med_query = {
+        "from": [{"collectionId": "library"}],
+        "select": {"fields": select_fields},
+        "where": {
+            "compositeFilter": {
+                "op": "AND",
+                "filters": [
+                    {
+                        "fieldFilter": {
+                            "field": {"fieldPath": "__name__"},
+                            "op": "GREATER_THAN_OR_EQUAL",
+                            "value": {"referenceValue": f"projects/{PROJECT_ID}/databases/(default)/documents/library/rx_med_"},
+                        }
+                    },
+                    {
+                        "fieldFilter": {
+                            "field": {"fieldPath": "__name__"},
+                            "op": "LESS_THAN",
+                            "value": {"referenceValue": f"projects/{PROJECT_ID}/databases/(default)/documents/library/rx_med_\uffff"},
+                        }
+                    },
+                ],
+            }
+        },
+        "limit": 500,
+    }
+    try:
+        med_body = json.dumps({"structuredQuery": med_query}).encode("utf-8")
+        med_req = urllib.request.Request(url, data=med_body, headers=headers, method="POST")
+        with urllib.request.urlopen(med_req, timeout=30) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+            parse_docs(data)
+            logger.info("Pre-loaded %d clinical medicine records (rx_med_*).", len(results))
+    except Exception as exc:
+        logger.warning("Could not pre-fetch clinical medicines: %s", exc)
+
+    # 2. General verified literature reactions query
     structured_query = {
         "from": [{"collectionId": "library"}],
         "select": {"fields": select_fields},
@@ -113,45 +193,10 @@ def fetch_verified_reactions_from_firestore(token: str, max_items: int = 25000) 
     body = json.dumps({"structuredQuery": structured_query}).encode("utf-8")
     req = urllib.request.Request(url, data=body, headers=headers, method="POST")
 
-    results = []
     try:
         with urllib.request.urlopen(req, timeout=60) as resp:
             data = json.loads(resp.read().decode("utf-8"))
-            for item in data:
-                doc = item.get("document")
-                if not doc:
-                    continue
-                doc_id = doc["name"].split("/")[-1]
-                flat = parse_firestore_fields(doc.get("fields", {}))
-
-                # Normalize template representation for Flutter ReactionTemplate.fromJson
-                ref_ea = flat.get("reference_ea") or flat.get("referenceEa") or 15.0
-                record = {
-                    "id": doc_id,
-                    "name": flat.get("name") or doc_id,
-                    "iupacName": flat.get("iupacName") or "",
-                    "description": flat.get("description") or "",
-                    "category": flat.get("category") or "pharmaceutical",
-                    "reactantXyz": "",  # Coordinate-free for compact payload
-                    "productXyz": "",   # Coordinate-free for compact payload
-                    "referenceEa": float(ref_ea),
-                    "doi": flat.get("doi") or "",
-                    "journalRef": flat.get("journal_ref") or flat.get("journalRef") or "",
-                    "tags": flat.get("tags") or [],
-                    "isDerived": flat.get("is_derived", False),
-                    "defaultCatalystName": flat.get("defaultCatalystName") or flat.get("default_catalyst_name"),
-                    "catalystXyz": None,
-                    "literatureBarrierKcalMol": flat.get("literatureBarrierKcalMol"),
-                    "hasLiteratureCatalyst": flat.get("hasLiteratureCatalyst", False),
-                    "literatureDoi": flat.get("literatureDoi"),
-                    "search_tokens": flat.get("search_tokens", []),
-                    "citation_count": flat.get("citation_count", 0),
-                    "is_mbbs": flat.get("is_mbbs", False),
-                    "is_pharm_d": flat.get("is_pharm_d", False),
-                    "is_dvm": flat.get("is_dvm", False),
-                    "is_polymer": flat.get("is_polymer", False),
-                }
-                results.append(record)
+            parse_docs(data)
     except Exception as e:
         logger.error("Failed to query Firestore: %s", e)
 

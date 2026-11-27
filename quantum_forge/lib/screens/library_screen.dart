@@ -198,9 +198,28 @@ class _LibraryScreenState extends State<LibraryScreen> {
   }
 
   Future<void> _loadNextPage() async {
-    if (_isLoadingMore || !_hasMore || _nextCursor == null) return;
+    if (_isLoadingMore || !_hasMore) return;
+    if (_nextCursor == null && _query.isEmpty) return;
     setState(() => _isLoadingMore = true);
     try {
+      if (_query.isNotEmpty && _nextCursor == null) {
+        final page = await _repo.searchPage(
+          _query,
+          category: _filterCategory,
+          after: null,
+        );
+        if (!mounted) return;
+        final existingIds = _items.map((i) => i.id).toSet();
+        final newItems = page.items.where((i) => !existingIds.contains(i.id)).toList();
+        setState(() {
+          _items = [..._items, ...newItems];
+          _nextCursor = page.nextCursor;
+          _hasMore = page.hasMore;
+          _isLoadingMore = false;
+        });
+        return;
+      }
+
       final bundle = await _dpEngine.search(
         query: _query,
         category: _filterCategory,
@@ -210,8 +229,10 @@ class _LibraryScreenState extends State<LibraryScreen> {
         after: _nextCursor,
       );
       if (!mounted) return;
+      final existingIds = _items.map((i) => i.id).toSet();
+      final newItems = bundle.items.where((i) => !existingIds.contains(i.id)).toList();
       setState(() {
-        _items = [..._items, ...bundle.items];
+        _items = [..._items, ...newItems];
         _nextCursor = bundle.nextCursor;
         _hasMore = bundle.hasMore;
         _isLoadingMore = false;
@@ -274,7 +295,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
       setState(() {
         _items = combined;
         _nextCursor = bundle.nextCursor;
-        _hasMore = bundle.hasMore;
+        _hasMore = bundle.hasMore || bundle.isFromL3Cdn;
         _isFirstLoad = false;
       });
     } catch (e) {
@@ -1483,6 +1504,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
       onTemplateSelected: _handleTemplateSelected,
       isLoadingMore: _isLoadingMore,
       scrollController: _scrollController,
+      onLoadMore: _loadNextPage,
     );
   }
 }

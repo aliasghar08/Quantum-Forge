@@ -1,14 +1,12 @@
 // ============================================================================
-// LibraryGrid — paginated grid with custom staggered entrance animation
+// LibraryGrid — lazy ListView.builder with responsive rows & lookahead prefetch
 // ----------------------------------------------------------------------------
-// Data comes entirely from Firestore (via LibraryScreen). This widget only
-// renders what it receives and triggers more loads via the shared
-// ScrollController when the user nears the bottom.
-//
-// Animation: single AnimationController drives staggered Interval per card —
-// no external package, no AnimationLimiter context dependency.
+// Renders virtualized card rows with responsive column count (1 to 3),
+// isolates card redraws via RepaintBoundary, and triggers lookahead prefetching
+// when nearing the bottom (rowIndex >= rowCount - 3).
 // ============================================================================
 
+import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:quantum_forge/features/reaction_library/data/reaction_templates.dart';
@@ -19,6 +17,7 @@ class LibraryGrid extends StatefulWidget {
   final ValueChanged<ReactionTemplate> onTemplateSelected;
   final bool isLoadingMore;
   final ScrollController? scrollController;
+  final VoidCallback? onLoadMore;
 
   const LibraryGrid({
     super.key,
@@ -26,6 +25,7 @@ class LibraryGrid extends StatefulWidget {
     required this.onTemplateSelected,
     this.isLoadingMore = false,
     this.scrollController,
+    this.onLoadMore,
   });
 
   static const double _spacing = 20;
@@ -39,23 +39,19 @@ class _LibraryGridState extends State<LibraryGrid>
     with SingleTickerProviderStateMixin {
   late final AnimationController _ctrl;
 
-  /// Only stagger the first visible screenful. Animating 24+ cards at once
-  /// looks great; anything beyond that is outside the viewport anyway.
+  /// Stagger the first visible screenful of cards.
   static const int _maxAnimated = 24;
   static const Duration _totalDuration = Duration(milliseconds: 700);
 
   @override
   void initState() {
     super.initState();
-    _ctrl = AnimationController(vsync: this, duration: _totalDuration)
-      ..forward();
+    _ctrl = AnimationController(vsync: this, duration: _totalDuration)..forward();
   }
 
   @override
   void didUpdateWidget(LibraryGrid old) {
     super.didUpdateWidget(old);
-    // Re-trigger entrance animation when the item set changes
-    // (filter or search result replaced the previous list).
     if (old.items.length != widget.items.length ||
         (old.items.isNotEmpty &&
             widget.items.isNotEmpty &&
@@ -82,6 +78,30 @@ class _LibraryGridState extends State<LibraryGrid>
     );
   }
 
+  Widget _buildCard(ReactionTemplate item, int globalIndex) {
+    final entrance = _entranceFor(globalIndex);
+    return AnimatedBuilder(
+      animation: entrance,
+      builder: (context, child) => Opacity(
+        opacity: entrance.value.clamp(0.0, 1.0),
+        child: Transform.translate(
+          offset: Offset(0, 20 * (1 - entrance.value)),
+          child: Transform.scale(
+            scale: 0.94 + 0.06 * entrance.value,
+            child: child,
+          ),
+        ),
+      ),
+      child: RepaintBoundary(
+        child: ReactionCardWidget(
+          key: ValueKey(item.id),
+          template: item,
+          onLoad: () => widget.onTemplateSelected(item),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.sizeOf(context).width;
@@ -92,9 +112,8 @@ class _LibraryGridState extends State<LibraryGrid>
             ? 2
             : 1;
 
-    // Extra slot at the end for the load-more spinner.
-    final itemCount =
-        widget.items.length + (widget.isLoadingMore ? 1 : 0);
+    final rowCount = (widget.items.length + columns - 1) ~/ columns;
+    final totalRows = rowCount + (widget.isLoadingMore ? 1 : 0);
 
     return Padding(
       padding: EdgeInsets.fromLTRB(
@@ -103,48 +122,49 @@ class _LibraryGridState extends State<LibraryGrid>
         isMobile ? 14 : 32,
         24,
       ),
-      child: GridView.builder(
+      child: ListView.builder(
         controller: widget.scrollController,
         padding: EdgeInsets.zero,
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: columns,
-          mainAxisSpacing: isMobile ? 12 : LibraryGrid._spacing,
-          crossAxisSpacing: isMobile ? 12 : LibraryGrid._spacing,
-          mainAxisExtent: isMobile ? 245 : LibraryGrid._cardHeight,
-        ),
-        itemCount: itemCount,
-        itemBuilder: (context, index) {
-          // Load-more spinner occupies the last slot
-          if (index >= widget.items.length) {
-            return const Center(
-              child: Padding(
-                padding: EdgeInsets.all(24),
-                child: CircularProgressIndicator(strokeWidth: 2),
+        itemCount: totalRows,
+        itemBuilder: (context, rowIndex) {
+          // Lookahead prefetching: when user scrolls near the bottom of loaded rows
+          if (rowIndex >= rowCount - 3 && !widget.isLoadingMore) {
+            widget.onLoadMore?.call();
+          }
+
+          // Bottom loading spinner footer
+          if (rowIndex >= rowCount) {
+            return const Padding(
+              padding: EdgeInsets.symmetric(vertical: 24),
+              child: Center(
+                child: RepaintBoundary(
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
               ),
             );
           }
 
-          final item = widget.items[index];
-          final entrance = _entranceFor(index);
+          final startIndex = rowIndex * columns;
+          final endIndex = math.min(startIndex + columns, widget.items.length);
+          final rowItems = widget.items.sublist(startIndex, endIndex);
 
-          return AnimatedBuilder(
-            animation: entrance,
-            builder: (context, child) => Opacity(
-              opacity: entrance.value.clamp(0.0, 1.0),
-              child: Transform.translate(
-                offset: Offset(0, 20 * (1 - entrance.value)),
-                child: Transform.scale(
-                  scale: 0.94 + 0.06 * entrance.value,
-                  child: child,
-                ),
-              ),
-            ),
-            child: RepaintBoundary(
-              child: ReactionCardWidget(
-                key: ValueKey(item.id),
-                template: item,
-                onLoad: () => widget.onTemplateSelected(item),
-              ),
+          return Padding(
+            padding: EdgeInsets.only(bottom: isMobile ? 12 : LibraryGrid._spacing),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                for (int col = 0; col < columns; col++) ...[
+                  if (col > 0) SizedBox(width: isMobile ? 12 : LibraryGrid._spacing),
+                  Expanded(
+                    child: col < rowItems.length
+                        ? SizedBox(
+                            height: isMobile ? 245 : LibraryGrid._cardHeight,
+                            child: _buildCard(rowItems[col], startIndex + col),
+                          )
+                        : const SizedBox.shrink(),
+                  ),
+                ],
+              ],
             ),
           );
         },
