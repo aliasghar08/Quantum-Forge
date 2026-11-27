@@ -39,9 +39,11 @@ import 'package:quantum_forge/screens/template_detail_screen.dart';
 import 'package:quantum_forge/features/organ_articles/presentation/organ_structure_article_screen.dart';
 import 'package:quantum_forge/features/reaction_library/data/medical_reaction_templates.dart';
 import 'package:quantum_forge/core/services/app_route_observer.dart';
+import 'package:quantum_forge/core/performance/adaptive_quality_governor.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
+  AdaptiveQualityGovernor.instance.initialize();
   if (kIsWeb) {
     usePathUrlStrategy();
   }

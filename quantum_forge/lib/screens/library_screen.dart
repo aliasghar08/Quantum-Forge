@@ -8,6 +8,7 @@ import 'dart:math' as math;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:quantum_forge/core/performance/adaptive_quality_governor.dart';
 import 'package:quantum_forge/core/theme/theme_provider.dart';
 import 'package:quantum_forge/features/reaction_library/data/reaction_templates.dart';
 import 'package:quantum_forge/features/reaction_library/data/reaction_template_generator.dart';
@@ -33,7 +34,9 @@ class LibraryScreen extends StatefulWidget {
 }
 
 class _LibraryScreenState extends State<LibraryScreen> {
-  static const Duration _searchDebounce = Duration(milliseconds: 350);
+  Duration get _searchDebounce => Duration(
+        milliseconds: AdaptiveQualityGovernor.instance.currentBudget.searchDebounceMs,
+      );
 
   final _repo = FirestoreLibraryRepository();
   final _dpEngine = DPSearchMemoEngine();
@@ -85,6 +88,17 @@ class _LibraryScreenState extends State<LibraryScreen> {
     _fetchCategoryCounts();
     _checkAuth();
     _scrollController.addListener(_onScroll);
+    AdaptiveQualityGovernor.instance.addStepDownListener(_onGovernorStepDown);
+  }
+
+  void _onGovernorStepDown() {
+    if (!mounted) return;
+    final maxWindow = AdaptiveQualityGovernor.instance.currentBudget.maxLibraryWindowItems;
+    if (_items.length > maxWindow) {
+      setState(() {
+        _items = _items.sublist(_items.length - maxWindow);
+      });
+    }
   }
 
   Future<void> _checkAuth() async {
@@ -105,6 +119,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
     _countSyncDebounce?.cancel();
     _speedBadgeNotifier.dispose();
     _scrollController.dispose();
+    AdaptiveQualityGovernor.instance.removeStepDownListener(_onGovernorStepDown);
     super.dispose();
   }
 
@@ -211,8 +226,13 @@ class _LibraryScreenState extends State<LibraryScreen> {
         if (!mounted) return;
         final existingIds = _items.map((i) => i.id).toSet();
         final newItems = page.items.where((i) => !existingIds.contains(i.id)).toList();
+        final maxWindow = AdaptiveQualityGovernor.instance.currentBudget.maxLibraryWindowItems;
+        var updated = [..._items, ...newItems];
+        if (updated.length > maxWindow) {
+          updated = updated.sublist(updated.length - maxWindow);
+        }
         setState(() {
-          _items = [..._items, ...newItems];
+          _items = updated;
           _nextCursor = page.nextCursor;
           _hasMore = page.hasMore;
           _isLoadingMore = false;
@@ -231,8 +251,13 @@ class _LibraryScreenState extends State<LibraryScreen> {
       if (!mounted) return;
       final existingIds = _items.map((i) => i.id).toSet();
       final newItems = bundle.items.where((i) => !existingIds.contains(i.id)).toList();
+      final maxWindow = AdaptiveQualityGovernor.instance.currentBudget.maxLibraryWindowItems;
+      var updated = [..._items, ...newItems];
+      if (updated.length > maxWindow) {
+        updated = updated.sublist(updated.length - maxWindow);
+      }
       setState(() {
-        _items = [..._items, ...newItems];
+        _items = updated;
         _nextCursor = bundle.nextCursor;
         _hasMore = bundle.hasMore;
         _isLoadingMore = false;

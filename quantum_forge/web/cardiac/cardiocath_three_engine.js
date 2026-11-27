@@ -3782,6 +3782,24 @@
     }
   };
 
+  engineHub.setQualityBudget = function(budget) {
+    if (!budget) return;
+    try {
+      var dpr = Math.min(window.devicePixelRatio || 1, budget.maxWebGlPixelRatio || 2);
+      if (engineHub.heartViewer && engineHub.heartViewer.renderer) {
+        engineHub.heartViewer.renderer.setPixelRatio(dpr);
+      }
+      if (engineHub.fluoViewer && engineHub.fluoViewer.renderer) {
+        engineHub.fluoViewer.renderer.setPixelRatio(dpr);
+      }
+      if (engineHub.carmViewer && engineHub.carmViewer.renderer) {
+        engineHub.carmViewer.renderer.setPixelRatio(dpr);
+      }
+    } catch (e) {
+      console.warn('[CardioCathThree] setQualityBudget failed:', e);
+    }
+  };
+
   window.CardioCathThree = engineHub;
 
 })(typeof window !== 'undefined' ? window : this);

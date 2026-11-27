@@ -11,6 +11,7 @@ import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart' show rootBundle, AssetBundle;
+import 'package:quantum_forge/core/performance/adaptive_quality_governor.dart';
 import 'package:quantum_forge/core/services/app_storage.dart';
 import 'package:quantum_forge/features/reaction_library/data/firestore_library_repository.dart';
 import 'package:quantum_forge/features/reaction_library/data/library_search_tokenizer.dart';
@@ -149,11 +150,22 @@ class SingleFlightCoalescer {
 
 /// L1 In-Memory Dynamic Programming Memoization Table with LRU eviction.
 class DPSearchMemoTable {
-  final int maxCapacity;
+  int maxCapacity;
   final LinkedHashMap<SearchStateKey, MemoizedSearchNode> _table =
       LinkedHashMap<SearchStateKey, MemoizedSearchNode>();
 
   DPSearchMemoTable({this.maxCapacity = 250});
+
+  void updateMaxCapacity(int newCapacity) {
+    maxCapacity = newCapacity;
+    trimToCapacity();
+  }
+
+  void trimToCapacity() {
+    while (_table.length > maxCapacity && _table.isNotEmpty) {
+      _table.remove(_table.keys.first);
+    }
+  }
 
   int get length => _table.length;
 
@@ -349,7 +361,20 @@ class DPSearchMemoEngine {
   bool _isL3Loading = false;
 
   DPSearchMemoEngine({FirestoreLibraryRepository? repository})
-      : _repository = repository ?? FirestoreLibraryRepository();
+      : _repository = repository ?? FirestoreLibraryRepository() {
+    AdaptiveQualityGovernor.instance.budgetNotifier.addListener(_onBudgetChanged);
+    AdaptiveQualityGovernor.instance.addStepDownListener(_onStepDown);
+    _onBudgetChanged();
+  }
+
+  void _onBudgetChanged() {
+    final b = AdaptiveQualityGovernor.instance.currentBudget;
+    _l1Table.updateMaxCapacity(b.maxDpMemoEntries);
+  }
+
+  void _onStepDown() {
+    _l1Table.trimToCapacity();
+  }
 
   DPSearchMemoTable get l1Table => _l1Table;
   bool get isL3Loaded => _isL3Loaded;
@@ -374,7 +399,9 @@ class DPSearchMemoEngine {
 
       if (jsonString != null && jsonString.isNotEmpty) {
         final list = jsonDecode(jsonString) as List<dynamic>;
-        _l3SeedCatalog = list.map((item) {
+        final maxHot = AdaptiveQualityGovernor.instance.currentBudget.maxHotIndexItems;
+        final limited = list.take(maxHot);
+        _l3SeedCatalog = limited.map((item) {
           final m = item as Map<String, dynamic>;
           final id = m['id'] as String? ?? 'hot-${m['slug'] ?? ""}';
           return ReactionTemplate.fromJson(m, id);

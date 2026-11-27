@@ -109,6 +109,21 @@
       this.brainViewers.clear();
       this.dsaViewers.clear();
     }
+
+    setQualityBudget(budget) {
+      if (!budget) return;
+      try {
+        var dpr = Math.min(window.devicePixelRatio || 1, budget.maxWebGlPixelRatio || 2);
+        this.brainViewers.forEach(v => {
+          if (v && v.renderer) v.renderer.setPixelRatio(dpr);
+        });
+        this.dsaViewers.forEach(v => {
+          if (v && v.renderer) v.renderer.setPixelRatio(dpr);
+        });
+      } catch (e) {
+        console.warn('[NeuroLabThree] setQualityBudget failed:', e);
+      }
+    }
   }
 
   // ─────────────────────────────────────────────────────────────────────────────

@@ -26,6 +26,7 @@
 
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:quantum_forge/core/performance/adaptive_quality_governor.dart';
 import 'package:quantum_forge/core/theme/theme_provider.dart';
 import '../../data/cardiac_pathology_models.dart';
 import '../../data/coronary_hemodynamics_engine.dart';
@@ -733,6 +734,7 @@ class _CardiacHemodynamicEcgStripState extends State<CardiacHemodynamicEcgStrip>
     _updateAlertBanner();
 
     widget.masterVitals?.addListener(_onMasterVitalsChanged);
+    AdaptiveQualityGovernor.instance.budgetNotifier.addListener(_onQualityBudgetChanged);
 
     final sweepSec = _sweepSpeedMmS == 50 ? 5 : 10;
     _sweepController = AnimationController(
@@ -743,9 +745,14 @@ class _CardiacHemodynamicEcgStripState extends State<CardiacHemodynamicEcgStrip>
 
   @override
   void dispose() {
+    AdaptiveQualityGovernor.instance.budgetNotifier.removeListener(_onQualityBudgetChanged);
     widget.masterVitals?.removeListener(_onMasterVitalsChanged);
     _sweepController.dispose();
     super.dispose();
+  }
+
+  void _onQualityBudgetChanged() {
+    if (mounted) setState(() {});
   }
 
   void _onMasterVitalsChanged() {

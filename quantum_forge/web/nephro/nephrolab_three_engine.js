@@ -1679,6 +1679,21 @@
       if (inst) inst.handleResize();
     },
 
+    setQualityBudget(budget) {
+      if (!budget) return;
+      try {
+        var dpr = Math.min(window.devicePixelRatio || 1, budget.maxWebGlPixelRatio || 2);
+        for (const k in this._instances) {
+          const inst = this._instances[k];
+          if (inst && inst.renderer) {
+            inst.renderer.setPixelRatio(dpr);
+          }
+        }
+      } catch (e) {
+        console.warn('[NephroLabThree] setQualityBudget failed:', e);
+      }
+    },
+
     unmount(target) {
       const inst = this._resolve(target);
       if (inst) {

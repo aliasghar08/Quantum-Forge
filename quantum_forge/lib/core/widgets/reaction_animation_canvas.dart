@@ -78,13 +78,25 @@ extension _ReactionAnimationCanvasExt on _ReactionAnimationWidgetState {
   }
 
   Widget _buildCanvas() {
-    final viewer = _cachedCanvas ??= NglViewer(
-      key: _viewerKey,
-      width: double.infinity,
-      height: double.infinity,
-      showAxesTriad: !widget.compactMode,
-    );
     final currentAtoms = _atomsAt(_frame);
+    final governor = AdaptiveQualityGovernor.instance;
+    final use2dFallback = governor.currentTier == QualityTier.lite &&
+        governor.currentFps < 18.0;
+
+    final viewer = use2dFallback
+        ? Container(
+            color: Colors.black,
+            child: CustomPaint(
+              size: Size.infinite,
+              painter: _Molecule2dFallbackPainter(atoms: currentAtoms),
+            ),
+          )
+        : (_cachedCanvas ??= NglViewer(
+            key: _viewerKey,
+            width: double.infinity,
+            height: double.infinity,
+            showAxesTriad: !widget.compactMode,
+          ));
     final activeBondLabels = currentAtoms.isNotEmpty
         ? bondLabelsForFrame(currentAtoms)
         : const <BondLabel>[];
@@ -329,5 +341,57 @@ extension _ReactionAnimationCanvasExt on _ReactionAnimationWidgetState {
       ],
     );
   }
+}
 
+class _Molecule2dFallbackPainter extends CustomPainter {
+  final List<Atom> atoms;
+  const _Molecule2dFallbackPainter({required this.atoms});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (atoms.isEmpty) return;
+    final center = Offset(size.width / 2, size.height / 2);
+    final paint = Paint()..isAntiAlias = true;
+    final bondPaint = Paint()
+      ..color = Colors.white24
+      ..strokeWidth = 2.0
+      ..strokeCap = StrokeCap.round;
+
+    for (int i = 0; i < atoms.length; i++) {
+      for (int j = i + 1; j < atoms.length; j++) {
+        final a = atoms[i];
+        final b = atoms[j];
+        final dx = a.x - b.x;
+        final dy = a.y - b.y;
+        final dz = a.z - b.z;
+        final dist = math.sqrt(dx * dx + dy * dy + dz * dz);
+        if (dist < 1.9) {
+          final p1 = Offset(center.dx + a.x * 24.0, center.dy - a.y * 24.0);
+          final p2 = Offset(center.dx + b.x * 24.0, center.dy - b.y * 24.0);
+          canvas.drawLine(p1, p2, bondPaint);
+        }
+      }
+    }
+
+    for (final atom in atoms) {
+      final pos = Offset(center.dx + atom.x * 24.0, center.dy - atom.y * 24.0);
+      paint.color = _colorForElement(atom.symbol);
+      canvas.drawCircle(pos, 6.5, paint);
+    }
+  }
+
+  Color _colorForElement(String el) {
+    return switch (el.toUpperCase()) {
+      'C' => const Color(0xFF7F7F7F),
+      'H' => Colors.white,
+      'O' => const Color(0xFFFF1744),
+      'N' => const Color(0xFF2979FF),
+      'S' => const Color(0xFFFFD600),
+      'P' => const Color(0xFFFF9100),
+      _ => const Color(0xFF00E5FF),
+    };
+  }
+
+  @override
+  bool shouldRepaint(covariant _Molecule2dFallbackPainter oldDelegate) => true;
 }

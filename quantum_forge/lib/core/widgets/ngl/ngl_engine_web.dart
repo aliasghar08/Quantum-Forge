@@ -59,6 +59,7 @@ import 'dart:ui_web' as ui_web;
 
 import 'package:web/web.dart' as web;
 
+import 'package:quantum_forge/core/performance/adaptive_quality_governor.dart';
 import 'package:quantum_forge/core/utils/avogadro_element_data.dart';
 
 import 'avogadro_geometry.dart' show AvogadroDisplayType;
@@ -268,6 +269,7 @@ class NglEngine {
     // exists and its canvas is in the DOM.
     _installContextLossListener();
     _installGestureListeners();
+    AdaptiveQualityGovernor.instance.budgetNotifier.addListener(_onQualityBudgetChanged);
 
     final queued = _queuedLoad;
     _queuedLoad = null;
@@ -303,7 +305,9 @@ class NglEngine {
 
   void _applySceneParameters(JSObject stage) {
     try {
-      final devicePixelRatio = web.window.devicePixelRatio;
+      final budget = AdaptiveQualityGovernor.instance.currentBudget;
+      final maxDpr = budget.maxWebGlPixelRatio;
+      final devicePixelRatio = math.min(web.window.devicePixelRatio.toDouble(), maxDpr);
       stage.callMethod(
         'setParameters'.toJS,
         JSObject()
@@ -1206,11 +1210,24 @@ class NglEngine {
     return false;
   }
 
+  void _onQualityBudgetChanged() {
+    if (_disposed || _stage == null) return;
+    try {
+      final budget = AdaptiveQualityGovernor.instance.currentBudget;
+      _glue?.callMethod(
+        'setQualityBudget'.toJS,
+        _stage!,
+        JSObject()..setProperty('maxWebGlPixelRatio'.toJS, budget.maxWebGlPixelRatio.toJS),
+      );
+    } catch (_) {}
+  }
+
   // ── Teardown ──────────────────────────────────────────────────────────────
 
   void dispose() {
     if (_disposed) return;
     _disposed = true;
+    AdaptiveQualityGovernor.instance.budgetNotifier.removeListener(_onQualityBudgetChanged);
     _engines.remove(_viewId);
     _component = null;
     _bondLabelComponent = null;

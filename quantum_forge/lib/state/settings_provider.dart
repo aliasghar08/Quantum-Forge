@@ -15,6 +15,7 @@
 
 import 'package:flutter/foundation.dart';
 import 'package:quantum_forge/core/config/api_endpoints.dart';
+import 'package:quantum_forge/core/performance/adaptive_quality_governor.dart';
 import 'package:quantum_forge/core/services/app_storage.dart';
 
 class QuantumSettings {
@@ -52,6 +53,7 @@ class QuantumSettings {
   final bool frequencyAnalysis;
   final String exportFormat;
   final bool conformationalSearch;
+  final AdaptiveQualityMode adaptiveQualityMode;
 
   const QuantumSettings({
     // System
@@ -84,6 +86,7 @@ class QuantumSettings {
     this.frequencyAnalysis = true,
     this.exportFormat = 'XYZ',
     this.conformationalSearch = false,
+    this.adaptiveQualityMode = AdaptiveQualityMode.auto,
   });
 
   /// The effective URL to use for the currently selected MLIP model.
@@ -183,6 +186,7 @@ class QuantumSettings {
     bool? frequencyAnalysis,
     String? exportFormat,
     bool? conformationalSearch,
+    AdaptiveQualityMode? adaptiveQualityMode,
   }) {
     return QuantumSettings(
       charge: charge ?? this.charge,
@@ -210,6 +214,7 @@ class QuantumSettings {
       frequencyAnalysis: frequencyAnalysis ?? this.frequencyAnalysis,
       exportFormat: exportFormat ?? this.exportFormat,
       conformationalSearch: conformationalSearch ?? this.conformationalSearch,
+      adaptiveQualityMode: adaptiveQualityMode ?? this.adaptiveQualityMode,
     );
   }
 
@@ -239,6 +244,7 @@ class QuantumSettings {
         'frequency_analysis': frequencyAnalysis,
         'export_format': exportFormat,
         'conformational_search': conformationalSearch,
+        'adaptive_quality_mode': adaptiveQualityMode.name,
       };
 }
 
@@ -282,6 +288,7 @@ class QuantumSettingsNotifier extends ValueNotifier<QuantumSettings> {
   static const _keyCatalyst = '${_k}catalyst';
   static const _keyApplyLitCat = '${_k}apply_lit_catalyst';
   static const _keyCustomCat = '${_k}custom_catalyst';
+  static const _keyAdaptiveMode = '${_k}adaptive_quality_mode';
 
   Future<void> _load() async {
     try {
@@ -311,7 +318,9 @@ class QuantumSettingsNotifier extends ValueNotifier<QuantumSettings> {
         frequencyAnalysis: AppStorage.getBool(_keyFreq) ?? true,
         exportFormat: AppStorage.getString(_keyExport) ?? 'XYZ',
         conformationalSearch: AppStorage.getBool(_keyConf) ?? false,
+        adaptiveQualityMode: _parseAdaptiveMode(AppStorage.getString(_keyAdaptiveMode)),
       );
+      AdaptiveQualityGovernor.instance.setMode(value.adaptiveQualityMode);
     } catch (e) {
       debugPrint('QuantumSettingsNotifier: could not load settings — $e');
     } finally {
@@ -347,15 +356,28 @@ class QuantumSettingsNotifier extends ValueNotifier<QuantumSettings> {
       AppStorage.setBool(_keyFreq, s.frequencyAnalysis);
       AppStorage.setString(_keyExport, s.exportFormat);
       AppStorage.setBool(_keyConf, s.conformationalSearch);
+      AppStorage.setString(_keyAdaptiveMode, s.adaptiveQualityMode.name);
     } catch (e) {
       debugPrint('QuantumSettingsNotifier: could not persist settings — $e');
     }
   }
 
+  static AdaptiveQualityMode _parseAdaptiveMode(String? raw) {
+    if (raw == null) return AdaptiveQualityMode.auto;
+    for (final mode in AdaptiveQualityMode.values) {
+      if (mode.name == raw) return mode;
+    }
+    return AdaptiveQualityMode.auto;
+  }
+
   void update(QuantumSettings Function(QuantumSettings) updater) {
     final updated = updater(value);
     if (updated == value) return;
+    final modeChanged = updated.adaptiveQualityMode != value.adaptiveQualityMode;
     value = updated;
+    if (modeChanged) {
+      AdaptiveQualityGovernor.instance.setMode(updated.adaptiveQualityMode);
+    }
     _pendingWrite = _save(updated);
   }
 

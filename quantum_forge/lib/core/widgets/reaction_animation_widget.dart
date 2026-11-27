@@ -51,6 +51,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:quantum_forge/core/performance/adaptive_quality_governor.dart';
 import 'package:quantum_forge/core/state/quantum_provider.dart';
 import 'package:quantum_forge/core/theme/theme_provider.dart';
 import 'package:quantum_forge/core/utils/xyz_parser.dart';

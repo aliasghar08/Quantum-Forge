@@ -11,6 +11,7 @@
 import 'package:flutter/material.dart';
 import 'package:quantum_forge/core/state/quantum_provider.dart';
 
+import 'package:quantum_forge/core/performance/adaptive_quality_governor.dart';
 import 'package:quantum_forge/core/services/backend_compute_service.dart';
 import 'package:quantum_forge/core/services/web_services.dart';
 import 'package:quantum_forge/core/settings/app_settings_provider.dart';
@@ -541,7 +542,112 @@ class _AppearanceTab extends StatelessWidget {
             ),
           ],
         ),
+        const SizedBox(height: 16),
+        const ThemeFamilyHeader(
+          title: 'Dynamic Quality Governor (AIMD)',
+          icon: Icons.speed,
+          subtitle:
+              'Closed-loop sense-and-adapt controller dynamically scales 3D '
+              'tessellation, PBR shaders, particle flow, and search memory to '
+              'maximize graphics quality while preventing frame drops.',
+        ),
+        const _AdaptiveQualityCard(),
       ],
+    );
+  }
+}
+
+class _AdaptiveQualityCard extends StatelessWidget {
+  const _AdaptiveQualityCard();
+
+  @override
+  Widget build(BuildContext context) {
+    final qsNotifier = context.watch<QuantumSettingsNotifier>();
+    final qs = qsNotifier.value;
+    final governor = AdaptiveQualityGovernor.instance;
+
+    return ValueListenableBuilder<QualityBudget>(
+      valueListenable: governor.budgetNotifier,
+      builder: (context, budget, _) {
+        final currentMode = qs.adaptiveQualityMode;
+        return Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.04),
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Quality Mode & Telemetry',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF00B0FF).withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: const Color(0xFF00B0FF).withValues(alpha: 0.4)),
+                    ),
+                    child: Text(
+                      governor.liveTelemetryPill,
+                      style: const TextStyle(
+                        color: Color(0xFF00B0FF),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              SegmentedButton<AdaptiveQualityMode>(
+                segments: const [
+                  ButtonSegment(
+                    value: AdaptiveQualityMode.auto,
+                    label: Text('Auto (AIMD)'),
+                    icon: Icon(Icons.auto_mode, size: 16),
+                  ),
+                  ButtonSegment(
+                    value: AdaptiveQualityMode.maxQuality,
+                    label: Text('Max Quality'),
+                    icon: Icon(Icons.high_quality, size: 16),
+                  ),
+                  ButtonSegment(
+                    value: AdaptiveQualityMode.batterySaver,
+                    label: Text('Battery Saver'),
+                    icon: Icon(Icons.battery_saver, size: 16),
+                  ),
+                ],
+                selected: {currentMode},
+                onSelectionChanged: (selected) {
+                  final newMode = selected.first;
+                  qsNotifier.update((s) => s.copyWith(adaptiveQualityMode: newMode));
+                },
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Active Budget: ${budget.tier.label} • DPR ${budget.maxWebGlPixelRatio}x • '
+                '${budget.sphereSegments} segs • Particles ${(budget.particleDensityScale * 100).toInt()}% • '
+                'Target ${budget.target3dFps} FPS • Search Cache ${budget.maxDpMemoEntries} entries',
+                style: TextStyle(
+                  color: Colors.white.withValues(alpha: 0.65),
+                  fontSize: 11,
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

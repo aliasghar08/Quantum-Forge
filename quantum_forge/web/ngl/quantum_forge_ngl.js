@@ -465,6 +465,24 @@
       }
     },
     replaceRepresentation: replaceRepresentation,
+    setQualityBudget: function (stage, budget) {
+      if (!stage) return false;
+      try {
+        if (stage.viewer && stage.viewer.renderer) {
+          var r = stage.viewer.renderer;
+          if (budget && budget.maxWebGlPixelRatio) {
+            r.setPixelRatio(Math.min(window.devicePixelRatio || 1, budget.maxWebGlPixelRatio));
+          }
+        }
+        if (stage.viewer && typeof stage.viewer.requestRender === 'function') {
+          stage.viewer.requestRender();
+        }
+        return true;
+      } catch (e) {
+        lastError = describe(e);
+        return false;
+      }
+    },
     autoView: function (stage, component) { safeAutoView(stage, component); },
 
     /** Summary of the last structure handed to NGL. */
