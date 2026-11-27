@@ -572,9 +572,27 @@ class FirestoreLibraryRepository {
     return null;
   }
 
+  // ── In-Flight Request Deduplication ─────────────────────────────────────
+  static final Map<String, Future<ReactionTemplate>> _geometryInFlight = {};
+
   /// Lazy-loads 3D coordinates (reactantXyz, productXyz, catalystXyz) on demand
   /// whenever a user selects a lightweight search card to open in the 3D workspace.
-  Future<ReactionTemplate> fetchReactionGeometry(String reactionId) async {
+  /// Deduplicates in-flight calls so rapid hover + click fires exactly one request.
+  Future<ReactionTemplate> fetchReactionGeometry(String reactionId) {
+    final existing = _geometryInFlight[reactionId];
+    if (existing != null) {
+      return existing;
+    }
+
+    final future = _doFetchReactionGeometry(reactionId);
+    _geometryInFlight[reactionId] = future;
+    future.whenComplete(() {
+      _geometryInFlight.remove(reactionId);
+    });
+    return future;
+  }
+
+  Future<ReactionTemplate> _doFetchReactionGeometry(String reactionId) async {
     try {
       final doc = await _col.doc(reactionId).get();
       if (doc.exists && doc.data() != null) {

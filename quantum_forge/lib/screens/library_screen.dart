@@ -21,6 +21,7 @@ import 'package:quantum_forge/features/reaction_library/data/dp_search_memo_engi
 import 'package:quantum_forge/core/state/quantum_provider.dart';
 import 'package:quantum_forge/core/services/auth_service.dart';
 import 'package:quantum_forge/core/widgets/adsense_banner_web.dart';
+import 'package:quantum_forge/core/utils/avogadro_bridge.dart';
 
 const String _kReactionLibraryCollection = 'library';
 
@@ -333,6 +334,8 @@ class _LibraryScreenState extends State<LibraryScreen> {
   }
 
   Future<void> _handleTemplateSelected(ReactionTemplate item) async {
+    // Immediately synchronize the browser URL so the transition is instant
+    AvogadroBridge.syncNavPath('/reaction/${item.slug}');
     if (item.reactantXyz.isNotEmpty) {
       widget.onTemplateSelected(item);
       return;

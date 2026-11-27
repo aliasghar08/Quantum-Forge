@@ -13,8 +13,9 @@ import 'package:quantum_forge/features/pharmacopeia/data/pharmacopeia_repository
 import 'package:quantum_forge/screens/pharmacopeia_screen.dart';
 import 'package:quantum_forge/core/services/doi_verification_service.dart';
 import 'package:quantum_forge/core/services/url_service.dart';
+import 'package:quantum_forge/core/algorithms/trajectory_isolate_builder.dart';
 
-class TemplateDetailScreen extends StatelessWidget {
+class TemplateDetailScreen extends StatefulWidget {
   final ReactionTemplate template;
   final VoidCallback onLoad;
   final List<String>? initialTrajectoryFrames;
@@ -27,6 +28,48 @@ class TemplateDetailScreen extends StatelessWidget {
     this.initialTrajectoryFrames,
     this.initialEnergyProfile,
   });
+
+  @override
+  State<TemplateDetailScreen> createState() => _TemplateDetailScreenState();
+}
+
+class _TemplateDetailScreenState extends State<TemplateDetailScreen> {
+  TrajectoryBundle? _trajectoryBundle;
+  bool _panelsMounted = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadTrajectoryBundle();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        setState(() => _panelsMounted = true);
+      }
+    });
+  }
+
+  void _loadTrajectoryBundle() {
+    final cached = TrajectoryIsolateService.instance.getCached(widget.template.id);
+    if (cached != null) {
+      _trajectoryBundle = cached;
+      return;
+    }
+
+    final input = TrajectoryIsolateInput(
+      reactionId: widget.template.id,
+      reactantXyz: widget.template.reactantXyz,
+      productXyz: widget.template.productXyz,
+      templateName: widget.template.name,
+      referenceEa: widget.template.referenceEa,
+      frameCount: 121,
+    );
+
+    TrajectoryIsolateService.instance.getOrCompute(input).then((bundle) {
+      if (mounted) {
+        setState(() => _trajectoryBundle = bundle);
+      }
+    });
+  }
 
   void _onSimulatePressed(BuildContext context) {
     User? user;
@@ -42,7 +85,7 @@ class TemplateDetailScreen extends StatelessWidget {
             onLoginSuccess: () {
               Navigator.of(ctx).pop();
               Navigator.of(context).pop();
-              onLoad();
+              widget.onLoad();
             },
           ),
         ),
@@ -50,11 +93,21 @@ class TemplateDetailScreen extends StatelessWidget {
       return;
     }
     Navigator.of(context).pop();
-    onLoad();
+    widget.onLoad();
+  }
+
+  bool _isUserAuthorized() {
+    try {
+      if (FirebaseAuth.instance.currentUser != null) return true;
+    } catch (_) {}
+    return widget.template.tags.contains('Pharm-D') ||
+        widget.template.tags.contains('MBBS') ||
+        widget.template.id == 'aspirin_synthesis';
   }
 
   @override
   Widget build(BuildContext context) {
+    final template = widget.template;
     final color = _categoryColor(template.category);
 
     return Scaffold(
@@ -101,10 +154,7 @@ class TemplateDetailScreen extends StatelessWidget {
               ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(14),
-                child: (FirebaseAuth.instance.currentUser != null ||
-                        template.tags.contains('Pharm-D') ||
-                        template.tags.contains('MBBS') ||
-                        template.id == 'aspirin_synthesis')
+                child: _isUserAuthorized()
                     ? ReactionAnimationWidget(
                         // ── Preview trajectory ─────────────────────────────────
                         //
@@ -120,17 +170,15 @@ class TemplateDetailScreen extends StatelessWidget {
                         // publication-grade TS work that is what should be used.
                         // The preview exists so a researcher can see the mechanism
                         // before committing cluster time.
-                        trajectoryFrames: (initialTrajectoryFrames != null && initialTrajectoryFrames!.isNotEmpty)
-                            ? initialTrajectoryFrames!
-                            : _previewTrajectory(template),
-                        energyProfile: (initialEnergyProfile != null && initialEnergyProfile!.isNotEmpty)
-                            ? initialEnergyProfile!
-                            : _generateSyntheticProfile(
-                                template.referenceEa,
-                              ),
-                        maxEnergyIndex: (initialEnergyProfile != null && initialEnergyProfile!.isNotEmpty)
-                            ? initialEnergyProfile!.indexOf(initialEnergyProfile!.reduce(math.max))
-                            : _tsFrame,
+                        trajectoryFrames: (widget.initialTrajectoryFrames != null && widget.initialTrajectoryFrames!.isNotEmpty)
+                            ? widget.initialTrajectoryFrames!
+                            : (_trajectoryBundle?.frames ?? _instantFrame1Trajectory(template)),
+                        energyProfile: (widget.initialEnergyProfile != null && widget.initialEnergyProfile!.isNotEmpty)
+                            ? widget.initialEnergyProfile!
+                            : (_trajectoryBundle?.energyProfile ?? _generateSyntheticProfile(template.referenceEa)),
+                        maxEnergyIndex: (widget.initialEnergyProfile != null && widget.initialEnergyProfile!.isNotEmpty)
+                            ? widget.initialEnergyProfile!.indexOf(widget.initialEnergyProfile!.reduce(math.max))
+                            : (_trajectoryBundle?.tsFrame ?? _tsFrame),
                         frameRateOverride: _previewFps,
                       )
                     : LockedAnimationPlaceholder(
@@ -146,7 +194,7 @@ class TemplateDetailScreen extends StatelessWidget {
             // ── Metadata Header ───────────────────────────────────────────
             LayoutBuilder(
               builder: (context, constraints) {
-                if (constraints.maxWidth < 600) {
+                if (constraints.maxWidth < 900) {
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
@@ -418,80 +466,82 @@ class TemplateDetailScreen extends StatelessWidget {
                 height: 1.6,
               ),
             ),
-            Builder(
-              builder: (ctx) {
-                final matches = PharmacopeiaRepository().filter(query: template.name);
-                final pharma = PharmacopeiaRepository().findByReactionId(template.id) ??
-                    (matches.isNotEmpty ? matches.first : null);
-                if (pharma == null) return const SizedBox.shrink();
-                return Container(
-                  margin: const EdgeInsets.only(top: 20, bottom: 8),
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF00BFA5).withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: const Color(0xFF00BFA5).withValues(alpha: 0.6)),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          const Icon(Icons.local_pharmacy_rounded, color: Color(0xFF00BFA5), size: 20),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              'Clinical & Veterinary Pharmacopeia: ${pharma.genericName}',
-                              style: const TextStyle(color: Color(0xFF00BFA5), fontSize: 14, fontWeight: FontWeight.bold),
+            if (_panelsMounted)
+              Builder(
+                builder: (ctx) {
+                  final matches = PharmacopeiaRepository().filter(query: template.name);
+                  final pharma = PharmacopeiaRepository().findByReactionId(template.id) ??
+                      (matches.isNotEmpty ? matches.first : null);
+                  if (pharma == null) return const SizedBox.shrink();
+                  return Container(
+                    margin: const EdgeInsets.only(top: 20, bottom: 8),
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF00BFA5).withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: const Color(0xFF00BFA5).withValues(alpha: 0.6)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            const Icon(Icons.local_pharmacy_rounded, color: Color(0xFF00BFA5), size: 20),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                'Clinical & Veterinary Pharmacopeia: ${pharma.genericName}',
+                                style: const TextStyle(color: Color(0xFF00BFA5), fontSize: 14, fontWeight: FontWeight.bold),
+                              ),
                             ),
-                          ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF00BFA5),
-                              borderRadius: BorderRadius.circular(4),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF00BFA5),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: const Text('RESEARCH GRADE', style: TextStyle(color: Colors.black, fontSize: 9.5, fontWeight: FontWeight.w900)),
                             ),
-                            child: const Text('RESEARCH GRADE', style: TextStyle(color: Colors.black, fontSize: 9.5, fontWeight: FontWeight.w900)),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Target: ${pharma.molecularTarget} (PDB: ${pharma.pdbAccession}) | Class: ${pharma.chemicalClass}',
-                        style: const TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w500),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        pharma.therapeuticIndications,
-                        style: const TextStyle(color: Colors.white60, fontSize: 11.5, height: 1.35),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 10),
-                      OutlinedButton.icon(
-                        icon: const Icon(Icons.menu_book_rounded, size: 14, color: Color(0xFF00BFA5)),
-                        label: const Text('Open Complete Pharmacopeia Dossier (MoA, Origin, ADME & Species Risks)', style: TextStyle(color: Color(0xFF00BFA5), fontSize: 11.5)),
-                        style: OutlinedButton.styleFrom(
-                          side: const BorderSide(color: Color(0xFF00BFA5)),
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                          ],
                         ),
-                        onPressed: () {
-                          showDialog<void>(
-                            context: ctx,
-                            builder: (dCtx) => const Dialog(
-                              backgroundColor: Color(0xFF161B22),
-                              child: PharmacopeiaScreen(),
-                            ),
-                          );
-                        },
-                      ),
-                    ],
-                  ),
-                );
-              },
-            ),
-            if (template.defaultCatalystName != null &&
+                        const SizedBox(height: 8),
+                        Text(
+                          'Target: ${pharma.molecularTarget} (PDB: ${pharma.pdbAccession}) | Class: ${pharma.chemicalClass}',
+                          style: const TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w500),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          pharma.therapeuticIndications,
+                          style: const TextStyle(color: Colors.white60, fontSize: 11.5, height: 1.35),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 10),
+                        OutlinedButton.icon(
+                          icon: const Icon(Icons.menu_book_rounded, size: 14, color: Color(0xFF00BFA5)),
+                          label: const Text('Open Complete Pharmacopeia Dossier (MoA, Origin, ADME & Species Risks)', style: TextStyle(color: Color(0xFF00BFA5), fontSize: 11.5)),
+                          style: OutlinedButton.styleFrom(
+                            side: const BorderSide(color: Color(0xFF00BFA5)),
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                          ),
+                          onPressed: () {
+                            showDialog<void>(
+                              context: ctx,
+                              builder: (dCtx) => const Dialog(
+                                backgroundColor: Color(0xFF161B22),
+                                child: PharmacopeiaScreen(),
+                              ),
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            if (_panelsMounted &&
+                template.defaultCatalystName != null &&
                 template.defaultCatalystName!.isNotEmpty) ...[
               Container(
                 margin: const EdgeInsets.only(top: 16, bottom: 24),
@@ -1008,6 +1058,14 @@ class TemplateDetailScreen extends StatelessWidget {
   /// scale of the camera's default fit so the phantom remains in the frame
   /// while it drifts.
   static const double _phantomEjectionDistance = 25.0;
+
+  /// Instant Frame 1 trajectory for two-frame shell paint (< 16 ms INP).
+  List<String> _instantFrame1Trajectory(ReactionTemplate template) {
+    if (template.reactantXyz.isNotEmpty) {
+      return [template.reactantXyz];
+    }
+    return _previewTrajectory(template);
+  }
 
   /// A smooth, research-grade preview path.
   ///

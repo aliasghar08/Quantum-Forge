@@ -42,19 +42,24 @@ extension _ReactionAnimationCoreExt on _ReactionAnimationWidgetState {
         productBonds,
       );
 
-      // The whole path as one multi-model SDF, so NGL scrubs between images
-      // instead of re-parsing one per frame. Connectivity comes from the first
-      // image, which is NGL's `asTrajectory` contract; the dynamic-bonding path
-      // bypasses this entirely.
-      _trajectorySdf = AvogadroSdfWriter.writeTrajectory([
-        for (var i = 0; i < frames.length; i++) _atomsAt(i),
-      ], _staticBonds);
-
       _startFrame = 0;
       _endFrame = frames.length - 1;
       _frame = 0;
       _direction = 1;
       _transitionStateFrame = _resolveTransitionStateFrame(frames.length);
+
+      // Defers multi-frame trajectory SDF compilation off the critical first paint frame.
+      // Frame 1 renders instantly, and remaining frames assemble smoothly.
+      if (frames.length > 1) {
+        Future.microtask(() {
+          if (!mounted) return;
+          _trajectorySdf = AvogadroSdfWriter.writeTrajectory([
+            for (var i = 0; i < frames.length; i++) _atomsAt(i),
+          ], _staticBonds);
+        });
+      } else {
+        _trajectorySdf = AvogadroSdfWriter.writeTrajectory([first], _staticBonds);
+      }
     } else if (widget.pdbUrl != null && widget.dcdUrl != null) {
       // It's a remote MD trajectory
       final framesLen = widget.mdFrameCount ?? 1;

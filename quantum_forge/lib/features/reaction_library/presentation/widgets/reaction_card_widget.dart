@@ -9,6 +9,7 @@ import 'package:quantum_forge/screens/auth_screen.dart';
 import 'package:quantum_forge/features/reaction_library/data/reaction_templates.dart';
 import 'package:quantum_forge/screens/template_detail_screen.dart';
 import 'package:quantum_forge/core/widgets/glass_container.dart';
+import 'package:quantum_forge/features/reaction_library/data/firestore_library_repository.dart';
 
 class ReactionCardWidget extends StatefulWidget {
   final ReactionTemplate template;
@@ -71,6 +72,12 @@ class ReactionCardWidget extends StatefulWidget {
 class _ReactionCardWidgetState extends State<ReactionCardWidget> {
   bool _isHovered = false;
 
+  void _prefetchGeometry() {
+    if (widget.template.reactantXyz.isEmpty) {
+      FirestoreLibraryRepository().fetchReactionGeometry(widget.template.id);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final template = widget.template;
@@ -79,7 +86,10 @@ class _ReactionCardWidgetState extends State<ReactionCardWidget> {
     final isMobile = MediaQuery.sizeOf(context).width < 600;
 
     return MouseRegion(
-      onEnter: (_) => setState(() => _isHovered = true),
+      onEnter: (_) {
+        _prefetchGeometry();
+        setState(() => _isHovered = true);
+      },
       onExit: (_) => setState(() => _isHovered = false),
       cursor: SystemMouseCursors.click,
       child: AnimatedContainer(
@@ -107,6 +117,7 @@ class _ReactionCardWidgetState extends State<ReactionCardWidget> {
             color: Colors.transparent,
             child: InkWell(
               borderRadius: BorderRadius.circular(16),
+              onTapDown: (_) => _prefetchGeometry(),
               onTap: () {
                 if (widget.onTap != null) {
                   widget.onTap!();

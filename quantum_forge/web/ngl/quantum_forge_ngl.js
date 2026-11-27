@@ -55,6 +55,74 @@
   var lastBadges = null;
   var lastError = null;
 
+  // ── WebGL Stage Pool (< 50 ms INP Navigation) ──────────────────────────
+  var _stagePool = [];
+  var MAX_POOL_SIZE = 2;
+
+  function acquireStage(container, params) {
+    requireNgl();
+    // 1. Try to recycle a warm stage from the pool
+    while (_stagePool.length > 0) {
+      var pooled = _stagePool.pop();
+      try {
+        if (pooled && pooled.viewer && pooled.viewer.renderer) {
+          var gl = pooled.viewer.renderer.getContext();
+          if (gl && !gl.isContextLost()) {
+            if (container && pooled.viewer.container) {
+              container.appendChild(pooled.viewer.container);
+            }
+            if (typeof pooled.handleResize === 'function') {
+              pooled.handleResize();
+            }
+            lastStage = pooled;
+            return pooled;
+          }
+        }
+      } catch (e) {
+        // Discard dead pooled stage
+      }
+    }
+
+    // 2. Instantiate a fresh stage if pool is empty
+    var stage = new window.NGL.Stage(container, params);
+    lastStage = stage;
+    return stage;
+  }
+
+  function releaseStage(stage) {
+    if (!stage) return;
+    try {
+      if (typeof stage.removeAllComponents === 'function') {
+        stage.removeAllComponents();
+      }
+      if (stage.viewer && typeof stage.viewer.setSpin === 'function') {
+        stage.viewer.setSpin(false);
+      }
+      if (stage.viewer && pooledIsUsable(stage) && _stagePool.length < MAX_POOL_SIZE) {
+        if (stage.viewer.container && stage.viewer.container.parentNode) {
+          stage.viewer.container.parentNode.removeChild(stage.viewer.container);
+        }
+        _stagePool.push(stage);
+        return;
+      }
+      if (typeof stage.dispose === 'function') {
+        stage.dispose();
+      }
+    } catch (e) {
+      // Ignore cleanup error
+    }
+  }
+
+  function pooledIsUsable(stage) {
+    try {
+      if (!stage || !stage.viewer || !stage.viewer.renderer) return false;
+      var gl = stage.viewer.renderer.getContext();
+      return gl && !gl.isContextLost();
+    } catch (_) {
+      return false;
+    }
+  }
+
   function describe(error) {
     if (error === null || error === undefined) return String(error);
     if (typeof error === 'string') return error;
@@ -448,6 +516,8 @@
     loadSdf: loadSdf,
     loadRemoteMd: loadRemoteMd,
     registerAvogadroScheme: registerAvogadroScheme,
+    acquireStage: acquireStage,
+    releaseStage: releaseStage,
     setFrame: setFrame,
     setBondLabels: setBondLabels,
     removeComponent: removeComponent,

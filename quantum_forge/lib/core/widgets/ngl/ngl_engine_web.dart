@@ -244,13 +244,23 @@ class NglEngine {
     if (ngl == null) return;
 
     try {
-      final stageConstructor = ngl.getProperty<JSFunction>('Stage'.toJS);
+      final glue = _glue;
       final params = JSObject()
         ..setProperty('backgroundColor'.toJS, backgroundColor.toJS);
-      _stage = stageConstructor.callAsConstructor<JSObject>(
-        _element as JSAny,
-        params,
-      );
+
+      if (glue != null && glue.hasProperty('acquireStage'.toJS).toDart) {
+        _stage = glue.callMethod<JSObject>(
+          'acquireStage'.toJS,
+          _element as JSAny,
+          params,
+        );
+      } else {
+        final stageConstructor = ngl.getProperty<JSFunction>('Stage'.toJS);
+        _stage = stageConstructor.callAsConstructor<JSObject>(
+          _element as JSAny,
+          params,
+        );
+      }
     } catch (error, stack) {
       _stage = null;
       assert(() {
@@ -1243,19 +1253,24 @@ class NglEngine {
     _stage = null;
     if (stage != null) {
       try {
-        stage.callMethod('dispose'.toJS);
+        final glue = _glue;
+        if (glue != null && glue.hasProperty('releaseStage'.toJS).toDart) {
+          glue.callMethod('releaseStage'.toJS, stage as JSAny);
+        } else {
+          stage.callMethod('dispose'.toJS);
 
-        final canvases = _element.getElementsByTagName('canvas');
-        if (canvases.length > 0) {
-          final canvas = canvases.item(0) as web.HTMLCanvasElement;
-          final gl = canvas.getContext('webgl2') ?? canvas.getContext('webgl');
-          if (gl != null) {
-            final ext = (gl).callMethod(
-              'getExtension'.toJS,
-              'WEBGL_lose_context'.toJS,
-            );
-            if (ext != null) {
-              (ext as JSObject).callMethod('loseContext'.toJS);
+          final canvases = _element.getElementsByTagName('canvas');
+          if (canvases.length > 0) {
+            final canvas = canvases.item(0) as web.HTMLCanvasElement;
+            final gl = canvas.getContext('webgl2') ?? canvas.getContext('webgl');
+            if (gl != null) {
+              final ext = (gl).callMethod(
+                'getExtension'.toJS,
+                'WEBGL_lose_context'.toJS,
+              );
+              if (ext != null) {
+                (ext as JSObject).callMethod('loseContext'.toJS);
+              }
             }
           }
         }
